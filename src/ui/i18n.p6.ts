@@ -16,6 +16,13 @@ export const EN6 = {
   'ev.blight': 'An apple bush has the blight.', 'ev.blight_culled': '{name} pulled out a blighted bush before it could spread.',
   'ev.shooting_star': 'A shooting star fell near the village!', 'act.cull_blight': 'Pulling out a blighted bush',
   'fact.blight_spreads': 'blight spreads from bush to bush', 'item.star_stone': 'Star stone', 'insp.blight': 'Blight',
+  'act.bury_dead': 'Burying the dead', 'act.mourn': 'Mourning at a grave', 'mod.grief': 'grief for {name}',
+  'ev.buried': '{dead} was laid to rest by {name}.', 'ev.buried_many': '{dead} was laid to rest by {name}, with {n} mourners standing by.',
+  'ev.buried_mound': 'Nobody came for {dead}; the body was covered where it lay.', 'ev.grief_mate': '{name} is heartbroken over {dead}.',
+  'grave.state.lying': 'Lying where they fell', 'grave.state.carried': 'Being carried to the graveyard', 'grave.state.buried': 'Laid to rest in the graveyard',
+  'grave.state.mound': 'A mound where they fell', 'grave.born': 'Born', 'grave.died': 'Died', 'grave.lived': 'Lived', 'grave.seasons': '{n} seasons',
+  'grave.cause': 'Cause', 'grave.goods': 'Grave goods', 'grave.noGoods': 'nothing', 'grave.mourners': 'Grieving', 'grave.noMourners': 'Nobody grieves for them now.',
+  'grave.eulogy': 'Eulogy', 'grave.noEulogy': 'No one has spoken for them yet.', 'grave.founder': 'before the village was founded',
 } as const;
 
 export const DE6: Record<keyof typeof EN6, string> = {
@@ -35,4 +42,11 @@ export const DE6: Record<keyof typeof EN6, string> = {
   'ev.blight': 'Ein Apfelbusch hat den Mehltau.', 'ev.blight_culled': '{name} hat einen kranken Busch ausgerissen, bevor er andere ansteckt.',
   'ev.shooting_star': 'Eine Sternschnuppe ist nahe dem Dorf niedergegangen!', 'act.cull_blight': 'Reißt einen kranken Busch aus',
   'fact.blight_spreads': 'Mehltau springt von Busch zu Busch', 'item.star_stone': 'Sternenstein', 'insp.blight': 'Mehltau',
+  'act.bury_dead': 'Begräbt einen Toten', 'act.mourn': 'Trauert an einem Grab', 'mod.grief': 'Trauer um {name}',
+  'ev.buried': '{dead} wurde von {name} zur Ruhe gebettet.', 'ev.buried_many': '{dead} wurde von {name} zur Ruhe gebettet, {n} Trauernde standen dabei.',
+  'ev.buried_mound': 'Niemand kam für {dead}; der Leichnam wurde dort bedeckt, wo er lag.', 'ev.grief_mate': '{name} ist untröstlich über {dead}.',
+  'grave.state.lying': 'Liegt, wo er fiel', 'grave.state.carried': 'Wird zum Friedhof getragen', 'grave.state.buried': 'Auf dem Friedhof zur Ruhe gebettet',
+  'grave.state.mound': 'Ein Hügel, wo er fiel', 'grave.born': 'Geboren', 'grave.died': 'Gestorben', 'grave.lived': 'Lebte', 'grave.seasons': '{n} Jahreszeiten',
+  'grave.cause': 'Ursache', 'grave.goods': 'Grabbeigaben', 'grave.noGoods': 'nichts', 'grave.mourners': 'Trauernde', 'grave.noMourners': 'Niemand trauert jetzt um sie.',
+  'grave.eulogy': 'Grabrede', 'grave.noEulogy': 'Noch hat niemand für sie gesprochen.', 'grave.founder': 'vor der Gründung des Dorfes',
 };

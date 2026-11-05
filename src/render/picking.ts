@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import type { World } from '../sim/world';
 import type { ID } from '../shared/types';
 
-export type EntityKind = 'goblin' | 'item' | 'plant' | 'building' | 'egg';
+export type EntityKind = 'goblin' | 'item' | 'plant' | 'building' | 'egg' | 'grave';
 export interface Pick { ground: THREE.Vector3 | null; entity: { kind: EntityKind; id: ID } | null }
 
 const ray = new THREE.Raycaster();
@@ -13,7 +13,7 @@ const tmp = new THREE.Vector3();
 export function pick(
   w: World, cam: THREE.Camera, x: number, y: number, width: number, height: number,
   terrain: THREE.Object3D[], goblinPos: (id: ID) => THREE.Vector3 | null, items: THREE.Object3D[], plants: THREE.InstancedMesh[],
-  plantList: (m: THREE.InstancedMesh) => { id: ID }[] | undefined, buildings: THREE.Object3D[] = [], eggs: THREE.Object3D[] = [],
+  plantList: (m: THREE.InstancedMesh) => { id: ID }[] | undefined, buildings: THREE.Object3D[] = [], eggs: THREE.Object3D[] = [], graves: THREE.Object3D[] = [],
 ): Pick {
   ndc.set((x / width) * 2 - 1, -(y / height) * 2 + 1);
   ray.setFromCamera(ndc, cam);
@@ -39,6 +39,8 @@ export function pick(
   const eh = ray.intersectObjects(eggs, true)[0];
   const eo = eh?.object.userData.kind === 'egg' ? eh.object : eh?.object.parent;
   if (eo?.userData.kind === 'egg') return { ground, entity: { kind: 'egg', id: eo.userData.id as ID } };
+  const gh = ray.intersectObjects(graves, false)[0];
+  if (gh?.object.userData.kind === 'grave') return { ground, entity: { kind: 'grave', id: gh.object.userData.id as ID } };
   const bh = ray.intersectObjects(buildings, true)[0];
   const bid = bh?.object.userData.buildingId as ID | undefined;
   const ph = ray.intersectObjects(plants, false)[0];

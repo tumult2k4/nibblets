@@ -54,6 +54,8 @@ interface Row {
   wildfires: string;
   /** P6.3: floods / droughts / blight outbreaks (bushes caught, culled) / shooting stars */
   disasters: string;
+  /** P6.4: buried in the graveyard / covered where they lay / visits to graves */
+  rites: string;
 }
 
 const meanHue = (hs: number[]): number => {
@@ -79,6 +81,7 @@ function runSeed(seed: number): Row {
   let tended = 0, burnedB = 0;
   const fireCauses: Record<string, number> = {};
   const dis = { flood: 0, drought: 0, blight: 0, culled: 0, star: 0, floodLost: 0 };
+  const rites = { buried: 0, mounds: 0, mourned: 0 };
   w.bus.subscribe((e) => {
     if (e.type === 'fell_ill') ill[e.disease] = (ill[e.disease] ?? 0) + 1;
     if (e.type === 'tended') tended++;
@@ -90,6 +93,8 @@ function runSeed(seed: number): Row {
     else if (e.type === 'blight_culled') dis.culled++;
     else if (e.type === 'shooting_star') dis.star++;
     else if (e.type === 'building_destroyed' && e.cause === 'flood') dis.floodLost++;
+    else if (e.type === 'buried') rites[e.byId === null ? 'mounds' : 'buried']++;
+    else if (e.type === 'mourned') rites.mourned++;
     if (e.type === 'goblin_died' && e.cause === 'starvation' && w.clock.season === 'winter') winterDeaths++;
     if (e.type === 'food_processed') { if (e.item === 'apple_mash') mash += e.qty; else dried += e.qty; }
     if (e.type === 'enemy_spawned' && e.kind !== 'gnasher') rare[e.kind === 'bramblebeast' ? 'beasts' : 'wisps']++;
@@ -164,6 +169,7 @@ function runSeed(seed: number): Row {
   return {
     winterStarve, winterDeaths, spoiled: w.s.stats.spoiled ?? 0, preserved: `${mash}/${dried}`, generations: gens, hue: `${Math.round(hue0)}°→${Math.round(hue1)}°`,
     ill: Object.entries(ill).map(([k, v]) => `${k} ${v}`).join(', ') || '—', tended,
+    rites: `${rites.buried}/${rites.mounds}/${rites.mourned}`,
     disasters: `${dis.flood}/${dis.drought}/${dis.blight} (culled ${dis.culled})/${dis.star}${dis.floodLost ? ` huts lost ${dis.floodLost}` : ''}`,
     wildfires: `${Object.entries(fireCauses).map(([k, v]) => `${k} ${v}`).join(', ') || '—'} / ash ${w.s.tiles.filter((t) => t.ash).length} / burned ${burnedB}`,
     specialists: `${Object.entries(spec).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${k} ${n}`).join(', ') || '—'} · top ${top.toFixed(1)}`, friends,
@@ -182,7 +188,7 @@ const rows: Row[] = [];
 for (let i = 0; i < seedCount; i++) {
   const r = runSeed(firstSeed + i);
   rows.push(r);
-  console.log(`seed ${r.seed}: pop ${r.popEnd} (min ${r.popMin}, max ${r.popMax}) deaths ${JSON.stringify(r.deaths)} eaten ${r.eaten} bushes ${r.bushes0}→${r.bushesEnd} plantedMature ${r.plantedMature} wood ${r.wood} stone/flint/sticks ${r.stone} armed ${r.armed} fires ${r.fires} gnashers/stolen/bites/fled/killed/wounds ${r.foes} veterans ${r.veterans} huts ${r.huts} fences ${r.fences} beasts/smashed wisps/lured newcomers ${r.rare} housed@autumn ${r.housedAutumn < 0 ? '—' : Math.round(r.housedAutumn * 100) + '%'} specialists ${r.specialists} friends ${r.friends} winterStarve ${r.winterStarve} winterDeaths ${r.winterDeaths} spoiled ${r.spoiled} mash/dried ${r.preserved} generations ${r.generations} hue ${r.hue} (drift ${r.hueDrift.toFixed(1)}°) ill [${r.ill}] tended ${r.tended} wildfires [${r.wildfires}] floods/droughts/blight/stars ${r.disasters} tick ${r.tickMs.toFixed(3)}ms ${r.fails.length ? 'FAIL ' + r.fails.join(',') : 'ok'}`);
+  console.log(`seed ${r.seed}: pop ${r.popEnd} (min ${r.popMin}, max ${r.popMax}) deaths ${JSON.stringify(r.deaths)} eaten ${r.eaten} bushes ${r.bushes0}→${r.bushesEnd} plantedMature ${r.plantedMature} wood ${r.wood} stone/flint/sticks ${r.stone} armed ${r.armed} fires ${r.fires} gnashers/stolen/bites/fled/killed/wounds ${r.foes} veterans ${r.veterans} huts ${r.huts} fences ${r.fences} beasts/smashed wisps/lured newcomers ${r.rare} housed@autumn ${r.housedAutumn < 0 ? '—' : Math.round(r.housedAutumn * 100) + '%'} specialists ${r.specialists} friends ${r.friends} winterStarve ${r.winterStarve} winterDeaths ${r.winterDeaths} spoiled ${r.spoiled} mash/dried ${r.preserved} generations ${r.generations} hue ${r.hue} (drift ${r.hueDrift.toFixed(1)}°) ill [${r.ill}] tended ${r.tended} wildfires [${r.wildfires}] floods/droughts/blight/stars ${r.disasters} buried/mounds/mourned ${r.rites} tick ${r.tickMs.toFixed(3)}ms ${r.fails.length ? 'FAIL ' + r.fails.join(',') : 'ok'}`);
 }
 const lines = [
   `# Balance report — ${days} days × ${seedCount} seeds${noCraft ? ' (control: no crafting)' : ''}${noPreserve ? ' (control: no preservation)' : ''}`,

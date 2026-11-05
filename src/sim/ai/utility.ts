@@ -48,6 +48,7 @@ import { Process } from './actions/process';
 import { RestSick, TendSick } from './actions/care';
 import { EscapeFire, ExtinguishFire, fireCaught } from './actions/fireFight';
 import { CullBlight } from './actions/cullBlight';
+import { BuryDead, Mourn, setDown } from './actions/burial';
 
 export const ACTIONS: Record<ActionId, UtilityAction> = {
   idle: Idle, wander: Wander, eat: Eat, harvest_fruit: HarvestFruit, pick_up: PickUp, drop: Drop,
@@ -62,7 +63,7 @@ export const ACTIONS: Record<ActionId, UtilityAction> = {
   court: Court, lay_egg: LayEgg, incubate_egg: IncubateEgg, feed_child: FeedChild, follow_parent: FollowParent,
   play: Play, learn: Learn, teach: Teach, cut_grass: CutGrass, pick_flowers: PickFlowers, process: Process,
   rest_sick: RestSick, tend_sick: TendSick, extinguish_fire: ExtinguishFire, escape_fire: EscapeFire,
-  cull_blight: CullBlight,
+  cull_blight: CullBlight, bury_dead: BuryDead, mourn: Mourn,
 };
 const CHOOSABLE = (Object.values(ACTIONS) as UtilityAction[]).filter((a) => !a.forced);
 
@@ -123,6 +124,7 @@ export function forceAction(g: Goblin, w: World, id: 'look_up' | 'struggle' | 's
 }
 
 function releaseReservations(g: Goblin, w: World): void {
+  if (g.activity.action === 'bury_dead') setDown(w, g); // a body being carried is set down where the carrier stands
   if (g.activity.action === 'pick_up' && g.activity.targetId !== null) {
     const it = w.s.groundItems.find((x) => x.id === g.activity.targetId);
     if (it && it.reservedBy === g.id) it.reservedBy = null;

@@ -1,7 +1,8 @@
 /**
  * Touches on top of goblinView's poses. Illness (§14.3, P6.1): spotted fever shows as green spots on belly and head,
  * the shivers as a constant tremble (a goblin resting sick lies on its side, set in goblinView's chain). Fire (P6.2):
- * stomping out flames, high knees and arms flung out.
+ * stomping out flames, high knees and arms flung out. Death (P6.4): carrying a body on the shoulders, digging the
+ * grave, kneeling at a grave with the head bowed.
  */
 import * as THREE from 'three';
 import type { Goblin } from '../sim/state';
@@ -50,5 +51,17 @@ export function sickLook(g: Goblin, r: GoblinRig, t: number): void {
     r.legL.rotation.x = -Math.max(0, k) * 1.2; r.legR.rotation.x = -Math.max(0, -k) * 1.2;
     r.armL.rotation.x = r.armR.rotation.x = -0.6; r.armL.rotation.z = -0.9; r.armR.rotation.z = 0.9;
     r.body.position.y = 0.12 + Math.abs(k) * 0.05;
+  }
+  const a = g.activity;
+  if (a.action === 'bury_dead' && a.stage === 2) { // the body across its shoulders
+    r.armL.rotation.x = r.armR.rotation.x = -2.6; r.armL.rotation.z = 0.2; r.armR.rotation.z = -0.2;
+    r.body.rotation.x += 0.2; r.head.rotation.x = 0.15;
+  } else if (a.action === 'bury_dead' && a.stage === 3) { // digging: both hands, a scoop and a toss
+    const k = Math.sin(t * 5 + g.id);
+    r.armL.rotation.x = r.armR.rotation.x = -0.6 - k * 0.7;
+    r.body.rotation.x = 0.35 + Math.max(0, k) * 0.2;
+  } else if (a.action === 'mourn' && a.stage === 1) { // kneeling, head bowed
+    r.body.position.y = 0.05; r.legL.rotation.x = r.legR.rotation.x = -1.25;
+    r.head.rotation.x = 0.45; r.armL.rotation.x = r.armR.rotation.x = -0.5; r.armL.rotation.z = 0.3; r.armR.rotation.z = -0.3;
   }
 }

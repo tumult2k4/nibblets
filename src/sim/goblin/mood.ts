@@ -4,6 +4,9 @@ import type { Goblin } from '../state';
 import type { World } from '../world';
 import { twinOf } from './traits';
 
+/** Grieving (P6.4): some loss still weighs `grievingAt` or more. */
+const grieving = (g: Goblin): boolean => g.mood.modifiers.some((m) => m.amount <= -CFG.death.grievingAt && m.id.startsWith('grief:'));
+
 /** Mood stub (P1): need-driven value + timed modifiers, smoothed. The full system is P8.1. */
 export function updateMood(w: World): void {
   const s = w.s;
@@ -14,6 +17,7 @@ export function updateMood(w: World): void {
     g.mood.value = q4(clamp(g.mood.value + (target - g.mood.value) * 0.05, -100, 100));
     g.mood.emotion =
       (g.heldByGod && g.godView.fear > 50) || g.needs.safety < CFG.safety.scaredBelow ? 'scared'
+        : grieving(g) ? 'grieving'
         : g.mood.value > 45 ? 'happy'
           : g.mood.value < -40 ? 'sad'
             : g.needs.social < 15 ? 'lonely'

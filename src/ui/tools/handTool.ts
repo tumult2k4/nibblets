@@ -59,7 +59,7 @@ export class HandTool {
     if (st.k === 'pending') {
       const moved = Math.hypot(e.clientX - st.x, e.clientY - st.y);
       if (moved > 6 && !this.petting) {
-        const fixed = st.entity?.kind === 'building' || st.entity?.kind === 'egg'; // eggs are not lifted (yet)
+        const fixed = st.entity?.kind === 'building' || st.entity?.kind === 'egg' || st.entity?.kind === 'grave'; // eggs are not lifted (yet), the dead never
         if (st.entity && !fixed && this.canAct()) {
           // goblins, items, and plants (uproot, §P2.7) can be lifted; buildings stay put
           this.ctx.push({ type: 'god_grab', entityId: st.entity.id });

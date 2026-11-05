@@ -16,6 +16,7 @@ const GLYPH: Record<Emote, { text: string; color: string }> = {
   anger: { text: '💢', color: '#d0402a' },
   sneeze: { text: '💨', color: '#7aa0b8' },
   sick: { text: '🤢', color: '#5f9a3a' },
+  tear: { text: '💧', color: '#5b7fa8' },
 };
 
 const textures = new Map<Key, THREE.Texture>();

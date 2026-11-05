@@ -75,6 +75,15 @@ function traitList(g: Goblin): HTMLElement[] {
     el('span.trait-chip', {}, icon(TRAIT_ICON[tr] ?? 'star'), el('span', { text: t(`atrait.${tr}`) })), el('span.sub', { text: t(`atrait.${tr}.d`) })));
 }
 
+/** A mood modifier in words: grief names whom it is for (P6.4). */
+function modLabel(id: string, w: World): string {
+  if (id.startsWith('grief:')) {
+    const deadId = Number(id.slice(6));
+    return t('mod.grief', { name: w.s.graves.find((gr) => gr.goblinId === deadId)?.name ?? w.s.lineage[deadId]?.name ?? '?' });
+  }
+  return id.replace(/_/g, ' ');
+}
+
 export function statusTab(g: Goblin, w: World): HTMLElement {
   const n = g.needs;
   // fun counts for younglings only until pranks, music and festivals (P5.4); comfort and purpose are still stubs
@@ -90,7 +99,7 @@ export function statusTab(g: Goblin, w: World): HTMLElement {
   const home = g.homeId !== null ? w.s.buildings.find((b) => b.id === g.homeId) : undefined;
   tags.push(home ? `${t('bld.hut')} ${home.buildProgress >= 1 ? '' : `(${t('insp.blueprint')})`}`.trim() : t('insp.homeless'));
   const mood = g.mood.value;
-  const mods = [...g.mood.modifiers].sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount)).slice(0, 3).map((m) => `${m.id.replace(/_/g, ' ')} ${m.amount > 0 ? '+' : ''}${Math.round(m.amount)}`);
+  const mods = [...g.mood.modifiers].filter((m) => m.amount !== 0).sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount)).slice(0, 3).map((m) => `${modLabel(m.id, w)} ${m.amount > 0 ? '+' : ''}${Math.round(m.amount)}`);
   return el('div', {},
     el('div.row', {}, el('b', { text: `${t('insp.doing')}: ` }), el('span', { text: t(`act.${g.activity.action}`) })),
     g.goalStack.length ? el('div.row', {}, el('b', { text: `${t('insp.goal')}: ` }), el('span', { text: g.goalStack.map((e) => goalText(e.goal, w)).join(' → ') })) : null,

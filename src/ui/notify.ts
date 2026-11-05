@@ -182,6 +182,16 @@ export function noteFor(e: SimEvent, w: World, names: Map<ID, string>): Note | n
       return { ...base, id: e.goblinId, text: t('ev.blight_culled', { name: name(e.goblinId) }), tier: 'info', icon: 'leaf' };
     case 'shooting_star':
       return { ...base, text: t('ev.shooting_star'), tier: 'notable', icon: 'star' };
+    case 'buried': {
+      const dead = w.s.graves.find((gr) => gr.id === e.graveId)?.name ?? '?';
+      if (e.byId === null) return { ...base, text: t('ev.buried_mound', { dead }), tier: 'info', icon: 'skull' };
+      return { ...base, id: e.byId, text: t(e.mourners > 1 ? 'ev.buried_many' : 'ev.buried', { dead, name: name(e.byId), n: e.mourners }), tier: 'notable', icon: 'skull' };
+    }
+    case 'grief': {
+      // only the dead's mate is news; everyone else's grief shows on their faces
+      if (w.goblin(e.goblinId)?.relationships.find((r) => r.targetId === e.deadId)?.bond !== 'mate') return null;
+      return { ...base, id: e.goblinId, text: t('ev.grief_mate', { name: name(e.goblinId), dead: w.s.graves.find((gr) => gr.goblinId === e.deadId)?.name ?? '?' }), tier: 'notable', icon: 'heart' };
+    }
     case 'tended':
       return { ...base, id: e.goblinId, text: t('ev.tended', { a: name(e.byId), b: name(e.goblinId) }), tier: 'info', icon: 'heart' };
     case 'comforted':

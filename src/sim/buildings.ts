@@ -65,6 +65,12 @@ export function siteClear(w: World, pos: Vec2, size: number): boolean {
   return !w.s.rocks.some((r) => dist(r.pos, pos) < size * 0.75 + r.size * 0.3);
 }
 
+/** P6.4: nothing is built on the graveyard (it grows in rows below its first grave). */
+const nearGraves = (s: WorldState, p: Vec2): boolean => {
+  const y = s.village.graveyard;
+  return !!y && p.x > y.x - CFG.death.keepClear - 3 && p.x < y.x + CFG.death.keepClear + 3 && p.y > y.y - CFG.death.keepClear && p.y < y.y + CFG.death.keepClear + 5;
+};
+
 /**
  * §10.1 findSite: candidates within `siteRadius` of `near`, scored by flatness, distance to water (huts like 4–10),
  * spacing from other buildings (3–6), avoiding orchards, fertile soil and trails. Deterministic (hash tie-break).
@@ -85,7 +91,7 @@ export function findSite(w: World, type: BuildingType, near: Vec2): Vec2 | null 
       const pos = { x, y };
       const dc = dist(pos, near);
       if (dc > R || !siteTilesOk(s, pos, def.footprint)) continue;
-      if (dist(pos, s.village.stockpilePos) < 2.5) continue;
+      if (dist(pos, s.village.stockpilePos) < 2.5 || nearGraves(s, pos)) continue;
       let score = -dc * 0.05;
       let nearestB = Infinity;
       for (const b of s.buildings) nearestB = Math.min(nearestB, dist(b.pos, pos));
@@ -118,7 +124,7 @@ export function findCommunalSite(w: World, type: BuildingType, R: number = CFG.f
     for (let x = Math.ceil(c.x - R); x <= c.x + R; x++) {
       const pos = { x, y };
       if (dist(pos, c) > R || !siteTilesOk(s, pos, def.footprint) || !siteClear(w, pos, def.footprint)) continue;
-      if (dist(pos, s.village.stockpilePos) < 2.5) continue;
+      if (dist(pos, s.village.stockpilePos) < 2.5 || nearGraves(s, pos)) continue;
       if (s.buildings.some((b) => dist(b.pos, pos) < CFG.fire.communalSpacing + b.footprint.w / 2)) continue;
       const score = -dist(pos, c) + (fnv1a(`${x},${y}`, s.seed) % 1000) / 1e5;
       if (score > bestScore) { bestScore = score; best = pos; }

@@ -147,6 +147,15 @@ export const MIGRATIONS: Record<number, Migration> = {
   16: (raw) => ({ ...raw, fires: [] }),
   // P6.3 floods and droughts
   17: (raw) => ({ ...raw, climate: { rainHours: 0, rainDays: 0, dryDays: 0, flood: null, drought: null } }),
+  // P6.4 burial: the old graves stay where they are, as mounds
+  18: (raw) => {
+    const lineage = raw.lineage as Record<number, LineageEntry | undefined>;
+    for (const g of raw.graves as Record<string, unknown>[]) {
+      const l = lineage[g.goblinId as number];
+      Object.assign(g, { epithet: null, clanId: l?.clan ?? 0, born: l?.born ?? g.tick, goods: null, state: 'mound', carrierId: null, eulogy: null, body: null });
+    }
+    return raw;
+  },
 };
 
 export function deserialize(json: string): WorldState {

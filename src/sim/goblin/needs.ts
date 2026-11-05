@@ -15,6 +15,7 @@ import { witnessDeath } from './safety';
 import { adoptOrphans, comeOfAge } from './family';
 import { loseKnowledge } from '../knowledge';
 import { diseaseHungerMul } from '../disease';
+import { grieve, makeGrave } from '../death';
 
 const WORK_ACTIONS = new Set(['harvest_fruit', 'pick_up', 'chop', 'build', 'deliver_material', 'play']);
 
@@ -89,7 +90,7 @@ export function killGoblin(w: World, g: Goblin, cause: DeathCause): void {
   const i = s.goblins.indexOf(g);
   if (i < 0) return;
   s.goblins.splice(i, 1);
-  s.graves.push({ id: allocId(s), goblinId: g.id, name: g.name, pos: { ...g.pos }, tick: s.tick, cause });
+  s.graves.push(makeGrave(w, g, allocId(s), cause));
   const line = s.lineage[g.id];
   if (line) line.died = s.tick;
   s.stats.deaths[cause] = (s.stats.deaths[cause] ?? 0) + 1;
@@ -106,6 +107,7 @@ export function killGoblin(w: World, g: Goblin, cause: DeathCause): void {
   g.inventory = [];
   g.equipped = { hand: null, body: null, neck: null, head: null };
   witnessDeath(w, g.pos, g.id);
+  grieve(w, g);
   adoptOrphans(w, g);
   loseKnowledge(w, g);
   if (cause === 'combat' || cause === 'divine' || cause === 'lightning') markDanger(w, g.pos, 2);

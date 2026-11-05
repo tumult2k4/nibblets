@@ -24,6 +24,7 @@ import { enemiesAct, enemiesDecide } from './enemies';
 import { updateSafety } from './goblin/safety';
 import { fenceMask } from './fences';
 import { updateDiseases } from './disease';
+import { updateDeath } from './death';
 import { updateInjuries } from './combat';
 import { updateSocial } from './goblin/social';
 import { think, act } from './ai/utility';
@@ -147,6 +148,7 @@ export class World {
     updateSafety(this); //    11c safety need (P4.5)
     updateInjuries(this); //  11d wounds heal
     updateDiseases(this); //  11e diseases run their course and spread (P6.1)
+    updateDeath(this); //     11f bodies left too long are covered; Resurrect's window closes (P6.4)
     think(this); //           12
     act(this); //             13
     updateWear(this); //      13b path wear (§P2.7)

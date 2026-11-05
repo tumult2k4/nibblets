@@ -94,7 +94,7 @@ export class Renderer {
     this.fires = new FireFx(w);
     this.wildfire = new WildfireFx(w);
     this.enemies = new EnemyViews(w);
-    this.graves = new GraveViews(w);
+    this.graves = new GraveViews(w, (id) => this.goblinWorldPos(id));
     this.eggs = new EggViews(w);
     this.wrathFx = new WrathFx(w, this.weatherFx, (id) => this.goblinWorldPos(id));
     this.wrathFx.reduced = this.weatherFx.reduced;
@@ -147,7 +147,7 @@ export class Renderer {
     const r = this.canvas.getBoundingClientRect();
     return pick(this.world, this.camera.cam, x - r.left, y - r.top, r.width, r.height, [...this.terrain.chunks.values()],
       (id) => this.goblinWorldPos(id), this.props.itemMeshes(), [...this.props.plantIndex.keys()], (m) => this.props.plantIndex.get(m),
-      this.buildings.group.children, this.eggs.group.children);
+      this.buildings.group.children, this.eggs.group.children, this.graves.group.children);
   }
 
   /** Height of the ground (or the water surface) at a sim position, in world units. */

@@ -32,7 +32,7 @@ export interface ItemStack {
 }
 
 /** Billboard emotes over a goblin's head (§P2.6). */
-export type Emote = 'question' | 'exclaim' | 'heart' | 'zzz' | 'idea' | 'sweat' | 'music' | 'anger' | 'sneeze' | 'sick';
+export type Emote = 'question' | 'exclaim' | 'heart' | 'zzz' | 'idea' | 'sweat' | 'music' | 'anger' | 'sneeze' | 'sick' | 'tear';
 export type PlantKind = 'apple_bush' | 'berry_bush' | 'tree' | 'flower';
 export type PlantStage = 'seed' | 'sprout' | 'sapling' | 'young' | 'mature' | 'old' | 'dead' | 'stump';
 export type BuildingType =
@@ -148,6 +148,10 @@ export type SimEvent = BaseEvent &
     | { type: 'blight_started'; plantId: ID }
     | { type: 'blight_culled'; goblinId: ID; plantId: ID }
     | { type: 'shooting_star' }
+    // P6.4: someone grieves, a body is laid to rest (by nobody: covered where it lay), a grave is visited
+    | { type: 'grief'; goblinId: ID; deadId: ID }
+    | { type: 'buried'; graveId: ID; deadId: ID; byId: ID | null; mourners: number }
+    | { type: 'mourned'; goblinId: ID; deadId: ID }
     | { type: 'trait_gained'; goblinId: ID; trait: string }
     | { type: 'sickness'; goblinId: ID; disease: DiseaseId; phase: 'infected' | 'symptomatic' | 'recovered' | 'died' }
     | { type: 'trinket_found'; goblinId: ID; trinket: TrinketKind; rarity: Rarity }

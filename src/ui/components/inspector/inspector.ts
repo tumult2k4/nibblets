@@ -10,6 +10,7 @@ import { tipKey } from '../tooltip';
 import { buildingBody, buildingHead } from './buildingInspector';
 import { socialTab } from './socialTab';
 import { eggBody, eggHead } from './eggInspector';
+import { graveBody, graveHead } from './graveInspector';
 
 type Tab = 'status' | 'mind' | 'social' | 'body' | 'inventory';
 const TABS: Tab[] = ['status', 'mind', 'social', 'body', 'inventory'];
@@ -82,6 +83,13 @@ export class Inspector implements Component {
       if (!egg) return this.ctx.select(null, []); // hatched (or lost)
       if (fresh) this.head.replaceChildren(eggHead(egg, () => this.ctx.select(null, [])));
       this.body.replaceChildren(eggBody(egg, w, (o) => this.ctx.select('goblin', [o])));
+      return;
+    }
+    if (st.selectedKind === 'grave' && id !== undefined) {
+      const gr = w.s.graves.find((x) => x.id === id);
+      if (!gr) return this.ctx.select(null, []);
+      if (fresh) this.head.replaceChildren(graveHead(gr, () => this.ctx.select(null, [])));
+      this.body.replaceChildren(graveBody(gr, w, (o) => this.ctx.select('goblin', [o])));
       return;
     }
     if (st.selectedKind === 'building' && id !== undefined) {
