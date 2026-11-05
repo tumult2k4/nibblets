@@ -13,7 +13,7 @@ export const EN = {
   'ev.hut_planned': '{name} is planning a hut.', 'ev.hut_built': 'A new hut is finished!', 'ev.home_claimed': '{name} moved into a hut.',
   'insp.building': 'Building', 'insp.progress': 'Progress', 'insp.hpLbl': 'Condition', 'insp.owner': 'Owner', 'insp.residents': 'Residents',
   'insp.storage': 'Storage', 'insp.needsMat': 'Waiting for', 'insp.nobody': 'nobody', 'insp.storeEmpty': 'empty', 'insp.blueprint': 'planned', 'insp.done': 'finished',
-  'insp.homeless': 'homeless', 'bld.hut': 'Hut', 'top.housed': 'Housed {n}/{m}',
+  'insp.homeless': 'homeless', 'insp.goal': 'Goal', 'goal.build': 'build a {b}', 'goal.obtain': 'get {n} {item}', 'act.gather_for_goal': 'Fetching materials', 'ev.goal_abandoned': '{name} gave up on a plan.', 'bld.hut': 'Hut', 'top.housed': 'Housed {n}/{m}',
   'insp.felt': 'Feels like {t}°C', 'insp.wet': 'soaked', 'insp.sheltered': 'sheltered',
   'ev.weather_storm': 'A storm is rolling in.', 'ev.weather_blizzard': 'A blizzard is howling.', 'ev.weather_heatwave': 'A heatwave settles over the land.',
   'ev.weather_snow': 'Snow begins to fall.', 'ev.hypothermia': '{name} is freezing!', 'reason.unknown_building': 'unknown building', 'reason.unknown_weather': 'unknown weather',

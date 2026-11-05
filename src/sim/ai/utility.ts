@@ -12,6 +12,9 @@ import { WaterPlant } from './actions/waterPlant';
 import { Chop } from './actions/chop';
 import { Build, DeliverMaterial } from './actions/build';
 import { ClaimHome, SleepHome } from './actions/home';
+import { GatherForGoal } from './actions/gatherForGoal';
+import { findChopTarget } from './actions/chop';
+import { planFor } from './planner';
 import { Explore } from './actions/explore';
 import { StoreItem, TakeItem } from './actions/stockpile';
 import { HarvestFruit } from './actions/harvestFruit';
@@ -27,11 +30,11 @@ export const ACTIONS: Record<ActionId, UtilityAction> = {
   drink: Drink, sleep_ground: SleepGround, look_up: LookUp, struggle: Struggle,
   eat_core: EatCore, plant_seed: PlantSeed, water_plant: WaterPlant,
   chop: Chop, store_item: StoreItem, take_item: TakeItem, explore: Explore, deliver_material: DeliverMaterial, build: Build,
-  claim_home: ClaimHome, sleep_home: SleepHome,
+  claim_home: ClaimHome, sleep_home: SleepHome, gather_for_goal: GatherForGoal,
 };
 const CHOOSABLE = (Object.values(ACTIONS) as UtilityAction[]).filter((a) => !a.forced);
 
-export interface ScoreRow { id: ActionId; base: number; personality: number; mood: number; hysteresis: number; final: number }
+export interface ScoreRow { id: ActionId; base: number; personality: number; mood: number; hysteresis: number; focus: number; final: number }
 
 function moodMul(g: Goblin, a: UtilityAction): number {
   // mood multiplies social action scores (P5+); work slightly affected now
@@ -39,17 +42,20 @@ function moodMul(g: Goblin, a: UtilityAction): number {
 }
 
 /** Score every available action (debug overlay uses `noise=false`). */
-export function scoreActions(g: Goblin, w: World, noise = true): ScoreRow[] {
+export function scoreActions(g: Goblin, w: World, noise = true, planned: ActionId | null = null): ScoreRow[] {
   const rows: ScoreRow[] = [];
   for (const a of CHOOSABLE) {
     if (!stageAtLeast(g.lifeStage, a.minStage) || !a.isAvailable(g, w)) continue;
-    const base = a.score(g, w);
+    let base = a.score(g, w);
+    // §7.4 focus: the planner's chosen step gets ×1.5 and a floor so low-scoring steps (explore) still happen
+    const fo = planned === a.id ? CFG.planner.focus : 1;
+    if (fo > 1) base = Math.max(base, CFG.planner.floor);
     if (base <= 0) continue;
     const pw = personalityWeight(g.personality, a.id);
     const mm = moodMul(g, a);
     const hy = g.activity.action === a.id && g.activity.status === 'running' ? CFG.goblin.hysteresis : 1;
     const n = noise ? w.rng.range(0.95, 1.05) : 1;
-    rows.push({ id: a.id, base, personality: pw, mood: mm, hysteresis: hy, final: base * pw * mm * hy * n });
+    rows.push({ id: a.id, base, personality: pw, mood: mm, hysteresis: hy, focus: fo, final: base * pw * mm * hy * fo * n });
   }
   rows.sort((x, y) => y.final - x.final || (x.id < y.id ? -1 : 1));
   return rows;
@@ -93,7 +99,7 @@ export function think(w: World): void {
     const finished = g.activity.status !== 'running';
     const due = s.tick % iv === g.id % iv;
     if (!finished && (!due || !cur.interruptible)) continue;
-    const rows = scoreActions(g, w);
+    const rows = scoreActions(g, w, true, planFor(g, w, (gg, ww) => !!findChopTarget(gg, ww)));
     g.lastDecisionTick = s.tick;
     const best = rows[0]?.id ?? 'idle';
     if (!finished && best === g.activity.action) continue;

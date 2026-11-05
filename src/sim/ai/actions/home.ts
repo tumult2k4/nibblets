@@ -6,6 +6,7 @@ import { moveAlong, planPath } from '../../steering';
 import { isNightNow } from '../considerations';
 import { buildingDef, findSite, isComplete, missingMaterials, placeBlueprint, workSpot } from '../../buildings';
 import { sleepScore } from './sleepGround';
+import { pushGoal } from '../planner';
 import type { Building, Goblin } from '../../state';
 import type { World } from '../../world';
 import type { UtilityAction } from '../action';
@@ -83,6 +84,7 @@ export const ClaimHome: UtilityAction = {
       b = placeBlueprint(w, 'hut', site, g.id);
     }
     claim(w, g, b);
+    if (!isComplete(b)) pushGoal(g, w, { kind: 'build', buildingId: b.id });
     return 'done';
   },
 };

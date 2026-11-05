@@ -34,9 +34,9 @@ export class DebugOverlay implements Component {
     const gob = st.selectedKind === 'goblin' && id !== undefined ? g.world.goblin(id) : undefined;
     if (gob) {
       lines.push('', `${t('debug.scores')}: ${gob.name} → ${gob.activity.action} (${gob.activity.status})`);
-      lines.push('action          base  pers  mood  hyst  final');
+      lines.push('action          base  pers  mood  hyst  focus final');
       for (const r of scoreActions(gob, g.world, false).slice(0, 8))
-        lines.push(`${r.id.padEnd(15)} ${r.base.toFixed(2)}  ${r.personality.toFixed(2)}  ${r.mood.toFixed(2)}  ${r.hysteresis.toFixed(2)}  ${r.final.toFixed(3)}`);
+        lines.push(`${r.id.padEnd(15)} ${r.base.toFixed(2)}  ${r.personality.toFixed(2)}  ${r.mood.toFixed(2)}  ${r.hysteresis.toFixed(2)}  ${r.focus.toFixed(1)}  ${r.final.toFixed(3)}`);
       if (gob.activity.path.length) lines.push(`path: ${gob.activity.path.length} waypoints → (${gob.activity.path.at(-1)!.x.toFixed(1)}, ${gob.activity.path.at(-1)!.y.toFixed(1)})`);
     }
     lines.push('', `${t('debug.log')} (${s.commandLog.length}):`);

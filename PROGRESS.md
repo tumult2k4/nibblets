@@ -1,5 +1,5 @@
 # Nibblets progress
-Current: P3.5 — planner goal stack + GatherForGoal
+Current: P3.6 — SeekShelter, WarmUp, storm damage + repair, Forage mushrooms
 ## Done
 - [x] P1.1 scaffold: Vite + strict TS, ESLint flat config with sim architecture rules, Prettier, Vitest, scripts
 - [x] P1.2 shared/: math, ids, mulberry32 Rng with fork(label), typed EventBus
@@ -28,8 +28,9 @@ Current: P3.5 — planner goal stack + GatherForGoal
 - [x] P3.2 seasonal terrain palettes + foliage tints blended over each season's first day, snow cover (falls ≤ 2 °C, melts above 0, faster in rain/sun, local cells), deep snow/mud slow walking, winter dormancy with temporary `winterFoodEase` (berries fruit at 50 % in winter until P5.6), spring planting rush, less exploring in winter
 - [x] P3.3 building system: findSite (flatness, water 4–10, spacing 3–6, orchards/fertility/trails avoided), blueprints reserve footprints (path cost ×4), DeliverMaterial (cooperative, no over-delivery), Build (skill, mood, friend ×1.3), completion + deeds + building skill; ghost/scaffold/hut meshes with delivered piles; hammering animation; sandbox spawn_building
 - [x] P3.4 huts: ClaimHome (free bed in a built/planned hut, else plan a new one; ≤ 2 unsupplied blueprints), capacity 2, home pantry (storage 6) for surplus food, SleepHome (2× restore, sheltered +8 °C), chop also feeds blueprints, bed freed on death; building picking + inspector, housed count, feed notes
+- [x] P3.5 planner goal stack: pure `resolve` (build → deliver/labor/obtain; obtain → stockpile via GatherForGoal, loose items, chop, explore), max depth 4, ×1.5 focus with a 0.25 floor, abandon after 300 ticks of urgent pre-emption, ClaimHome pushes build goals; goal line in the inspector, focus column in the debug overlay
 ## Next
-- [ ] P3.5 planner goal stack (§7.4) with GatherForGoal
+- [ ] P3.6 SeekShelter, WarmUp; storm building damage + repair need flag; Forage mushrooms
 ## Notes / known issues
 - Balance (32 days × 5 seeds, after P3.4): 0 deaths, 5 huts and 100 % housed by the end of autumn on every seed, 29–55 goblin-planted mature bushes, ~0.14 ms/tick.
 - Balance (20 days × 5 seeds, after P2): population 10, 0 deaths, 25–36 goblin-planted mature bushes, apple bushes 70→~105, ~29 wood stored, ~0.12 ms/tick.

@@ -32,7 +32,7 @@ function chopValue(w: World, p: Plant): number {
   return 0; // trees need a stone axe (P4)
 }
 
-function findChopTarget(g: Goblin, w: World): Plant | null {
+export function findChopTarget(g: Goblin, w: World): Plant | null {
   let best: Plant | null = null;
   let bestS = 0;
   for (const p of w.plantHash.query(g.pos, 30)) {

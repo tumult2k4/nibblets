@@ -66,3 +66,9 @@ Small choices the design doc left open, one line of rationale each.
 - **Hut storage is a personal pantry** for surplus food (≤ 6 items); TakeItem checks home first. Materials still go to the village stockpile.
 - **Chop's wood wish includes blueprint shortfalls**, so a planned village keeps the axes busy.
 - **Hut spacing 3.6–7** (was 3–6): roofs nearly touched at 3.
+
+## P3.5 planner
+- **Subgoals are re-derived on every decision** (marked `sub`): they are a pure function of the root goal and the world, so re-deriving keeps `obtain` quantities in step with what the blueprint still lacks (a stale obtain(6) kept a goblin chopping after others had filled the hut).
+- **The planned step gets ×1.5 focus and a 0.25 score floor** so cheap steps such as Explore still happen while needs are calm; urgent needs still win and, after 300 ticks of urgency > 0.85, the whole stack is abandoned (`goal_abandoned`).
+- **Pre-emption time lives on the root goal entry** (saved state), not in a module map, so saves and replays stay bit-identical.
+- **DeliverMaterial handles stockpile pickup itself**, so the planner only pushes `obtain` when the stockpile is empty. Partial loads are delivered as they come.

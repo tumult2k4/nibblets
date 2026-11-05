@@ -1,3 +1,4 @@
+import { setWeather } from '../weather';
 import { describe, expect, it } from 'vitest';
 import { CFG } from '../config';
 import { fertilityMul, hydrationCurve } from '../plants';
@@ -18,6 +19,8 @@ describe('plant lifecycle (§8.1)', () => {
   it('a seed becomes a mature apple bush in about 5 days (spring speeds it up)', () => {
     const w = makeWorld();
     setMorning(w, 1);
+    setWeather(w, 'cloudy'); // fixed hydration: no rain spells
+    w.s.weather.nextChangeTick = w.s.tick + 100 * DAY;
     const p = placePlant(w, 'apple_bush', 'seed', { x: 12.5, y: 12.5 });
     p.age = 0;
     p.hydration = 0.75; // matches 0.6 moisture × 0.8 equilibrium closely enough

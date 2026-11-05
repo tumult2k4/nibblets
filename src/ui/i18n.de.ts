@@ -15,7 +15,7 @@ export const DE: Record<keyof typeof EN, string> = {
   'ev.hut_planned': '{name} plant eine Hütte.', 'ev.hut_built': 'Eine neue Hütte ist fertig!', 'ev.home_claimed': '{name} ist in eine Hütte gezogen.',
   'insp.building': 'Gebäude', 'insp.progress': 'Fortschritt', 'insp.hpLbl': 'Zustand', 'insp.owner': 'Besitzer', 'insp.residents': 'Bewohner',
   'insp.storage': 'Vorrat', 'insp.needsMat': 'Wartet auf', 'insp.nobody': 'niemand', 'insp.storeEmpty': 'leer', 'insp.blueprint': 'geplant', 'insp.done': 'fertig',
-  'insp.homeless': 'obdachlos', 'bld.hut': 'Hütte', 'top.housed': 'Behaust {n}/{m}',
+  'insp.homeless': 'obdachlos', 'insp.goal': 'Ziel', 'goal.build': '{b} bauen', 'goal.obtain': '{n} {item} besorgen', 'act.gather_for_goal': 'Holt Material', 'ev.goal_abandoned': '{name} hat einen Plan aufgegeben.', 'bld.hut': 'Hütte', 'top.housed': 'Behaust {n}/{m}',
   'insp.felt': 'Gefühlt {t}°C', 'insp.wet': 'durchnässt', 'insp.sheltered': 'geschützt',
   'ev.weather_storm': 'Ein Sturm zieht auf.', 'ev.weather_blizzard': 'Ein Schneesturm heult.', 'ev.weather_heatwave': 'Eine Hitzewelle legt sich übers Land.',
   'ev.weather_snow': 'Es beginnt zu schneien.', 'ev.hypothermia': '{name} friert erbärmlich!', 'reason.unknown_building': 'unbekanntes Gebäude', 'reason.unknown_weather': 'unbekanntes Wetter',

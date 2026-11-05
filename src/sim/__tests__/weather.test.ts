@@ -69,7 +69,8 @@ describe('weather & temperature (§9.1–9.2, P3.1)', () => {
     pin(w, 'rain');
     // a sunny local cell keeps one goblin dry
     w.s.weather.cells.push({ id: 999, kind: 'clear', pos: { x: 18, y: 18 }, radius: 3, untilTick: w.s.tick + DAY, tempOffset: 0 });
-    g.needs.warmth = 80;
+    g.needs.warmth = 90;
+    g.genome.coldTolerance = { a: 0.3, b: 0.3 };
     const feltBefore = feltTemperature(w, g);
     for (let i = 0; i < 15; i++) {
       dry.pos = { x: 18, y: 18 }; // keep this one standing in the sunny spot
@@ -79,7 +80,7 @@ describe('weather & temperature (§9.1–9.2, P3.1)', () => {
     expect(weatherAt(w, { x: 18, y: 18 })).toBe('clear');
     expect(isWet(w, dry)).toBe(false);
     expect(feltTemperature(w, g)).toBeLessThan(feltBefore);
-    expect(g.needs.warmth).toBeLessThan(80);
+    expect(g.needs.warmth).toBeLessThan(90);
     w.run(600);
     expect(bush.hydration).toBeGreaterThan(0.5);
   });

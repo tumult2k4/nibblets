@@ -67,7 +67,7 @@ export const CFG = {
     /** storms grow out of rain/clouds, blizzards out of snow/clouds */
     follows: { storm: ['rain', 'cloudy', 'storm'], blizzard: ['snow', 'cloudy', 'blizzard'] } as Record<string, string[]>,
     vision: { fog: 0.5, blizzard: 0.3, storm: 0.7, snow: 0.85, rain: 0.9 } as Record<string, number>,
-    heatwaveThirstMul: 1.8, rainHydration: 1, maxCells: 4, windJitter: 0.8,
+    heatwaveThirstMul: 1.8, rainHydration: 1, rainHydrationFollow: 6, maxCells: 4, windJitter: 0.8,
   },
   /** P3.3 buildings (§10.1–10.2); shelter warmth lives in `temperature.shelter` */
   buildings: {
@@ -78,6 +78,8 @@ export const CFG = {
     siteRadius: 14, maxSlope: 0.06, waterPref: [4, 10] as [number, number], hutSpacing: [3.6, 7] as [number, number],
     occupiedCost: 4,
   },
+  /** P3.5 planner goal stack (§7.4) */
+  planner: { focus: 1.5, floor: 0.25, maxDepth: 4, abandonUrgency: 0.85, abandonTicks: 300, groundSearch: 20 },
   /** P3.4 homes */
   homes: {
     maxOpenBlueprints: 2, claimBase: 0.22, claimSeason: { spring: 0, summer: 0.05, autumn: 0.15, winter: 0.25 }, homeSleepPref: 1.15,

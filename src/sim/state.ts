@@ -36,7 +36,7 @@ export interface HealthState { hp: number; maxHp: number; injuries: number; dise
 export type ActionId =
   | 'idle' | 'wander' | 'harvest_fruit' | 'eat' | 'drink' | 'sleep_ground' | 'pick_up' | 'drop' | 'look_up' | 'struggle'
   | 'eat_core' | 'plant_seed' | 'water_plant' | 'chop' | 'store_item' | 'take_item' | 'explore'
-  | 'deliver_material' | 'build' | 'claim_home' | 'sleep_home';
+  | 'deliver_material' | 'build' | 'claim_home' | 'sleep_home' | 'gather_for_goal';
 
 export interface ActivityState {
   action: ActionId;
@@ -80,7 +80,7 @@ export interface Goblin {
   needs: Needs; mood: MoodState; personality: Personality; health: HealthState;
   inventory: ItemStack[];
   equipped: { hand: ItemType | null; body: ItemType | null; neck: ItemType | null; head: ItemType | null };
-  activity: ActivityState; goalStack: unknown[]; homeId: ID | null;
+  activity: ActivityState; goalStack: import('./ai/planner').GoalEntry[]; homeId: ID | null;
   memory: MemoryEntry[]; relationships: Relation[]; skills: Record<string, number>; knownRecipes: string[];
   trinkets: ID[]; reputation: number; traits: string[]; deeds: DeedCounters; godView: GodView;
   role: 'none' | 'chief' | 'shaman'; heldByGod: boolean; lastDecisionTick: number;

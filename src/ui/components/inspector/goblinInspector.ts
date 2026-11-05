@@ -2,6 +2,7 @@ import { el } from '../../dom';
 import { t } from '../../i18n';
 import { hslCss } from '../../../shared/math';
 import type { Goblin } from '../../../sim/state';
+import type { Goal } from '../../../sim/ai/planner';
 import type { World } from '../../../sim/world';
 import { ageDays } from '../../../sim/goblin/goblin';
 import { phenotypeOf } from '../../../sim/goblin/genetics/phenotype';
@@ -34,6 +35,10 @@ export function goblinHeader(g: Goblin, w: World, onFollow: () => void, onClose:
         el('button.btn', { onclick: onClose, 'data-tip': t('insp.close') }, icon('close')))));
 }
 
+const goalText = (goal: Goal, w: World): string => goal.kind === 'build'
+  ? t('goal.build', { b: t(`bld.${w.s.buildings.find((b) => b.id === goal.buildingId)?.type ?? 'hut'}`) })
+  : t('goal.obtain', { n: goal.qty, item: t(`item.${goal.item}`) });
+
 export function statusTab(g: Goblin, w: World): HTMLElement {
   const n = g.needs;
   const needs = (['hunger', 'thirst', 'energy', 'warmth', 'curiosity'] as const).map((k) => row(t(`need.${k}`), n[k], String(Math.round(n[k])), needColor(n[k])));
@@ -47,6 +52,7 @@ export function statusTab(g: Goblin, w: World): HTMLElement {
   const mods = [...g.mood.modifiers].sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount)).slice(0, 3).map((m) => `${m.id.replace(/_/g, ' ')} ${m.amount > 0 ? '+' : ''}${Math.round(m.amount)}`);
   return el('div', {},
     el('div.row', {}, el('b', { text: `${t('insp.doing')}: ` }), el('span', { text: t(`act.${g.activity.action}`) })),
+    g.goalStack.length ? el('div.row', {}, el('b', { text: `${t('insp.goal')}: ` }), el('span', { text: g.goalStack.map((e) => goalText(e.goal, w)).join(' → ') })) : null,
     el('h3', { text: t('insp.needs') }), ...needs, el('div.sub', { text: tags.join(' · ') }), ...stubs,
     el('h3', { text: t('insp.mood') }),
     row(t(`emotion.${g.mood.emotion}`), (mood + 100) / 2, String(Math.round(mood)), mood < -30 ? 'var(--apple)' : 'var(--gold)'),

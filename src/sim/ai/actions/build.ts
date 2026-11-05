@@ -10,11 +10,12 @@ import type { ItemType } from '../../../shared/types';
 import type { Building, Goblin } from '../../state';
 import type { World } from '../../world';
 import type { UtilityAction } from '../action';
+import { goalBuilding } from '../planner';
 
 const B = CFG.buildings;
 const comfortable = (g: Goblin): number => 1 - needUrgency(Math.min(g.needs.hunger, g.needs.thirst, g.needs.energy + 10, g.needs.warmth + 20));
-/** Own blueprints first, then the oldest; owners care most (P3.5 adds goal focus on top). */
-const ownerMul = (g: Goblin, b: Building): number => (b.ownerId === g.id ? 1.5 : 1);
+/** A goblin's own goal building (§7.4) or own blueprint comes first. */
+const ownerMul = (g: Goblin, b: Building): number => (goalBuilding(g) === b.id || b.ownerId === g.id ? 1.5 : 1);
 
 /** A blueprint that still needs a material this goblin carries or can fetch from the stockpile. */
 function deliveryJob(g: Goblin, w: World): { b: Building; type: ItemType; fromStock: boolean } | null {

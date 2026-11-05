@@ -84,8 +84,9 @@ export function updatePlants(w: World): void {
     const t = tileAt(s, p.pos.x, p.pos.y);
     if (!t) continue;
     // hydration follows soil moisture (rain soaks it); watering raises it above
-    const target = rainingAt(w, p.pos) ? CFG.weather.rainHydration : t.moisture * P.hydrationOfMoisture;
-    p.hydration = q4(p.hydration + (target - p.hydration) * Math.min(1, dtDays * P.hydrationFollow));
+    const rain = rainingAt(w, p.pos);
+    const target = rain ? CFG.weather.rainHydration : t.moisture * P.hydrationOfMoisture;
+    p.hydration = q4(p.hydration + (target - p.hydration) * Math.min(1, dtDays * (rain ? CFG.weather.rainHydrationFollow : P.hydrationFollow)));
     if (p.stage === 'stump') {
       p.growth = q4(p.growth + dtDays);
       if (p.growth >= P.stumpRegrowDays) {
