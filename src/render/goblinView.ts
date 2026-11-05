@@ -8,11 +8,17 @@ import { buildGoblin, disposeRig, phenoBucket, type GoblinRig } from './goblinMe
 import { itemGeo } from './meshFactory';
 import { heldMesh } from './toolMeshes';
 import { flicker } from './fireView';
-import { isTool, toolFor } from '../sim/tools';
+import { toolFor } from '../sim/tools';
+import { isGear } from '../sim/items';
+import { wearGeo } from './fiberMeshes';
 import { flatMat } from './lowpoly';
 import type { Interp } from './interpolation';
 
-interface View { rig: GoblinRig; pheno: Phenotype; prop: THREE.Mesh | null; propType: string; held: THREE.Object3D | null; heldKey: string; blinkAt: number; walkPhase: number; zzz: THREE.Sprite | null }
+interface View {
+  rig: GoblinRig; pheno: Phenotype; prop: THREE.Mesh | null; propType: string; held: THREE.Object3D | null; heldKey: string; blinkAt: number; walkPhase: number; zzz: THREE.Sprite | null;
+  /** worn clothes and gear on the back (P5.6) */
+  wear: THREE.Mesh[]; wearKey: string;
+}
 
 function zzzTexture(): THREE.Texture {
   const c = document.createElement('canvas');
@@ -45,7 +51,7 @@ export class GoblinViews {
     const rig = buildGoblin(pheno, g.id * 31 + 7, this.outlines);
     rig.root.userData = { kind: 'goblin', id: g.id };
     this.group.add(rig.root);
-    return { rig, pheno, prop: null, propType: '', held: null, heldKey: '', blinkAt: 0, walkPhase: g.id, zzz: null };
+    return { rig, pheno, prop: null, propType: '', held: null, heldKey: '', blinkAt: 0, walkPhase: g.id, zzz: null, wear: [], wearKey: '' };
   }
 
   update(interp: Interp, alpha: number, time: number, night: number, dt: number): void {
@@ -175,7 +181,11 @@ export class GoblinViews {
       r.armL.rotation.z = 0.5; r.armR.rotation.z = -0.5;
       if (g.needs.warmth < 35) r.body.position.x = Math.sin(t * 55 + g.id) * 0.008;
       earFlop = 0.25;
-    } else if (act === 'harvest_fruit' || act === 'pick_up' || act === 'drink' || act === 'eat' || act === 'forage') {
+    } else if (act === 'cut_grass' || (act === 'process' && g.activity.stage === 2)) {
+      // P5.6: sawing at the grass / working the grinding stone or rack, bent over, both hands
+      const k = Math.sin(t * 8 + g.id);
+      r.armR.rotation.x = r.armL.rotation.x = -0.9 + k * 0.35; r.armR.rotation.z = -0.2 + k * 0.25; r.body.rotation.x = 0.45;
+    } else if (act === 'harvest_fruit' || act === 'pick_up' || act === 'drink' || act === 'eat' || act === 'forage' || act === 'pick_flowers') {
       const k = t * 9 + g.id;
       if (act === 'drink') { r.body.rotation.x = 0.6; r.head.rotation.x = 0.4; }
       else if (act === 'eat') { r.armR.rotation.x = -1.6 + Math.sin(k) * 0.3; r.head.rotation.x = Math.sin(k) * 0.08; }
@@ -233,7 +243,7 @@ export class GoblinViews {
     const blinking = sleeping || v.blinkAt - t < 0.12;
     r.eyeMat.visible = !blinking;
     // carried item in the left hand, weapon/tool in the right (§P4.2)
-    const carried = g.inventory.find((s) => !isTool(s.type))?.type ?? '';
+    const carried = g.inventory.find((s) => !isGear(s.type))?.type ?? '';
     if (carried !== v.propType) {
       if (v.prop) r.handL.remove(v.prop);
       v.prop = null;
@@ -245,6 +255,7 @@ export class GoblinViews {
       }
     }
     this.updateHeld(g, v);
+    this.updateWear(g, v);
     const fl = v.held?.getObjectByName('flame');
     if (fl) flicker(fl, t, g.id, 0.32);
     // Zzz sprite
@@ -270,6 +281,28 @@ export class GoblinViews {
     v.held = s ? heldMesh(s.type, !!s.fine) : null;
     v.heldKey = key;
     if (v.held) v.rig.hand.add(v.held);
+  }
+
+  /** Clothes on the body and head, a basket or rolled mat on the back. */
+  private updateWear(g: Goblin, v: View): void {
+    const back = (['basket', 'sleeping_mat'] as const).filter((t) => g.inventory.some((s) => s.type === t));
+    const key = [g.equipped.body?.type, g.equipped.head?.type, ...back].join(',');
+    if (key === v.wearKey) return;
+    v.wearKey = key;
+    for (const m of v.wear) m.removeFromParent();
+    v.wear = [];
+    const hr = (v.pheno.headRatio * 0.8) / 2;
+    const put = (t: Parameters<typeof wearGeo>[0] | undefined, parent: THREE.Object3D): void => {
+      const geo = t && wearGeo(t, hr);
+      if (!geo) return;
+      const m = new THREE.Mesh(geo, flatMat);
+      m.castShadow = true;
+      parent.add(m);
+      v.wear.push(m);
+    };
+    put(g.equipped.body?.type, v.rig.body);
+    put(g.equipped.head?.type, v.rig.head);
+    for (const t of back) put(t, v.rig.body);
   }
 
   rigOf(id: number): GoblinRig | undefined {

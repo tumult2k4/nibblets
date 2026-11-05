@@ -41,7 +41,7 @@ export type ActionId =
   | 'deliver_material' | 'build' | 'claim_home' | 'sleep_home' | 'gather_for_goal' | 'seek_shelter' | 'warm_up' | 'forage'
   | 'mine' | 'craft' | 'equip' | 'plan_building' | 'tend_fire' | 'flee' | 'attack' | 'defend_village' | 'guard' | 'repair_building'
   | 'follow_wisp' | 'scatter' | 'chat' | 'comfort' | 'gift' | 'court' | 'lay_egg' | 'incubate_egg' | 'feed_child' | 'follow_parent'
-  | 'play' | 'learn' | 'teach';
+  | 'play' | 'learn' | 'teach' | 'cut_grass' | 'pick_flowers' | 'process';
 
 export interface ActivityState {
   action: ActionId;
@@ -169,10 +169,12 @@ export interface VillageState {
   name: string; center: Vec2; chiefId: ID | null; stockpile: ItemStack[]; stockpilePos: Vec2; fenceRing: number;
   /** recipes and facts that died with their last knower (P5.5); rediscovery takes them off */
   lost?: string[];
+  /** what has rotted since the day began (P5.6), reported at dawn */
+  spoiled?: Partial<Record<import('../shared/types').ItemType, number>>;
 }
 
 export interface StatsSample { tick: number; pop: number; food: number; avgHunger: number; avgFaith: number }
-export interface StatsSeries { samples: StatsSample[]; deaths: Record<string, number>; births: number; eaten: number; divineFood: number }
+export interface StatsSeries { samples: StatsSample[]; deaths: Record<string, number>; births: number; eaten: number; divineFood: number; spoiled?: number }
 
 export interface LlmAnnotations { journals: unknown[]; speechText: Record<string, string> }
 

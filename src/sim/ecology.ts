@@ -61,6 +61,16 @@ export function updateEcology(w: World): void {
     spawnMushroom(s, pos, pickMushroomKind(w.rng));
   }
   shedSticks(w);
+  regrowGrass(w);
+}
+
+/** P5.6: cut grass grows back (fast in spring, not at all in winter). */
+export function regrowGrass(w: World): void {
+  const s = w.s, F = CFG.fiber;
+  if (s.tick % F.regrowEvery !== 0) return;
+  const add = (F.regrowPerDay[w.clock.season] ?? 0) * (F.regrowEvery / CFG.time.dayTicks);
+  if (add <= 0) return;
+  for (const p of s.grass) if (p.density < 1) p.density = q4(Math.min(1, p.density + add));
 }
 
 /** A few random grown trees drop a stick beside them, up to a cap of loose sticks in the world. */

@@ -1,8 +1,7 @@
 import { CFG } from '../../config';
 import { dist } from '../../../shared/math';
 import { addItem, countItem, foodStack } from '../../inventory';
-import { isFood } from '../../items';
-import { isTool } from '../../tools';
+import { isFood, isGear } from '../../items';
 import { HAND_RECIPES, RECIPES } from '../../recipes';
 import { needUrgency } from '../../goblin/needs';
 import { moveAlong, planPath } from '../../steering';
@@ -15,14 +14,14 @@ import type { Building, Goblin } from '../../state';
 import type { World } from '../../world';
 import type { StepResult, UtilityAction } from '../action';
 
-/** Stacks a goblin would rather store: materials no blueprint is waiting for, and food beyond what it keeps. Tools stay with their user. */
+/** Stacks a goblin would rather store: materials no blueprint is waiting for, and food beyond what it keeps. Tools, clothes, baskets and mats stay with their user. */
 function storable(g: Goblin, w: World): ItemStack[] {
   const food = g.inventory.filter((s) => isFood(s.type) && s.type !== 'apple_core').reduce((n, s) => n + s.qty, 0);
   const wanted = new Set(blueprints(w.s).flatMap((b) => missingMaterials(b).map((m) => m.type)));
   // inputs of the piece being crafted stay in the pack
   const crafting = g.activity.action === 'craft' && g.activity.status === 'running' ? RECIPES[HAND_RECIPES[g.activity.targetId ?? -1] ?? ''] : undefined;
   for (const t of Object.keys(crafting?.inputs ?? {})) wanted.add(t as ItemType);
-  return g.inventory.filter((s) => (isTool(s.type) || s.type === 'redcap' ? false : !isFood(s.type) ? !wanted.has(s.type) : s.type !== 'apple_core' && food > CFG.plants.stockFoodKeep + 1));
+  return g.inventory.filter((s) => (isGear(s.type) || s.type === 'redcap' ? false : !isFood(s.type) ? !wanted.has(s.type) : s.type !== 'apple_core' && food > CFG.plants.stockFoodKeep + 1));
 }
 
 function walkTo(g: Goblin, w: World): StepResult | null {
@@ -67,7 +66,7 @@ export const StoreItem: UtilityAction = {
     const keepFood = CFG.plants.stockFoodKeep;
     let kept = 0;
     for (const st of [...g.inventory]) {
-      if (st.type === 'apple_core') continue;
+      if (st.type === 'apple_core' || st.type === 'redcap' || isGear(st.type)) continue; // gear stays with its user
       let qty = st.qty;
       if (isFood(st.type)) {
         const keep = Math.min(qty, Math.max(0, keepFood - kept));

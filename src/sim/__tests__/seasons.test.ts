@@ -44,17 +44,19 @@ describe('seasons, snow and dormancy (§9.3, P3.2)', () => {
     expect(groundSpeedMul(w, { x: 12.5, y: 12.5 })).toBeCloseTo(CFG.seasons.mudSpeed, 5);
   });
 
-  it('winter is dormant: no growth, no apples — but berries keep a little fruit (winterFoodEase)', () => {
+  it('winter is dormant: no growth, no fruit, and frost takes what was left on the bushes (P5.6)', () => {
     const w = makeWorld();
     at(w, 3 * SEASON + DAY, 'cloudy');
     const seed = placePlant(w, 'apple_bush', 'seed', { x: 8, y: 16 });
     const apple = placePlant(w, 'apple_bush', 'mature', { x: 12, y: 18 }, 0);
     const berry = placePlant(w, 'berry_bush', 'mature', { x: 16, y: 18 }, 0);
+    const laden = placePlant(w, 'apple_bush', 'mature', { x: 20, y: 18 }, CFG.plants.maxApples);
     w.run(2 * DAY);
     expect(seed.stage).toBe('seed');
     expect(seed.growth).toBe(0);
     expect(apple.fruit).toBe(0);
-    expect(berry.fruit).toBeGreaterThan(0);
+    expect(berry.fruit).toBe(0);
+    expect(laden.fruit).toBeLessThan(CFG.plants.maxApples);
   });
 
   it('planting is a spring rush and stops in winter', () => {

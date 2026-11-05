@@ -94,6 +94,9 @@ export const Chop: UtilityAction = {
     if (tool.stack) wearTool(w, g, tool.stack);
     spawnGroundItem(w, { type: 'wood', qty: wood }, { x: p.pos.x + 0.3, y: p.pos.y });
     if (sticks) spawnGroundItem(w, { type: 'stick', qty: sticks }, { x: p.pos.x - 0.3, y: p.pos.y + 0.2 });
+    // P5.6: leaves for leaf capes (none in winter)
+    const leaves = w.clock.season === 'winter' ? 0 : CFG.fiber.leaves[tree ? 'tree' : p.stage] ?? 0;
+    if (leaves) spawnGroundItem(w, { type: 'leaves', qty: leaves }, { x: p.pos.x, y: p.pos.y - 0.3 });
     gainXp(w, g, 'woodcraft', CFG.skills.xp.felled);
     w.emit({ type: 'plant_chopped', goblinId: g.id, plantId: p.id, wood });
     if (p.stage === 'mature' || p.stage === 'old') {

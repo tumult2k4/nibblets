@@ -6,6 +6,7 @@ import { heightAt } from '../sim/grid';
 import { flatMat, flatMatDouble, merge, paint, wobble } from './lowpoly';
 import { pile } from './piles';
 import { campfireGeo } from './fireView';
+import { dryingRackGeo, grindingStoneGeo, rackItems, storagePitGeo } from './fiberMeshes';
 
 const HS = CFG.world.heightScale;
 const WOOD = '#9a6b3f', THATCH = '#d4a94e', DARK = '#4a3420';
@@ -74,10 +75,14 @@ function fenceGeo(mask: number): THREE.BufferGeometry {
 const DIRS: [number, number][] = [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1]];
 
 const GHOST_MAT = new THREE.MeshLambertMaterial({ color: '#9ec5e8', transparent: true, opacity: 0.32, depthWrite: false, flatShading: true });
-/** Finished-building geometry by type (huts P3.3, campfire P4.3). */
+const MAKERS: Partial<Record<Building['type'], () => THREE.BufferGeometry>> = {
+  campfire: campfireGeo, stone_hut: stoneHutGeo, fence: () => fenceGeo(0),
+  grinding_stone: grindingStoneGeo, drying_rack: dryingRackGeo, storage_pit: storagePitGeo,
+};
+/** Finished-building geometry by type (huts P3.3, campfire P4.3, preservation P5.6). */
 function geoOf(type: Building['type']): THREE.BufferGeometry {
   let g = GEOS.get(type);
-  if (!g) GEOS.set(type, (g = type === 'campfire' ? campfireGeo() : type === 'stone_hut' ? stoneHutGeo() : type === 'fence' ? fenceGeo(0) : hutGeo()));
+  if (!g) GEOS.set(type, (g = (MAKERS[type] ?? hutGeo)()));
   return g;
 }
 /** Lit window + doorway, and a pool of warm light spilling out past the roof's overhang. */
@@ -153,6 +158,11 @@ export class BuildingViews {
       const m = new THREE.Mesh(fence ? fenceGeo(fenceMask) : geo, flatMat);
       m.castShadow = m.receiveShadow = true;
       g.add(m);
+      if (b.type === 'drying_rack') { // the batch hangs on the rails
+        const fresh = b.storage.find((x) => x.type === 'apple')?.qty ?? 0, dried = b.storage.find((x) => x.type === 'dried_apple')?.qty ?? 0;
+        const geo2 = rackItems(fresh || dried, !fresh);
+        if (geo2) g.add(new THREE.Mesh(geo2, flatMat));
+      }
       if (!hut) return tag(g, b);
       const win = new THREE.Mesh(WINDOW, WINDOW_MAT);
       win.add(new THREE.Mesh(POOL, POOL_MAT));

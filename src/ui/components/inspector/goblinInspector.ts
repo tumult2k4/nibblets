@@ -139,8 +139,10 @@ const itemRow = (s: ItemStack): HTMLElement => el('div.row', {}, icon(ITEM_ICON[
 export function inventoryTab(g: Goblin): HTMLElement {
   const items = g.inventory.map(itemRow);
   const hand = g.equipped.hand;
+  const worn = [g.equipped.body, g.equipped.head].filter((s): s is ItemStack => !!s);
   return el('div', {},
     el('h3', { text: t('insp.hand') }), hand ? itemRow(hand) : el('div.sub', { text: t('insp.emptyHand') }),
+    ...(worn.length ? [el('h3', { text: t('insp.wearing') }), ...worn.map(itemRow)] : []),
     el('h3', { text: t('insp.pack') }), el('div.sub', { text: t('insp.slots', { n: slotCount(g) }) }), ...(items.length ? items : [el('div.sub', { text: t('insp.empty') })]),
     el('h3', { text: t('insp.recipes') }),
     el('div.sub', { text: g.knownRecipes.map((r) => t(`recipe.${r}`)).join(' · ') }),

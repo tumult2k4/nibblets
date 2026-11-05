@@ -120,6 +120,12 @@ export const MIGRATIONS: Record<number, Migration> = {
     for (const g of raw.goblins as Record<string, unknown>[]) g.knownFacts ??= [...FACTS];
     return raw;
   },
+  // P5.6 fiber chain: rope, baskets, mats, loincloths and crowns are things everyone grows up making
+  12: (raw) => {
+    for (const g of raw.goblins as { knownRecipes: string[] }[])
+      for (const id of STARTER_RECIPES) if (!g.knownRecipes.includes(id)) g.knownRecipes.push(id);
+    return raw;
+  },
 };
 
 export function deserialize(json: string): WorldState {

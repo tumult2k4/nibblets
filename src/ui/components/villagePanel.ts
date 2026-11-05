@@ -4,6 +4,7 @@ import type { Ctx, Component } from '../ctx';
 import { villageKnowledge } from '../../sim/knowledge';
 import { STARTER_RECIPES } from '../../sim/recipes';
 import { knowName } from '../notify';
+import { foodStores } from '../../sim/spoilage';
 import type { LifeStage } from '../../shared/types';
 
 const STAGES: LifeStage[] = ['hatchling', 'youngling', 'adult', 'elder'];
@@ -35,6 +36,7 @@ export class VillagePanel implements Component {
     this.lastTick = s.tick;
     const counts = STAGES.map((st) => [st, s.goblins.filter((g) => g.lifeStage === st).length] as const).filter(([, n]) => n > 0);
     const know = villageKnowledge(s);
+    const food = foodStores(s);
     const row = (k: (typeof know)[number]) => {
       const only = k.knowers === 1 ? s.goblins.find((g) => g.knownRecipes.includes(k.id) || g.knownFacts.includes(k.id)) : undefined;
       return el(`div.vp-row${only ? '.vp-risk' : ''}`, {},
@@ -46,6 +48,7 @@ export class VillagePanel implements Component {
       el('div.sub', { text: s.village.name + (s.god.godName ? ' · ' + t('village.god', { name: s.god.godName }) : '') }),
       el('h3', { text: `${t('village.pop')}: ${s.goblins.length}` }),
       el('div.sub', { text: counts.map(([st, n]) => `${t(`stage.${st}`)} ${n}`).join(' · ') }),
+      el('div.sub', { text: t('village.food', { n: Math.round(food.food), d: food.days.toFixed(1) }) }),
       el('h3', { text: t('village.knowledge') }),
       el('div.sub', { text: t('village.basics', { list: STARTER_RECIPES.map((id) => t(`recipe.${id}`)).join(', ') }) }),
       ...(recipes.length ? recipes.map(row) : [el('div.sub', { text: t('village.nothing') })]),

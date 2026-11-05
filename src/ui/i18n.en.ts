@@ -171,5 +171,14 @@ export const EN = {
   'village.title': 'Village', 'village.pop': 'Goblins', 'village.knowledge': 'Knowledge', 'village.facts': 'Lore',
   'village.knowers': '{n} know it', 'village.onlyOne': 'only {name} knows!', 'village.nothing': 'Nothing beyond the basics yet.',
   'village.basics': 'Everyone knows: {list}', 'village.god': 'Their god: {name}', 'village.lost': 'Lost: {list}',
+  // P5.6 fiber chain, preservation, spoilage
+  'item.basket': 'Basket', 'item.sleeping_mat': 'Sleeping mat', 'item.loincloth': 'Loincloth', 'item.leaf_cape': 'Leaf cape', 'item.flower_crown': 'Flower crown',
+  'item.leaves': 'Leaves', 'item.flower': 'Flower', 'item.dried_apple': 'Dried apples',
+  'recipe.rope': 'Rope', 'recipe.basket': 'Basket', 'recipe.sleeping_mat': 'Sleeping mat', 'recipe.loincloth': 'Loincloth', 'recipe.leaf_cape': 'Leaf cape',
+  'recipe.flower_crown': 'Flower crown', 'recipe.grinding_stone': 'Grinding stone', 'recipe.drying_rack': 'Drying rack', 'recipe.storage_pit': 'Storage pit',
+  'bld.grinding_stone': 'Grinding stone', 'bld.drying_rack': 'Drying rack', 'bld.storage_pit': 'Storage pit',
+  'act.cut_grass': 'Cutting grass', 'act.pick_flowers': 'Picking flowers', 'act.process': 'Putting food by',
+  'ev.preserve_built': 'The village built a {building}.', 'ev.spoiled': '{n} went off in the stores today ({list}).',
+  'village.food': 'Food stores: {n} · about {d} days', 'insp.wearing': 'Wearing', 'insp.rack': 'Drying {n}', 'insp.rackDone': '{n} dried apples to take down',
   'qty': '×{n}', 'yes': 'Yes', 'no': 'No',
 } as const;

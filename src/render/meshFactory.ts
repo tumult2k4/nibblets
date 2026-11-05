@@ -3,6 +3,7 @@ import { merge, paint, wobble } from './lowpoly';
 import { PROP_COLORS as P } from './palette';
 import type { ItemType } from '../shared/types';
 import { toolGeo } from './toolMeshes';
+import { fiberItemGeo } from './fiberMeshes';
 
 /** Low-poly prop geometries, built once and shared by instanced meshes. */
 export function bushGeo(): THREE.BufferGeometry {
@@ -78,7 +79,7 @@ export function itemGeo(t: ItemType): THREE.BufferGeometry {
     case 'clay': g = paint(new THREE.IcosahedronGeometry(0.1, 0).scale(1, 0.6, 1).translate(0, 0.06, 0), '#b8734e'); break;
     case 'stew':
     case 'apple_mash': g = merge([paint(new THREE.CylinderGeometry(0.1, 0.07, 0.08, 6).translate(0, 0.04, 0), '#8a6a4a'), paint(new THREE.CylinderGeometry(0.085, 0.085, 0.01, 6).translate(0, 0.08, 0), t === 'stew' ? '#b5642f' : '#e3c070')]); break;
-    default: g = toolGeo(t) ?? paint(new THREE.BoxGeometry(0.14, 0.14, 0.14).translate(0, 0.07, 0), '#c8a060');
+    default: g = fiberItemGeo(t) ?? toolGeo(t) ?? paint(new THREE.BoxGeometry(0.14, 0.14, 0.14).translate(0, 0.07, 0), '#c8a060');
   }
   ITEM_GEOS.set(t, g);
   return g;

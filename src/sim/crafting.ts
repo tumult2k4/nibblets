@@ -12,7 +12,8 @@ import { missingMaterials } from './buildings';
 import { spawnGroundItem } from './groundItems';
 import { HAND_RECIPES, RECIPES, knows } from './recipes';
 import { bestWeapon, gear, weaponDmg } from './tools';
-import { stoneWanted, woodWanted } from './ai/wants';
+import { materialWanted, stoneWanted, woodWanted } from './ai/wants';
+import { bodyWarmth, hasItem, wearValue } from './clothing';
 import type { ItemStack, ItemType, RecipeId } from '../shared/types';
 import type { Goblin } from './state';
 import type { World } from './world';
@@ -21,6 +22,9 @@ import { observe } from './knowledge';
 import type { SkillId } from '../shared/types';
 
 const C = CFG.crafting;
+const FB = CFG.fiber;
+/** Clothes matter more as the year cools. */
+const coldMul = (season: string): number => (season === 'winter' ? FB.coldWantMul : season === 'autumn' ? (1 + FB.coldWantMul) / 2 : 1);
 /** The strongest weapon there is: wants scale with how much a new weapon would add. */
 const MAX_DMG = Math.max(...Object.values(ITEM_DEFS).map((d) => d.weapon?.dmg ?? 0));
 
@@ -57,6 +61,15 @@ export function craftWant(g: Goblin, w: World, item: ItemType): number {
     if (d.tool.mineMul) return C.toolWant * stoneWanted(g, w);
     if (d.tool.chopMul) return C.toolWant * woodWanted(g, w);
   }
+  // P5.6 fiber goods: warmer clothes than it has, a crown for an empty head, one basket and one mat each, rope for the store
+  if (d.wear?.slot === 'body') {
+    const gain = wearValue(item) - bodyWarmth(g);
+    return gain > 0 ? FB.clothesWant * Math.min(1, gain / 4) * coldMul(w.clock.season) : 0;
+  }
+  if (d.wear?.slot === 'head') return g.equipped.head || hasItem(g, item) ? 0 : FB.crownWant * (0.5 + g.personality.sociability);
+  if (d.bag) return hasItem(g, item) ? 0 : FB.basketWant;
+  if (d.bedroll) return hasItem(g, item) ? 0 : FB.matWant * (g.homeId === null ? 1 : 0.2);
+  if (item === 'rope') return FB.ropeWant * materialWanted(g, w, 'rope', FB.ropeTarget);
   return 0;
 }
 

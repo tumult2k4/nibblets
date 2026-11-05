@@ -110,8 +110,8 @@ export function findSite(w: World, type: BuildingType, near: Vec2): Vec2 | null 
 }
 
 /** A communal site (§10.1 "near the center"): the closest clear spot to the village center, a little apart from the rest. */
-export function findCommunalSite(w: World, type: BuildingType): Vec2 | null {
-  const s = w.s, def = buildingDef(type), c = s.village.center, R = CFG.fire.communalRadius;
+export function findCommunalSite(w: World, type: BuildingType, R: number = CFG.fire.communalRadius): Vec2 | null {
+  const s = w.s, def = buildingDef(type), c = s.village.center;
   if (!def) return null;
   let best: Vec2 | null = null, bestScore = -Infinity;
   for (let y = Math.ceil(c.y - R); y <= c.y + R; y++)

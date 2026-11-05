@@ -71,6 +71,7 @@ export class Props {
   private look: SeasonLook = seasonLook(clockAt(0)).look;
   private lookSig = 'spring';
   private grassMesh: THREE.InstancedMesh | null = null;
+  private grassSig = -1;
   /** plant id → [mesh, instance index] for picking */
   readonly plantIndex = new Map<THREE.InstancedMesh, Plant[]>();
 
@@ -161,18 +162,10 @@ export class Props {
     this.group.add(rocks);
     this.plantMeshes.push(rocks);
     const grass = new THREE.InstancedMesh(grassGeo(), flatMat, Math.max(1, s.grass.length * 3));
-    let gi = 0;
-    for (const g of s.grass)
-      for (let k = 0; k < 3; k++) {
-        const x = g.pos.x + (hash(g.id * 3 + k) - 0.5) * 1.2, y = g.pos.y + (hash(g.id * 5 + k) - 0.5) * 1.2;
-        q.setFromAxisAngle(up, hash(g.id + k) * 6.28);
-        const k2 = 0.7 + g.density * 0.6;
-        m4.compose(v.set(x, this.ground(x, y), y), q, sc.set(k2, k2, k2));
-        grass.setMatrixAt(gi++, m4);
-      }
-    grass.count = gi;
-    for (let i = 0; i < gi; i++) grass.setColorAt(i, this.look.grass);
     this.grassMesh = grass;
+    this.grassSig = -1;
+    this.layoutGrass();
+    for (let i = 0; i < grass.count; i++) grass.setColorAt(i, this.look.grass);
     this.group.add(grass);
     this.plantMeshes.push(grass);
     this.plantsSig = plantsSig(s.plants, s.god.held, s.rocks);
@@ -184,10 +177,31 @@ export class Props {
     if (this.sigTimer <= 0) {
       this.sigTimer = 15;
       if (plantsSig(s.plants, s.god.held, s.rocks) !== this.plantsSig) this.buildStatic();
+      else this.layoutGrass();
     }
     this.updateApples();
     this.updateItems(interp, alpha);
     this.updateHeldPlant();
+  }
+
+  /** Grass tufts shrink when cut for fiber and fill out as they regrow (P5.6); a cut-down patch is a few stubs. */
+  private layoutGrass(): void {
+    const mesh = this.grassMesh, s = this.w.s;
+    if (!mesh) return;
+    const sig = s.grass.reduce((n, g) => n + Math.round(g.density * 10), 0);
+    if (sig === this.grassSig) return;
+    this.grassSig = sig;
+    let gi = 0;
+    for (const g of s.grass)
+      for (let k = 0; k < 3; k++) {
+        const x = g.pos.x + (hash(g.id * 3 + k) - 0.5) * 1.2, y = g.pos.y + (hash(g.id * 5 + k) - 0.5) * 1.2;
+        q.setFromAxisAngle(up, hash(g.id + k) * 6.28);
+        const k2 = 0.25 + Math.round(g.density * 10) * 0.105;
+        m4.compose(v.set(x, this.ground(x, y), y), q, sc.set(0.7 + k2 * 0.3, k2, 0.7 + k2 * 0.3));
+        mesh.setMatrixAt(gi++, m4);
+      }
+    mesh.count = gi;
+    mesh.instanceMatrix.needsUpdate = true;
   }
 
   private updateApples(): void {

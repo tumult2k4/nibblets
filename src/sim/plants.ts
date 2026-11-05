@@ -21,7 +21,8 @@ export const fertilityMul = (f: number): number => clamp(0.5 + (f / 0.6) * 0.5, 
 export const isGrowing = (p: Plant): boolean => GROW.includes(p.stage);
 export const maxFruit = (p: Plant): number =>
   p.kind === 'berry_bush' ? (p.stage === 'mature' ? P.maxBerries : 0)
-    : p.kind === 'apple_bush' ? (p.stage === 'mature' ? P.maxApples : p.stage === 'old' ? P.oldMaxApples : 0) : 0;
+    : p.kind === 'apple_bush' ? (p.stage === 'mature' ? P.maxApples : p.stage === 'old' ? P.oldMaxApples : 0)
+      : p.kind === 'flower' && p.stage === 'mature' ? 1 : 0; // a flower's one bloom, picked for crowns (P5.6)
 
 /** Can a new plant take root here? Fertile, dry land, not adjacent to another plant (§P2.2). */
 export function siteOk(w: World, pos: Vec2, minGap = 1.2, ignoreId?: ID): boolean {
@@ -96,7 +97,10 @@ export function updatePlants(w: World): void {
       continue;
     }
     if (p.kind === 'tree' || p.kind === 'flower') {
-      if (p.kind === 'flower' && p.stage === 'mature' && season > 0 && w.rng.chance(P.flowerSpreadChancePerDay * dtDays)) selfSeed(w, p);
+      if (p.kind === 'flower' && p.stage === 'mature' && season > 0) {
+        if (w.rng.chance(P.flowerSpreadChancePerDay * dtDays)) selfSeed(w, p);
+        if (p.fruit < 1 && (p.fruitProgress = q4(p.fruitProgress + (dtDays / P.flowerBloomDays) * season)) >= 1) { p.fruit = 1; p.fruitProgress = 0; }
+      }
       if (!isGrowing(p)) continue;
     }
     p.age = q4(p.age + dtDays);
@@ -114,7 +118,9 @@ export function updatePlants(w: World): void {
     if (p.stage === 'mature' && p.kind !== 'tree' && p.age >= P.matureUntilDays) setStage(w, p, 'old');
     else if (p.stage === 'old' && p.age >= P.oldUntilDays) { dead.push(p); continue; }
     if (p.stage === 'old' && season > 0 && w.rng.chance(P.oldSeedChancePerDay * dtDays)) selfSeed(w, p);
-    growFruit(p, dtDays, season > 0 || p.kind !== 'berry_bush' ? season : P.winterFoodEase);
+    // P5.6: winter bites — nothing ripens, and frost takes what was left hanging
+    if (season > 0) growFruit(p, dtDays, season);
+    else if (p.fruit > 0 && w.rng.chance((p.fruit * dtDays) / P.frostFruitDays)) p.fruit -= 1;
   }
   for (const p of dead) {
     if (p.stage !== 'stump') spawnGroundItem(w, { type: 'wood', qty: P.deadWood }, p.pos);

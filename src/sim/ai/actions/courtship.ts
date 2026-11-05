@@ -18,6 +18,7 @@ import { addItem, takeOne } from '../../inventory';
 import { spawnGroundItem } from '../../groundItems';
 import { ambientWarmth, nestSpot } from '../../eggs';
 import { homeOf } from './home';
+import { charm } from '../../clothing';
 
 const F = CFG.family;
 const DAY = CFG.time.dayTicks;
@@ -86,7 +87,8 @@ export const Court: UtilityAction = {
     const rel = relate(g, o.id);
     if (w.s.tick - (rel.courtTick ?? -1e9) > DAY) rel.court = 0;
     rel.courtTick = w.s.tick;
-    const p = clamp(F.welcome + (opinionOf(o, g.id) - CFG.social.friend) / 50 + (a.count ? F.giftWelcome : 0), 0.1, 0.95);
+    // a gift helps, and so does a flower crown (P5.6 charm)
+    const p = clamp(F.welcome + (opinionOf(o, g.id) - CFG.social.friend) / 50 + (a.count ? F.giftWelcome : 0) + charm(g), 0.1, 0.95);
     const ok = w.rng.chance(p);
     if (ok) {
       rel.court = (rel.court ?? 0) + 1;

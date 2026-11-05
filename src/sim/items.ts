@@ -2,13 +2,22 @@ import type { ItemType, PlantKind } from '../shared/types';
 import { CFG } from './config';
 
 export interface ItemDef {
-  stack: number; weight: number; nutrition?: number; decayDays?: number; value: number;
+  stack: number; weight: number; nutrition?: number; value: number;
+  /** days a dropped one lies on the ground before it is gone */
+  decayDays?: number;
+  /** P5.6 spoilage: mean days a stored or carried one keeps (stockpile, pantry, pack); a storage pit doubles it */
+  shelfDays?: number;
   tool?: { chopMul?: number; mineMul?: number; fishMul?: number; fells?: boolean };
   /** tools & weapons: durability in uses (§11.3) and what a broken one leaves behind */
   uses?: number;
   breaksInto?: Partial<Record<ItemType, number>>;
   weapon?: { dmg: number; range: number };
-  wear?: { warmth?: number; armor?: number; charm?: number };
+  /** clothing (P5.6): worn on the body or head; warmth °C, courtship charm, wet penalty × wetMul */
+  wear?: { slot: 'body' | 'head'; warmth?: number; armor?: number; charm?: number; wetMul?: number };
+  /** a basket: extra pack slots while carried (P5.6) */
+  bag?: number;
+  /** a sleeping mat: sleeping out on it rests like a mat, not bare ground (P5.6) */
+  bedroll?: boolean;
   burnable?: boolean;
   /** hp lost when eaten (P5.5 redcap) */
   poison?: number;
@@ -19,24 +28,27 @@ export interface ItemDef {
 const F = CFG.food;
 /** Content table — counts as config (§0.1 rule 7). Later phases fill in the rest. */
 export const ITEM_DEFS: Partial<Record<ItemType, ItemDef>> = {
-  apple: { stack: 10, weight: 1, nutrition: F.apple, decayDays: 6, value: 2, tray: 'food' },
-  apple_core: { stack: 10, weight: 0.5, nutrition: F.apple_core, decayDays: 4, value: 1, tray: 'life' },
-  apple_mash: { stack: 10, weight: 1, nutrition: F.apple_mash, decayDays: 3, value: 3, tray: 'food' },
-  berry: { stack: 20, weight: 0.3, nutrition: F.berry, decayDays: 3, value: 1, tray: 'food' },
-  mushroom: { stack: 10, weight: 0.5, nutrition: F.mushroom, decayDays: 4, value: 1, tray: 'food' },
-  glowcap: { stack: 10, weight: 0.3, nutrition: F.glowcap, decayDays: 6, value: 2 },
+  apple: { stack: 10, weight: 1, nutrition: F.apple, decayDays: 6, shelfDays: 4, value: 2, tray: 'food' },
+  apple_core: { stack: 10, weight: 0.5, nutrition: F.apple_core, decayDays: 4, shelfDays: 12, value: 1, tray: 'life' },
+  // P5.6 preserves: mash from the grinding stone keeps 12 days, dried apples from the rack 30
+  apple_mash: { stack: 10, weight: 1, nutrition: F.apple_mash, decayDays: 3, shelfDays: 12, value: 3, tray: 'food' },
+  dried_apple: { stack: 20, weight: 0.3, nutrition: F.dried_apple, decayDays: 10, shelfDays: 30, value: 2, tray: 'food' },
+  berry: { stack: 20, weight: 0.3, nutrition: F.berry, decayDays: 3, shelfDays: 3, value: 1, tray: 'food' },
+  mushroom: { stack: 10, weight: 0.5, nutrition: F.mushroom, decayDays: 4, shelfDays: 4, value: 1, tray: 'food' },
+  glowcap: { stack: 10, weight: 0.3, nutrition: F.glowcap, decayDays: 6, shelfDays: 6, value: 2 },
   // P5.5: looks like a meal to anyone who doesn't know better (`redcap_is_poison`)
-  redcap: { stack: 10, weight: 0.4, nutrition: F.redcap, decayDays: 4, value: 0, poison: CFG.knowledge.redcapDmg },
-  fish: { stack: 5, weight: 1, nutrition: F.fish, decayDays: 2, value: 3, tray: 'food' },
-  stew: { stack: 3, weight: 1.5, nutrition: F.stew, decayDays: 2, value: 6, tray: 'food' },
+  redcap: { stack: 10, weight: 0.4, nutrition: F.redcap, decayDays: 4, shelfDays: 4, value: 0, poison: CFG.knowledge.redcapDmg },
+  fish: { stack: 5, weight: 1, nutrition: F.fish, decayDays: 2, shelfDays: 1, value: 3, tray: 'food' },
+  stew: { stack: 3, weight: 1.5, nutrition: F.stew, decayDays: 2, shelfDays: 2, value: 6, tray: 'food' },
   wood: { stack: 10, weight: 2, value: 3, burnable: true, tray: 'materials' },
   stick: { stack: 20, weight: 0.5, value: 1, burnable: true, tray: 'materials' },
+  // leaves fall when bushes and trees are chopped (P5.6); they wilt, but slowly
+  leaves: { stack: 20, weight: 0.1, decayDays: 3, shelfDays: 8, value: 1, burnable: true },
   stone: { stack: 10, weight: 3, value: 3, tray: 'materials' },
   flint: { stack: 10, weight: 1, value: 5, tray: 'materials' },
   fiber: { stack: 20, weight: 0.3, value: 2, burnable: true, tray: 'materials' },
   clay: { stack: 10, weight: 2, value: 2, tray: 'materials' },
-  // rope is twisted from fiber in P5; defined now because P4 recipes (stone axe, pick) need it
-  rope: { stack: 10, weight: 0.5, value: 4, burnable: true },
+  rope: { stack: 10, weight: 0.5, value: 4, burnable: true, tray: 'materials' },
   // tools & weapons (§11.1/§11.3): one per slot; a use = one finished job (tree felled, stone mined) or one hit
   spear: { stack: 1, weight: 2, value: 6, weapon: { dmg: CFG.combat.spear, range: 1.5 }, uses: 25, breaksInto: { stick: 1 }, tray: 'tools' },
   stone_spear: { stack: 1, weight: 2, value: 10, weapon: { dmg: CFG.combat.stone_spear, range: 1.5 }, uses: 35, breaksInto: { stick: 1 } },
@@ -45,8 +57,14 @@ export const ITEM_DEFS: Partial<Record<ItemType, ItemDef>> = {
   // a torch burns one use per in-game hour of night in the hand and leaves nothing behind
   torch: { stack: 1, weight: 0.5, value: 3, uses: 8, burnable: true, tray: 'tools' },
   pick: { stack: 1, weight: 3, value: 10, tool: { mineMul: 2 }, uses: 25, breaksInto: { stick: 1, stone: 1 }, tray: 'tools' },
-  // flowers: decor now; crowns and courtship gifts arrive with culture (P8)
-  flower: { stack: 10, weight: 0.1, decayDays: 2, value: 1 },
+  // P5.6 fiber goods: a basket carries 4 more, a mat makes sleeping out restful, clothes keep warm
+  basket: { stack: 1, weight: 0.5, value: 5, bag: 4, burnable: true, tray: 'tools' },
+  sleeping_mat: { stack: 1, weight: 1, value: 5, bedroll: true, burnable: true },
+  loincloth: { stack: 1, weight: 0.3, value: 4, wear: { slot: 'body', warmth: 2 }, burnable: true },
+  leaf_cape: { stack: 1, weight: 0.4, value: 6, wear: { slot: 'body', warmth: 4, wetMul: 0.5 }, burnable: true },
+  flower_crown: { stack: 1, weight: 0.1, value: 4, wear: { slot: 'head', charm: CFG.fiber.crownCharm } },
+  // flowers: for crowns (P5.6) and courtship gifts
+  flower: { stack: 10, weight: 0.1, decayDays: 2, shelfDays: 3, value: 1 },
 };
 
 /** A Gift Tray slot: an item, or a sapling of a plant kind (Life tab, §P2.7). */
@@ -57,12 +75,17 @@ export const TRAY_TABS: readonly TrayTab[] = ['food', 'materials', 'tools', 'lif
 /** Divine mode: the Tools tab unlocks at god tier 2 (§18.5). */
 export const TOOLS_TIER = 2;
 export const GIFT_TRAY: Record<TrayTab, TrayEntry[]> = {
-  food: ['apple', 'berry', 'mushroom', 'fish', 'apple_mash', 'stew'],
-  materials: ['wood', 'stick', 'stone', 'flint', 'fiber', 'clay'],
-  tools: ['spear', 'club', 'stone_axe', 'pick', 'torch'],
+  food: ['apple', 'berry', 'mushroom', 'fish', 'apple_mash', 'dried_apple', 'stew'],
+  materials: ['wood', 'stick', 'stone', 'flint', 'fiber', 'rope', 'clay'],
+  tools: ['spear', 'club', 'stone_axe', 'pick', 'torch', 'basket'],
   life: ['apple_core', 'sapling:apple_bush', 'sapling:berry_bush', 'sapling:tree', 'sapling:flower'],
 };
 export const saplingKind = (e: TrayEntry): PlantKind | null => (e.startsWith('sapling:') ? (e.slice(8) as PlantKind) : null);
 
 export const itemDef = (t: ItemType): ItemDef => ITEM_DEFS[t] ?? { stack: 10, weight: 1, value: 1 };
 export const isFood = (t: ItemType): boolean => (itemDef(t).nutrition ?? 0) > 0;
+/** Kept by whoever carries it, never stored: tools and weapons, clothes, baskets and mats. */
+export function isGear(t: ItemType): boolean {
+  const d = itemDef(t);
+  return (d.uses ?? 0) > 0 || !!d.wear || !!d.bag || !!d.bedroll;
+}

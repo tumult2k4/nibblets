@@ -28,6 +28,8 @@ import { sampleStats } from './stats';
 import { findPath } from './pathfinding';
 import { updateEggs } from './eggs';
 import { updateKnowledge } from './knowledge';
+import { updateSpoilage } from './spoilage';
+import { updateRacks } from './preserve';
 
 /**
  * The live world: plain-data state plus derived, rebuildable caches (rng object, spatial hashes,
@@ -117,6 +119,8 @@ export class World {
     updateEcology(this); //   5 ecology: mushrooms, fallen sticks (wildlife P7)
     updateFires(this); //     6 campfires burn down, torches burn (spreading fire P6)
     updateGroundItems(this); // 7 (+ airborne items)
+    updateSpoilage(this); //  7b stored and carried food rots (P5.6)
+    updateRacks(this); //     7c drying racks dry (P5.6)
     // 8 eggs: updateEggs (step 10b); the P4.7 newcomers are gone since P5.4
     updateGod(this); //       8b
     this.goblinHash.rebuild(s.goblins);

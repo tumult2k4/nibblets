@@ -1,13 +1,13 @@
 import { CFG } from '../../config';
 import { dist } from '../../../shared/math';
 import { addItem, canCarry, foodStack } from '../../inventory';
-import { isFood } from '../../items';
+import { isFood, isGear } from '../../items';
 import { needUrgency } from '../../goblin/needs';
 import { moveAlong, planPath } from '../../steering';
 import { findGroundItem } from '../targets';
 import type { UtilityAction } from '../action';
 import { stickWanted, woodWanted } from '../wants';
-import { gear, isTool } from '../../tools';
+import { gear } from '../../tools';
 import type { Goblin, GroundItem } from '../../state';
 import type { World } from '../../world';
 
@@ -15,12 +15,15 @@ import type { World } from '../../world';
 const wantItem = (g: Goblin) => (it: GroundItem) => {
   const t = it.stack.type;
   if (!canCarry(g, t)) return false;
-  if (isTool(t)) return g.lifeStage === 'adult' && !gear(g).some((s) => s.type === t);
+  if (isGear(t)) return g.lifeStage === 'adult' && !gear(g).some((s) => s.type === t) && g.equipped.body?.type !== t && g.equipped.head?.type !== t;
   return t === 'apple_core' ? g.needs.hunger < 30 : isFood(t) ? g.needs.hunger < 92 : true;
 };
 
+/** Food, gear, wood and sticks first; odds and ends (leaves, stone chips) only when nothing better lies about. */
+const MAIN = (t: string): boolean => t === 'wood' || t === 'stick' || isFood(t as GroundItem['stack']['type']) || isGear(t as GroundItem['stack']['type']);
 function target(g: Goblin, w: World): GroundItem | null {
-  return findGroundItem(g, w, wantItem(g));
+  const want = wantItem(g);
+  return findGroundItem(g, w, (it) => MAIN(it.stack.type) && want(it)) ?? findGroundItem(g, w, want);
 }
 
 /** Pick up a ground item (god-dropped apples, later: dropped materials). */
@@ -37,7 +40,7 @@ export const PickUp: UtilityAction = {
     }
     // materials: worth fetching while the village wants wood (chopping drops it on the ground)
     const t = it.stack.type;
-    const want = isTool(t) ? 0.3 : t === 'wood' ? 0.12 + 0.3 * woodWanted(g, w) : t === 'stick' ? 0.1 + 0.3 * stickWanted(g, w) : 0.1;
+    const want = isGear(t) ? 0.3 : t === 'wood' ? 0.12 + 0.3 * woodWanted(g, w) : t === 'stick' ? 0.1 + 0.3 * stickWanted(g, w) : 0.1;
     return want * near * (0.5 + g.personality.industry);
   },
   start(g, w) {

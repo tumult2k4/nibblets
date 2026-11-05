@@ -3,11 +3,14 @@ import { CFG } from './config';
 import { isFood, itemDef } from './items';
 import type { Goblin } from './state';
 import { express } from './goblin/genetics/phenotype';
+import { bagSlots } from './clothing';
 
+/** Pack slots: 4 for adults (5 if big), 1 for younglings; a basket holds 4 more and doesn't take one itself (P5.6). */
 export function slotCount(g: Goblin): number {
   if (g.lifeStage === 'hatchling') return 0;
-  if (g.lifeStage === 'youngling') return 1;
-  return CFG.goblin.inventorySlots + (express(g.genome, 'adultSize') > 1.15 ? 1 : 0);
+  const bag = bagSlots(g);
+  const base = g.lifeStage === 'youngling' ? 1 : CFG.goblin.inventorySlots + (express(g.genome, 'adultSize') > 1.15 ? 1 : 0);
+  return base + (bag ? bag + 1 : 0);
 }
 
 /** Can one more unit of `type` fit (existing stack with room, or a free slot)? */
@@ -66,9 +69,13 @@ export function removeItems(g: Goblin, t: ItemType, n: number): number {
   return n - left;
 }
 
-/** Best food in the inventory (most nutritious first). Apple cores are kept for planting unless `cores`; a redcap is food only to those who don't know it's poison. */
+/** Order to eat in: what rots soonest first (P5.6), then the most nutritious. */
+export const eatOrder = (a: ItemStack, b: ItemStack): number =>
+  (itemDef(a.type).shelfDays ?? 99) - (itemDef(b.type).shelfDays ?? 99) || (itemDef(b.type).nutrition ?? 0) - (itemDef(a.type).nutrition ?? 0);
+
+/** Food to eat next from the inventory (see `eatOrder`). Apple cores are kept for planting unless `cores`; a redcap is food only to those who don't know it's poison. */
 export const foodStack = (g: Goblin, cores = false): ItemStack | undefined =>
-  [...g.inventory].filter((s) => isFood(s.type) && (cores || s.type !== 'apple_core') && !(s.type === 'redcap' && g.knownFacts.includes('redcap_is_poison'))).sort((a, b) => (itemDef(b.type).nutrition ?? 0) - (itemDef(a.type).nutrition ?? 0))[0];
+  [...g.inventory].filter((s) => isFood(s.type) && (cores || s.type !== 'apple_core') && !(s.type === 'redcap' && g.knownFacts.includes('redcap_is_poison'))).sort(eatOrder)[0];
 
 export const countItem = (g: Goblin, t: ItemType): number =>
   g.inventory.reduce((n, s) => n + (s.type === t ? s.qty : 0), 0);

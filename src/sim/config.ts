@@ -1,7 +1,7 @@
 /** Every tunable number lives here (§21). Additions beyond §21 are logged in DECISIONS.md. */
 export const CFG = {
   tickHz: 10,
-  saveVersion: 12,
+  saveVersion: 13,
   time: { dayTicks: 3600, daysPerSeason: 8, moonCycleDays: 8, phases: { dawn: 0.05, day: 0.6, dusk: 0.7 }, startTick: 360 },
   world: {
     w: 128, h: 128, waterLevel: 0.3, sandBand: 0.03, rockLevel: 0.8, forestNoiseThreshold: 0.6,
@@ -40,8 +40,8 @@ export const CFG = {
     chopTicksPerHit: 15, chopHitDmg: 20, sticks: { mature: 2, old: 1, tree: 3 }, treeToughness: 2.5, berryWood: 1, minBushesPerGoblin: 5,
     woodTarget: 30, stockFoodKeep: 2,
     keepCoreBase: 0.1, keepCorePerIndustry: 0.2, plantTicks: 40, waterTicks: 20, wetHandsTicks: 600, waterBelow: 0.5, waterRadius: 25, minSeedGap: 1.6,
-    /** TEMPORARY (P3.2 → remove in P5.6): berry bushes keep fruiting at this rate in winter until preservation exists */
-    winterFoodEase: 0.5,
+    /** P5.6: frost takes the fruit left on the bushes in winter (mean days a fruit hangs on); flowers rebloom in 2 days */
+    frostFruitDays: 1, flowerBloomDays: 2,
   },
   memory: {
     capacity: 60, forgetBelow: 0.1, senseEvery: 20, initialRadius: 24, mergeDist: 3,
@@ -76,6 +76,10 @@ export const CFG = {
       campfire: { cost: { wood: 2, stone: 1 } as Record<string, number>, footprint: 1, hp: 40, capacity: 0, storage: 0 },
       fence: { cost: { wood: 1 } as Record<string, number>, footprint: 1, hp: 40, capacity: 0, storage: 0, labor: 8 },
       stone_hut: { cost: { stone: 6 } as Record<string, number>, footprint: 2, hp: 220, capacity: 3, storage: 8, labor: 2.5 },
+      // P5.6 preservation: storage = what the rack holds per batch / what the pit keeps cool
+      grinding_stone: { cost: { stone: 3 } as Record<string, number>, footprint: 1, hp: 80, capacity: 0, storage: 0, labor: 3 },
+      drying_rack: { cost: { wood: 3, rope: 2 } as Record<string, number>, footprint: 1, hp: 30, capacity: 0, storage: 12, labor: 3 },
+      storage_pit: { cost: { stone: 2 } as Record<string, number>, footprint: 1, hp: 120, capacity: 0, storage: 160, labor: 1.2 },
     } as Record<string, { cost: Record<string, number>; footprint: number; hp: number; capacity: number; storage: number; labor?: number }>,
     buildRate: 0.002, skillBonus: 0.15, friendBonus: 1.3, workChunk: 300,
     siteRadius: 14, maxSlope: 0.06, waterPref: [4, 10] as [number, number], hutSpacing: [3.6, 7] as [number, number],
@@ -228,7 +232,7 @@ export const CFG = {
     focusPerLevel: 0.06,
     /** XP × (0.8 + 0.4 × industry) */
     industryXp: 0.4,
-    xp: { harvest: 0.5, forage: 1, chopHit: 0.3, felled: 2, stone: 2, buildTick: 0.04, repair: 1, craftPerTick: 0.05, hit: 3, plant: 3, water: 1.5, teach: 5 },
+    xp: { harvest: 0.5, forage: 1, chopHit: 0.3, felled: 2, stone: 2, buildTick: 0.04, repair: 1, craftPerTick: 0.05, hit: 3, plant: 3, water: 1.5, teach: 5, process: 1, cut: 0.6 },
     flintPerLevel: 0.02, waterPerLevel: 0.1,
     /** skill-ups worth a note */
     notify: [5, 10] as readonly number[],
@@ -240,6 +244,25 @@ export const CFG = {
     teachRange: 15, teachOpinion: 10, teachScore: [0.08, 0.2, 0.12] as [number, number, number], rareBonus: 0.15, kinBonus: 0.1,
     teachCooldownDays: 2, teachMood: 3, founderFactChance: 0.7, witnessRange: 8, redcapWitness: 0.6, fireWitness: 0.25,
     redcapDmg: 25, sickMood: -15, fireTendMul: 1.3,
+  },
+  /** P5.6 fiber chain: grass is cut for fiber and regrows by season; flowers for crowns; clothes and baskets */
+  fiber: {
+    cutTicks: 50, cutDensity: 0.3, fiberPerCut: [2, 3] as [number, number], minDensity: 0.35, range: 30,
+    regrowPerDay: { spring: 0.3, summer: 0.2, autumn: 0.1, winter: 0 } as Record<string, number>, regrowEvery: 300,
+    fiberTarget: 10, ropeTarget: 3, flowerTarget: 3, pickTicks: 20, gatherScore: [0.08, 0.3] as [number, number],
+    crownCharm: 0.1, crownMood: 4, clothesWant: 0.25, coldWantMul: 2, basketWant: 0.3, matWant: 0.25, ropeWant: 0.22, crownWant: 0.12,
+    leaves: { tree: 2, mature: 1, old: 1 } as Record<string, number>,
+  },
+  /** P5.6 preservation & spoilage (§11.2): stored food rots (mean shelf days per item), a pit halves it; mash and dried apples keep */
+  preserve: {
+    /** off in the `--no-preserve` balance control: nobody thinks of grinding stones, racks or pits */
+    enabled: true as boolean,
+    spoilEvery: 50, pitMul: 0.5, grindTicks: 90, grindIn: 2, grindBatch: 3, dryDays: 1, rackMin: 6, loadTicks: 30,
+    freshPerGoblin: 2, processScore: [0.14, 0.35] as [number, number], autumnMul: 1.5,
+    /** goblins pick for the stores until they hold this many days of food (winter is the reason) */
+    stockUpDays: { spring: 1.5, summer: 4, autumn: 12, winter: 0 } as Record<string, number>,
+    stockUpScore: { spring: 0.15, summer: 0.3, autumn: 0.55, winter: 0 } as Record<string, number>, chainRadius: 8,
+    perRack: 6, perPit: 8, rotIdeaPer: 0.2, rotIdeaMax: 4,
   },
   disease: { feverMinPop: 25, feverYearlyChance: 0.5 },
   llm: { diariesPerDay: 3, dialoguesPerDay: 4, barksPerDay: 6, tokensPerDay: 12000, rpm: 10, concurrency: 2, timeoutMs: 20000 },

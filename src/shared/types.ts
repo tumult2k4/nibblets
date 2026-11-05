@@ -15,7 +15,7 @@ export type ItemType =
   | 'wood' | 'stick' | 'leaves' | 'stone' | 'flint' | 'fiber' | 'clay' | 'bone' | 'feather' | 'pelt' | 'flower' | 'ash' | 'compost'
   | 'spear' | 'stone_spear' | 'club' | 'sling' | 'stone_axe' | 'pick' | 'fishing_rod' | 'bucket'
   | 'loincloth' | 'leaf_cape' | 'fur_cloak' | 'bone_necklace' | 'flower_crown' | 'war_paint'
-  | 'basket' | 'rope' | 'book' | 'drum' | 'flute' | 'torch'
+  | 'basket' | 'rope' | 'sleeping_mat' | 'book' | 'drum' | 'flute' | 'torch'
   | 'trinket';
 
 export interface ItemStack {
@@ -27,6 +27,8 @@ export interface ItemStack {
   dur?: number;
   /** fine quality (§11.1): +50 % durability and effect */
   fine?: boolean;
+  /** food (P5.6): spoilage carried over between rot checks, 0..1 of one unit */
+  rot?: number;
 }
 
 /** Billboard emotes over a goblin's head (§P2.6). */
@@ -126,6 +128,8 @@ export type SimEvent = BaseEvent &
     | { type: 'life_stage'; goblinId: ID; stage: LifeStage }
     | { type: 'recipe_discovered' | 'recipe_learned' | 'recipe_lost'; goblinId?: ID; recipe: RecipeId; via?: LearnVia; byId?: ID }
     | { type: 'poisoned'; goblinId: ID; item: ItemType }
+    | { type: 'food_spoiled'; qty: number; items: Partial<Record<ItemType, number>> }
+    | { type: 'food_processed'; goblinId: ID; buildingId: ID; item: ItemType; qty: number }
     | { type: 'sickness'; goblinId: ID; disease: DiseaseId; phase: 'infected' | 'symptomatic' | 'recovered' | 'died' }
     | { type: 'trinket_found'; goblinId: ID; trinket: TrinketKind; rarity: Rarity }
     | { type: 'mood_break'; goblinId: ID; kind: MoodBreakKind }

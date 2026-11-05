@@ -18,6 +18,8 @@ export interface RecipeDef {
   ticks?: number;
   /** the skill it trains and draws on (default crafting) */
   skill?: SkillId;
+  /** discovery (P5.5/P5.6): what else must be within reach for the idea to come (apples for the drying rack) */
+  near?: ItemType[];
 }
 
 export const RECIPES: Record<RecipeId, RecipeDef> = {
@@ -31,6 +33,17 @@ export const RECIPES: Record<RecipeId, RecipeDef> = {
   fence: { inputs: { wood: 1 }, station: 'site', building: 'fence', known: true, phase: 4 },
   stone_hut: { inputs: { stone: 6 }, station: 'upgrade', building: 'stone_hut', known: false, phase: 4 },
   torch: { inputs: { stick: 1, fiber: 1 }, station: 'none', output: 'torch', known: false, phase: 4, ticks: 60 },
+  // P5.6 fiber goods (§11.1): everyone grows up twisting rope and weaving baskets; the leaf cape is an idea to be had
+  rope: { inputs: { fiber: 3 }, station: 'none', output: 'rope', known: true, phase: 5, ticks: 60 },
+  basket: { inputs: { fiber: 3 }, station: 'none', output: 'basket', known: true, phase: 5, ticks: 90 },
+  sleeping_mat: { inputs: { fiber: 4 }, station: 'none', output: 'sleeping_mat', known: true, phase: 5, ticks: 90 },
+  loincloth: { inputs: { fiber: 2 }, station: 'none', output: 'loincloth', known: true, phase: 5, ticks: 60 },
+  leaf_cape: { inputs: { fiber: 3, leaves: 2 }, station: 'none', output: 'leaf_cape', known: false, phase: 5, ticks: 120 },
+  flower_crown: { inputs: { flower: 3 }, station: 'none', output: 'flower_crown', known: true, phase: 5, ticks: 40 },
+  // P5.6 preservation (§11.2): found by someone handling the stuff with apples about
+  grinding_stone: { inputs: { stone: 3 }, station: 'site', building: 'grinding_stone', known: false, phase: 5, near: ['apple'], skill: 'building' },
+  drying_rack: { inputs: { wood: 3, rope: 2 }, station: 'site', building: 'drying_rack', known: false, phase: 5, near: ['apple'], skill: 'building' },
+  storage_pit: { inputs: { stone: 2 }, station: 'site', building: 'storage_pit', known: false, phase: 5, near: ['apple'], skill: 'building' },
 };
 
 export const recipeDef = (id: RecipeId): RecipeDef | undefined => RECIPES[id];

@@ -6,6 +6,7 @@ import type { World } from '../../../sim/world';
 import { buildingDef, missingMaterials } from '../../../sim/buildings';
 import { bar } from './goblinInspector';
 import { CFG } from '../../../sim/config';
+import { dryProgress, isDrying, rackDried, rackLoad } from '../../../sim/preserve';
 
 const row = (label: string, ...rest: (HTMLElement | string)[]) => el('div.row', {}, el('span.lbl', { text: label }), ...rest);
 
@@ -31,6 +32,8 @@ export function buildingBody(b: Building, w: World): HTMLElement {
     b.type === 'campfire' && b.buildProgress >= 1
       ? row(t('insp.fuel'), bar(((b.fuel ?? 0) / CFG.fire.maxFuel) * 100, 'var(--gold)'), el('span.val', { text: (b.fuel ?? 0) > 0 ? t('insp.fuelHours', { n: Math.round((b.fuel ?? 0) / CFG.god.hourTicks) }) : t('insp.fireOut') }))
       : null,
-    b.buildProgress >= 1 && def?.storage ? row(t('insp.storage'), el('span', { text: `${stored} (${b.storage.reduce((n, s) => n + s.qty, 0)}/${def.storage})` })) : null,
+    b.buildProgress >= 1 && def?.storage && b.type !== 'storage_pit' ? row(t('insp.storage'), el('span', { text: `${stored} (${b.storage.reduce((n, s) => n + s.qty, 0)}/${def.storage})` })) : null,
+    b.type === 'drying_rack' && isDrying(b) ? row(t('insp.rack', { n: rackLoad(b) }), bar(dryProgress(b) * 100, 'var(--gold)'), el('span.val', { text: `${Math.round(dryProgress(b) * 100)}%` })) : null,
+    b.type === 'drying_rack' && rackDried(b) > 0 ? el('div.sub', { text: t('insp.rackDone', { n: rackDried(b) }) }) : null,
   );
 }

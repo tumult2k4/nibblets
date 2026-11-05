@@ -19,6 +19,7 @@ import { countItem } from './inventory';
 import { stockCount } from './stockpile';
 
 const K = CFG.knowledge;
+const PRESERVE_IDS: ReadonlySet<string> = new Set(['grinding_stone', 'drying_rack', 'storage_pit']);
 
 export type FactId = 'redcap_is_poison' | 'gnashers_fear_fire';
 /** Cultural facts (§15.1); `blight_spreads` joins them with blight (P6.3). */
@@ -69,27 +70,40 @@ export function loseKnowledge(w: World, dead: Goblin): void {
   }
 }
 
-/** 0..1: the share of a recipe's input kinds within reach (own pack, the stockpile within 5, the ground within 3). One must be in hand. */
+/**
+ * 0..1: the share of a recipe's input kinds (and `near` hints, e.g. apples for a drying rack) within reach: own
+ * pack, the stockpile within 5, the ground within 3. One of the inputs must be in hand — or, for something built on
+ * a site (a drying rack), the goblin must be at the stockpile, looking at it all.
+ */
 export function inputsNear(g: Goblin, w: World, id: RecipeId): number {
-  const kinds = Object.keys(RECIPES[id]?.inputs ?? {}) as ItemType[];
+  const inputs = Object.keys(RECIPES[id]?.inputs ?? {}) as ItemType[];
+  const kinds = [...inputs, ...(RECIPES[id]?.near ?? [])];
   let held = false, n = 0;
   const atStock = dist(g.pos, w.s.village.stockpilePos) <= K.stockReach;
+  if (atStock && RECIPES[id]?.station === 'site') held = true;
   for (const t of kinds) {
-    if (countItem(g, t) > 0) { held = true; n++; }
+    if (countItem(g, t) > 0) { held ||= inputs.includes(t); n++; }
     else if ((atStock && stockCount(w.s, t) > 0) || w.itemHash.nearest(g.pos, K.groundReach, (it) => it.stack.type === t && !it.airborne)) n++;
   }
   return held ? n / kinds.length : 0;
 }
+
+/** Food that has rotted in the village since dawn. */
+const spoiledToday = (w: World): number => Object.values(w.s.village.spoiled ?? {}).reduce((a, b) => a + (b ?? 0), 0);
 
 /** Inspired goblins (the god's gift, P5.9) have ideas three times as often. */
 const inspiration = (g: Goblin): number => (g.mood.modifiers.some((m) => m.id === 'inspired') ? K.inspiredMul : 1);
 
 /** Chance per hour that `g` works out recipe `id` (0 when the inputs aren't at hand). */
 export function discoveryChance(g: Goblin, w: World, id: RecipeId): number {
+  // the `--no-preserve` balance control: nobody ever thinks of putting food by
+  if (!CFG.preserve.enabled && PRESERVE_IDS.has(id)) return 0;
   const near = inputsNear(g, w, id);
   if (near < K.minNear) return 0;
   const skill = skillLevel(g, RECIPES[id]?.skill ?? 'crafting');
-  return K.discoveryBase * (0.5 + g.personality.wanderlust) * (1 + K.skillMul * skill) * inspiration(g) * near;
+  // food going off before their eyes puts goblins in mind of keeping it (P5.6)
+  const rot = PRESERVE_IDS.has(id) ? 1 + Math.min(CFG.preserve.rotIdeaMax, spoiledToday(w) * CFG.preserve.rotIdeaPer) : 1;
+  return K.discoveryBase * (0.5 + g.personality.wanderlust) * (1 + K.skillMul * skill) * inspiration(g) * near * rot;
 }
 
 /** §6 step 12b: once an in-game hour per goblin (staggered), a roll to discover something new. */

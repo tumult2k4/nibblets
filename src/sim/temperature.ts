@@ -8,6 +8,7 @@ import { fireWarmth } from './fire';
 import { express } from './goblin/genetics/phenotype';
 import { addMood } from './goblin/mood';
 import { RAINY, weatherAt } from './weather';
+import { clothingWarmth, wetMul } from './clothing';
 
 const T = CFG.temperature;
 const SH = CFG.shelter;
@@ -62,10 +63,10 @@ export function inShade(w: World, g: Goblin): boolean {
   return false;
 }
 
-/** Felt temperature: air + shelter + huddle + campfire (+ clothing P5) − wet penalty. */
+/** Felt temperature: air + shelter + huddle + campfire + clothes (P5.6) − wet penalty (a leaf cape halves it). */
 export function feltTemperature(w: World, g: Goblin): number {
   const home = shelterOf(w, g);
-  return airAt(w, g.pos) + (home ? T.shelter[home.type]! : 0) + huddleBonus(w, g) + fireWarmth(w, g.pos) - (isWet(w, g) ? T.wetPenalty : 0);
+  return airAt(w, g.pos) + (home ? T.shelter[home.type]! : 0) + huddleBonus(w, g) + fireWarmth(w, g.pos) + clothingWarmth(g) - (isWet(w, g) ? T.wetPenalty * wetMul(g) : 0);
 }
 
 /** Lowest comfortable felt temperature for this goblin (cold-tolerant goblins shrug off more). */

@@ -86,4 +86,7 @@ export const ITEM_ICON: Record<string, string> = {
   apple: 'apple', berry: 'berry', mushroom: 'mushroom', glowcap: 'mushroom', redcap: 'mushroom', fish: 'fish', apple_mash: 'bowl', stew: 'bowl',
   wood: 'wood', stick: 'stick', stone: 'stone', flint: 'flint', fiber: 'fiber', clay: 'clay', apple_core: 'apple',
   spear: 'spear', stone_spear: 'spear', club: 'club', stone_axe: 'axe', pick: 'pick',
+  // P5.6 fiber goods and preserves
+  rope: 'fiber', basket: 'bowl', sleeping_mat: 'fiber', loincloth: 'fiber', leaf_cape: 'leaf', leaves: 'leaf', flower: 'sparkle', flower_crown: 'sparkle',
+  dried_apple: 'apple', torch: 'heat',
 };

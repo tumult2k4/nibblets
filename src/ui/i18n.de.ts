@@ -173,5 +173,14 @@ export const DE: Record<keyof typeof EN, string> = {
   'village.title': 'Dorf', 'village.pop': 'Goblins', 'village.knowledge': 'Wissen', 'village.facts': 'Überlieferung',
   'village.knowers': '{n} wissen es', 'village.onlyOne': 'nur {name} weiß es!', 'village.nothing': 'Noch nichts außer den Grundlagen.',
   'village.basics': 'Alle wissen: {list}', 'village.god': 'Ihr Gott: {name}', 'village.lost': 'Verloren: {list}',
+  // P5.6 fiber chain, preservation, spoilage
+  'item.basket': 'Korb', 'item.sleeping_mat': 'Schlafmatte', 'item.loincloth': 'Lendenschurz', 'item.leaf_cape': 'Blätterumhang', 'item.flower_crown': 'Blumenkranz',
+  'item.leaves': 'Laub', 'item.flower': 'Blume', 'item.dried_apple': 'Trockenäpfel',
+  'recipe.rope': 'Seil', 'recipe.basket': 'Korb', 'recipe.sleeping_mat': 'Schlafmatte', 'recipe.loincloth': 'Lendenschurz', 'recipe.leaf_cape': 'Blätterumhang',
+  'recipe.flower_crown': 'Blumenkranz', 'recipe.grinding_stone': 'Mahlstein', 'recipe.drying_rack': 'Trockengestell', 'recipe.storage_pit': 'Vorratsgrube',
+  'bld.grinding_stone': 'Mahlstein', 'bld.drying_rack': 'Trockengestell', 'bld.storage_pit': 'Vorratsgrube',
+  'act.cut_grass': 'Schneidet Gras', 'act.pick_flowers': 'Pflückt Blumen', 'act.process': 'Legt Vorräte an',
+  'ev.preserve_built': 'Das Dorf hat etwas Neues gebaut: {building}.', 'ev.spoiled': 'Heute ist in den Vorräten etwas verdorben: {n} ({list}).',
+  'village.food': 'Vorräte: {n} · reichen etwa {d} Tage', 'insp.wearing': 'Trägt', 'insp.rack': 'Trocknet {n}', 'insp.rackDone': '{n} Trockenäpfel zum Abnehmen',
   'qty': '×{n}', 'yes': 'Ja', 'no': 'Nein',
 };

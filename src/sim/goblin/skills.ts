@@ -17,7 +17,7 @@ export const MAX_LEVEL = K.levelXp.length;
 export const ACTION_SKILL: Partial<Record<ActionId, SkillId>> = {
   harvest_fruit: 'forage', forage: 'forage', chop: 'woodcraft', build: 'building', repair_building: 'building',
   mine: 'mining', craft: 'crafting', attack: 'combat', defend_village: 'combat', guard: 'combat',
-  plant_seed: 'farming', water_plant: 'farming',
+  plant_seed: 'farming', water_plant: 'farming', cut_grass: 'forage', pick_flowers: 'forage', process: 'cooking',
 };
 
 /** Level for an amount of XP: whole levels at the thresholds, linear in between. */

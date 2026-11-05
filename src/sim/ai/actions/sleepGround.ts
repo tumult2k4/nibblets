@@ -7,6 +7,7 @@ import { isNightNow } from '../considerations';
 import type { UtilityAction } from '../action';
 import type { Goblin } from '../../state';
 import type { World } from '../../world';
+import { hasBedroll } from '../../clothing';
 
 /** How much a goblin wants to sleep now: night/dusk pull plus tiredness (hatchlings nap more). */
 export function sleepScore(g: Goblin, w: World): number {
@@ -35,7 +36,8 @@ export const SleepGround: UtilityAction = {
       a.stage = 1;
       w.emit({ type: 'fell_asleep', goblinId: g.id, at: g.pos });
     }
-    g.needs.energy = q4(Math.min(100, g.needs.energy + perDay(CFG.goblin.sleepRestorePerDay.ground)));
+    // a sleeping mat (P5.6) makes the night out half again as restful
+    g.needs.energy = q4(Math.min(100, g.needs.energy + perDay(hasBedroll(g) ? CFG.goblin.sleepRestorePerDay.mat : CFG.goblin.sleepRestorePerDay.ground)));
     if (g.needs.energy >= CFG.goblin.wakeEnergy && !isNightNow(w)) {
       w.emit({ type: 'woke_up', goblinId: g.id, at: g.pos });
       return 'done';
