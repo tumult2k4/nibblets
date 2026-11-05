@@ -143,7 +143,7 @@ export class Renderer {
     const r = this.canvas.getBoundingClientRect();
     return pick(this.world, this.camera.cam, x - r.left, y - r.top, r.width, r.height, [...this.terrain.chunks.values()],
       (id) => this.goblinWorldPos(id), this.props.itemMeshes(), [...this.props.plantIndex.keys()], (m) => this.props.plantIndex.get(m),
-      this.buildings.group.children);
+      this.buildings.group.children, this.eggs.group.children);
   }
 
   /** Height of the ground (or the water surface) at a sim position, in world units. */

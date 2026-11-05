@@ -18,7 +18,7 @@ function opinionBar(v: number): HTMLElement {
 }
 
 /** One relative as a chip in its true skin color; the living are clickable, the dead greyed with a skull. */
-function kinChip(w: World, id: ID, onPick: (id: number) => void): HTMLElement {
+export function kinChip(w: World, id: ID, onPick: (id: number) => void): HTMLElement {
   const e = w.s.lineage[id], alive = w.goblin(id);
   const [h, sat, l] = e?.skin ?? [e?.hue ?? 120, 0.55, 0.5];
   const dead = !alive;

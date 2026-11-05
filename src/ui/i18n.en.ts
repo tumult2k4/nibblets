@@ -222,5 +222,11 @@ export const EN = {
   'sbx.remove': 'Remove (vanishes, no grief)', 'sbx.weather': 'Weather', 'sbx.time': 'Time', 'sbx.removeTitle': 'Remove', 'sbx.removeSelected': 'Remove selected',
   'sbx.removeHint': 'It simply vanishes: no grave, no grief.', 'reason.bad_genome': 'that genome is not valid', 'reason.same_goblin': 'pick two different goblins',
   'reason.unknown_enemy': 'no such creature', 'reason.unknown_plant': 'no such plant', 'ev.transformed': '{name} shimmers and changes!',
+  'lens.gene.skin': 'Skin hue (pure)', 'lens.gene.hue': 'Ring: the hue it shows. Sizes exaggerated.', 'lens.gene.recessive': 'Gold: carries one copy · red: shows it · grey: none',
+  'lens.gene.pattern': 'Ring: the pattern it shows (beige none, orange freckles, violet spots, teal stripes, pink two-tone)', 'lens.gene.quant': 'Blue: low · green, yellow · orange: high',
+  'insp.egg': 'Egg', 'insp.eggOne': 'warm, round and full of someone', 'insp.eggTwin': 'one of twins', 'insp.eggNobody': 'Nobody knows whose: it came from the sky.',
+  'insp.incubation': 'Incubation', 'insp.hatching': 'Hatching', 'insp.warmth': 'Warmth', 'insp.eggWarm': 'warm', 'insp.eggCold': 'cold',
+  'insp.eggSat': 'A parent is keeping it warm.', 'insp.eggSnug': 'Snug in the nest.', 'insp.eggChill': 'Getting cold: lost in about {h} h unless someone warms it.',
+  'insp.eggInside': 'Who is inside', 'insp.grownUp': 'grown up', 'insp.eggBig': 'will be big', 'insp.eggSmall': 'will be small',
   'qty': '×{n}', 'yes': 'Yes', 'no': 'No',
 } as const;

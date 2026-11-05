@@ -1,4 +1,6 @@
 import { el } from '../dom';
+import { geneColor, geneLegend } from '../geneColor';
+import { LOCUS_DEFS, type LocusDef, type LocusId } from '../../sim/goblin/genetics/genome';
 import { t } from '../i18n';
 import type { Ctx, Component } from '../ctx';
 import { LENSES } from '../store';
@@ -36,6 +38,14 @@ export class Minimap implements Component {
     const cur = this.ctx.store.state.lens;
     this.lenses.replaceChildren(el('span.sub', { text: `${t('mm.lens')}:`, style: 'font-size:.75em' }), ...LENSES.map((l) =>
       el(`button.btn${l === cur ? '.on' : ''}`, { onclick: () => this.ctx.store.set({ lens: l }) }, t(`lens.${l}`))));
+    if (cur !== 'genetics') return;
+    // genetics lens (P5.9): color by one locus instead of skin hue, with a line on what the colors mean
+    const locus = this.ctx.store.state.geneLocus ?? null;
+    const legend = el('div.sub.gene-legend', { text: geneLegend(locus) });
+    const pick = el('select.gene-pick', { onchange: () => { const v = (pick.value || null) as LocusId | null; this.ctx.store.set({ geneLocus: v }); legend.textContent = geneLegend(v); } },
+      el('option', { value: '', text: t('lens.gene.skin') }), ...(LOCUS_DEFS as readonly LocusDef[]).map((d) => el('option', { value: d.key, text: d.label }))) as HTMLSelectElement;
+    pick.value = locus ?? '';
+    this.lenses.append(el('div.gene-row', {}, pick, legend));
   }
 
   private buildTerrain(): void {
@@ -64,9 +74,9 @@ export class Minimap implements Component {
     }
     const c = this.canvas.getContext('2d')!;
     c.putImageData(this.terrain!, 0, 0);
-    const sel = new Set(this.ctx.store.state.selection);
+    const sel = new Set(this.ctx.store.state.selection), gene = this.ctx.store.state.lens === 'genetics';
     for (const g of w.s.goblins) {
-      c.fillStyle = hslCss({ h: express(g.genome, 'skinHue'), s: 0.7, l: 0.5 });
+      c.fillStyle = gene ? geneColor(g.genome, this.ctx.store.state.geneLocus ?? null) : hslCss({ h: express(g.genome, 'skinHue'), s: 0.7, l: 0.5 });
       c.strokeStyle = sel.has(g.id) ? '#fff' : '#2e2a24';
       c.lineWidth = sel.has(g.id) ? 1.2 : 0.6;
       c.beginPath();

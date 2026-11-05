@@ -59,14 +59,15 @@ export class HandTool {
     if (st.k === 'pending') {
       const moved = Math.hypot(e.clientX - st.x, e.clientY - st.y);
       if (moved > 6 && !this.petting) {
-        if (st.entity && st.entity.kind !== 'building' && this.canAct()) {
+        const fixed = st.entity?.kind === 'building' || st.entity?.kind === 'egg'; // eggs are not lifted (yet)
+        if (st.entity && !fixed && this.canAct()) {
           // goblins, items, and plants (uproot, §P2.7) can be lifted; buildings stay put
           this.ctx.push({ type: 'god_grab', entityId: st.entity.id });
           this.holdHeight = CFG.god.holdHeight.start;
           this.st = { k: 'holding', id: st.entity.id };
           this.samples = [];
           audio.play('hand_grab');
-        } else if (!st.entity || st.entity.kind === 'building') this.st = { k: 'box', x: st.x, y: st.y };
+        } else if (!st.entity || fixed) this.st = { k: 'box', x: st.x, y: st.y };
       }
     }
     if (this.st.k === 'holding' && this.ground) {

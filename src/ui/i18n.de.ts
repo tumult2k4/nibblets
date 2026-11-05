@@ -224,5 +224,11 @@ export const DE: Record<keyof typeof EN, string> = {
   'sbx.remove': 'Entfernen (verschwindet, keine Trauer)', 'sbx.weather': 'Wetter', 'sbx.time': 'Zeit', 'sbx.removeTitle': 'Entfernen', 'sbx.removeSelected': 'Auswahl entfernen',
   'sbx.removeHint': 'Es verschwindet einfach: kein Grab, keine Trauer.', 'reason.bad_genome': 'dieses Genom ist ungültig', 'reason.same_goblin': 'wähle zwei verschiedene Goblins',
   'reason.unknown_enemy': 'so ein Wesen gibt es nicht', 'reason.unknown_plant': 'so eine Pflanze gibt es nicht', 'ev.transformed': '{name} schimmert und verwandelt sich!',
+  'lens.gene.skin': 'Hautfarbe (rein)', 'lens.gene.hue': 'Ring: der Farbton, den er zeigt. Größen übertrieben.', 'lens.gene.recessive': 'Gold: trägt eine Kopie · rot: zeigt es · grau: keine',
+  'lens.gene.pattern': 'Ring: sein Muster (beige keins, orange Sommersprossen, violett Flecken, türkis Streifen, rosa zweifarbig)', 'lens.gene.quant': 'Blau: niedrig · grün, gelb · orange: hoch',
+  'insp.egg': 'Ei', 'insp.eggOne': 'warm, rund und voller Jemand', 'insp.eggTwin': 'eines von Zwillingen', 'insp.eggNobody': 'Niemand weiß, wessen: es kam vom Himmel.',
+  'insp.incubation': 'Brüten', 'insp.hatching': 'Schlüpfen', 'insp.warmth': 'Wärme', 'insp.eggWarm': 'warm', 'insp.eggCold': 'kalt',
+  'insp.eggSat': 'Ein Elternteil hält es warm.', 'insp.eggSnug': 'Mollig im Nest.', 'insp.eggChill': 'Es kühlt aus: in etwa {h} h verloren, wenn niemand es wärmt.',
+  'insp.eggInside': 'Wer darin steckt', 'insp.grownUp': 'erwachsen', 'insp.eggBig': 'wird groß', 'insp.eggSmall': 'wird klein',
   'qty': '×{n}', 'yes': 'Ja', 'no': 'Nein',
 };

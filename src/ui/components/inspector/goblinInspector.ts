@@ -7,7 +7,7 @@ import type { World } from '../../../sim/world';
 import { ageDays } from '../../../sim/goblin/goblin';
 import { phenotypeOf } from '../../../sim/goblin/genetics/phenotype';
 import { express, PATTERNS } from '../../../sim/goblin/genetics/phenotype';
-import { LOCUS_DEFS, type LocusDef } from '../../../sim/goblin/genetics/genome';
+import { LOCUS_DEFS, type Genome, type LocusDef } from '../../../sim/goblin/genetics/genome';
 import { describePersonality } from '../../../sim/goblin/personality';
 import { growthChart, personalityRadar } from './charts';
 import { knowers } from '../../../sim/knowledge';
@@ -136,21 +136,24 @@ function dominanceNote(d: LocusDef, a: number, b: number): string {
   return '';
 }
 
+/** Every locus: allele a, allele b, what shows and how they combine (§18.6 Body tab; the egg inspector too). */
+export function genomeTable(genome: Genome): HTMLElement {
+  const rows = (LOCUS_DEFS as readonly LocusDef[]).map((d) => {
+    const l = genome[d.key];
+    return el('tr', {}, el('td', { text: d.label }), el('td', {}, fmtAllele(d, l.a)), el('td', {}, fmtAllele(d, l.b)), el('td', {}, fmtAllele(d, express(genome, d.key)), dominanceNote(d, l.a, l.b)));
+  });
+  return el('table.genome', {}, el('tr', {}, el('td', {}, el('b', { text: t('insp.allele') })), el('td', { text: 'a' }), el('td', { text: 'b' }), el('td', {}, el('b', { text: t('insp.expressed') }))), ...rows);
+}
+
 export function bodyTab(g: Goblin, w: World): HTMLElement {
   const age = ageDays(g, w.s.tick);
   const ph = phenotypeOf({ genome: g.genome, ageDays: age, stage: g.lifeStage, hunger: g.needs.hunger, scars: g.health.scars });
   const full = el('img', { src: portraits.get(ph, g.id * 31 + 7, 0.5, true), style: 'width:128px;height:128px;display:block;margin:0 auto' });
-  const rows = (LOCUS_DEFS as readonly LocusDef[]).map((d) => {
-    const l = g.genome[d.key];
-    const note = dominanceNote(d, l.a, l.b);
-    return el('tr', {}, el('td', { text: d.label }), el('td', {}, fmtAllele(d, l.a)), el('td', {}, fmtAllele(d, l.b)), el('td', {}, fmtAllele(d, express(g.genome, d.key)), note));
-  });
   return el('div', {}, full,
     g.health.scars ? el('div.sub', { style: 'text-align:center', text: t('insp.scars', { n: g.health.scars }) }) : null,
     el('h3', { text: t('insp.growth') }), growthChart(g, age),
     el('div.sub', { text: t('insp.growthLine', { s: express(g.genome, 'adultSize').toFixed(2), now: ph.scale.toFixed(2) }) }),
-    el('h3', { text: t('insp.genome') }),
-    el('table.genome', {}, el('tr', {}, el('td', {}, el('b', { text: t('insp.allele') })), el('td', { text: 'a' }), el('td', { text: 'b' }), el('td', {}, el('b', { text: t('insp.expressed') }))), ...rows));
+    el('h3', { text: t('insp.genome') }), genomeTable(g.genome));
 }
 
 const stackLabel = (s: ItemStack): string =>

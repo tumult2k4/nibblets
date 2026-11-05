@@ -3,7 +3,7 @@ import { CFG } from '../sim/config';
 import type { World } from '../sim/world';
 import type { Goblin } from '../sim/state';
 import { ageDays, isSleeping } from '../sim/goblin/goblin';
-import { phenotypeOf, type Phenotype } from '../sim/goblin/genetics/phenotype';
+import { express, phenotypeOf, type Phenotype } from '../sim/goblin/genetics/phenotype';
 import { buildGoblin, disposeRig, phenoBucket, type GoblinRig } from './goblinMesh';
 import { itemGeo } from './meshFactory';
 import { heldMesh } from './toolMeshes';
@@ -40,6 +40,8 @@ export class GoblinViews {
   readonly views = new Map<number, View>();
   private zzzMat = new THREE.SpriteMaterial({ map: zzzTexture(), transparent: true, depthWrite: false });
   outlines = true;
+  /** genetics lens (P5.9): exaggerate adult size differences by this much (0 = true size) */
+  sizeBoost = 0;
 
   constructor(private w: World) {}
 
@@ -87,7 +89,7 @@ export class GoblinViews {
     const r = v.rig;
     const p = interp.get(g.id, alpha);
     if (!p) return;
-    const scale = v.pheno.scale;
+    const scale = v.pheno.scale * (this.sizeBoost ? Math.max(0.3, 1 + this.sizeBoost * (express(g.genome, 'adultSize') - 1)) : 1);
     r.root.position.set(p.x, p.z, p.y);
     r.root.scale.setScalar(scale);
     // sim facing is atan2(dy, dx) in the x/y plane; mesh faces +Z

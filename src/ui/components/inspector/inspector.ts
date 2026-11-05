@@ -9,6 +9,7 @@ import { keyLabel } from '../../keys';
 import { tipKey } from '../tooltip';
 import { buildingBody, buildingHead } from './buildingInspector';
 import { socialTab } from './socialTab';
+import { eggBody, eggHead } from './eggInspector';
 
 type Tab = 'status' | 'mind' | 'social' | 'body' | 'inventory';
 const TABS: Tab[] = ['status', 'mind', 'social', 'body', 'inventory'];
@@ -73,6 +74,13 @@ export class Inspector implements Component {
         el('div.row', {}, el('span.lbl', { text: t('insp.fertility') }), bar((tile?.fertility ?? 0) * 100, 'var(--bark-2)')),
         el('div.row', {}, el('span.lbl', { text: t('insp.plantedBy') }), el('span', { text: p.plantedBy !== null ? (w.goblin(p.plantedBy)?.name ?? '?') : t('insp.wild') })),
       );
+      return;
+    }
+    if (st.selectedKind === 'egg' && id !== undefined) {
+      const egg = w.s.eggs.find((x) => x.id === id);
+      if (!egg) return this.ctx.select(null, []); // hatched (or lost)
+      if (fresh) this.head.replaceChildren(eggHead(egg, () => this.ctx.select(null, [])));
+      this.body.replaceChildren(eggBody(egg, w, (o) => this.ctx.select('goblin', [o])));
       return;
     }
     if (st.selectedKind === 'building' && id !== undefined) {

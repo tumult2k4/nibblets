@@ -3,7 +3,8 @@ import type { App } from './app';
 import type { Goblin } from '../sim/state';
 import { CFG } from '../sim/config';
 import type { HandPose } from '../render/godHand';
-import { express } from '../sim/goblin/genetics/phenotype';
+import { geneColor } from './geneColor';
+import type { LocusId } from '../sim/goblin/genetics/genome';
 import type { TerraformPower } from '../sim/god/terraform';
 import { TERRAIN_LENSES } from './store';
 import type { TerrainLens } from '../render/terrainMesh';
@@ -25,7 +26,7 @@ const BRUSH_COLOR: Record<TerraformPower, string> = {
 };
 
 /** Per-goblin lens color (§18.10), or null for the default lens. */
-function lensColor(lens: string, g: Goblin): THREE.Color | null {
+function lensColor(lens: string, g: Goblin, locus: LocusId | null): THREE.Color | null {
   switch (lens) {
     case 'needs': {
       const n = g.needs;
@@ -35,10 +36,8 @@ function lensColor(lens: string, g: Goblin): THREE.Color | null {
       return lerpColor(new THREE.Color('#5b6a8a'), new THREE.Color('#ffe27a'), g.godView.faith / 100);
     case 'mood':
       return scale3((g.mood.value + 100) / 200);
-    case 'genetics': {
-      const h = express(g.genome, 'skinHue');
-      return new THREE.Color().setHSL((((h % 360) + 360) % 360) / 360, 0.6, 0.55);
-    }
+    case 'genetics':
+      return new THREE.Color(geneColor(g.genome, locus));
     default:
       return null;
   }
@@ -134,7 +133,7 @@ export class WorldFx {
         const gy = p.y - 0.35;
         if (sel.has(g.id)) r.rings.ring(p.x, gy, p.z, 0.75 * pulse, '#fff4c2', 0.95);
         else if (hand.hoverGoblin === g.id) r.rings.ring(p.x, gy, p.z, 0.7, '#ffffff', 0.55);
-        const lc = lensColor(st.lens, g);
+        const lc = lensColor(st.lens, g, st.geneLocus ?? null);
         if (lc) r.rings.ring(p.x, gy, p.z, 0.55, lc, 0.85);
       }
       // gift drop preview: landing ring + who would witness it
@@ -217,6 +216,7 @@ export class WorldFx {
       }
     }
     r.rings.end();
+    r.goblins.sizeBoost = st.lens === 'genetics' && inGame ? 1.5 : 0;
     r.setTerrainLens(TERRAIN_LENSES.includes(st.lens) && st.screen !== 'title' ? (st.lens as TerrainLens) : null);
   }
 }
