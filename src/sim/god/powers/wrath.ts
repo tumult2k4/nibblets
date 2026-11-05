@@ -1,7 +1,7 @@
 /**
  * Wrath powers (§17.5.4, P4.8): Lightning Bolt, Swarm, Curse, Summon Gnashers (or a Bramblebeast) and Meteor.
  * All go through ordinary systems (damage, death, zones, mood, spawning, terrain) so they replay exactly. Ignition and
- * the meteor's ring of fire stay visual until fire spreads in P6; the star stone waits for trinkets.
+ * the meteor's ring of fire spread as wildfire (P6.2), and now and then a star stone lies in its crater (P6.3).
  */
 import { CFG } from '../../config';
 import { clamp, dist, q4 } from '../../../shared/math';
@@ -140,6 +140,8 @@ function meteorImpact(w: World, pos: Vec2, r: number): void {
     const p = { x: q4(pos.x + Math.cos(a) * d), y: q4(pos.y + Math.sin(a) * d) };
     if (isWalkable(s, Math.floor(p.x), Math.floor(p.y))) spawnGroundItem(w, { type: i === 0 ? 'flint' : 'stone', qty: 1 }, p);
   }
+  // P6.3: sometimes a star stone lies in the middle (§17.5.4: 30 %)
+  if (w.rng.chance(CFG.disasters.star.meteorStone)) spawnGroundItem(w, { type: 'star_stone', qty: 1 }, { ...pos });
   // P6.2: the rim catches fire wherever there is something to burn
   for (let i = 0; i < 10; i++) { const a = (i / 10) * Math.PI * 2; startFire(w, { x: pos.x + Math.cos(a) * (r + 0.8), y: pos.y + Math.sin(a) * (r + 0.8) }, 0.9, 'meteor'); }
   addZone(w, 'dread', pos, r + PW.dreadRadius, PW.dreadTicks);

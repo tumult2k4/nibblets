@@ -16,7 +16,7 @@ export type ItemType =
   | 'spear' | 'stone_spear' | 'club' | 'sling' | 'stone_axe' | 'pick' | 'fishing_rod' | 'bucket'
   | 'loincloth' | 'leaf_cape' | 'fur_cloak' | 'bone_necklace' | 'flower_crown' | 'war_paint'
   | 'basket' | 'rope' | 'sleeping_mat' | 'book' | 'drum' | 'flute' | 'torch'
-  | 'trinket';
+  | 'trinket' | 'star_stone';
 
 export interface ItemStack {
   type: ItemType;
@@ -124,7 +124,7 @@ export type SimEvent = BaseEvent &
     | { type: 'egg_laid'; eggId: ID; parents: [ID, ID] }
     | { type: 'egg_hatched'; eggId: ID; goblinId: ID }
     | { type: 'adopted'; goblinId: ID; parentId: ID }
-    | { type: 'egg_lost'; eggId: ID; parents: [ID, ID]; cause: 'cold' | 'eaten' | 'neglect' | 'fall' | 'fire' }
+    | { type: 'egg_lost'; eggId: ID; parents: [ID, ID]; cause: 'cold' | 'eaten' | 'neglect' | 'fall' | 'fire' | 'flood' }
     | { type: 'life_stage'; goblinId: ID; stage: LifeStage }
     | { type: 'recipe_discovered' | 'recipe_learned' | 'recipe_lost'; goblinId?: ID; recipe: RecipeId; via?: LearnVia; byId?: ID }
     | { type: 'poisoned'; goblinId: ID; item: ItemType }
@@ -143,6 +143,11 @@ export type SimEvent = BaseEvent &
     | { type: 'fire_started'; cause: string }
     | { type: 'lightning_strike' }
     | { type: 'fire_stomped'; goblinId: ID }
+    // P6.3: floods and droughts come and go, blight takes a bush (and a farmer cuts one out), a star falls
+    | { type: 'flood_started' | 'flood_receded' | 'drought_started' | 'drought_ended'; tiles: number }
+    | { type: 'blight_started'; plantId: ID }
+    | { type: 'blight_culled'; goblinId: ID; plantId: ID }
+    | { type: 'shooting_star' }
     | { type: 'trait_gained'; goblinId: ID; trait: string }
     | { type: 'sickness'; goblinId: ID; disease: DiseaseId; phase: 'infected' | 'symptomatic' | 'recovered' | 'died' }
     | { type: 'trinket_found'; goblinId: ID; trinket: TrinketKind; rarity: Rarity }

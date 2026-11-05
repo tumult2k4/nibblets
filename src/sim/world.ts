@@ -17,6 +17,8 @@ import { updateStorms } from './storms';
 import { updateEcology } from './ecology';
 import { updateFires } from './fire';
 import { updateWildfire } from './wildfire';
+import { updateClimate } from './climate';
+import { updateBlight } from './blight';
 import { updateDirector } from './enemies/director';
 import { enemiesAct, enemiesDecide } from './enemies';
 import { updateSafety } from './goblin/safety';
@@ -118,7 +120,9 @@ export class World {
     updateWeather(this); //   2 weather + temperature + wetness
     updateStorms(this); //    2b storm damage to weakened buildings
     updateTiles(this); //     3
+    updateClimate(this); //   3b floods, droughts, shooting stars (P6.3)
     updatePlants(this); //    4
+    updateBlight(this); //    4b blight spreads among apple bushes (P6.3)
     updateEcology(this); //   5 ecology: mushrooms, fallen sticks (wildlife P7)
     updateFires(this); //     6 campfires burn down, torches burn
     updateWildfire(this); //  6b wildfires spread and burn out; storms throw lightning (P6.2)

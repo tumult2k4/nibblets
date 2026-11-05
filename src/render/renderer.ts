@@ -27,6 +27,7 @@ import { airAt } from '../sim/temperature';
 import { dangerAt } from '../sim/danger';
 import { heightAt } from '../sim/grid';
 import { CFG } from '../sim/config';
+import { waterOffset } from '../sim/climate';
 
 export interface RenderSettings { shadows: 'off' | 'low' | 'high'; renderScale: number; outlines: boolean; fog: boolean }
 
@@ -199,7 +200,12 @@ export class Renderer {
     }
     const season = seasonLook(w.clock);
     this.terrain.setPalette(season.look.biomes, season.sig);
-    this.props.setLook(season.look, season.sig);
+    let blight = 0; // P6.3: blighted bushes brown as it worsens
+    for (const p of w.s.plants) blight += p.blight;
+    this.props.setLook(season.look, `${season.sig}:${blight.toFixed(2)}`);
+    // P6.3: floodwater rises over the lowlands, a drought draws the shallows back
+    const wo = waterOffset(w), wy = wo * CFG.world.heightScale + Math.sign(wo) * 0.08; // a little over, to cover the drowned banks
+    this.water.mesh.position.y += (wy - this.water.mesh.position.y) * Math.min(1, dt * 0.5);
     this.props.update(this.interp, alpha);
     this.buildings.update();
     this.buildings.lights(this.sky.night);

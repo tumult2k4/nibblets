@@ -77,6 +77,7 @@ export function itemGeo(t: ItemType): THREE.BufferGeometry {
     case 'flint': g = paint(new THREE.TetrahedronGeometry(0.1).translate(0, 0.07, 0), '#4c4f5c'); break;
     case 'fiber': g = paint(new THREE.TorusGeometry(0.08, 0.025, 3, 6).rotateX(Math.PI / 2).translate(0, 0.03, 0), '#c9b26a'); break;
     case 'clay': g = paint(new THREE.IcosahedronGeometry(0.1, 0).scale(1, 0.6, 1).translate(0, 0.06, 0), '#b8734e'); break;
+    case 'star_stone': g = merge([paint(new THREE.OctahedronGeometry(0.09).scale(1, 1.3, 1).translate(0, 0.1, 0), '#bfe4ff'), paint(new THREE.TetrahedronGeometry(0.05).translate(0.05, 0.05, 0.03), '#f6e7a4')]); break;
     case 'stew':
     case 'apple_mash': g = merge([paint(new THREE.CylinderGeometry(0.1, 0.07, 0.08, 6).translate(0, 0.04, 0), '#8a6a4a'), paint(new THREE.CylinderGeometry(0.085, 0.085, 0.01, 6).translate(0, 0.08, 0), t === 'stew' ? '#b5642f' : '#e3c070')]); break;
     default: g = fiberItemGeo(t) ?? toolGeo(t) ?? paint(new THREE.BoxGeometry(0.14, 0.14, 0.14).translate(0, 0.07, 0), '#c8a060');

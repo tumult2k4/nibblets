@@ -21,9 +21,11 @@ import { stockCount } from './stockpile';
 const K = CFG.knowledge;
 const PRESERVE_IDS: ReadonlySet<string> = new Set(['grinding_stone', 'drying_rack', 'storage_pit']);
 
-export type FactId = 'redcap_is_poison' | 'gnashers_fear_fire';
-/** Cultural facts (§15.1); `blight_spreads` joins them with blight (P6.3). */
-export const FACTS: readonly FactId[] = ['redcap_is_poison', 'gnashers_fear_fire'];
+export type FactId = 'redcap_is_poison' | 'gnashers_fear_fire' | 'blight_spreads';
+/** Cultural facts (§15.1). `blight_spreads` (P6.3) is learned by watching a blighted bush die, never inherited. */
+export const FACTS: readonly FactId[] = ['redcap_is_poison', 'gnashers_fear_fire', 'blight_spreads'];
+/** What founders may grow up knowing. */
+export const FOUNDER_FACTS: readonly FactId[] = ['redcap_is_poison', 'gnashers_fear_fire'];
 const isFact = (id: string): id is FactId => (FACTS as readonly string[]).includes(id);
 
 export const knowsFact = (g: Goblin, f: FactId): boolean => g.knownFacts.includes(f);
@@ -37,7 +39,7 @@ export const DISCOVERABLE: readonly RecipeId[] = Object.keys(RECIPES).filter((id
 
 /** Founders grew up with their clan's lore: each knows each fact with a 70 % chance. */
 export function seedFacts(rng: Rng, g: Goblin): void {
-  for (const f of FACTS) if (rng.chance(K.founderFactChance)) g.knownFacts.push(f);
+  for (const f of FOUNDER_FACTS) if (rng.chance(K.founderFactChance)) g.knownFacts.push(f);
 }
 
 /** `g` now knows `id`. False if it already did. */

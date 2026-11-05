@@ -90,7 +90,8 @@ export function updatePlants(w: World): void {
     if (!t) continue;
     // hydration follows soil moisture (rain soaks it); watering raises it above
     const rain = rainingAt(w, p.pos);
-    const target = rain ? CFG.weather.rainHydration : t.moisture * P.hydrationOfMoisture;
+    // P6.3: in a drought the soil gives up less water
+    const target = rain ? CFG.weather.rainHydration : t.moisture * P.hydrationOfMoisture * (s.climate.drought ? CFG.disasters.drought.hydrationMul : 1);
     p.hydration = q4(p.hydration + (target - p.hydration) * Math.min(1, dtDays * (rain ? CFG.weather.rainHydrationFollow : P.hydrationFollow)));
     if (p.stage === 'stump') {
       p.growth = q4(p.growth + dtDays);
@@ -134,7 +135,8 @@ export function updatePlants(w: World): void {
 }
 
 function growFruit(p: Plant, dtDays: number, season: number): void {
-  const max = maxFruit(p);
+  const max = Math.floor(maxFruit(p) * (1 - p.blight)); // P6.3: a blighted bush bears less
+  if (p.fruit > max) p.fruit = max;
   if (max <= 0 || p.fruit >= max) {
     p.fruitProgress = 0;
     return;

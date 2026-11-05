@@ -61,7 +61,7 @@ export function createWorldState(params: WorldParams): WorldState {
     size: { w, h }, preset: p.preset, terrainVersion: 0,
     tiles: generateTiles(p.seed, w, h, p.preset),
     goblins: [], eggs: [], trinkets: [], plants: [], rocks: [], grass: [], mushrooms: [], wildlife: [], groundItems: [],
-    buildings: [], fires: [], enemies: [], threat: { night: -1, spawnAt: [], alarms: 0, marks: [] }, graves: [], lineage: {}, places: [],
+    buildings: [], fires: [], climate: { rainHours: 0, rainDays: 0, dryDays: 0, flood: null, drought: null }, enemies: [], threat: { night: -1, spawnAt: [], alarms: 0, marks: [] }, graves: [], lineage: {}, places: [],
     clans: [], village: { name: p.villageName, center: { x: w / 2, y: h / 2 }, chiefId: null, stockpile: [], stockpilePos: { x: w / 2, y: h / 2 }, fenceRing: 0 },
     god: newGodState(p.mode, p.gentle), commandLog: [],
     weather: { kind: 'clear', nextChangeTick: CFG.weather.transitionTicks, temperature: 14, windDir: 0, upcoming: 'clear', cells: [] },

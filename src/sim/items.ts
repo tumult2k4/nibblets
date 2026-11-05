@@ -65,6 +65,8 @@ export const ITEM_DEFS: Partial<Record<ItemType, ItemDef>> = {
   flower_crown: { stack: 1, weight: 0.1, value: 4, wear: { slot: 'head', charm: CFG.fiber.crownCharm } },
   // flowers: for crowns (P5.6) and courtship gifts
   flower: { stack: 10, weight: 0.1, decayDays: 2, shelfDays: 3, value: 1 },
+  // P6.3: where a star fell; whoever picks it up keeps it as a legendary trinket
+  star_stone: { stack: 1, weight: 0.2, value: 40 },
 };
 
 /** A Gift Tray slot: an item, or a sapling of a plant kind (Life tab, §P2.7). */

@@ -14,7 +14,7 @@ const HS = CFG.world.heightScale;
 const BUGS_PER_ZONE = 90, MAX_ZONES = 4, CLUMPS = 6;
 const METEOR_R = 4;
 
-type BurstKind = 'scorch' | 'puff' | 'shock' | 'flames';
+type BurstKind = 'scorch' | 'puff' | 'shock' | 'flames' | 'streak';
 interface Burst { obj: THREE.Object3D; life: number; max: number; kind: BurstKind; size: number }
 interface Sky { strike(at: THREE.Vector3): void; flash(k: number): void }
 
@@ -76,6 +76,7 @@ export class WrathFx {
         this.scorch(e.at.x, e.at.y, 1, 30);
         continue;
       }
+      if (e.type === 'shooting_star' && e.at) { this.shootingStar(e.at.x, e.at.y); continue; }
       if (e.type !== 'divine_act' || !e.at) continue;
       const { x, y } = e.at;
       const gy = this.groundAt(x, y);
@@ -122,6 +123,24 @@ export class WrathFx {
     }
   }
 
+  /** A falling star (P6.3): a bright streak down the sky, a soft flash, a ring and a little scorched crater. */
+  private shootingStar(x: number, y: number): void {
+    const gy = this.groundAt(x, y), from = new THREE.Vector3(x + 16, gy + 26, y - 9), to = new THREE.Vector3(x, gy, y);
+    const len = from.distanceTo(to);
+    const st = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.07, len, 5).translate(0, -len / 2, 0), fade('#e8f4ff', 0.95, true));
+    st.position.copy(from);
+    st.quaternion.setFromUnitVectors(new THREE.Vector3(0, -1, 0), to.clone().sub(from).normalize());
+    this.burst('streak', st, 0.9, 1);
+    this.sky.flash(0.35);
+    this.scorch(x, y, CFG.disasters.star.crater + 0.4, 120);
+    const p = new THREE.Mesh(ball, fade('#bfe4ff', 0.85, true));
+    p.position.set(x, gy + 0.4, y);
+    this.burst('puff', p, 1.2, 1.8);
+    const s = new THREE.Mesh(ring, fade('#f6e7a4', 0.85, true));
+    s.position.set(x, gy + 0.1, y);
+    this.burst('shock', s, 1.1, 4);
+  }
+
   update(dt: number, alpha: number): void {
     this.time += dt;
     this.updateBursts(dt);
@@ -135,6 +154,7 @@ export class WrathFx {
       b.life -= dt;
       const k = Math.max(0, b.life / b.max), u = 1 - k;
       if (b.kind === 'scorch') ((b.obj as THREE.Mesh).material as THREE.MeshBasicMaterial).opacity = 0.55 * Math.min(1, k * 3);
+      else if (b.kind === 'streak') ((b.obj as THREE.Mesh).material as THREE.MeshBasicMaterial).opacity = 0.95 * k * k;
       else if (b.kind === 'puff' || b.kind === 'shock') {
         b.obj.scale.setScalar(0.3 + u * b.size);
         ((b.obj as THREE.Mesh).material as THREE.MeshBasicMaterial).opacity = (b.kind === 'shock' ? 0.9 : 0.75) * k;
@@ -147,6 +167,7 @@ export class WrathFx {
     for (const b of this.bursts.filter((x) => x.life <= 0)) {
       this.group.remove(b.obj);
       b.obj.traverse((o) => ((o as THREE.Mesh).material as THREE.Material | undefined)?.dispose());
+      if (b.kind === 'streak') (b.obj as THREE.Mesh).geometry.dispose();
     }
     this.bursts = this.bursts.filter((x) => x.life > 0);
   }

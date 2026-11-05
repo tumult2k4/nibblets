@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { CFG } from '../config';
-import { DISCOVERABLE, FACTS, discoveryChance, knowers, learn, updateKnowledge, villageKnowledge, witnessFact } from '../knowledge';
+import { DISCOVERABLE, FOUNDER_FACTS, discoveryChance, knowers, learn, updateKnowledge, villageKnowledge, witnessFact } from '../knowledge';
 import { Teach, lessonTicks, pupil } from '../ai/actions/teach';
 import { Forage } from '../ai/actions/forage';
 import { Eat } from '../ai/actions/eat';
@@ -167,7 +167,7 @@ describe('knowledge (P5.5)', () => {
 
   it('founders bring some lore; old saves know all of it', () => {
     const w = createWorld({ seed: 3 });
-    for (const f of FACTS) {
+    for (const f of FOUNDER_FACTS) {
       const n = knowers(w.s, f);
       expect(n).toBeGreaterThan(0);
       expect(n).toBeLessThanOrEqual(w.s.goblins.length);
@@ -176,6 +176,7 @@ describe('knowledge (P5.5)', () => {
     raw.version = 11;
     for (const g of raw.goblins) delete g.knownFacts;
     const s = deserialize(JSON.stringify(raw));
-    for (const g of s.goblins) expect(g.knownFacts).toEqual([...FACTS]);
+    for (const g of s.goblins) expect(g.knownFacts).toEqual([...FOUNDER_FACTS]);
+    expect(knowers(w.s, 'blight_spreads')).toBe(0); // learned only by watching blight kill a bush (P6.3)
   });
 });

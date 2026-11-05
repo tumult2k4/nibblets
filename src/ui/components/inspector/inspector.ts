@@ -71,6 +71,7 @@ export class Inspector implements Component {
         el('div.row', {}, el('span.lbl', { text: t('insp.fruit') }), el('span', { text: `${p.fruit} / ${CFG.plants.maxApples}` })),
         el('div.row', {}, el('span.lbl', { text: t('insp.nextFruit') }), bar(p.fruitProgress * 100, 'var(--apple)'), el('span.val', { text: eta })),
         el('div.row', {}, el('span.lbl', { text: t('insp.hydration') }), bar(p.hydration * 100, 'var(--sky)')),
+        ...(p.blight > 0 ? [el('div.row', {}, el('span.lbl', { text: t('insp.blight') }), bar(p.blight * 100, 'var(--bark-2)'))] : []),
         el('div.row', {}, el('span.lbl', { text: t('insp.fertility') }), bar((tile?.fertility ?? 0) * 100, 'var(--bark-2)')),
         el('div.row', {}, el('span.lbl', { text: t('insp.plantedBy') }), el('span', { text: p.plantedBy !== null ? (w.goblin(p.plantedBy)?.name ?? '?') : t('insp.wild') })),
       );

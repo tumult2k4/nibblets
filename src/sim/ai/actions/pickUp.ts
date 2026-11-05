@@ -10,17 +10,19 @@ import { stickWanted, woodWanted } from '../wants';
 import { gear } from '../../tools';
 import type { Goblin, GroundItem } from '../../state';
 import type { World } from '../../world';
+import { giveTrinket } from '../../trinkets';
 
 /** Food when hungry-ish, cores when starving, materials always, a tool only if it has none of that kind yet. */
 const wantItem = (g: Goblin) => (it: GroundItem) => {
   const t = it.stack.type;
+  if (t === 'star_stone') return true; // P6.3: everyone wants the star stone, and it goes in no bag
   if (!canCarry(g, t)) return false;
   if (isGear(t)) return g.lifeStage === 'adult' && !gear(g).some((s) => s.type === t) && g.equipped.body?.type !== t && g.equipped.head?.type !== t;
   return t === 'apple_core' ? g.needs.hunger < 30 : isFood(t) ? g.needs.hunger < 92 : true;
 };
 
 /** Food, gear, wood and sticks first; odds and ends (leaves, stone chips) only when nothing better lies about. */
-const MAIN = (t: string): boolean => t === 'wood' || t === 'stick' || isFood(t as GroundItem['stack']['type']) || isGear(t as GroundItem['stack']['type']);
+const MAIN = (t: string): boolean => t === 'star_stone' || t === 'wood' || t === 'stick' || isFood(t as GroundItem['stack']['type']) || isGear(t as GroundItem['stack']['type']);
 function target(g: Goblin, w: World): GroundItem | null {
   const want = wantItem(g);
   return findGroundItem(g, w, (it) => MAIN(it.stack.type) && want(it)) ?? findGroundItem(g, w, want);
@@ -40,6 +42,7 @@ export const PickUp: UtilityAction = {
     }
     // materials: worth fetching while the village wants wood (chopping drops it on the ground)
     const t = it.stack.type;
+    if (t === 'star_stone') return (0.55 + 0.3 * g.personality.wanderlust) * near;
     const want = isGear(t) ? 0.3 : t === 'wood' ? 0.12 + 0.3 * woodWanted(g, w) : t === 'stick' ? 0.1 + 0.3 * stickWanted(g, w) : 0.1;
     return want * near * (0.5 + g.personality.industry);
   },
@@ -62,6 +65,11 @@ export const PickUp: UtilityAction = {
     }
     a.progress -= 1;
     if (a.progress > 0) return 'running';
+    if (it.stack.type === 'star_stone') { // kept, not carried: a legendary trinket
+      w.s.groundItems.splice(w.s.groundItems.indexOf(it), 1);
+      giveTrinket(w, g, 'legendary');
+      return 'done';
+    }
     const n = isFood(it.stack.type) ? Math.min(it.stack.qty, 3) : it.stack.qty;
     const got = addItem(g, { ...it.stack, qty: n });
     it.stack.qty -= got;

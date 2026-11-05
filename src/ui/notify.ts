@@ -168,6 +168,20 @@ export function noteFor(e: SimEvent, w: World, names: Map<ID, string>): Note | n
       const why = e.cause === 'lightning' || e.cause === 'heat' ? ` ${t(`ev.fire_cause.${e.cause}`)}` : '';
       return { ...base, text: t(near ? 'ev.fire_near' : 'ev.fire_far') + why, tier: near ? 'critical' : 'notable', icon: 'heat' };
     }
+    case 'flood_started':
+      return { ...base, text: t('ev.flood'), tier: 'critical', icon: 'drop' };
+    case 'flood_receded':
+      return { ...base, text: t('ev.flood_receded'), tier: 'notable', icon: 'drop' };
+    case 'drought_started':
+      return { ...base, text: t('ev.drought'), tier: 'notable', icon: 'heat' };
+    case 'drought_ended':
+      return { ...base, text: t('ev.drought_ended'), tier: 'info', icon: 'drop' };
+    case 'blight_started':
+      return { ...base, text: t('ev.blight'), tier: 'notable', icon: 'leaf' };
+    case 'blight_culled':
+      return { ...base, id: e.goblinId, text: t('ev.blight_culled', { name: name(e.goblinId) }), tier: 'info', icon: 'leaf' };
+    case 'shooting_star':
+      return { ...base, text: t('ev.shooting_star'), tier: 'notable', icon: 'star' };
     case 'tended':
       return { ...base, id: e.goblinId, text: t('ev.tended', { a: name(e.byId), b: name(e.goblinId) }), tier: 'info', icon: 'heart' };
     case 'comforted':

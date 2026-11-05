@@ -10,6 +10,12 @@ export const EN6 = {
   'ev.fire_near': 'Fire! The flames are close to the village.', 'ev.fire_far': 'A wildfire has broken out.',
   'ev.fire_cause.lightning': 'Lightning set it alight.', 'ev.fire_cause.heat': 'The heat set the dry ground alight.',
   'act.extinguish_fire': 'Stomping out the fire', 'act.escape_fire': 'Running from the flames',
+  'ev.egg_lost_fire': 'The egg of {a} and {b} was lost in the fire.', 'ev.egg_lost_flood': 'The flood washed away the egg of {a} and {b}.',
+  'ev.flood': 'Flood! After days of rain the water has spread over the lowlands.', 'ev.flood_receded': 'The flood has gone down and left rich mud behind.',
+  'ev.drought': 'Drought! The shallows are drying out and the plants are thirsty.', 'ev.drought_ended': 'The drought is over.',
+  'ev.blight': 'An apple bush has the blight.', 'ev.blight_culled': '{name} pulled out a blighted bush before it could spread.',
+  'ev.shooting_star': 'A shooting star fell near the village!', 'act.cull_blight': 'Pulling out a blighted bush',
+  'fact.blight_spreads': 'blight spreads from bush to bush', 'item.star_stone': 'Star stone', 'insp.blight': 'Blight',
 } as const;
 
 export const DE6: Record<keyof typeof EN6, string> = {
@@ -23,4 +29,10 @@ export const DE6: Record<keyof typeof EN6, string> = {
   'ev.fire_near': 'Feuer! Die Flammen sind nah am Dorf.', 'ev.fire_far': 'Ein Flächenbrand ist ausgebrochen.',
   'ev.fire_cause.lightning': 'Ein Blitz hat es entzündet.', 'ev.fire_cause.heat': 'Die Hitze hat den trockenen Boden entzündet.',
   'act.extinguish_fire': 'Tritt das Feuer aus', 'act.escape_fire': 'Flieht vor den Flammen',
+  'ev.egg_lost_fire': 'Das Ei von {a} und {b} ist im Feuer verloren gegangen.', 'ev.egg_lost_flood': 'Die Flut hat das Ei von {a} und {b} fortgespült.',
+  'ev.flood': 'Hochwasser! Nach Tagen voller Regen steht das Tiefland unter Wasser.', 'ev.flood_receded': 'Das Hochwasser ist zurückgegangen und hat fruchtbaren Schlamm hinterlassen.',
+  'ev.drought': 'Dürre! Die Uferstellen trocknen aus, und die Pflanzen dürsten.', 'ev.drought_ended': 'Die Dürre ist vorbei.',
+  'ev.blight': 'Ein Apfelbusch hat den Mehltau.', 'ev.blight_culled': '{name} hat einen kranken Busch ausgerissen, bevor er andere ansteckt.',
+  'ev.shooting_star': 'Eine Sternschnuppe ist nahe dem Dorf niedergegangen!', 'act.cull_blight': 'Reißt einen kranken Busch aus',
+  'fact.blight_spreads': 'Mehltau springt von Busch zu Busch', 'item.star_stone': 'Sternenstein', 'insp.blight': 'Mehltau',
 };

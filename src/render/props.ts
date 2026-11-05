@@ -17,6 +17,7 @@ const q = new THREE.Quaternion();
 const up = new THREE.Vector3(0, 1, 0);
 const v = new THREE.Vector3();
 const sc = new THREE.Vector3();
+const BLIGHT = new THREE.Color().setRGB(3.2, 0.75, 0.35); // × the leaves' green: a sick yellow-brown
 
 const hash = (n: number): number => {
   let h = Math.imul(n ^ 0x9e3779b9, 0x85ebca6b);
@@ -96,7 +97,8 @@ export class Props {
     if (p.stage === 'old') col.setRGB(0.85, 0.78, 0.62);
     else col.setScalar(0.9 + hash(p.id + 7) * 0.2);
     if (p.stage === 'stump' || p.stage === 'seed') return col;
-    return col.multiply(p.kind === 'tree' ? L.tree : L.bush);
+    col.multiply(p.kind === 'tree' ? L.tree : L.bush);
+    return p.blight > 0 ? col.lerp(BLIGHT, 0.3 + 0.7 * p.blight) : col; // P6.3: blight browns the leaves
   }
 
   /** Apply a new seasonal look by recoloring instances in place (no geometry rebuild). */

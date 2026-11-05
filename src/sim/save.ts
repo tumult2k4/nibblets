@@ -2,7 +2,7 @@
 import { fnv1a } from '../shared/rng';
 import { CFG } from './config';
 import { STARTER_RECIPES } from './recipes';
-import { FACTS } from './knowledge';
+import { FOUNDER_FACTS } from './knowledge';
 import type { Goblin, LineageEntry, LoggedCommand, Tile, WorldState } from './state';
 import { World } from './world';
 import type { Biome } from '../shared/types';
@@ -121,7 +121,7 @@ export const MIGRATIONS: Record<number, Migration> = {
   },
   // P5.5 knowledge: before facts existed everyone avoided redcaps and ran to fires, so everyone knows both
   11: (raw) => {
-    for (const g of raw.goblins as Record<string, unknown>[]) g.knownFacts ??= [...FACTS];
+    for (const g of raw.goblins as Record<string, unknown>[]) g.knownFacts ??= [...FOUNDER_FACTS];
     return raw;
   },
   // P5.6 fiber chain: rope, baskets, mats, loincloths and crowns are things everyone grows up making
@@ -145,6 +145,8 @@ export const MIGRATIONS: Record<number, Migration> = {
   },
   // P6.2 wildfires: `fires` was an always-empty placeholder; tiles may now carry ash (none yet)
   16: (raw) => ({ ...raw, fires: [] }),
+  // P6.3 floods and droughts
+  17: (raw) => ({ ...raw, climate: { rainHours: 0, rainDays: 0, dryDays: 0, flood: null, drought: null } }),
 };
 
 export function deserialize(json: string): WorldState {

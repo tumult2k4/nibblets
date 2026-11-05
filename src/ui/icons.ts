@@ -91,5 +91,5 @@ export const ITEM_ICON: Record<string, string> = {
   spear: 'spear', stone_spear: 'spear', club: 'club', stone_axe: 'axe', pick: 'pick',
   // P5.6 fiber goods and preserves
   rope: 'fiber', basket: 'bowl', sleeping_mat: 'fiber', loincloth: 'fiber', leaf_cape: 'leaf', leaves: 'leaf', flower: 'sparkle', flower_crown: 'sparkle',
-  dried_apple: 'apple', torch: 'heat',
+  dried_apple: 'apple', torch: 'heat', star_stone: 'gem',
 };
