@@ -12,6 +12,8 @@ import { bestWeapon } from '../src/sim/tools';
 import { isLit } from '../src/sim/fire';
 import { ACTIONS } from '../src/sim/ai/utility';
 import { ringTiles } from '../src/sim/fences';
+import { RECIPES } from '../src/sim/recipes';
+import type { Goblin } from '../src/sim/state';
 
 const arg = (name: string, def: number): number => {
   const i = process.argv.indexOf(`--${name}`);
@@ -20,11 +22,16 @@ const arg = (name: string, def: number): number => {
 const days = arg('days', 96);
 const seedCount = arg('seeds', 5);
 const firstSeed = arg('seed', 1);
-/** control run (P4 acceptance): nobody can craft, so no spears */
+/** control run (P4 acceptance): nobody can craft or knows any Phase 4 recipe, so no spears, campfire, torches or fences */
 const noCraft = process.argv.includes('--no-craft');
 if (noCraft) ACTIONS.craft.isAvailable = () => false;
+const forgetCrafts = (gs: Goblin[]): void => {
+  for (const g of gs) g.knownRecipes = g.knownRecipes.filter((id) => (RECIPES[id]?.phase ?? 0) < 4);
+};
 
 interface Row {
+  /** deaths and everyone who lived there (founders + newcomers), for the control run's loss share */
+  lost: number; residents: number;
   seed: number; popMin: number; popAvg: number; popMax: number; popEnd: number; births: number;
   deaths: Record<string, number>; eaten: number; divineFood: number; starvationDays: number;
   hueDrift: number; tickMs: number; fails: string[];
@@ -40,6 +47,8 @@ const meanHue = (hs: number[]): number => {
 
 function runSeed(seed: number): Row {
   const w = createWorld({ seed });
+  if (noCraft) forgetCrafts(w.s.goblins);
+  const founders = w.s.goblins.length;
   const bushCount = () => w.s.plants.filter((p) => p.kind === 'apple_bush' && (p.stage === 'mature' || p.stage === 'old')).length;
   const bushes0 = bushCount();
   const hue0 = meanHue(w.s.goblins.map((g) => express(g.genome, 'skinHue')));
@@ -52,7 +61,10 @@ function runSeed(seed: number): Row {
     if (e.type === 'enemy_spawned' && e.kind !== 'gnasher') rare[e.kind === 'bramblebeast' ? 'beasts' : 'wisps']++;
     else if (e.type === 'building_destroyed' && e.cause === 'bramblebeast') rare.smashed++;
     else if (e.type === 'wisp' && e.phase === 'lure') rare.lured++;
-    else if (e.type === 'immigrants') rare.newcomers += e.goblinIds.length;
+    else if (e.type === 'immigrants') {
+      rare.newcomers += e.goblinIds.length;
+      if (noCraft) forgetCrafts(w.s.goblins.filter((g) => e.goblinIds.includes(g.id)));
+    }
     else if (e.type === 'enemy_spawned') foes.spawned++;
     else if (e.type === 'enemy_stole') foes.stolen += e.qty;
     else if (e.type === 'enemy_bit' && e.damage > 0) foes.bites++;
@@ -103,6 +115,7 @@ function runSeed(seed: number): Row {
   if (days >= 24 && weatherDeaths >= 2) fails.push('weather deaths');
   if (!noCraft && (deaths.combat ?? 0) > 3) fails.push('combat deaths>3');
   return {
+    lost: totalDeaths, residents: founders + rare.newcomers,
     seed, popMin, popAvg: popSum / Math.max(1, samples), popMax, popEnd: w.s.goblins.length, births: w.s.stats.births,
     deaths, eaten: w.s.stats.eaten, divineFood: w.s.stats.divineFood, starvationDays,
     hueDrift: Math.abs(hueDelta(hue0, hue1)), tickMs, fails,
@@ -128,5 +141,15 @@ const lines = [
   '',
   `Aggregate: avg end pop ${(rows.reduce((a, r) => a + r.popEnd, 0) / rows.length).toFixed(1)}, starvation deaths ${rows.reduce((a, r) => a + (r.deaths.starvation ?? 0), 0)}, avg tick ${(rows.reduce((a, r) => a + r.tickMs, 0) / rows.length).toFixed(3)} ms.`,
 ];
+// P4 acceptance: without crafting (no spears, fire, torches or fences) the villages lose at least 30 % of their goblins
+const lostShare = rows.reduce((a, r) => a + r.lost, 0) / Math.max(1, rows.reduce((a, r) => a + r.residents, 0));
+const controlFail = noCraft && lostShare < 0.3;
+if (noCraft) {
+  const line = `Control: lost ${Math.round(lostShare * 100)} % of all goblins (≥ 30 % expected) — ${controlFail ? 'FAIL' : 'ok'}`;
+  lines.push('', line);
+  console.log(line);
+}
 writeFileSync('balance-report.md', lines.join('\n') + '\n');
-console.log(rows.some((r) => r.fails.length) ? 'BALANCE: FAIL' : 'BALANCE: ok', '→ balance-report.md');
+// in the control run losses (even a village dying out) are the point; only its loss share and tick time decide
+const seedFail = rows.some((r) => r.fails.some((f) => !noCraft || f.startsWith('tick')));
+console.log(seedFail || controlFail ? 'BALANCE: FAIL' : 'BALANCE: ok', '→ balance-report.md');

@@ -1,5 +1,5 @@
 # Nibblets progress
-Current: P4 acceptance tuning — the control run without crafting must lose ≥ 30 %, armed villages 0–3 combat deaths per seed
+Current: P5.1 — relationships, Chat, gossip, Comfort, Gift
 ## Done
 - [x] P1.1 scaffold: Vite + strict TS, ESLint flat config with sim architecture rules, Prettier, Vitest, scripts
 - [x] P1.2 shared/: math, ids, mulberry32 Rng with fork(label), typed EventBus
@@ -44,11 +44,14 @@ Current: P4 acceptance tuning — the control run without crafting must lose ≥
 - [x] P4.6 fences (ring planned once Gnashers are seen, enemy-only blocking, goblins climb), enemy pathfinding around fences, campfire repel r6 + torch scare r3, stone hut upgrade (upgrade station), RepairBuilding, fence/stone hut meshes, save v7
 - [x] P4.7 enemy brains split per kind (common/gnasher/bramblebeast/wisp + dispatcher); Bramblebeast (rare, tramples a straight line through the village smashing what blocks it, swipes back when struck, only mobbed by 3+ heavy weapons); Night Wisp (full-moon nights over marsh, drifts up to goblins outdoors, forced `follow_wisp` trance, torch scatters, fades leaving the goblin far out and glum); `spawnReinforcements` (2 founder-like newcomers every 8th morning while pop < 6); meshes, poses, notifications, en/de
 - [x] P4.8 Wrath category (Lightning Bolt, Swarm, Curse, Summon Gnashers / Bramblebeast, Meteor) through `god_cast` with goblin targets; dread and swarm avoid-zones with a forced `scatter`; pending strikes (meteor falls 1.5 s later: crater, rubble, flint); lethal preview (red rings + ☠ markers, count in the cursor label) and the "confirm lethal" setting (second click or Enter); Gentle mode hides the Wrath toolbar button, quick-ring Smite and rejects wrath casts; thrown/dropped goblins and stones hurt enemies; `angryAtGod` (kin and friends who see the god hurt one of theirs), calmed by a kindness; danger marks + danger lens; wrath FX (bolt + scorch, bug swarms, curse rain cloud, falling meteor with shockwave and ring of flames, summon puff); save v8
+### Phase 4 acceptance
+- [x] Combat behavior tests green (combat.test, enemies.test incl. the undefended-village rules); campfire repel test green (fences.test)
+- [x] Balance 32 days × 5 seeds with enemies: 0, 0, 0, 0, 2 combat deaths; control run without crafting (`--no-craft`: no Phase 4 recipes, so no spears, campfire, torches or fences) loses 59 % of all goblins
+- [x] Witness-rule test green; lightning on a Gnasher damages it and raises witnesses' fear; Gentle mode rejects wrath commands (wrath.test)
 ## Next
-- [ ] P4 acceptance tuning (control run without crafting loses ≥ 30 %; armed villages 0–3 combat deaths per seed)
-- [ ] P5.1
+- [ ] P5.1 relationships, Chat with topics and icon bubbles, gossip memory sharing, Comfort, Gift
 ## Notes / known issues
-- P4 acceptance still open: the control run without crafting (`npx tsx tools/balance.ts --days 32 --seeds 5 --no-craft`) loses nobody yet (Gnashers flee from groups and from fists). Tune threat after P4.6–P4.7 so it loses ≥ 30 % while armed villages keep to 0–3 combat deaths per seed.
+- Balance (32 days × 5 seeds, after P4 tuning): 0–2 combat deaths, 28–42 Gnashers, 5 huts, 100 % housed by the end of autumn, ~0.2 ms/tick. Control (`--no-craft`): 59 % lost, one seed dies out.
 - Balance (32 days × 5 seeds, after P3.8): unchanged from P3.4 — 0 deaths, 5–6 huts, 100 % housed by the end of autumn, ~0.13–0.15 ms/tick.
 - Balance (32 days × 5 seeds, after P3.4): 0 deaths, 5 huts and 100 % housed by the end of autumn on every seed, 29–55 goblin-planted mature bushes, ~0.14 ms/tick.
 - Balance (20 days × 5 seeds, after P2): population 10, 0 deaths, 25–36 goblin-planted mature bushes, apple bushes 70→~105, ~29 wood stored, ~0.12 ms/tick.

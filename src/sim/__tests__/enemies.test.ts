@@ -6,6 +6,8 @@ import { completeBuilding, placeBlueprint } from '../buildings';
 import { deposit, stockCount } from '../stockpile';
 import { dist } from '../../shared/math';
 import { moonMul, spawnEnemy, threatBudget, updateDirector } from '../enemies/director';
+import { isLone } from '../enemies/gnasher';
+import { strike } from '../combat';
 import { enemiesDecide } from '../enemies';
 import { deserialize, serialize } from '../save';
 import { makeWorld, spawnGoblin } from './helpers';
@@ -98,15 +100,20 @@ describe('Gnashers and the spawn director (P4.4)', () => {
     expect(evs.filter((x) => x.type === 'enemy_fled').length).toBeLessThanOrEqual(1);
   });
 
-  it('is pack-shy: three goblins close by send it running, and two do not', () => {
+  it('is pack-shy: three armed goblins close by send it running; two do not, nor do three with bare fists', () => {
     const w = makeWorld();
     at(w, 5, 0.75);
-    spawnGoblin(w, { pos: { x: 12, y: 12 } });
-    spawnGoblin(w, { pos: { x: 13, y: 12 } });
+    const spear = (g: { equipped: { hand: unknown } }) => (g.equipped.hand = { type: 'spear', qty: 1 });
+    spear(spawnGoblin(w, { pos: { x: 12, y: 12 } }));
+    spear(spawnGoblin(w, { pos: { x: 13, y: 12 } }));
     const e = spawnEnemy(w, 'gnasher', { x: 12.5, y: 13.5 });
     enemiesDecide(w);
     expect(e.mode).not.toBe('flee');
-    spawnGoblin(w, { pos: { x: 12, y: 14 } });
+    const third = spawnGoblin(w, { pos: { x: 12, y: 14 } });
+    e.nextDecide = w.s.tick;
+    enemiesDecide(w);
+    expect(e.mode).not.toBe('flee'); // fists count half: 2.5
+    spear(third);
     e.nextDecide = w.s.tick;
     enemiesDecide(w);
     expect(e.mode).toBe('flee');
@@ -140,5 +147,50 @@ describe('Gnashers and the spawn director (P4.4)', () => {
     expect(s.enemies).toEqual([]);
     expect(s.threat).toMatchObject({ night: -1, spawnAt: [] });
     expect(deserialize(serialize(w.s)).enemies).toHaveLength(1);
+  });
+});
+
+describe('Gnashers against an undefended village (P4 acceptance)', () => {
+  const asleep = (g: { activity: { action: string; stage: number } }) => { g.activity.action = 'sleep_home'; g.activity.stage = 2; };
+
+  it('get into wattle huts after a lone sleeper, but not past stone walls', () => {
+    const w = makeWorld();
+    at(w, 5, 0.9);
+    const hut = placeBlueprint(w, 'hut', { x: 12, y: 12 }, null);
+    completeBuilding(w, hut, null);
+    const g = spawnGoblin(w, { pos: { ...hut.pos } });
+    asleep(g);
+    const mate = spawnGoblin(w, { pos: { x: hut.pos.x + 0.3, y: hut.pos.y } });
+    asleep(mate); // a sleeping hut-mate is no help
+    expect(isLone(w, g)).toBe(true);
+    mate.activity.action = 'idle'; // awake, it is
+    expect(isLone(w, g)).toBe(false);
+    asleep(mate);
+    hut.type = 'stone_hut';
+    expect(isLone(w, g)).toBe(false);
+  });
+
+  it('keeps its teeth in its victim when someone else punches it, and blood calls the others', () => {
+    const w = makeWorld();
+    at(w, 5, 0.9);
+    const victim = spawnGoblin(w, { pos: { x: 12, y: 12 } });
+    const helper = spawnGoblin(w, { pos: { x: 13, y: 12 } });
+    const e = spawnEnemy(w, 'gnasher', { x: 12.6, y: 12.6 });
+    e.mode = 'attack';
+    e.targetId = victim.id;
+    let landed = false;
+    for (let i = 0; i < 20 && !landed; i++) landed = strike(w, helper, e);
+    expect(landed).toBe(true);
+    expect(e.targetId).toBe(victim.id);
+    // a bare fist barely dents its hide
+    expect(e.maxHp - e.hp).toBeLessThan(CFG.combat.fists);
+    const other = spawnEnemy(w, 'gnasher', { x: 20, y: 12 });
+    other.mode = 'prowl' as typeof other.mode;
+    e.timer = 0;
+    e.seen = true;
+    helper.pos = { x: 30, y: 30 };
+    for (let i = 0; i < 60 && (other.mode as string) !== 'attack'; i++) { e.nextDecide = w.s.tick + 99; w.step(); }
+    expect(other.mode).toBe('attack');
+    expect(other.targetId).toBe(victim.id);
   });
 });

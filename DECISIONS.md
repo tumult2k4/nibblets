@@ -174,3 +174,14 @@ Small choices the design doc left open, one line of rationale each.
 - **Anger at the god** (`godHarmed`): when the god hurts a goblin (hand, thrown, lightning, meteor, curse), kin and friends (opinion > 50) who see it or are kin get faith +4, love −25, fear +20, `angryAtGod` for 8 days with mood −10, and show 💢 (or a nervous sweat if very pious). A kindness aimed at them (gift, gentle set-down, pet, apple shower, bountiful growth, warm sun) melts it at once. Reactions: lightning/meteor faith +8, fear +15; swarm +3/+6; curse target +5, love −8, fear +10.
 - **Danger marks** (`threat.marks`, max 48, kept 3 days): spotted enemy 0.5, bite 1, theft 0.7, smashed building 1, beast swipe 1, wisp lure 0.5, a combat or divine death 2. `dangerAt` adds live menacing enemies (within 8) and the god's dread/swarm zones (0.8), and a lit fire's glow calms it by 60 %. The **danger lens** dims calm ground green and paints trouble amber to red; fire risk joins it with fire spread (P6).
 - **Save v8**: `godView.angryUntil`, `god.zones`, `god.pending`, `threat.marks`.
+
+## P4 acceptance tuning (undefended villages)
+- **Control run** (`--no-craft`): besides switching off `Craft`, every goblin (and newcomer) forgets all Phase 4 recipes, so no spears, torches, campfire or fence ring; huts (P3) stay. `PlanBuilding` now needs the campfire/fence recipe known, which normal games always have (starter recipes). The verdict is the loss share over all seeds (deaths ÷ founders + newcomers ≥ 30 %); per-seed survival flags (extinction, housing) are only reported for the control.
+- Before tuning, undefended villages lost nobody: a Gnasher turned on whoever punched it, so bites were spread over the whole group, and three bare-handed goblins scared it off. Changes:
+  - **It doesn't let go**: once it is biting someone, being hit no longer makes it switch to the attacker.
+  - **Thick hide** (`gnasher.armor` 2, the §14.2 armor term): fists do about 3 instead of 5; spears and clubs barely notice. Knockback scales with damage (full at 12), so a punch hardly shoves it.
+  - **Unarmed crowds count half** toward its pack-shyness (armed or torch-bearing adults count 1; still 3 to send it off).
+  - **Pack call**: a landed bite draws idle Gnashers within 10 tiles onto the same goblin.
+  - **Wattle huts are no fortress** (`hutBreakIn`): a Gnasher can reach a lone goblin in a wattle hut; stone huts keep it out, and the fire's glow and the fence ring already keep it away. "Lone" now means no awake adult within 4 (sleepers don't help).
+  - **Bites per visit** 6 → 10.
+- Result (32 days × 5 seeds): armed villages 0, 0, 0, 0, 2 combat deaths; control 4, 14 (wiped out incl. newcomers), 2, 6, 6 → 59 % lost. The threat ramp stays at the design's 0.05 per day (0.1 wiped every undefended village).

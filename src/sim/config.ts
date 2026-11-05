@@ -158,7 +158,7 @@ export const CFG = {
     weaponWant: 0.1, braveryWant: 0.16, toolWant: 0.3, equipTicks: 10, fetchTicks: 8,
   },
   enemies: {
-    graceDays: 3, baseThreat: 1, rampPerDay: 0.05, newMoonMul: 1.6, fullMoonMul: 0.7, maxActive: 20, gnasher: { hp: 60, dmg: 10, speed: 2.4, fleeAt: 0.3 },
+    graceDays: 3, baseThreat: 1, rampPerDay: 0.05, newMoonMul: 1.6, fullMoonMul: 0.7, maxActive: 20, gnasher: { hp: 60, dmg: 10, speed: 2.4, fleeAt: 0.3, armor: 2 },
     // P4.7: a rare thorny brute that tramples straight through the village, smashing what stands in its way; it only
     // turns on goblins that hit it, and only a mob of three with heavy weapons (≥ 20 dmg) within 14 tiles will take it on
     bramblebeast: {
@@ -173,14 +173,14 @@ export const CFG = {
     drops: { gnasher: { pelt: 1, bone: 1 }, bramblebeast: { pelt: 2, bone: 2, wood: 3 }, night_wisp: {} } as Record<string, Record<string, number>>,
     // P4.4 director & AI
     defenseMul: 0.3, armedDefense: 0.5, fireDefense: 1, fenceDefense: 2, fogChancePerHour: 0.08, spawnMinVillageDist: 28, spawnMinGoblinDist: 16,
-    decideEvery: 10, sneakMul: 0.6, stealQty: 3, loneRadius: 4, crowdFlee: 3, crowdRadius: 4, sightRange: 18,
-    biteRange: 1.0, windupTicks: 4, biteCooldown: 10, maxBites: 6, despawnDist: 1.5, foodSearch: 20, biteHit: 0.75,
+    decideEvery: 10, sneakMul: 0.6, stealQty: 3, loneRadius: 4, crowdFlee: 3, crowdRadius: 4, sightRange: 18, unarmedCrowd: 0.5, packCall: 10, hutBreakIn: true as boolean,
+    biteRange: 1.0, windupTicks: 4, biteCooldown: 10, maxBites: 10, despawnDist: 1.5, foodSearch: 20, biteHit: 0.75,
   },
   combat: {
     fists: 5, spear: 15, stone_spear: 28, club: 20, sling: 10, injuryChance: 0.25,
     // P4.5 melee (§14.2): windup 0.4 s, 60–90 % hit, dmg × (0.8 + 0.4 × size) × skill
     windupTicks: 4, cooldownTicks: 10, reach: 1.2, hitBase: 0.7, hitPerSkill: 0.04, hitMin: 0.6, hitMax: 0.9, evadePerSkill: 0.02,
-    skillPerHit: 0.15, dmgPerSkill: 0.05, knockback: 0.35,
+    skillPerHit: 0.15, dmgPerSkill: 0.05, knockback: 0.35, knockbackFull: 12,
     // morale (§14.2): panic when safety < 20 and bravery < 0.5, or hp < 30 % unless veteran
     panicSafety: 20, panicBravery: 0.5, panicHp: 0.3, veteranFights: 5, sprintMul: 1.15, fleeTicks: 400, safeDist: 9,
     // injuries: hp < 50 % after a hit, 25 %; limp −30 % speed and bruised arm −20 % work for 3 days; ear notch +1 scar

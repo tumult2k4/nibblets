@@ -13,25 +13,44 @@ import { weatherAt } from '../weather';
 import type { Enemy, Goblin, GroundItem } from '../state';
 import type { Vec2 } from '../../shared/types';
 import { litFireNear, torchLit } from '../fire';
+import { bestWeapon } from '../tools';
 import { enemyCanStand } from '../fences';
 import type { World } from '../world';
 import { atHome, awake, exposed, moveEnemy, running, setMode, setPath, spotted } from './common';
 import { markDanger } from '../danger';
+import { shelterOf } from '../temperature';
 
 const E = CFG.enemies;
 const G = E.gnasher;
 
-/** A goblin outside with nobody else within 4 tiles. */
+/**
+ * Within a Gnasher's reach: outdoors, or in a wattle hut (P4 acceptance: thatch and sticks don't keep it out; stone
+ * walls do, and so do the fire's glow and a fence ring, which it never gets past).
+ */
+export function reachable(w: World, g: Goblin): boolean {
+  if (exposed(w, g)) return true;
+  if (g.heldByGod || g.airborne || !E.hutBreakIn) return false;
+  return shelterOf(w, g)?.type === 'hut';
+}
+
+/** A goblin it can reach with no awake adult within 4 tiles (sleepers are no help). */
 export function isLone(w: World, g: Goblin): boolean {
-  if (!exposed(w, g)) return false;
-  for (const o of w.goblinHash.query(g.pos, E.loneRadius)) if (o.id !== g.id && dist(o.pos, g.pos) <= E.loneRadius) return false;
+  if (!reachable(w, g)) return false;
+  for (const o of w.goblinHash.query(g.pos, E.loneRadius))
+    if (o.id !== g.id && awake(o) && o.lifeStage === 'adult' && dist(o.pos, g.pos) <= E.loneRadius) return false;
   return true;
 }
 
-/** Awake goblins pressing close: Gnashers are pack-shy. */
+/**
+ * Awake adults pressing close: Gnashers are pack-shy. Someone with a weapon or a burning torch counts in full, bare
+ * fists only by half (P4 acceptance: groups are a counter, but an unarmed crowd is no wall).
+ */
 export function crowdAround(w: World, e: Enemy): number {
   let n = 0;
-  for (const o of w.goblinHash.query(e.pos, E.crowdRadius)) if (awake(o) && o.lifeStage === 'adult' && dist(o.pos, e.pos) <= E.crowdRadius) n++;
+  for (const o of w.goblinHash.query(e.pos, E.crowdRadius)) {
+    if (!awake(o) || o.lifeStage !== 'adult' || dist(o.pos, e.pos) > E.crowdRadius) continue;
+    n += bestWeapon(o) || torchLit(o, w) ? 1 : E.unarmedCrowd;
+  }
   return n;
 }
 
@@ -74,7 +93,7 @@ export function gnasherDecide(w: World, e: Enemy): void {
   if (e.mode === 'attack' && e.hits >= E.maxBites) { setMode(w, e, 'flee', e.home); return; }
   // keeps at whoever it is fighting while they stay close and outdoors
   const foe = e.mode === 'attack' && e.targetId !== null ? w.goblin(e.targetId) : undefined;
-  if (foe && exposed(w, foe) && dist(foe.pos, e.pos) < 4) return;
+  if (foe && reachable(w, foe) && dist(foe.pos, e.pos) < 4) return;
   const lone = nearestLone(w, e);
   const keep = (mode: Enemy['mode'], id: number) => e.mode === mode && e.targetId === id;
   if (lone && dist(lone.pos, e.pos) < 8 && setMode(w, e, 'attack', lone.pos, lone.id)) return;
@@ -105,6 +124,16 @@ function bite(w: World, e: Enemy, g: Goblin): void {
   w.emit({ type: 'emote', goblinId: g.id, emote: 'exclaim' });
   markDanger(w, g.pos, 1);
   hurtGoblin(w, g, G.dmg, 'combat');
+  if (w.goblin(g.id)) callPack(w, e, g);
+}
+
+/** Blood draws the others: Gnashers nearby that aren't busy running or carrying join in on the same goblin. */
+function callPack(w: World, e: Enemy, g: Goblin): void {
+  for (const o of w.s.enemies) {
+    if (o === e || o.kind !== 'gnasher' || running(o) || o.carrying || o.mode === 'attack') continue;
+    if (dist(o.pos, g.pos) > E.packCall || scareAt(w, o.pos)) continue;
+    if (setMode(w, o, 'attack', g.pos, g.id)) o.nextDecide = w.s.tick + E.decideEvery;
+  }
 }
 
 /** One tick of a Gnasher: keep clear of fire, bite, steal, run. Returns true once it has left the map. */
@@ -117,7 +146,7 @@ export function gnasherAct(w: World, e: Enemy): boolean {
   }
   if (e.mode === 'attack') {
     const g = e.targetId !== null ? w.goblin(e.targetId) : undefined;
-    if (!g || !exposed(w, g)) { e.nextDecide = s.tick; return false; }
+    if (!g || !reachable(w, g)) { e.nextDecide = s.tick; return false; }
     const mid = { x: (g.pos.x + e.pos.x) / 2, y: (g.pos.y + e.pos.y) / 2 };
     if (dist(g.pos, e.pos) <= E.biteRange) {
       if (enemyCanStand(w, mid.x, mid.y) && enemyCanStand(w, g.pos.x, g.pos.y)) bite(w, e, g); // never through a fence

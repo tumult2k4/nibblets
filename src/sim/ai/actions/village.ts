@@ -48,7 +48,11 @@ const siteFor = (w: World, type: BuildingType): Vec2 | null => (type === 'fence'
 
 export const PlanBuilding: UtilityAction = {
   id: 'plan_building', tags: ['work'], minStage: 'adult', interruptible: true,
-  isAvailable: (g, w) => !!upgradeJob(g, w) || (!!villageNeed(w) && !othersDoing(g, w, 'plan_building')),
+  isAvailable: (g, w) => {
+    if (upgradeJob(g, w)) return true;
+    const need = villageNeed(w);
+    return !!need && knows(g, need) && !othersDoing(g, w, 'plan_building');
+  },
   score: (g, w) => (upgradeJob(g, w) ? 0.35 : villageNeed(w) === 'fence' ? 0.24 : 0.3) * (1 - busy(g)),
   start(g, w) {
     const up = upgradeJob(g, w);
@@ -57,7 +61,7 @@ export const PlanBuilding: UtilityAction = {
       return planPath(w, g, workSpot(w.s, up, g));
     }
     const type = villageNeed(w);
-    const site = type && siteFor(w, type);
+    const site = type && knows(g, type) && siteFor(w, type);
     if (!site) return false;
     g.activity.target = site;
     return planPath(w, g, type === 'fence' ? site : { x: site.x + 0.9, y: site.y + 0.3 });
@@ -72,7 +76,7 @@ export const PlanBuilding: UtilityAction = {
       return 'done';
     }
     const type = villageNeed(w);
-    if (!type) return 'done'; // someone else saw to it
+    if (!type || !knows(g, type)) return 'done'; // someone else saw to it
     if (type === 'fence') {
       w.s.village.fenceRing ||= ringRadius(w);
       const open = w.s.buildings.filter((b) => b.type === 'fence' && !isComplete(b)).length;

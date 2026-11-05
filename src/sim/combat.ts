@@ -104,7 +104,9 @@ export const biteChance = (g: Goblin): number => clamp(CFG.enemies.biteHit - com
 /** One swing at an enemy. Returns true if it landed. */
 export function strike(w: World, g: Goblin, e: Enemy): boolean {
   const hit = w.rng.chance(hitChance(g));
-  const dmg = hit ? strikeDamage(g) : 0;
+  // thick hide (the §14.2 armor term): bare fists barely get through, a spear hardly notices it
+  const armor = (CFG.enemies[e.kind] as { armor?: number }).armor ?? 0;
+  const dmg = hit ? q4(Math.max(1, strikeDamage(g) - armor)) : 0;
   w.emit({ type: 'attack', attackerId: g.id, targetId: e.id, damage: dmg, at: e.pos });
   if (!hit) return false;
   g.skills.combat = q4(combatSkill(g) + C.skillPerHit);
@@ -114,10 +116,11 @@ export function strike(w: World, g: Goblin, e: Enemy): boolean {
   if (e.hp <= 0) { killEnemy(w, e, g); return true; }
   // knockback hop away from the attacker
   const d = Math.max(0.01, dist(g.pos, e.pos));
-  const nx = q4(e.pos.x + ((e.pos.x - g.pos.x) / d) * C.knockback), ny = q4(e.pos.y + ((e.pos.y - g.pos.y) / d) * C.knockback);
+  const kb = C.knockback * Math.min(1, dmg / C.knockbackFull); // a punch barely shoves it, a spear thrust sends it back
+  const nx = q4(e.pos.x + ((e.pos.x - g.pos.x) / d) * kb), ny = q4(e.pos.y + ((e.pos.y - g.pos.y) / d) * kb);
   if (enemyCanStand(w, nx, ny)) e.pos = { x: nx, y: ny };
-  // it turns on whoever hit it, unless it is about to run anyway
-  if (e.mode !== 'flee' && e.mode !== 'leave' && e.hp >= CFG.enemies[e.kind].fleeAt * e.maxHp) {
+  // it turns on whoever hit it, unless it is about to run anyway or already has its teeth in someone (it doesn't let go)
+  if (e.mode !== 'flee' && e.mode !== 'leave' && e.mode !== 'attack' && e.hp >= CFG.enemies[e.kind].fleeAt * e.maxHp) {
     e.mode = 'attack';
     e.targetId = g.id;
     e.target = { ...g.pos };
