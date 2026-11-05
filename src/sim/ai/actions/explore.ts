@@ -23,6 +23,7 @@ export const Explore: UtilityAction = {
   isAvailable: (g) => g.needs.energy > 30,
   score: (g) => 0.05 + 0.6 * needUrgency(g.needs.curiosity) * (1 - needUrgency(Math.min(g.needs.hunger, g.needs.thirst))),
   start(g, w) {
+    g.activity.progress = g.memory.length;
     const base = w.rng.range(0, Math.PI * 2);
     const cands: { p: Vec2; f: number }[] = [];
     for (let i = 0; i < 6; i++) {
@@ -45,6 +46,7 @@ export const Explore: UtilityAction = {
     if (moveAlong(w, g, 0.9) !== 'arrived') return 'running';
     sense(g, w);
     addMood(w, g, 'discovery', 3, 900);
+    if (g.memory.length > g.activity.progress) w.emit({ type: 'emote', goblinId: g.id, emote: 'idea' });
     return 'done';
   },
 };

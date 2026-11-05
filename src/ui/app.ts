@@ -162,6 +162,7 @@ export class App implements Ctx {
     setLang(s.language);
     document.documentElement.style.setProperty('--ui-scale', String(s.uiScale));
     this.game.renderer.applySettings({ shadows: s.shadows, renderScale: s.renderScale, outlines: s.outlines, fog: s.fog });
+    this.game.renderer.emotes.reducedMotion = s.reducedMotion;
   }
 
   t = t;

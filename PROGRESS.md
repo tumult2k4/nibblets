@@ -1,5 +1,5 @@
 # Nibblets progress
-Current: P2.6 — emotes
+Current: P2.7 — terraform powers, uproot/replant, Life tray tab, lenses
 ## Done
 - [x] P1.1 scaffold: Vite + strict TS, ESLint flat config with sim architecture rules, Prettier, Vitest, scripts
 - [x] P1.2 shared/: math, ids, mulberry32 Rng with fork(label), typed EventBus
@@ -22,8 +22,8 @@ Current: P2.6 — emotes
 - [x] P2.3 Chop (multi-hit, wood+sticks, stumps), village stockpile with StoreItem/TakeItem (save v2 migration), item piles + stockpile rendered
 - [x] P2.4 senses + memory (decay, capacity, stale-memory confusion), AI targets memories (fruit, water), Explore
 - [x] P2.5 berry bushes (fast fruit, harvestable, 5% accidental seeding when eaten), flowers spread (harvest stub item), soil depletion/regen
+- [x] P2.6 emotes (?, !, heart, Zzz, idea, sweat, music) as billboard bubbles; sim emits emote events, renderer derives sweat/music
 ## Next
-- [ ] P2.6 emotes
 - [ ] P2.7 terraform powers, uproot/replant, Life tray tab, lenses
 ## Notes / known issues
 - Balance (10 days × 5 seeds): population 10 throughout, 0 deaths, ~0.03 ms/tick.

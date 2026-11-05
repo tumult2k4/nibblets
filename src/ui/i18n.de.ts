@@ -26,7 +26,7 @@ export const DE: Record<keyof typeof EN, string> = {
   'insp.glance': 'Das Dorf auf einen Blick', 'insp.glanceGod': 'Ihr Gott: {name}', 'insp.glanceUnnamed': 'noch namenlos',
   'insp.glanceNeeds': 'Größte Sorgen im Dorf', 'insp.noSelection': 'Klicke einen Goblin an, um ihn anzusehen.',
   'insp.deedsLine2': 'Hat {p} Apfelbutzen gepflanzt', 'insp.memory': 'Erinnert sich an', 'insp.memoryLine': '{f} Obstbüsche · {w} Wasserstellen · {r} Felsen ({n} Erinnerungen)',
-  'insp.stockpile': 'Vorrat', 'pstage.seed': 'Samen', 'pstage.sprout': 'Keimling', 'pstage.sapling': 'Setzling', 'pstage.young': 'Jung',
+  'insp.stockpile': 'Vorrat', 'insp.stockEmpty': 'Noch nichts eingelagert.', 'pstage.seed': 'Samen', 'pstage.sprout': 'Keimling', 'pstage.sapling': 'Setzling', 'pstage.young': 'Jung',
   'pstage.mature': 'Ausgewachsen', 'pstage.old': 'Alt', 'pstage.dead': 'Tot', 'pstage.stump': 'Stumpf',
   'insp.plant': 'Pflanze', 'insp.stage': 'Stadium', 'insp.fruit': 'Früchte', 'insp.nextFruit': 'Nächste Frucht', 'insp.hydration': 'Wasser',
   'insp.fertility': 'Bodenfruchtbarkeit', 'insp.plantedBy': 'Gepflanzt von', 'insp.wild': 'wild', 'insp.item': 'Haufen', 'insp.qty': 'Menge',

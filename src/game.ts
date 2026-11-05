@@ -63,7 +63,10 @@ export class Game {
       if (n >= MAX_TICKS_PER_FRAME) this.acc = 0; // behind: drop time
       // while paused, still apply queued god commands so the hand stays responsive (see World.applyNow)
       if (!n && this.world.queue.length) for (const e of this.world.applyNow()) batch.push(e);
-      if (batch.length) for (const l of this.listeners) l(batch);
+      if (batch.length) {
+        this.renderer.onEvents(batch);
+        for (const l of this.listeners) l(batch);
+      }
       const alpha = Math.min(1, this.acc / tickDur);
       for (const f of this.frameListeners) f(dt);
       this.renderer.frame(dt, this.speed === 0 || this.paused ? 1 : alpha);

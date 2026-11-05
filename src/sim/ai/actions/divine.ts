@@ -7,7 +7,8 @@ export const LookUp: UtilityAction = {
   id: 'look_up', tags: ['divine'], minStage: 'hatchling', interruptible: false, forced: true,
   isAvailable: () => false,
   score: () => 0,
-  start(g) {
+  start(g, w) {
+    w.emit({ type: 'emote', goblinId: g.id, emote: 'exclaim' });
     g.activity.progress = CFG.god.lookUpTicks;
     g.velocity = { x: 0, y: 0 };
     return true;

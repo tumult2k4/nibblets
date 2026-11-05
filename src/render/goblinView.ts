@@ -65,6 +65,14 @@ export class GoblinViews {
     }
   }
 
+  /** World position just above a goblin's head (for emotes), or null if not shown. */
+  headPos(id: number): THREE.Vector3 | null {
+    const v = this.views.get(id);
+    if (!v) return null;
+    const p = v.rig.root.position;
+    return new THREE.Vector3(p.x, p.y + 1.15 * v.pheno.scale + 0.25, p.z);
+  }
+
   private animate(g: Goblin, v: View, interp: Interp, alpha: number, t: number, night: number, dt: number): void {
     const r = v.rig;
     const p = interp.get(g.id, alpha);

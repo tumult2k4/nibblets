@@ -5,6 +5,8 @@ import { TerrainMesh, makeWater } from './terrainMesh';
 import { SkyLights } from './sky';
 import { Props } from './props';
 import { GoblinViews } from './goblinView';
+import { Emotes } from './emotes';
+import type { SimEvent } from '../shared/types';
 import { Interp } from './interpolation';
 import { OrbitCam } from './camera';
 import { GodHand } from './godHand';
@@ -20,6 +22,8 @@ export class Renderer {
   readonly camera: OrbitCam;
   readonly hand = new GodHand();
   readonly rings = new Rings();
+  readonly emotes = new Emotes();
+  private moodCheck = 0;
   terrain!: TerrainMesh;
   props!: Props;
   goblins!: GoblinViews;
@@ -40,7 +44,7 @@ export class Renderer {
     this.scene.add(this.sky.group, this.sky.hemi, this.sky.sun, this.sky.sun.target, this.worldGroup);
     this.scene.fog = new THREE.Fog('#cfe6f2', 60, 220);
     this.hand.attach(this.scene);
-    this.scene.add(this.rings.group);
+    this.scene.add(this.rings.group, this.emotes.group);
     this.setWorld(w);
     this.resize();
   }
@@ -129,7 +133,28 @@ export class Renderer {
     this.water.update(this.time);
     this.props.update(this.interp, alpha);
     this.goblins.update(this.interp, alpha, this.time, this.sky.night, dt);
+    this.ambientEmotes(dt);
+    this.emotes.update(dt, (id) => this.goblins.headPos(id), this.camera.dist);
     this.gl.render(this.scene, this.camera.cam);
+  }
+
+  /** Event-driven emotes (§P2.6); the renderer only reads events, it never changes the sim. */
+  onEvents(evs: SimEvent[]): void {
+    for (const e of evs) {
+      if (e.type === 'emote') this.emotes.show(e.goblinId, e.emote);
+      else if (e.type === 'divine_act' && e.act === 'pet' && e.targetId !== undefined) this.emotes.show(e.targetId, 'heart');
+    }
+  }
+
+  /** State-derived emotes, checked every few seconds: sweat when starving/parched, a tune when happy. */
+  private ambientEmotes(dt: number): void {
+    this.moodCheck -= dt;
+    if (this.moodCheck > 0) return;
+    this.moodCheck = 3;
+    for (const g of this.world.s.goblins) {
+      if (g.needs.hunger < 15 || g.needs.thirst < 15) this.emotes.show(g.id, 'sweat');
+      else if (g.mood.value > 60 && (g.activity.action === 'wander' || g.activity.action === 'idle') && Math.random() < 0.15) this.emotes.show(g.id, 'music');
+    }
   }
 
   get elapsed(): number {

@@ -97,7 +97,7 @@ export class Inspector implements Component {
     this.body.replaceChildren(godLine, el('h3', { text: t('insp.glanceNeeds') }),
       ...needs.map((n) => el('div.row', {}, el('span.lbl', { text: t(`need.${n.k}`) }), bar(n.v), el('span.val', { text: String(Math.round(n.v)) }))),
       el('h3', { text: t('insp.stockpile') }),
-      el('div.sub', { text: s.village.stockpile.length ? s.village.stockpile.map((x) => `${t(`item.${x.type}`)} ${x.qty}`).join(' · ') : t('insp.empty') }),
+      el('div.sub', { text: s.village.stockpile.length ? s.village.stockpile.map((x) => `${t(`item.${x.type}`)} ${x.qty}`).join(' · ') : t('insp.stockEmpty') }),
       el('p.sub', {}, t('insp.noSelection')),
       el('p.sub', { 'data-tip': tipKey(t('key.inspector'), keyLabel('inspector')) }, `${t('key.inspector')}: `, el('kbd', { text: keyLabel('inspector') })));
   }
