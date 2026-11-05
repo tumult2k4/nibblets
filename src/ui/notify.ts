@@ -6,6 +6,7 @@ import { CFG } from '../sim/config';
 import { fenceSites } from '../sim/fences';
 import { FACTS } from '../sim/knowledge';
 import { towerOf } from '../sim/watch';
+import { mateOf } from '../sim/goblin/family';
 
 const isFact = (id: string): boolean => (FACTS as readonly string[]).includes(id);
 /** A recipe's or a fact's display name. */
@@ -38,7 +39,15 @@ export function noteFor(e: SimEvent, w: World, names: Map<ID, string>): Note | n
         return { ...base, ...(e.targetId !== undefined ? { id: e.targetId } : {}), text: e.targetId !== undefined ? t('ev.gift', { name: name(e.targetId) }) : t('ev.gift_none'), tier: 'info', icon: 'gift' };
       if (e.act === 'set_down') return { ...base, id: e.targetId, text: t('ev.set_down', { name: name(e.targetId) }), tier: 'info', icon: 'hand' };
       if (e.act === 'grab') return { ...base, id: e.targetId, text: t('ev.grab', { name: name(e.targetId) }), tier: 'info', icon: 'hand' };
+      if ((e.act === 'blessing' || e.act === 'inspiration') && e.targetId !== undefined)
+        return { ...base, id: e.targetId, text: t(`ev.${e.act}`, { name: name(e.targetId) }), tier: 'info', icon: e.act === 'blessing' ? 'sparkle' : 'idea' };
+      if (e.act === 'fertility' && e.targetId !== undefined) {
+        const m = w.goblin(e.targetId) && mateOf(w.goblin(e.targetId)!, w);
+        return { ...base, id: e.targetId, text: t('ev.fertility', { a: name(e.targetId), b: m ? m.name : '?' }), tier: 'info', icon: 'egg' };
+      }
       return null;
+    case 'trinket_found':
+      return { ...base, id: e.goblinId, text: t('ev.trinket_found', { name: name(e.goblinId), trinket: t(`trinket.${e.trinket}`), rarity: t(`rarity.${e.rarity}`) }), tier: 'notable', icon: 'gem' };
     case 'landed':
       if (e.water) return { ...base, id: e.entityId, text: t('ev.splash', { name: name(e.entityId) }), tier: 'info', icon: 'drop' };
       if (e.damage > 0 && w.goblin(e.entityId)) return { ...base, id: e.entityId, text: t('ev.dropped', { name: name(e.entityId), dmg: Math.round(e.damage) }), tier: 'notable', icon: 'skull' };

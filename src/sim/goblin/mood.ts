@@ -59,3 +59,6 @@ export function addMood(w: World, g: Goblin, id: string, amount: number, ticks: 
     if (t) addMood(w, t, amount > 0 ? 'twin_joy' : 'twin_woe', amount * CFG.traits.twinEcho, ticks);
   }
 }
+
+/** True while `g` carries the spark of Inspiration (the god's gift now; a day of it from its own happiness in P8). */
+export const isInspired = (g: Goblin, w: World): boolean => g.mood.modifiers.some((m) => m.id === 'inspired' && m.expiresTick > w.s.tick);

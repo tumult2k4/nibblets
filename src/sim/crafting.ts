@@ -19,6 +19,7 @@ import type { Goblin } from './state';
 import type { World } from './world';
 import { gainXp, skillLevel } from './goblin/skills';
 import { observe } from './knowledge';
+import { isInspired } from './goblin/mood';
 import type { SkillId } from '../shared/types';
 
 const C = CFG.crafting;
@@ -99,7 +100,10 @@ export function finishCraft(w: World, g: Goblin, id: RecipeId): ItemStack | null
   if (!r?.output || missingInputs(g, id).length) return null;
   for (const [t, n] of Object.entries(r.inputs)) removeItems(g, t as ItemType, n);
   const sk = recipeSkill(id);
-  const fine = skillLevel(g, sk) >= C.fineLevel && w.rng.chance(C.fineChance);
+  // Inspiration (P5.9) makes the next piece fine, and is spent on it
+  const inspired = isInspired(g, w);
+  if (inspired) g.mood.modifiers = g.mood.modifiers.filter((m) => m.id !== 'inspired');
+  const fine = inspired || (skillLevel(g, sk) >= C.fineLevel && w.rng.chance(C.fineChance));
   const out: ItemStack = fine ? { type: r.output, qty: 1, fine: true } : { type: r.output, qty: 1 };
   gainXp(w, g, sk, (r.ticks ?? 120) * CFG.skills.xp.craftPerTick);
   if (addItem(g, out) < 1) spawnGroundItem(w, out, { x: q4(g.pos.x + 0.3), y: g.pos.y });

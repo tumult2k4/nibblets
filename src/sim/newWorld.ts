@@ -60,7 +60,7 @@ export function createWorldState(params: WorldParams): WorldState {
     version: CFG.saveVersion, seed: p.seed, tick: CFG.time.startTick, nextId: 1, rngState: 0,
     size: { w, h }, preset: p.preset, terrainVersion: 0,
     tiles: generateTiles(p.seed, w, h, p.preset),
-    goblins: [], eggs: [], plants: [], rocks: [], grass: [], mushrooms: [], wildlife: [], groundItems: [],
+    goblins: [], eggs: [], trinkets: [], plants: [], rocks: [], grass: [], mushrooms: [], wildlife: [], groundItems: [],
     buildings: [], fires: [], enemies: [], threat: { night: -1, spawnAt: [], alarms: 0, marks: [] }, graves: [], lineage: {}, places: [],
     clans: [], village: { name: p.villageName, center: { x: w / 2, y: h / 2 }, chiefId: null, stockpile: [], stockpilePos: { x: w / 2, y: h / 2 }, fenceRing: 0 },
     god: newGodState(p.mode, p.gentle), commandLog: [],

@@ -38,7 +38,7 @@ export function calmAnger(w: World, g: Goblin): void {
   if (m) m.expiresTick = w.s.tick;
 }
 /** Acts that count as a kindness toward their target (or toward everyone inside an area gift). */
-const KIND: ReadonlySet<string> = new Set(['gift', 'set_down', 'pet', 'apple_shower', 'bountiful_growth', 'warm_sun']);
+const KIND: ReadonlySet<string> = new Set(['gift', 'set_down', 'pet', 'apple_shower', 'bountiful_growth', 'warm_sun', 'blessing', 'inspiration', 'fertility', 'shiny_gift']);
 
 const isYoung = (g: Goblin) => g.lifeStage === 'hatchling' || g.lifeStage === 'youngling';
 
@@ -76,6 +76,14 @@ export function reactionFor(act: DivineActKind | 'hurt', g: Goblin, isTarget: bo
       return { faith: 8, fear: 15 };
     case 'swarm':
       return { faith: 3, fear: 6 };
+    case 'blessing':
+      return isTarget ? { faith: 5, love: 6 } : { faith: 2, love: 1 };
+    case 'inspiration':
+      return isTarget ? { faith: 6, love: 4 } : { faith: 2 };
+    case 'fertility':
+      return isTarget ? { faith: 5, love: 6 } : { faith: 2, love: 1 };
+    case 'shiny_gift':
+      return isTarget ? { faith: 4, love: 8 } : { faith: 2, love: 1 };
     case 'curse':
       return isTarget ? { faith: 5, love: -8, fear: 10 } : { faith: 3, fear: 5 };
     case 'summon_gnashers':

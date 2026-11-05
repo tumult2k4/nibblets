@@ -53,7 +53,7 @@ export class CastTool {
       this.dragFrom = this.ground.clone();
       return;
     }
-    if (def.target === 'goblin') {
+    if (def.target === 'goblin' || def.target === 'pair') {
       const g = this.hoverGoblin !== null ? this.ctx.game.world.goblin(this.hoverGoblin) : undefined;
       if (g) this.send({ type: 'god_cast', power: def.id, pos: { x: g.pos.x, y: g.pos.y }, targetId: g.id });
       return;

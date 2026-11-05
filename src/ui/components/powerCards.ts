@@ -11,6 +11,7 @@ export const POWER_ICONS: Record<string, string> = {
   apple_shower: 'apple', bountiful_growth: 'leaf', warm_sun: 'heat', rain: 'rain', clear_sky: 'sun', snowfall: 'snow',
   gust: 'wind', fast_forward: 'clock', hasten_season: 'leaf',
   lightning: 'bolt', swarm: 'swarm', curse: 'curse', summon_gnashers: 'fang', summon_bramblebeast: 'fang', meteor: 'meteor',
+  blessing: 'sparkle', inspiration: 'idea', fertility: 'egg', shiny_gift: 'gem',
 };
 
 /** Castable powers of a category (implemented phases only). */

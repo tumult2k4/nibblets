@@ -8,6 +8,7 @@ import type { TerraformPower } from '../sim/god/terraform';
 import { TERRAIN_LENSES } from './store';
 import type { TerrainLens } from '../render/terrainMesh';
 import { castPreview, castRadius, powerDef } from '../sim/god/cast';
+import { fertilePair } from '../sim/god/powers/gifts';
 import { CATEGORY_COLOR } from './tools/castTool';
 import { t as tr } from './i18n';
 import type { ID } from '../shared/types';
@@ -156,12 +157,16 @@ export class WorldFx {
           }
           r.rings.ring(cg.x, cg.y, cg.z, CFG.powers.gustWidth, catColor, 0.5);
           if (!input.cast.dragFrom) label += ` · ${tr('cast.drag')}`;
-        } else if (def.target === 'goblin') {
-          // Curse: the goblin under the cursor is the target
+        } else if (def.target === 'goblin' || def.target === 'pair') {
+          // Curse, Blessing…: the goblin under the cursor is the target; Fertility rings its mate too
           const hg = input.cast.hoverGoblin !== null ? w.goblin(input.cast.hoverGoblin) : undefined;
-          const p = hg ? r.goblinWorldPos(hg.id) : null;
-          if (hg && p) r.rings.ring(p.x, p.y - 0.35, p.z, 0.8 * pulse, catColor, 0.95);
-          label += ` · ${hg ? hg.name : tr('cast.pickGoblin')}`;
+          const pair = def.target === 'pair' ? fertilePair(hg, w) : null;
+          for (const o of pair ?? (hg ? [hg] : [])) {
+            const p = r.goblinWorldPos(o.id);
+            if (p) r.rings.ring(p.x, p.y - 0.35, p.z, 0.8 * pulse, catColor, 0.95);
+          }
+          if (def.target === 'pair') label += ` · ${pair ? `${pair[0].name} & ${pair[1].name}` : hg ? `${hg.name}: ${tr('reason.no_mate')}` : tr('cast.pickPair')}`;
+          else label += ` · ${hg ? hg.name : tr('cast.pickGoblin')}`;
         } else {
           const pend = input.cast.pending;
           const rad = castRadius(def, pend?.radius ?? st.castRadius);

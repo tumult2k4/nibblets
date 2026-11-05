@@ -11,6 +11,7 @@ import { LOCUS_DEFS, type LocusDef } from '../../../sim/goblin/genetics/genome';
 import { describePersonality } from '../../../sim/goblin/personality';
 import { growthChart, personalityRadar } from './charts';
 import { knowers } from '../../../sim/knowledge';
+import { trinketsOf } from '../../../sim/trinkets';
 import { slotCount } from '../../../sim/inventory';
 import type { ItemStack } from '../../../shared/types';
 import { isTool, maxUses, usesLeft } from '../../../sim/tools';
@@ -72,6 +73,7 @@ export function statusTab(g: Goblin, w: World): HTMLElement {
   if (isWet(w, g)) tags.push(t('insp.wet'));
   if (shelterOf(w, g)) tags.push(t('insp.sheltered'));
   if (huddleBonus(w, g) > 0) tags.push(t('insp.huddle'));
+  if ((g.fertileUntil ?? 0) > w.s.tick) tags.push(t('insp.fertile'));
   const home = g.homeId !== null ? w.s.buildings.find((b) => b.id === g.homeId) : undefined;
   tags.push(home ? `${t('bld.hut')} ${home.buildProgress >= 1 ? '' : `(${t('insp.blueprint')})`}`.trim() : t('insp.homeless'));
   const mood = g.mood.value;
@@ -169,5 +171,7 @@ export function inventoryTab(g: Goblin, w: World): HTMLElement {
     el('div.recipes', {}, ...g.knownRecipes.map((r) => knowers(w.s, r) === 1
       ? el('span.recipe.only', { 'data-tip': t('insp.onlyKnowerTip') }, `${t(`recipe.${r}`)} · ${t('insp.onlyKnower')}`)
       : el('span.recipe', { text: t(`recipe.${r}`) }))),
+    ...(g.trinkets.length ? [el('h3', { text: t('insp.trinkets') }), ...trinketsOf(g, w).map((x) =>
+      el('div.row', {}, el('span.swatch', { style: `background:hsl(${Math.round(x.hue)} 70% 60%)` }), el('span', { text: `${t(`trinket.${x.kind}`)} · ${t(`rarity.${x.rarity}`)}` })))] : []),
     ...(g.knownFacts.length ? [el('h3', { text: t('insp.facts') }), el('div.sub', { text: g.knownFacts.map((f) => t(`fact.${f}`)).join(' · ') })] : []));
 }

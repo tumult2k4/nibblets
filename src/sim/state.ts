@@ -117,6 +117,15 @@ export interface Goblin {
   wetUntil: number;
   /** when this goblin last had an egg with its mate (P5.3 cooldown) */
   lastEggTick: number;
+  /** P5.9 Fertility gift: until then the next egg comes regardless of the day's roll, the cooldown and lean times */
+  fertileUntil?: number;
+}
+
+/** A shiny thing (§12.1). P5.9 brings the first ones (the Shiny Gift); hunting, trading and decorating come in P8. */
+export interface Trinket {
+  id: ID; kind: string; rarity: import('../shared/types').Rarity; hue: number; foundBy: ID; foundTick: number;
+  /** owner chain, first finder first, for stories */
+  history: ID[];
 }
 
 export interface Plant {
@@ -194,6 +203,8 @@ export interface WorldState {
    * danger marks (sightings, bites, thefts, smashes, deaths) for the danger lens (P4.8) */
   threat: { night: number; spawnAt: number[]; alarms: number; marks: DangerMark[]; /** P5.7 tower warning: until when, and where the threat was seen */ warnUntil?: number; warnAt?: Vec2 };
   graves: { id: ID; goblinId: ID; name: string; pos: Vec2; tick: number; cause: string }[];
+  /** every trinket in the world (§12.1, P5.9); goblins hold ids in `trinkets` */
+  trinkets: Trinket[];
   lineage: Record<number, LineageEntry>;
   places: unknown[]; clans: Clan[]; village: VillageState; god: GodState;
   commandLog: LoggedCommand[]; weather: WeatherState; stats: StatsSeries; llm: LlmAnnotations;

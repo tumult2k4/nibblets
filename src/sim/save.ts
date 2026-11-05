@@ -133,6 +133,8 @@ export const MIGRATIONS: Record<number, Migration> = {
     for (const g of raw.goblins as Goblin[]) if (lineage[g.id]) lineage[g.id] = { ...lineageEntry(g), died: lineage[g.id]!.died };
     return raw;
   },
+  // P5.9 trinkets (the Shiny Gift)
+  14: (raw) => ({ ...raw, trinkets: raw.trinkets ?? [] }),
 };
 
 export function deserialize(json: string): WorldState {

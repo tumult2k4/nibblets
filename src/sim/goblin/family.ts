@@ -87,8 +87,12 @@ export function becomeMates(w: World, a: Goblin, b: Goblin): void {
   w.emit({ type: 'bond_formed', aId: a.id, bId: b.id, kind: 'mate', at: { ...a.pos } });
 }
 
+/** Blessed with Fertility (P5.9): either of the pair, until it lays or the day is out. */
+export const godFertile = (g: Goblin, mate: Goblin, w: World): boolean => (g.fertileUntil ?? 0) > w.s.tick || (mate.fertileUntil ?? 0) > w.s.tick;
+
 /** Today's deterministic fertility roll for a pair (no RNG drawn, so scoring stays side-effect free). */
 export function fertileToday(g: Goblin, mate: Goblin, w: World): boolean {
+  if (godFertile(g, mate, w)) return true;
   // lean times (P5.7 balance): with winter coming or here, pairs wait until the stores could carry another mouth
   const c = w.clock;
   const need = c.season === 'autumn' ? F.leanStoreDays : c.season === 'winter' ? CFG.time.daysPerSeason - c.seasonDay + F.leanMargin : 0;
@@ -108,13 +112,14 @@ export function canLay(g: Goblin, w: World): Goblin | null {
   if (!home || !isComplete(home)) return null;
   if (g.needs.hunger <= F.eggHunger || m.needs.hunger <= F.eggHunger) return null;
   const cool = CFG.social.eggCooldownDays * DAY;
-  if (w.s.tick - g.lastEggTick < cool || w.s.tick - m.lastEggTick < cool) return null;
+  if (!godFertile(g, m, w) && (w.s.tick - g.lastEggTick < cool || w.s.tick - m.lastEggTick < cool)) return null;
   return fertileToday(g, m, w) ? m : null;
 }
 
 /** Lay the egg (5 % twins) in the home; the genome is made now, from both parents (§4.3 meiosis). */
 export function layEggs(w: World, g: Goblin, m: Goblin, at: Vec2): Egg[] {
-  const n = w.rng.chance(F.twinChance) ? 2 : 1;
+  const blessed = godFertile(g, m, w);
+  const n = w.rng.chance(blessed ? CFG.powers.fertileTwins : F.twinChance) ? 2 : 1;
   const eggs: Egg[] = [];
   for (let i = 0; i < n; i++) {
     const egg: Egg = {
@@ -126,6 +131,7 @@ export function layEggs(w: World, g: Goblin, m: Goblin, at: Vec2): Egg[] {
   if (n === 2) { eggs[0]!.twinOf = eggs[1]!.id; eggs[1]!.twinOf = eggs[0]!.id; }
   w.s.eggs.push(...eggs);
   g.lastEggTick = m.lastEggTick = w.s.tick;
+  if (blessed) { delete g.fertileUntil; delete m.fertileUntil; }
   for (const e of eggs) w.emit({ type: 'egg_laid', eggId: e.id, parents: e.parents, at: e.pos });
   return eggs;
 }

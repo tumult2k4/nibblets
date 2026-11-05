@@ -9,6 +9,7 @@ import type { World } from '../world';
 import { isWalkable } from '../grid';
 import { POWER_DEFS, type PowerDef } from './powerDefs';
 import { castAppleShower, castBountifulGrowth } from './powers/bounty';
+import { castBlessing, castFertility, castInspiration, castShinyGift, fertilePair } from './powers/gifts';
 import { castCurse, castLightning, castMeteor, castSummonBramblebeast, castSummonGnashers, castSwarm } from './powers/wrath';
 import { dist } from '../../shared/math';
 import type { ID } from '../../shared/types';
@@ -22,6 +23,7 @@ const EFFECTS: Record<string, (w: World, c: CastTarget) => void> = {
   fast_forward: castFastForward, hasten_season: castHastenSeason,
   lightning: castLightning, swarm: castSwarm, curse: castCurse, summon_gnashers: castSummonGnashers,
   summon_bramblebeast: castSummonBramblebeast, meteor: castMeteor,
+  blessing: castBlessing, inspiration: castInspiration, fertility: castFertility, shiny_gift: castShinyGift,
 };
 /** Powers that go through `god_cast` so far (terraform brushes use `god_power`). */
 export const CAST_POWERS = Object.keys(EFFECTS);
@@ -46,10 +48,11 @@ export function castProblem(w: World, id: string, pos: Vec2, to?: Vec2, targetId
   if (!def || !EFFECTS[id]) return 'unknown_power';
   const s = w.s;
   if (def.category === 'wrath' && s.god.gentle) return 'gentle_mode';
-  if (def.target === 'goblin') {
+  if (def.target === 'goblin' || def.target === 'pair') {
     const g = targetId !== undefined ? w.goblin(targetId) : undefined;
     if (!g) return 'missing_entity';
     if (g.heldByGod) return 'held';
+    if (def.target === 'pair' && !fertilePair(g, w)) return 'no_mate';
   }
   if (id.startsWith('summon_')) {
     if (dist(pos, s.village.center) < CFG.combat.villageRadius) return 'too_close';

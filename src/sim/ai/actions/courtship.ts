@@ -107,7 +107,7 @@ export const Court: UtilityAction = {
 export const LayEgg: UtilityAction = {
   id: 'lay_egg', tags: ['rest'], minStage: 'adult', interruptible: (g) => g.activity.stage === 0,
   isAvailable: (g, w) => !pressed(g) && !!canLay(g, w),
-  score: () => F.layScore,
+  score: (g, w) => ((g.fertileUntil ?? 0) > w.s.tick ? CFG.powers.fertileScore : F.layScore),
   start(g, w) {
     const b = homeOf(g, w);
     if (!b) return false;

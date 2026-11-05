@@ -1,7 +1,7 @@
 /** Every tunable number lives here (§21). Additions beyond §21 are logged in DECISIONS.md. */
 export const CFG = {
   tickHz: 10,
-  saveVersion: 14,
+  saveVersion: 15,
   time: { dayTicks: 3600, daysPerSeason: 8, moonCycleDays: 8, phases: { dawn: 0.05, day: 0.6, dusk: 0.7 }, startTick: 360 },
   world: {
     w: 128, h: 128, waterLevel: 0.3, sandBand: 0.03, rockLevel: 0.8, forestNoiseThreshold: 0.6,
@@ -103,6 +103,10 @@ export const CFG = {
     meteorDelay: 15, meteorDmg: 100, meteorKill: 1.5, meteorDepth: 0.12, meteorStone: 6, meteorSeen: 24,
     // thrown/dropped goblins and items hurt enemies they land on: (impact speed − 3) × 4 × mass
     thrownFree: 3, thrownPerSpeed: 4, thrownHit: 0.9, thrownMass: { goblin: 1.5, stone: 1, flint: 1, wood: 0.8, bone: 0.6 } as Record<string, number>,
+    // P5.9 gifts (§17.5.1): Blessing a day of +20 mood; Inspiration a day of `inspired` (discovery ×3, next craft fine)
+    // and one discovery roll at ×10; Fertility: the next egg within a day, twins 30 %; Shiny Gift: a rare trinket
+    blessMood: 20, blessDays: 1, inspireMood: 6, inspireDays: 1, inspireRoll: 10, fertileDays: 1, fertileTwins: 0.3, fertileScore: 0.9,
+    shinyMood: 12, shinyDays: 2,
     // angryAtGod (§17.4): a loved one hurt by the god; clears after 8 days or a benevolent act toward them
     angerDays: 8, angerMood: -10,
   },
