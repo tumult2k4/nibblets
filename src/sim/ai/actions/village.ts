@@ -12,6 +12,7 @@ import { deposit, withdraw } from '../../stockpile';
 import { buildingDef, findCommunalSite, isComplete, placeBlueprint, startUpgrade, workSpot } from '../../buildings';
 import { fenceSites, ringRadius, wantsFence } from '../../fences';
 import { knows } from '../../recipes';
+import { knowsFact } from '../../knowledge';
 import { homeOf } from './home';
 import { spareStock } from '../../crafting';
 import { FUELS, addFuel, campfires, needsFuel, type FuelItem } from '../../fire';
@@ -115,7 +116,9 @@ export const TendFire: UtilityAction = {
   isAvailable: (g, w) => fireTime(g, w) && !!fuelSource(g, w) && !!fireJob(g, w),
   score(g, w) {
     const b = fireJob(g, w)!;
-    return (0.18 + 0.3 * (1 - (b.fuel ?? 0) / F.tendBelow)) * (1 - busy(g));
+    // knowing Gnashers fear fire, a goblin keeps it burning through the night more keenly (§15.1)
+    const ward = isNight(w.clock) && knowsFact(g, 'gnashers_fear_fire') ? CFG.knowledge.fireTendMul : 1;
+    return (0.18 + 0.3 * (1 - (b.fuel ?? 0) / F.tendBelow)) * (1 - busy(g)) * ward;
   },
   start(g, w) {
     const b = fireJob(g, w);

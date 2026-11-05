@@ -202,10 +202,13 @@ export class GoblinViews {
       r.armL.rotation.z = -0.6; r.armR.rotation.z = 0.6;
       r.head.rotation.z = Math.sin(t * 0.8 + g.id) * 0.1;
       earFlop = 0.2;
-    } else if (act === 'play' || act === 'learn') {
-      // P5.4: counting to three with hands over the eyes, crouched behind a bush, or sitting and watching an adult work
+    } else if (act === 'play' || act === 'learn' || act === 'teach') {
+      // P5.4/5.5: counting to three with hands over the eyes, crouched behind a bush, showing how it's done, or sitting
+      // and watching (a lesson, or an adult at work)
       const st = g.activity.stage;
-      if (act === 'play' && st === 1) { r.armL.rotation.x = r.armR.rotation.x = -2.0; r.armL.rotation.z = 0.35; r.armR.rotation.z = -0.35; r.head.rotation.x = 0.25; }
+      if (act === 'teach' && st === 1) { const k = t * 4 + g.id; r.armL.rotation.x = -1.1 + Math.sin(k) * 0.4; r.armR.rotation.x = -1.1 - Math.sin(k) * 0.4; r.armL.rotation.z = 0.3; r.armR.rotation.z = -0.3; r.body.rotation.x += 0.12; }
+      else if (act === 'teach' && st === 0) { r.head.rotation.z = 0.1; }
+      else if (act === 'play' && st === 1) { r.armL.rotation.x = r.armR.rotation.x = -2.0; r.armL.rotation.z = 0.35; r.armR.rotation.z = -0.35; r.head.rotation.x = 0.25; }
       else if (act === 'play') { r.body.scale.set(1.06, 0.82, 1.06); r.body.position.y = 0.06; r.head.rotation.y = Math.sin(t * 1.6 + g.id) * 0.6; earFlop = -0.2; }
       else { r.body.position.y = 0.05; r.legL.rotation.x = r.legR.rotation.x = -1.3; r.head.rotation.z = 0.12 + Math.sin(t * 0.9 + g.id) * 0.08; r.armL.rotation.x = r.armR.rotation.x = -0.6; earFlop = -0.25; }
     } else if (act === 'comfort' && g.activity.stage === 1) {

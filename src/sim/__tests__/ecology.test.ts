@@ -42,7 +42,7 @@ describe('mushrooms (§8.2, P3.6)', () => {
     expect(wet.s.mushrooms.includes(oldest)).toBe(false);
   });
 
-  it('Forage: a hungry goblin picks a brown mushroom and leaves the redcap alone', () => {
+  it('Forage: a hungry goblin who knows redcaps are poison picks a brown mushroom and leaves the redcap alone', () => {
     const w = makeWorld();
     w.s.tick = 2 * DAY + 400;
     w.clock = clockAt(w.s.tick);
@@ -51,6 +51,7 @@ describe('mushrooms (§8.2, P3.6)', () => {
     const red = spawnMushroom(w.s, { x: 13, y: 12 }, 'redcap');
     const brown = spawnMushroom(w.s, { x: 17, y: 15 }, 'brown');
     const g = spawnGoblin(w, { pos: { x: 12, y: 12 } });
+    g.knownFacts.push('redcap_is_poison');
     g.needs.hunger = 35;
     const acts = new Set<string>();
     for (let t = 0; t < 300 && w.s.mushrooms.includes(brown); t++) { w.step(); acts.add(g.activity.action); g.needs.thirst = 90; }

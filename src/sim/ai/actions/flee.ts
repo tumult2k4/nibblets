@@ -13,6 +13,7 @@ import { isComplete } from '../../buildings';
 import { litFireNear, campfires, isLit } from '../../fire';
 import { shelterOf } from '../../temperature';
 import { bestWeapon } from '../../tools';
+import { knowsFact } from '../../knowledge';
 import { daylight } from '../../time';
 import { threatsNear } from '../../combat';
 import { bedSpot, homeOf } from './home';
@@ -38,7 +39,8 @@ function refuge(g: Goblin, w: World, from: Vec2): Vec2 | null {
     if (b.type !== 'campfire' && isComplete(b) && d < bd && CFG.temperature.shelter[b.type]) { bd = d; best = b; }
   }
   if (best) return guestSpot(best, g);
-  const fire = litFireNear(w, g.pos, C.defendRange);
+  // only those who know Gnashers fear fire run to one (§15.1)
+  const fire = knowsFact(g, 'gnashers_fear_fire') ? litFireNear(w, g.pos, C.defendRange) : undefined;
   if (fire) {
     const d = Math.max(0.01, dist(from, fire.pos));
     return { x: q4(fire.pos.x + ((fire.pos.x - from.x) / d) * 1.3), y: q4(fire.pos.y + ((fire.pos.y - from.y) / d) * 1.3) };

@@ -4,6 +4,11 @@ import { t } from './i18n';
 import { ITEM_ICON } from './icons';
 import { CFG } from '../sim/config';
 import { fenceSites } from '../sim/fences';
+import { FACTS } from '../sim/knowledge';
+
+const isFact = (id: string): boolean => (FACTS as readonly string[]).includes(id);
+/** A recipe's or a fact's display name. */
+export const knowName = (id: string): string => t(isFact(id) ? `fact.${id}` : `recipe.${id}`);
 
 /** The last open post on the ring was just finished. */
 const fenceJustClosed = (w: World): boolean =>
@@ -16,6 +21,7 @@ export function noteFor(e: SimEvent, w: World, names: Map<ID, string>): Note | n
   const name = (id?: ID) => (id !== undefined ? names.get(id) ?? w.goblin(id)?.name ?? '?' : '?');
   const foe = (id: ID) => t(`enemy.${w.s.enemies.find((x) => x.id === id)?.kind ?? 'gnasher'}`);
   const base = { tick: e.tick, ...(e.at ? { at: e.at } : {}) };
+  const know = knowName;
   const parentsOf = (id: ID) => { const p = w.goblin(id)?.parents; return { a: name(p?.[0]), b: name(p?.[1]) }; };
   switch (e.type) {
     case 'goblin_died':
@@ -106,6 +112,15 @@ export function noteFor(e: SimEvent, w: World, names: Map<ID, string>): Note | n
       return { ...base, id: e.parents[0], text: t('ev.egg_laid', { a: name(e.parents[0]), b: name(e.parents[1]) }), tier: 'notable', icon: 'egg' };
     case 'egg_hatched':
       return { ...base, id: e.goblinId, text: t('ev.egg_hatched', { name: name(e.goblinId), ...parentsOf(e.goblinId) }), tier: 'notable', icon: 'egg' };
+    case 'recipe_discovered':
+      return { ...base, id: e.goblinId, text: t('ev.discovered', { name: name(e.goblinId!), what: know(e.recipe) }), tier: 'critical', icon: 'star' };
+    case 'recipe_learned':
+      if (e.via !== 'teach' || e.byId === undefined) return null;
+      return { ...base, id: e.goblinId, text: t(isFact(e.recipe) ? 'ev.toldFact' : 'ev.taught', { name: name(e.byId), pupil: name(e.goblinId!), what: know(e.recipe) }), tier: 'info', icon: 'star' };
+    case 'recipe_lost':
+      return { ...base, text: t('ev.recipe_lost', { name: name(e.goblinId!), what: know(e.recipe) }), tier: 'critical', icon: 'skull' };
+    case 'poisoned':
+      return { ...base, id: e.goblinId, text: t('ev.poisoned', { name: name(e.goblinId), item: t(`item.${e.item}`) }), tier: 'notable', icon: 'drop' };
     case 'adopted':
       return { ...base, id: e.goblinId, text: t('ev.adopted', { name: name(e.goblinId), parent: name(e.parentId) }), tier: 'notable', icon: 'heart' };
     case 'egg_lost':

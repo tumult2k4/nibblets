@@ -11,6 +11,23 @@ import type { ItemStack } from '../../../shared/types';
 import type { Goblin } from '../../state';
 import type { World } from '../../world';
 import type { StepResult, UtilityAction } from '../action';
+import { witnessFact } from '../../knowledge';
+
+const K = CFG.knowledge;
+
+/**
+ * A poisonous bite (a redcap, P5.5): it hurts and makes the goblin miserable for half a day, and now it knows; anyone
+ * who saw it happen may take the lesson too.
+ */
+export function sicken(w: World, g: Goblin, type: ItemStack['type']): void {
+  const dmg = itemDef(type).poison;
+  if (!dmg) return;
+  g.health.hp = q4(Math.max(1, g.health.hp - dmg * (g.lifeStage === 'hatchling' || g.lifeStage === 'youngling' ? 0.6 : 1)));
+  addMood(w, g, 'sick', K.sickMood, CFG.time.dayTicks / 2);
+  w.emit({ type: 'poisoned', goblinId: g.id, item: type, at: { ...g.pos } });
+  w.emit({ type: 'emote', goblinId: g.id, emote: 'sweat' });
+  witnessFact(w, 'redcap_is_poison', g.pos, K.redcapWitness, g);
+}
 
 /** Shared eat timer + effect. Apples leave a core (§8.1) in the pocket, or at the feet if full. */
 function eatStep(g: Goblin, w: World, pick: () => ItemStack | undefined): StepResult {
@@ -26,6 +43,7 @@ function eatStep(g: Goblin, w: World, pick: () => ItemStack | undefined): StepRe
   if (one.divine) w.s.stats.divineFood += 1;
   if (one.divine) addMood(w, g, 'sky_food', 3, 1800);
   sharedMeal(w, g);
+  sicken(w, g, one.type);
   w.emit({ type: 'item_eaten', goblinId: g.id, item: one.type, at: g.pos, ...(one.divine ? { divine: true } : {}) });
   // §8.2 accidental gardening: now and then a berry seed ends up in the ground
   if (one.type === 'berry' && w.rng.chance(CFG.plants.berryAccidentalSeed)) {

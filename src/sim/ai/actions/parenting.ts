@@ -14,6 +14,7 @@ import { addSocial, adjustOpinion } from '../../goblin/social';
 import { nearestParent } from '../../goblin/family';
 import { addItem, foodStack, takeOne } from '../../inventory';
 import { isFood, itemDef } from '../../items';
+import { sicken } from './eat';
 import { stockFood, withdraw } from '../../stockpile';
 import { spawnGroundItem } from '../../groundItems';
 
@@ -72,7 +73,7 @@ export const FeedChild: UtilityAction = {
       return w.s.tick - a.startedTick > 900 ? 'failed' : 'running';
     }
     faceToward(g, c.pos);
-    const food = takeOne(g, (s) => isFood(s.type) && s.type !== 'apple_core');
+    const food = takeOne(g, (s) => isFood(s.type) && s.type !== 'apple_core' && !(s.type === 'redcap' && g.knownFacts.includes('redcap_is_poison')));
     if (!food) return 'failed';
     // fed from the parent's hand (a hatchling can't hold anything): a half portion for the smallest, as at Eat
     const nut = (itemDef(food.type).nutrition ?? 0) * (c.lifeStage === 'hatchling' ? 0.5 : 1);
@@ -80,6 +81,7 @@ export const FeedChild: UtilityAction = {
     c.deeds.eaten += 1;
     w.s.stats.eaten += 1;
     w.emit({ type: 'item_eaten', goblinId: c.id, item: food.type, at: { ...c.pos } });
+    sicken(w, c, food.type); // a parent who doesn't know about redcaps
     adjustOpinion(w, c, g, 2);
     addSocial(g, 4);
     addSocial(c, 6);

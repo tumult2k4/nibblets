@@ -6,7 +6,7 @@ import { needUrgency } from '../../goblin/needs';
 import { forget } from '../../goblin/memory';
 import { faceToward, moveAlong, planPath } from '../../steering';
 import { distanceFalloff, visionRadius } from '../considerations';
-import { isEdibleMushroom, mushroomItem, removeMushroom } from '../../ecology';
+import { looksEdible, mushroomItem, removeMushroom } from '../../ecology';
 import type { Goblin } from '../../state';
 import type { World } from '../../world';
 import type { UtilityAction } from '../action';
@@ -18,17 +18,19 @@ const FAR = 40;
 const takenBy = (w: World, id: ID, me: ID): boolean =>
   w.s.goblins.some((o) => o.id !== me && o.activity.action === 'forage' && o.activity.targetId === id && o.activity.status === 'running');
 
-/** Nearest visible edible mushroom, else a remembered one (§8.2; redcaps are ignored until P5 knowledge). */
+/** Nearest visible mushroom it takes for food, else a remembered one (§8.2; redcaps only if it doesn't know better, P5.5). */
 export function findMushroom(g: Goblin, w: World): { id: ID; pos: Vec2 } | null {
   const vr = visionRadius(g, w);
   let best: { id: ID; pos: Vec2 } | null = null, bd = Infinity;
   for (const m of w.s.mushrooms) {
     const d = dist(g.pos, m.pos);
-    if (d < vr && d < bd && isEdibleMushroom(m) && !takenBy(w, m.id, g.id)) { bd = d; best = m; }
+    if (d < vr && d < bd && looksEdible(g, m) && !takenBy(w, m.id, g.id)) { bd = d; best = m; }
   }
   if (best) return best;
   for (const e of g.memory) {
     if (e.kind !== 'mushroom' || e.targetId === undefined) continue;
+    const m = w.s.mushrooms.find((x) => x.id === e.targetId);
+    if (m && !looksEdible(g, m)) continue; // heard about it before learning what it is
     const d = dist(g.pos, e.pos) / Math.max(0.1, e.confidence);
     if (d < FAR && d < bd && !takenBy(w, e.targetId, g.id)) { bd = d; best = { id: e.targetId, pos: e.pos }; }
   }

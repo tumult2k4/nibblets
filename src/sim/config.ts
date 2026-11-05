@@ -1,7 +1,7 @@
 /** Every tunable number lives here (§21). Additions beyond §21 are logged in DECISIONS.md. */
 export const CFG = {
   tickHz: 10,
-  saveVersion: 11,
+  saveVersion: 12,
   time: { dayTicks: 3600, daysPerSeason: 8, moonCycleDays: 8, phases: { dawn: 0.05, day: 0.6, dusk: 0.7 }, startTick: 360 },
   world: {
     w: 128, h: 128, waterLevel: 0.3, sandBand: 0.03, rockLevel: 0.8, forestNoiseThreshold: 0.6,
@@ -26,7 +26,7 @@ export const CFG = {
     adult: { scale: 1, head: 0.45 }, elder: { scale: 0.92, head: 0.45, stoop: 12 },
   },
   genetics: { quantMutationChance: 0.06, quantMutationSigma: 0.08, hueSigma: 18, discreteMutationChance: 0.01, albinoFounderFreq: 0.03, personalitySigma: 0.08 },
-  food: { apple: 40, apple_core: 10, apple_mash: 55, dried_apple: 30, berry: 15, mushroom: 15, glowcap: 10, fish: 25, cooked_fish: 40, stew: 60 },
+  food: { apple: 40, apple_core: 10, apple_mash: 55, dried_apple: 30, berry: 15, mushroom: 15, glowcap: 10, redcap: 12, fish: 25, cooked_fish: 40, stew: 60 },
   plants: {
     stageDays: { seed: 0.5, sprout: 1, sapling: 1.5, young: 2 }, matureUntilDays: 64, oldUntilDays: 80,
     appleRegrowDays: 0.5, maxApples: 5, wood: { young: 1, mature: 3, old: 2, tree: 8 },
@@ -37,9 +37,9 @@ export const CFG = {
     fertilityDraw: 0.15, fertilityRegenPerDay: 0.02, stumpRegrowDays: 4, deadWood: 2,
     hydrationFollow: 1.5, hydrationOfMoisture: 0.8, waterHydration: 0.5, seedSiteVillageRadius: 20,
     flowerSpreadChancePerDay: 0.02, berryAccidentalSeed: 0.05,
-    chopTicksPerHit: 15, chopHitDmg: 20, sticks: { mature: 2, old: 1, tree: 3 }, treeToughness: 2.5, berryWood: 1, minBushesPerGoblin: 4,
+    chopTicksPerHit: 15, chopHitDmg: 20, sticks: { mature: 2, old: 1, tree: 3 }, treeToughness: 2.5, berryWood: 1, minBushesPerGoblin: 5,
     woodTarget: 30, stockFoodKeep: 2,
-    keepCoreBase: 0.04, keepCorePerIndustry: 0.16, plantTicks: 40, waterTicks: 20, wetHandsTicks: 600, waterBelow: 0.5, waterRadius: 25, minSeedGap: 1.6,
+    keepCoreBase: 0.1, keepCorePerIndustry: 0.2, plantTicks: 40, waterTicks: 20, wetHandsTicks: 600, waterBelow: 0.5, waterRadius: 25, minSeedGap: 1.6,
     /** TEMPORARY (P3.2 → remove in P5.6): berry bushes keep fruiting at this rate in winter until preservation exists */
     winterFoodEase: 0.5,
   },
@@ -233,7 +233,14 @@ export const CFG = {
     /** skill-ups worth a note */
     notify: [5, 10] as readonly number[],
   },
-  knowledge: { discoveryBase: 0.01, teachTicks: 300, observeChance: 0.02, younglingLearnMul: 2, elderTeachMul: 1.5 },
+  /** P5.5 knowledge (§15.1): recipes and cultural facts are discovered, taught, observed and lost */
+  knowledge: {
+    discoveryBase: 0.01, teachTicks: 300, observeChance: 0.02, younglingLearnMul: 2, elderTeachMul: 1.5,
+    inspiredMul: 3, skillMul: 0.2, minNear: 1, stockReach: 5, groundReach: 3, discoveryMood: 8, observeRange: 4,
+    teachRange: 15, teachOpinion: 10, teachScore: [0.08, 0.2, 0.12] as [number, number, number], rareBonus: 0.15, kinBonus: 0.1,
+    teachCooldownDays: 2, teachMood: 3, founderFactChance: 0.7, witnessRange: 8, redcapWitness: 0.6, fireWitness: 0.25,
+    redcapDmg: 25, sickMood: -15, fireTendMul: 1.3,
+  },
   disease: { feverMinPop: 25, feverYearlyChance: 0.5 },
   llm: { diariesPerDay: 3, dialoguesPerDay: 4, barksPerDay: 6, tokensPerDay: 12000, rpm: 10, concurrency: 2, timeoutMs: 20000 },
   god: {

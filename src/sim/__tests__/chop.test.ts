@@ -1,3 +1,4 @@
+import { CFG } from '../config';
 import { describe, expect, it } from 'vitest';
 import { stockCount } from '../stockpile';
 import { loadWorld, serialize, MIGRATIONS } from '../save';
@@ -11,6 +12,8 @@ describe('chopping & stockpile (P2.3)', () => {
     g.personality.industry = 1;
     const old = placePlant(w, 'apple_bush', 'old', { x: 20.5, y: 20.5 });
     old.age = 70;
+    // a healthy orchard elsewhere: old bushes are only spared when the village is short of fruiting bushes (P5.5)
+    for (let i = 0; i < CFG.plants.minBushesPerGoblin + 1; i++) placePlant(w, 'apple_bush', 'mature', { x: 4.5 + i * 2, y: 28.5 }, 3);
     runTicks(w, HOUR * 8, () => stockCount(w.s, 'wood') >= 2);
     expect(old.stage).toBe('stump');
     expect(stockCount(w.s, 'wood')).toBeGreaterThanOrEqual(2);

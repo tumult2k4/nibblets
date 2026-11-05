@@ -41,6 +41,7 @@ import { skillFocus } from '../goblin/skills';
 import { Court, IncubateEgg, LayEgg } from './actions/courtship';
 import { FeedChild, FollowParent } from './actions/parenting';
 import { Learn, Play } from './actions/childhood';
+import { Teach } from './actions/teach';
 
 export const ACTIONS: Record<ActionId, UtilityAction> = {
   idle: Idle, wander: Wander, eat: Eat, harvest_fruit: HarvestFruit, pick_up: PickUp, drop: Drop,
@@ -53,7 +54,7 @@ export const ACTIONS: Record<ActionId, UtilityAction> = {
   flee: Flee, attack: Attack, defend_village: DefendVillage, guard: Guard, repair_building: RepairBuilding,
   follow_wisp: FollowWisp, scatter: Scatter, chat: Chat, comfort: Comfort, gift: Gift,
   court: Court, lay_egg: LayEgg, incubate_egg: IncubateEgg, feed_child: FeedChild, follow_parent: FollowParent,
-  play: Play, learn: Learn,
+  play: Play, learn: Learn, teach: Teach,
 };
 const CHOOSABLE = (Object.values(ACTIONS) as UtilityAction[]).filter((a) => !a.forced);
 

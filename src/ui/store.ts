@@ -28,7 +28,7 @@ export interface UIState {
   selectedKind: EntityKind | null;
   hoveredId: ID | null;
   activeTool: ToolId;
-  openPanels: { inspector: boolean; feed: boolean; debug: boolean; flyout: boolean; tray: boolean };
+  openPanels: { inspector: boolean; feed: boolean; debug: boolean; flyout: boolean; tray: boolean; village: boolean };
   overlay: null | 'pause' | 'saves' | 'settings' | 'help' | 'wizard';
   lens: Lens;
   trayTab: TrayTab;
@@ -79,7 +79,7 @@ export function savePref(key: string, v: unknown): void {
 export function initialState(): UIState {
   return {
     screen: 'title', selection: [], selectedKind: null, hoveredId: null, activeTool: 'hand',
-    openPanels: { inspector: true, feed: true, debug: false, flyout: false, tray: false },
+    openPanels: { inspector: true, feed: true, debug: false, flyout: false, tray: false, village: false },
     overlay: null, lens: 'default', trayTab: 'food', inspectorTab: 'status', power: 'raise_land', brushRadius: 3, powerOption: 'apple_bush', armed: null, castRadius: 8,
     settings: loadPref('settings', DEFAULT_SETTINGS),
   };

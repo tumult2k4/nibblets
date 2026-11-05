@@ -27,6 +27,7 @@ import { updateGod } from './god/godState';
 import { sampleStats } from './stats';
 import { findPath } from './pathfinding';
 import { updateEggs } from './eggs';
+import { updateKnowledge } from './knowledge';
 
 /**
  * The live world: plain-data state plus derived, rebuildable caches (rng object, spatial hashes,
@@ -138,7 +139,7 @@ export class World {
     updateWear(this); //      13b path wear (§P2.7)
     enemiesAct(this); //      14 enemies.act
     updateSocial(this); //    16 social (P5.1); 15 combat runs inside act
-    //                        17 culture, 18 village, 19 clans
+    updateKnowledge(this); // 17 culture: discovery (P5.5); 18 village, 19 clans
     if (s.tick % CFG.stats.sampleEvery === 0) sampleStats(this); // 20
     s.rngState = this.rng.state;
     const events = this.bus.flush(); // 21

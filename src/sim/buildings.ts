@@ -11,6 +11,8 @@ import { tileAt } from './grid';
 import { countItem } from './inventory';
 import { spawnGroundItem } from './groundItems';
 import { gainXp, skillLevel } from './goblin/skills';
+import { RECIPES } from './recipes';
+import { observe } from './knowledge';
 
 const B = CFG.buildings;
 
@@ -180,6 +182,9 @@ export function completeBuilding(w: World, b: Building, finisher: ID | null): vo
     delete b.data![k];
   }
   w.emit({ type: 'building_completed', buildingId: b.id, kind: b.type, ...(finisher !== null ? { goblinId: finisher } : {}), at: b.pos });
+  // onlookers may pick up how it is done (§15.1)
+  const recipe = Object.keys(RECIPES).find((id) => RECIPES[id]!.building === b.type && !RECIPES[id]!.known);
+  if (recipe) observe(w, recipe, b.pos, finisher !== null ? w.goblin(finisher) : undefined);
 }
 
 /**

@@ -41,7 +41,7 @@ export type ActionId =
   | 'deliver_material' | 'build' | 'claim_home' | 'sleep_home' | 'gather_for_goal' | 'seek_shelter' | 'warm_up' | 'forage'
   | 'mine' | 'craft' | 'equip' | 'plan_building' | 'tend_fire' | 'flee' | 'attack' | 'defend_village' | 'guard' | 'repair_building'
   | 'follow_wisp' | 'scatter' | 'chat' | 'comfort' | 'gift' | 'court' | 'lay_egg' | 'incubate_egg' | 'feed_child' | 'follow_parent'
-  | 'play' | 'learn';
+  | 'play' | 'learn' | 'teach';
 
 export interface ActivityState {
   action: ActionId;
@@ -55,6 +55,8 @@ export interface ActivityState {
   /** what a conversation is about and how many lines it runs (P5.1 Chat) */
   topic?: ChatTopic;
   count?: number;
+  /** the recipe or fact being taught (P5.5 Teach) */
+  lesson?: string;
 }
 
 export interface DivineWish {
@@ -101,6 +103,8 @@ export interface Goblin {
   equipped: { hand: ItemStack | null; body: ItemStack | null; neck: ItemStack | null; head: ItemStack | null };
   activity: ActivityState; goalStack: import('./ai/planner').GoalEntry[]; homeId: ID | null;
   memory: MemoryEntry[]; relationships: Relation[]; skills: Record<string, number>; knownRecipes: string[];
+  /** cultural facts (§15.1): `redcap_is_poison`, `gnashers_fear_fire` */
+  knownFacts: string[];
   trinkets: ID[]; reputation: number; traits: string[]; deeds: DeedCounters; godView: GodView;
   role: 'none' | 'chief' | 'shaman'; heldByGod: boolean; lastDecisionTick: number;
   /** current hold height / airborne state (god hand), null when on the ground */
@@ -161,7 +165,11 @@ export interface WeatherState {
 export interface Clan { id: ID; name: string; archetype: string }
 /** `stockpile` is the shared village store (P2.3): a marked spot near the center where goblins pile things. */
 /** `fenceRing`: radius of the planned fence ring around the center, fixed when fencing starts (0 = none yet, P4.6). */
-export interface VillageState { name: string; center: Vec2; chiefId: ID | null; stockpile: ItemStack[]; stockpilePos: Vec2; fenceRing: number }
+export interface VillageState {
+  name: string; center: Vec2; chiefId: ID | null; stockpile: ItemStack[]; stockpilePos: Vec2; fenceRing: number;
+  /** recipes and facts that died with their last knower (P5.5); rediscovery takes them off */
+  lost?: string[];
+}
 
 export interface StatsSample { tick: number; pop: number; food: number; avgHunger: number; avgFaith: number }
 export interface StatsSeries { samples: StatsSample[]; deaths: Record<string, number>; births: number; eaten: number; divineFood: number }

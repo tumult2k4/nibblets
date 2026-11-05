@@ -68,6 +68,8 @@ describe('planner goal stack (§7.4, P3.5)', () => {
     w.s.weather.nextChangeTick = w.s.tick + 100 * DAY;
     const g = spawnGoblin(w);
     for (const [x, y] of [[6, 18], [8, 20], [18, 6], [20, 9]] as const) placePlant(w, 'apple_bush', 'old', { x, y }, 0);
+    // a healthy orchard elsewhere, so the old bushes may be cut (P5.5 spares them when fruiting bushes run short)
+    for (let i = 0; i < CFG.plants.minBushesPerGoblin + 1; i++) placePlant(w, 'apple_bush', 'mature', { x: 4.5 + i * 2, y: 28.5 }, 3);
     const b = placeBlueprint(w, 'hut', { x: 16, y: 16 }, g.id);
     b.occupants.push(g.id);
     g.homeId = b.id;

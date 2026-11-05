@@ -143,5 +143,6 @@ export function inventoryTab(g: Goblin): HTMLElement {
     el('h3', { text: t('insp.hand') }), hand ? itemRow(hand) : el('div.sub', { text: t('insp.emptyHand') }),
     el('h3', { text: t('insp.pack') }), el('div.sub', { text: t('insp.slots', { n: slotCount(g) }) }), ...(items.length ? items : [el('div.sub', { text: t('insp.empty') })]),
     el('h3', { text: t('insp.recipes') }),
-    el('div.sub', { text: g.knownRecipes.map((r) => t(`recipe.${r}`)).join(' · ') }));
+    el('div.sub', { text: g.knownRecipes.map((r) => t(`recipe.${r}`)).join(' · ') }),
+    ...(g.knownFacts.length ? [el('h3', { text: t('insp.facts') }), el('div.sub', { text: g.knownFacts.map((f) => t(`fact.${f}`)).join(' · ') })] : []));
 }

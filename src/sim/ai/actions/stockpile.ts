@@ -22,7 +22,7 @@ function storable(g: Goblin, w: World): ItemStack[] {
   // inputs of the piece being crafted stay in the pack
   const crafting = g.activity.action === 'craft' && g.activity.status === 'running' ? RECIPES[HAND_RECIPES[g.activity.targetId ?? -1] ?? ''] : undefined;
   for (const t of Object.keys(crafting?.inputs ?? {})) wanted.add(t as ItemType);
-  return g.inventory.filter((s) => (isTool(s.type) ? false : !isFood(s.type) ? !wanted.has(s.type) : s.type !== 'apple_core' && food > CFG.plants.stockFoodKeep + 1));
+  return g.inventory.filter((s) => (isTool(s.type) || s.type === 'redcap' ? false : !isFood(s.type) ? !wanted.has(s.type) : s.type !== 'apple_core' && food > CFG.plants.stockFoodKeep + 1));
 }
 
 function walkTo(g: Goblin, w: World): StepResult | null {

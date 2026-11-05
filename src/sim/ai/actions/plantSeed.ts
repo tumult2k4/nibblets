@@ -25,7 +25,7 @@ const busy = (g: Goblin): number => Math.max(needUrgency(g.needs.hunger), needUr
 
 /** Carry an apple core to a good spot near the village and plant it (§8.1, §P2.2). */
 export const PlantSeed: UtilityAction = {
-  id: 'plant_seed', tags: ['work'], minStage: 'adult', interruptible: true,
+  id: 'plant_seed', tags: ['work'], minStage: 'youngling', interruptible: true,
   isAvailable: (g, w) => countItem(g, 'apple_core') > 0 && CFG.plants.seasonMul[w.clock.season] > 0 && g.needs.hunger > 30,
   score: (g, w) => 0.42 * CFG.seasons.plantingMul[w.clock.season] * (1 - busy(g)) * Math.min(1.3, 0.85 + 0.15 * countItem(g, 'apple_core')) / (1 + youngNearVillage(w) / 6),
   start(g, w) {

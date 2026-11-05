@@ -16,6 +16,7 @@ import { Inspector } from './components/inspector/inspector';
 import { Feed } from './components/feed';
 import { Minimap } from './components/minimap';
 import { DebugOverlay } from './components/debugOverlay';
+import { VillagePanel } from './components/villagePanel';
 import { QuickRing } from './components/quickRing';
 import { Input } from './input';
 import { noteFor } from './notify';
@@ -73,7 +74,7 @@ export class App implements Ctx {
     this.tray = new GiftTray(this, (item, e) => this.input.tray.start(item, e));
     this.minimap = new Minimap(this);
     this.toolbar = new GodToolbar(this);
-    this.comps = [this.topBar, this.toolbar, new Inspector(this), this.feed, this.tray, this.minimap, new DebugOverlay(this),
+    this.comps = [this.topBar, this.toolbar, new Inspector(this), this.feed, this.tray, this.minimap, new DebugOverlay(this), new VillagePanel(this),
       new QuickRing(this, {
         pickUp: (id) => this.push({ type: 'god_grab', entityId: id }),
         pet: (id) => this.push({ type: 'god_pet', goblinId: id, ticks: 30 }),

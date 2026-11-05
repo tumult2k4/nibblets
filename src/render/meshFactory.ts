@@ -68,6 +68,7 @@ export function itemGeo(t: ItemType): THREE.BufferGeometry {
     case 'berry': g = paint(new THREE.IcosahedronGeometry(0.06, 0).translate(0, 0.06, 0), P.berry); break;
     case 'mushroom': g = merge([paint(new THREE.CylinderGeometry(0.03, 0.04, 0.1, 4).translate(0, 0.05, 0), '#efe6d2'), paint(new THREE.ConeGeometry(0.09, 0.07, 6).translate(0, 0.12, 0), '#9a6b3f')]); break;
     case 'glowcap': g = merge([paint(new THREE.CylinderGeometry(0.03, 0.04, 0.1, 4).translate(0, 0.05, 0), '#efe6d2'), paint(new THREE.ConeGeometry(0.09, 0.07, 6).translate(0, 0.12, 0), '#8fe3d4')]); break;
+    case 'redcap': g = merge([paint(new THREE.CylinderGeometry(0.03, 0.04, 0.1, 4).translate(0, 0.05, 0), '#efe6d2'), paint(new THREE.ConeGeometry(0.09, 0.07, 6).translate(0, 0.12, 0), '#c63b2b'), paint(new THREE.IcosahedronGeometry(0.014, 0).translate(0.03, 0.14, 0.02), '#f4efe6')]); break;
     case 'fish': g = paint(new THREE.OctahedronGeometry(0.1).scale(1.8, 0.6, 0.6).translate(0, 0.06, 0), '#8fb3c4'); break;
     case 'wood': g = paint(new THREE.CylinderGeometry(0.07, 0.07, 0.42, 5).rotateZ(Math.PI / 2).translate(0, 0.07, 0), P.wood, 0.04); break;
     case 'stick': g = paint(new THREE.CylinderGeometry(0.025, 0.025, 0.4, 3).rotateZ(Math.PI / 2).translate(0, 0.03, 0), P.trunk); break;

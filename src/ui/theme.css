@@ -43,6 +43,10 @@ button { font-family: var(--font); font-size: 1em; color: var(--ink); cursor: po
 .card.locked { opacity: .5; cursor: default; }
 .card .name { font-weight: 600; } .card .meta { font-size: .8em; color: var(--ink-2); }
 /* right inspector */
+.villagepanel { position: absolute; top: 76px; left: 80px; width: 300px; max-height: calc(100vh - 300px); overflow: auto; padding: 10px; z-index: 4; pointer-events: auto; }
+.villagepanel h2 { margin: 0; font-size: 1.2em; } .villagepanel h3 { margin: 10px 0 4px; font-size: 1em; } .villagepanel .sub { color: var(--ink-2); font-size: .9em; }
+.vp-head { display: flex; justify-content: space-between; align-items: center; }
+.vp-row { display: flex; justify-content: space-between; gap: 8px; padding: 2px 0; } .vp-risk span { color: #b3412e; font-weight: 600; } .vp-lost { margin-top: 8px; color: #8a6d5a; font-style: italic; }
 .inspector { position: absolute; top: 76px; right: 8px; width: 320px; max-height: calc(100vh - 300px); overflow: auto; padding: 10px; }
 .inspector h2 { margin: 0; font-size: 1.25em; } .inspector .sub { color: var(--ink-2); font-size: .9em; }
 .insp-head { display: flex; gap: 10px; align-items: center; }

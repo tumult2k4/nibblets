@@ -20,6 +20,7 @@ import { atHome, awake, exposed, moveEnemy, running, setMode, setPath, spotted }
 import { markDanger } from '../danger';
 import { shelterOf } from '../temperature';
 import { eggHut, guarded, loseEgg } from '../eggs';
+import { witnessFact } from '../knowledge';
 
 const E = CFG.enemies;
 const G = E.gnasher;
@@ -72,6 +73,7 @@ function retreat(w: World, e: Enemy, from: Vec2): void {
   const r = (litFireNear(w, from, 0.01) ? CFG.fire.repelRadius : CFG.fire.torchScare) + 2;
   const to = { x: q4(from.x + ((e.pos.x - from.x) / d) * r), y: q4(from.y + ((e.pos.y - from.y) / d) * r) };
   if (!setMode(w, e, 'prowl', to)) setMode(w, e, 'leave', e.home);
+  witnessFact(w, 'gnashers_fear_fire', e.pos, CFG.knowledge.fireWitness); // seen backing off from the flames (§15.1)
 }
 
 function nearestLone(w: World, e: Enemy): Goblin | null {

@@ -1,6 +1,6 @@
 /**
  * Ecology (§6 step 5, §8.2): mushrooms pop up in forest and marsh, mostly while it rains, and rot after a few days.
- * Brown and glowcap are food; redcap is poisonous (avoidance is cultural knowledge, P5).
+ * Brown and glowcap are food; redcap is poisonous, which only those who know `redcap_is_poison` avoid (P5.5).
  * Grown trees shed sticks now and then (more in storms), so sticks can be gathered without an axe (P4.1).
  */
 import { CFG } from './config';
@@ -8,7 +8,7 @@ import { q4 } from '../shared/math';
 import { allocId } from '../shared/ids';
 import type { Rng } from '../shared/rng';
 import type { Vec2 } from '../shared/types';
-import type { Mushroom, WorldState } from './state';
+import type { Goblin, Mushroom, WorldState } from './state';
 import type { World } from './world';
 import { tileAt } from './grid';
 import { spawnGroundItem } from './groundItems';
@@ -17,9 +17,10 @@ import { rainingAt } from './weather';
 const M = CFG.mushrooms;
 const KINDS = Object.keys(M.kinds) as Mushroom['kind'][];
 
-export const isEdibleMushroom = (m: Mushroom): boolean => m.kind !== 'redcap';
+/** Food as far as `g` knows: a redcap looks like a meal to anyone who hasn't learned otherwise. */
+export const looksEdible = (g: Goblin, m: Mushroom): boolean => m.kind !== 'redcap' || !g.knownFacts.includes('redcap_is_poison');
 /** The item a foraged mushroom becomes. */
-export const mushroomItem = (m: Mushroom): 'mushroom' | 'glowcap' => (m.kind === 'glowcap' ? 'glowcap' : 'mushroom');
+export const mushroomItem = (m: Mushroom): 'mushroom' | 'glowcap' | 'redcap' => (m.kind === 'brown' ? 'mushroom' : m.kind);
 
 export function pickMushroomKind(rng: Rng): Mushroom['kind'] {
   let r = rng.next();

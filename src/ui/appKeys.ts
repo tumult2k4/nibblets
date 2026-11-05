@@ -6,7 +6,7 @@ import type { KeyHandlers } from './input';
 export function keyHandlers(app: App): KeyHandlers {
   const st = () => app.store.state;
   const inGame = () => st().screen !== 'title' && !st().overlay;
-  const panel = (k: 'inspector' | 'feed' | 'debug') => app.store.set({ openPanels: { ...st().openPanels, [k]: !st().openPanels[k] } });
+  const panel = (k: 'inspector' | 'feed' | 'debug' | 'village') => app.store.set({ openPanels: { ...st().openPanels, [k]: !st().openPanels[k] } });
   const speed = (i: number) => () => inGame() && app.topBar.setSpeed(i);
   return {
     pause: () => inGame() && app.topBar.setSpeed(app.game.speedIdx === 0 ? 1 : 0),
@@ -35,6 +35,7 @@ export function keyHandlers(app: App): KeyHandlers {
     debug: () => panel('debug'),
     inspector: () => panel('inspector'),
     feed: () => panel('feed'),
+    village: () => inGame() && panel('village'),
     help: () => app.openOverlay(st().overlay === 'help' ? null : 'help'),
     rotL: () => {}, rotR: () => {}, // continuous, handled in Input.frame
   };

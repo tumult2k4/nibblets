@@ -66,9 +66,9 @@ export function removeItems(g: Goblin, t: ItemType, n: number): number {
   return n - left;
 }
 
-/** Best food in the inventory (most nutritious first). Apple cores are kept for planting unless `cores`. */
+/** Best food in the inventory (most nutritious first). Apple cores are kept for planting unless `cores`; a redcap is food only to those who don't know it's poison. */
 export const foodStack = (g: Goblin, cores = false): ItemStack | undefined =>
-  [...g.inventory].filter((s) => isFood(s.type) && (cores || s.type !== 'apple_core')).sort((a, b) => (itemDef(b.type).nutrition ?? 0) - (itemDef(a.type).nutrition ?? 0))[0];
+  [...g.inventory].filter((s) => isFood(s.type) && (cores || s.type !== 'apple_core') && !(s.type === 'redcap' && g.knownFacts.includes('redcap_is_poison'))).sort((a, b) => (itemDef(b.type).nutrition ?? 0) - (itemDef(a.type).nutrition ?? 0))[0];
 
 export const countItem = (g: Goblin, t: ItemType): number =>
   g.inventory.reduce((n, s) => n + (s.type === t ? s.qty : 0), 0);

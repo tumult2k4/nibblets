@@ -5,6 +5,7 @@ import type { Goblin, MemoryEntry } from '../state';
 import type { World } from '../world';
 import { shoreTiles } from '../ai/targets';
 import { visionRadius } from '../ai/considerations';
+import { looksEdible } from '../ecology';
 
 const M = CFG.memory;
 type Kind = 'fruit_plant' | 'water' | 'rock' | 'stockpile' | 'place' | 'mushroom';
@@ -53,9 +54,9 @@ export function sense(g: Goblin, w: World, radius?: number): void {
     if (d < bd) { bd = d; best = t; }
   }
   if (best) remember(g, w, 'water', best);
-  // edible mushrooms in view are remembered; vanished ones forgotten (redcap danger is learned in P5)
+  // mushrooms that look edible to it are remembered; vanished ones forgotten (redcaps only by those who don't know, P5.5)
   for (const m of w.s.mushrooms)
-    if (m.kind !== 'redcap' && Math.hypot(m.pos.x - g.pos.x, m.pos.y - g.pos.y) < r) remember(g, w, 'mushroom', m.pos, 0, m.id);
+    if (looksEdible(g, m) && Math.hypot(m.pos.x - g.pos.x, m.pos.y - g.pos.y) < r) remember(g, w, 'mushroom', m.pos, 0, m.id);
   g.memory = g.memory.filter((m) => !(m.kind === 'mushroom' && Math.hypot(m.pos.x - g.pos.x, m.pos.y - g.pos.y) < r * 0.8 && !w.s.mushrooms.some((x) => x.id === m.targetId)));
   for (const rk of w.s.rocks) if (Math.hypot(rk.pos.x - g.pos.x, rk.pos.y - g.pos.y) < r) remember(g, w, 'rock', rk.pos, rk.stoneLeft, rk.id);
   const sp = w.s.village.stockpilePos;

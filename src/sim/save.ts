@@ -2,6 +2,7 @@
 import { fnv1a } from '../shared/rng';
 import { CFG } from './config';
 import { STARTER_RECIPES } from './recipes';
+import { FACTS } from './knowledge';
 import type { Goblin, LineageEntry, LoggedCommand, Tile, WorldState } from './state';
 import { World } from './world';
 import type { Biome } from '../shared/types';
@@ -112,6 +113,11 @@ export const MIGRATIONS: Record<number, Migration> = {
     }
     raw.lineage = lineage;
     for (const e of raw.eggs as Record<string, unknown>[]) e.incubation ??= 0;
+    return raw;
+  },
+  // P5.5 knowledge: before facts existed everyone avoided redcaps and ran to fires, so everyone knows both
+  11: (raw) => {
+    for (const g of raw.goblins as Record<string, unknown>[]) g.knownFacts ??= [...FACTS];
     return raw;
   },
 };

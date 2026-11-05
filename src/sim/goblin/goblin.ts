@@ -38,7 +38,7 @@ export function createGoblin(s: WorldState, rng: Rng, o: SpawnOpts): Goblin {
     inventory: [],
     equipped: { hand: null, body: null, neck: null, head: null },
     activity: idleActivity(s.tick),
-    goalStack: [], homeId: null, memory: [], relationships: [], skills: {}, knownRecipes: [...STARTER_RECIPES], trinkets: [],
+    goalStack: [], homeId: null, memory: [], relationships: [], skills: {}, knownRecipes: [...STARTER_RECIPES], knownFacts: [], trinkets: [],
     reputation: 0, traits: [],
     deeds: { eaten: 0, drank: 0, harvested: 0, planted: 0, kills: 0, builds: 0, gifts: 0, timesHeld: 0, fights: 0 },
     godView: {

@@ -1,0 +1,130 @@
+/**
+ * Knowledge (§15.1, P5.5): recipes and cultural facts live in goblins' heads. A recipe nobody starts with is
+ * **discovered** (an hourly roll while its inputs are within reach), then **taught** (`Teach`) or **observed** (2 %
+ * for each craft or building watched from within 4 tiles; younglings twice as likely). Facts are learned the hard way
+ * (eating a redcap) or by seeing it happen (a Gnasher backing off from fire), and taught like recipes. The village
+ * knows what its living goblins know: when the last knower dies, the knowledge is lost (`recipe_lost`).
+ */
+import { CFG } from './config';
+import { dist } from '../shared/math';
+import type { ID, ItemType, LearnVia, RecipeId, Vec2 } from '../shared/types';
+import type { Rng } from '../shared/rng';
+import type { Goblin, WorldState } from './state';
+import type { World } from './world';
+import { RECIPES, STARTER_RECIPES } from './recipes';
+import { isSleeping } from './goblin/goblin';
+import { skillLevel } from './goblin/skills';
+import { addMood } from './goblin/mood';
+import { countItem } from './inventory';
+import { stockCount } from './stockpile';
+
+const K = CFG.knowledge;
+
+export type FactId = 'redcap_is_poison' | 'gnashers_fear_fire';
+/** Cultural facts (§15.1); `blight_spreads` joins them with blight (P6.3). */
+export const FACTS: readonly FactId[] = ['redcap_is_poison', 'gnashers_fear_fire'];
+const isFact = (id: string): id is FactId => (FACTS as readonly string[]).includes(id);
+
+export const knowsFact = (g: Goblin, f: FactId): boolean => g.knownFacts.includes(f);
+/** Does `g` know this recipe or fact? */
+export const knowsAny = (g: Goblin, id: string): boolean => (isFact(id) ? g.knownFacts : g.knownRecipes).includes(id);
+/** Recipes and facts `g` could pass on (the basics everyone grows up with don't need teaching). */
+export const teachable = (g: Goblin): string[] => [...g.knownRecipes.filter((id) => !STARTER_RECIPES.includes(id)), ...g.knownFacts];
+
+/** Recipes nobody starts with: found by discovery, then passed on. */
+export const DISCOVERABLE: readonly RecipeId[] = Object.keys(RECIPES).filter((id) => !RECIPES[id]!.known);
+
+/** Founders grew up with their clan's lore: each knows each fact with a 70 % chance. */
+export function seedFacts(rng: Rng, g: Goblin): void {
+  for (const f of FACTS) if (rng.chance(K.founderFactChance)) g.knownFacts.push(f);
+}
+
+/** `g` now knows `id`. False if it already did. */
+export function learn(w: World, g: Goblin, id: string, via: LearnVia, byId?: ID): boolean {
+  if (knowsAny(g, id)) return false;
+  (isFact(id) ? g.knownFacts : g.knownRecipes).push(id);
+  const lost = w.s.village.lost;
+  if (lost?.includes(id)) w.s.village.lost = lost.filter((x) => x !== id);
+  w.emit({ type: via === 'discovery' ? 'recipe_discovered' : 'recipe_learned', goblinId: g.id, recipe: id, via, ...(byId !== undefined ? { byId } : {}), at: { ...g.pos } });
+  return true;
+}
+
+/** How many living goblins know `id`. */
+export const knowers = (s: WorldState, id: string): number => s.goblins.reduce((n, g) => n + (knowsAny(g, id) ? 1 : 0), 0);
+
+/** The village's knowledge beyond the basics (§15.1): every recipe and fact anyone alive knows, with its knower count. */
+export function villageKnowledge(s: WorldState): { id: string; fact: boolean; knowers: number }[] {
+  const n = new Map<string, number>();
+  for (const g of s.goblins) for (const id of teachable(g)) n.set(id, (n.get(id) ?? 0) + 1);
+  const order = [...DISCOVERABLE, ...FACTS] as string[];
+  return [...n].map(([id, k]) => ({ id, fact: isFact(id), knowers: k })).sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
+}
+
+/** A goblin died: whatever only it knew is gone. */
+export function loseKnowledge(w: World, dead: Goblin): void {
+  for (const id of teachable(dead)) {
+    if (knowers(w.s, id)) continue;
+    (w.s.village.lost ??= []).push(id);
+    w.emit({ type: 'recipe_lost', goblinId: dead.id, recipe: id, at: { ...dead.pos } });
+  }
+}
+
+/** 0..1: the share of a recipe's input kinds within reach (own pack, the stockpile within 5, the ground within 3). One must be in hand. */
+export function inputsNear(g: Goblin, w: World, id: RecipeId): number {
+  const kinds = Object.keys(RECIPES[id]?.inputs ?? {}) as ItemType[];
+  let held = false, n = 0;
+  const atStock = dist(g.pos, w.s.village.stockpilePos) <= K.stockReach;
+  for (const t of kinds) {
+    if (countItem(g, t) > 0) { held = true; n++; }
+    else if ((atStock && stockCount(w.s, t) > 0) || w.itemHash.nearest(g.pos, K.groundReach, (it) => it.stack.type === t && !it.airborne)) n++;
+  }
+  return held ? n / kinds.length : 0;
+}
+
+/** Inspired goblins (the god's gift, P5.9) have ideas three times as often. */
+const inspiration = (g: Goblin): number => (g.mood.modifiers.some((m) => m.id === 'inspired') ? K.inspiredMul : 1);
+
+/** Chance per hour that `g` works out recipe `id` (0 when the inputs aren't at hand). */
+export function discoveryChance(g: Goblin, w: World, id: RecipeId): number {
+  const near = inputsNear(g, w, id);
+  if (near < K.minNear) return 0;
+  const skill = skillLevel(g, RECIPES[id]?.skill ?? 'crafting');
+  return K.discoveryBase * (0.5 + g.personality.wanderlust) * (1 + K.skillMul * skill) * inspiration(g) * near;
+}
+
+/** §6 step 12b: once an in-game hour per goblin (staggered), a roll to discover something new. */
+export function updateKnowledge(w: World): void {
+  const H = CFG.god.hourTicks;
+  for (const g of w.s.goblins) {
+    if ((w.s.tick + g.id * 7) % H !== 0 || g.lifeStage === 'hatchling' || isSleeping(g) || g.heldByGod || g.airborne) continue;
+    for (const id of DISCOVERABLE) {
+      if (knowsAny(g, id)) continue;
+      const p = discoveryChance(g, w, id);
+      if (p <= 0 || !w.rng.chance(p)) continue;
+      learn(w, g, id, 'discovery');
+      addMood(w, g, 'discovery', K.discoveryMood, CFG.time.dayTicks);
+      w.emit({ type: 'emote', goblinId: g.id, emote: 'idea' });
+      break;
+    }
+  }
+}
+
+/** Awake onlookers within `r` of `at` (not `except`) who don't know `id` yet. */
+function onlookers(w: World, at: Vec2, r: number, id: string, except?: Goblin): Goblin[] {
+  return w.goblinHash.query(at, r).filter((o) => o !== except && o.lifeStage !== 'hatchling' && !isSleeping(o) && !o.heldByGod && dist(o.pos, at) <= r && !knowsAny(o, id));
+}
+
+/** Someone finished `id` (a craft or a building): onlookers may pick it up; younglings, and anyone watching on purpose, more often. */
+export function observe(w: World, id: RecipeId, at: Vec2, worker?: Goblin): void {
+  for (const o of onlookers(w, at, K.observeRange, id, worker)) {
+    let p = K.observeChance * (o.lifeStage === 'youngling' ? K.younglingLearnMul : 1);
+    if (worker && o.activity.action === 'learn' && o.activity.targetId === worker.id) p *= 2;
+    if (w.rng.chance(p)) learn(w, o, id, 'observe', worker?.id);
+  }
+}
+
+/** A fact shown by what happened at `at`: `subject` learns it the hard way, onlookers within sight with `chance`. */
+export function witnessFact(w: World, f: FactId, at: Vec2, chance: number, subject?: Goblin): void {
+  if (subject) learn(w, subject, f, 'experience');
+  for (const o of onlookers(w, at, K.witnessRange, f, subject)) if (w.rng.chance(chance)) learn(w, o, f, 'observe', subject?.id);
+}

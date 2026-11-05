@@ -17,6 +17,7 @@ import type { ItemStack, ItemType, RecipeId } from '../shared/types';
 import type { Goblin } from './state';
 import type { World } from './world';
 import { gainXp, skillLevel } from './goblin/skills';
+import { observe } from './knowledge';
 import type { SkillId } from '../shared/types';
 
 const C = CFG.crafting;
@@ -90,5 +91,6 @@ export function finishCraft(w: World, g: Goblin, id: RecipeId): ItemStack | null
   gainXp(w, g, sk, (r.ticks ?? 120) * CFG.skills.xp.craftPerTick);
   if (addItem(g, out) < 1) spawnGroundItem(w, out, { x: q4(g.pos.x + 0.3), y: g.pos.y });
   w.emit({ type: 'item_crafted', goblinId: g.id, recipe: id, item: r.output, fine, at: { x: g.pos.x, y: g.pos.y } });
+  observe(w, id, g.pos, g);
   return out;
 }

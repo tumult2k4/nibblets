@@ -10,6 +10,8 @@ export interface ItemDef {
   weapon?: { dmg: number; range: number };
   wear?: { warmth?: number; armor?: number; charm?: number };
   burnable?: boolean;
+  /** hp lost when eaten (P5.5 redcap) */
+  poison?: number;
   /** shown in the Gift Tray (§18.5); cost = value */
   tray?: 'food' | 'materials' | 'tools' | 'treasures' | 'life';
 }
@@ -23,6 +25,8 @@ export const ITEM_DEFS: Partial<Record<ItemType, ItemDef>> = {
   berry: { stack: 20, weight: 0.3, nutrition: F.berry, decayDays: 3, value: 1, tray: 'food' },
   mushroom: { stack: 10, weight: 0.5, nutrition: F.mushroom, decayDays: 4, value: 1, tray: 'food' },
   glowcap: { stack: 10, weight: 0.3, nutrition: F.glowcap, decayDays: 6, value: 2 },
+  // P5.5: looks like a meal to anyone who doesn't know better (`redcap_is_poison`)
+  redcap: { stack: 10, weight: 0.4, nutrition: F.redcap, decayDays: 4, value: 0, poison: CFG.knowledge.redcapDmg },
   fish: { stack: 5, weight: 1, nutrition: F.fish, decayDays: 2, value: 3, tray: 'food' },
   stew: { stack: 3, weight: 1.5, nutrition: F.stew, decayDays: 2, value: 6, tray: 'food' },
   wood: { stack: 10, weight: 2, value: 3, burnable: true, tray: 'materials' },

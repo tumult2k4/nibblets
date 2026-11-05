@@ -1,5 +1,5 @@
 # Nibblets progress
-Current: P5.5 — knowledge system
+Current: P5.6 — fiber, preservation, spoilage
 ## Done
 - [x] P1.1 scaffold: Vite + strict TS, ESLint flat config with sim architecture rules, Prettier, Vitest, scripts
 - [x] P1.2 shared/: math, ids, mulberry32 Rng with fork(label), typed EventBus
@@ -52,9 +52,11 @@ Current: P5.5 — knowledge system
 - [x] P5.2 skills: XP per skill read as a level 0–10 (forage, woodcraft, building, mining, crafting, combat, farming, cooking, teaching); work trains its skill and goes faster with it (gathering, chopping, mining, planting, watering +10 %/level; building and crafting +15 %/level; fine items from 4 via the recipe's skill; flint spotting; generous watering); specialization pull in action scoring; skill-up notes at 5 and 10; skill bars in the Mind tab; specialists and friendships in the balance report; save v10
 - [x] P5.3 lineage book and close-kin exclusion (parents, grandparents, siblings, first cousins); attraction (opinion ≥ 60, free bed, spring ×1.5, hue-assortative looks); `Court` (gift + dance, 3 welcome courtships → mates who share a hut); `LayEgg` (well fed, 12-day cooldown, soft-cap fertility roll, 5 % twins, meiosis genome); nest at the hut door; incubation (2 warm days, cold counts down, a day in the red loses it; parent body, roof, fire, air); `IncubateEgg`; Gnashers eat unguarded eggs; hatching with family bonds and lineage; minimal `FeedChild` and `FollowParent`; egg meshes, dance and nesting poses, family notes; save v11
 - [x] P5.4 life stages: younglings' fun need, `Play` (tag, hide-and-peek) and `Learn` (25 % of a watched worker's XP); light work only for younglings; hatchling naps; elders work less, talk more and are listened to; coming of age (own bed or move out); orphan adoption with the `orphan` trait; fierce parents (egg/child threatened: bravery × 1.5); stand-in newcomers removed
+- [x] P5.5 knowledge: discovery near a recipe's inputs, `Teach` (rarest first; elders faster, younglings learn faster), observing crafts and buildings, cultural facts (redcaps are poison, Gnashers fear fire) learned the hard way or by seeing it, lost knowledge, village panel (Y), teaching poses; save v12
 ## Next
-- [ ] P5.5 knowledge system (§15.1): unknown recipes, discovery, teach, observe, village knowledge panel, cultural facts
+- [ ] P5.6 fiber chain (grass → fiber → basket, rope, mat, loincloth, leaf cape, flower crown), grinding stone, drying rack, storage pit; food spoilage; remove `winterFoodEase`
 ## Notes / known issues
+- Balance (32 days × 5 seeds, after P5.5): 0 deaths, ~0.26 ms/tick, pop 14–16, apple bushes 70→72–105. 40-day knowledge probe: stone spear discovered days 2–10, club days 10–31, torch and stone axe where their inputs turn up; each taught to nearly everyone within a day or two of discovery; nothing lost, no poisonings (lore spreads first).
 - Balance (32 days × 5 seeds, after P5.2): 0 deaths, ~0.21 ms/tick; best skills split across farming, woodcraft, combat and forage (top level 3.6–4.9), 20–29 mutual friendships per village.
 - Balance (32 days × 5 seeds, after P5.4): 0 deaths, ~0.23 ms/tick, villages of 10 grow to 14–17 by eggs alone. 60-day probe (3 seeds): 19–21 goblins (8 founders already elders), 0–2 combat deaths; younglings average fun 63–68, spend ~15 % of the time playing and ~20 % watching adults work.
 - Balance (32 days × 5 seeds, after P5.3): 0 deaths, ~0.23 ms/tick; villages of 10 grow to 14–15 (first couples days 10–15); Gnashers stole no stockpile food; friendships 9–27 (mates and family bonds take the place of some friend bonds). A 40-day probe reached 18–19 goblins with 2 eggs lost to Gnashers.

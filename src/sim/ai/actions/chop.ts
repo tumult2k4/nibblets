@@ -16,10 +16,10 @@ import { gainXp, skillSpeed } from '../../goblin/skills';
 const P = CFG.plants;
 
 let cache = { tick: -1, s: null as unknown, n: 0 };
-/** Mature apple bushes in the world (cached per tick): we don't chop the food supply below a floor. */
+/** Fruiting (mature or old) apple bushes in the world (cached per tick): we don't chop the food supply below a floor. */
 function matureApples(w: World): number {
   if (cache.tick !== w.s.tick || cache.s !== w.s)
-    cache = { tick: w.s.tick, s: w.s, n: w.s.plants.filter((p) => p.kind === 'apple_bush' && p.stage === 'mature').length };
+    cache = { tick: w.s.tick, s: w.s, n: w.s.plants.filter((p) => p.kind === 'apple_bush' && (p.stage === 'mature' || p.stage === 'old')).length };
   return cache.n;
 }
 
@@ -30,8 +30,10 @@ function matureApples(w: World): number {
 function chopValue(w: World, p: Plant, axe: boolean): number {
   if (p.kind === 'tree') return axe && (p.stage === 'young' || p.stage === 'mature' || p.stage === 'old') ? (p.stage === 'young' ? 0.6 : 2.4) : 0;
   if (p.kind === 'apple_bush') {
+    // P5.5: old bushes still bear, so they too are spared once the orchard is down to its floor
+    if (matureApples(w) <= P.minBushesPerGoblin * w.s.goblins.length) return 0;
     if (p.stage === 'old') return 2;
-    if (p.stage === 'mature' && p.fruit === 0 && matureApples(w) > P.minBushesPerGoblin * w.s.goblins.length) return 0.7;
+    if (p.stage === 'mature' && p.fruit === 0) return 0.7;
     return 0;
   }
   if (p.kind === 'berry_bush' && p.stage === 'mature') return 1.1;

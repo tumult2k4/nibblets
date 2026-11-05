@@ -83,7 +83,7 @@ export function icon(name: string, cls = 'icon'): SVGSVGElement {
 }
 
 export const ITEM_ICON: Record<string, string> = {
-  apple: 'apple', berry: 'berry', mushroom: 'mushroom', glowcap: 'mushroom', fish: 'fish', apple_mash: 'bowl', stew: 'bowl',
+  apple: 'apple', berry: 'berry', mushroom: 'mushroom', glowcap: 'mushroom', redcap: 'mushroom', fish: 'fish', apple_mash: 'bowl', stew: 'bowl',
   wood: 'wood', stick: 'stick', stone: 'stone', flint: 'flint', fiber: 'fiber', clay: 'clay', apple_core: 'apple',
   spear: 'spear', stone_spear: 'spear', club: 'club', stone_axe: 'axe', pick: 'pick',
 };

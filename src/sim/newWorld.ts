@@ -6,6 +6,7 @@ import type { WorldState } from './state';
 import { findVillageCenter, generateTiles, scatterResources, type TerrainPreset } from './worldgen';
 import { founderGenome, type ClanArchetype } from './goblin/genetics/founders';
 import { createGoblin } from './goblin/goblin';
+import { seedFacts } from './knowledge';
 import { seedClanRelations } from './goblin/social';
 import { newGodState, type GameMode } from './god/godState';
 import { isWalkable, tileAt } from './grid';
@@ -89,7 +90,7 @@ export function createWorldState(params: WorldParams): WorldState {
     s.goblins.push(createGoblin(s, frng, { genome, pos, ageDays: age, clanId }));
   }
   seedClanRelations(frng, s.goblins);
-  for (const g of s.goblins) registerLineage(s, g);
+  for (const g of s.goblins) { registerLineage(s, g); seedFacts(frng, g); }
   s.rngState = rng.fork('sim').state;
   return s;
 }

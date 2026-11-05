@@ -10,7 +10,7 @@ export type Biome = 'meadow' | 'forest' | 'sand' | 'rock' | 'water' | 'marsh' | 
 export type WeatherKind = 'clear' | 'cloudy' | 'fog' | 'rain' | 'storm' | 'snow' | 'blizzard' | 'heatwave';
 
 export type ItemType =
-  | 'apple' | 'apple_core' | 'apple_mash' | 'dried_apple' | 'mushroom' | 'glowcap'
+  | 'apple' | 'apple_core' | 'apple_mash' | 'dried_apple' | 'mushroom' | 'glowcap' | 'redcap'
   | 'berry' | 'fish' | 'cooked_fish' | 'stew' | 'egg_shell'
   | 'wood' | 'stick' | 'leaves' | 'stone' | 'flint' | 'fiber' | 'clay' | 'bone' | 'feather' | 'pelt' | 'flower' | 'ash' | 'compost'
   | 'spear' | 'stone_spear' | 'club' | 'sling' | 'stone_axe' | 'pick' | 'fishing_rod' | 'bucket'
@@ -44,6 +44,8 @@ export type DeathCause =
   | 'starvation' | 'dehydration' | 'hypothermia' | 'old_age' | 'combat' | 'disease' | 'fall' | 'lightning'
   | 'fire' | 'poison' | 'drowning' | 'divine';
 export type RecipeId = string;
+/** How a goblin came to know a recipe or fact (§15.1). */
+export type LearnVia = 'teach' | 'observe' | 'discovery' | 'experience' | 'book';
 export type DiseaseId = string;
 export type TrinketKind = string;
 export type Rarity = 'common' | 'uncommon' | 'rare' | 'legendary';
@@ -122,7 +124,8 @@ export type SimEvent = BaseEvent &
     | { type: 'adopted'; goblinId: ID; parentId: ID }
     | { type: 'egg_lost'; eggId: ID; parents: [ID, ID]; cause: 'cold' | 'eaten' | 'neglect' | 'fall' }
     | { type: 'life_stage'; goblinId: ID; stage: LifeStage }
-    | { type: 'recipe_discovered' | 'recipe_learned' | 'recipe_lost'; goblinId?: ID; recipe: RecipeId; via?: 'teach' | 'book' | 'discovery' }
+    | { type: 'recipe_discovered' | 'recipe_learned' | 'recipe_lost'; goblinId?: ID; recipe: RecipeId; via?: LearnVia; byId?: ID }
+    | { type: 'poisoned'; goblinId: ID; item: ItemType }
     | { type: 'sickness'; goblinId: ID; disease: DiseaseId; phase: 'infected' | 'symptomatic' | 'recovered' | 'died' }
     | { type: 'trinket_found'; goblinId: ID; trinket: TrinketKind; rarity: Rarity }
     | { type: 'mood_break'; goblinId: ID; kind: MoodBreakKind }

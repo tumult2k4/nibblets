@@ -17,7 +17,7 @@ const WEATHER_ICON: Record<WeatherKind, string> = {
 /** Top bar (§18.2): menu, village, calendar, weather, population, food, faith, mode badge, speed, alerts. */
 export class TopBar implements Component {
   private root = el('div.topbar.panel');
-  private village = el('span.village');
+  private village = el('span.village.clickable', { onclick: () => this.ctx.store.set({ openPanels: { ...this.ctx.store.state.openPanels, village: !this.ctx.store.state.openPanels.village } }) });
   private cal = el('span.stat');
   private weather = el('span.stat.clickable', { onclick: () => this.weatherMenu() });
   private wxMenu = el('div.wxmenu.panel.hidden');
