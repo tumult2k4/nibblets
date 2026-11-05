@@ -134,5 +134,7 @@ export const DE: Record<keyof typeof EN, string> = {
   'cause.combat': 'im Kampf gefallen', 'cause.lightning': 'Blitzschlag', 'ev.enemy_killed': '{name} hat einen {enemy} erlegt!', 'ev.enemy_killed_none': 'Ein {enemy} wurde erlegt.',
   'ev.injury_limp': '{name} humpelt.', 'ev.injury_bruised_arm': '{name} hat sich den Arm verletzt.', 'ev.injury_ear_notch': '{name} hat jetzt eine Kerbe im Ohr.',
   'injury.limp': 'humpelt', 'injury.bruised_arm': 'Arm geprellt', 'insp.scars': '{n} Narben', 'insp.veteran': 'Veteran', 'insp.fights': '{n} Kämpfe, {k} erlegt',
+  'bld.fence': 'Zaun', 'bld.stone_hut': 'Steinhütte', 'act.repair_building': 'Repariert ein Gebäude', 'ev.fence_started': 'Das Dorf beginnt einen Zaun um seine Hütten.',
+  'ev.fence_closed': 'Der Zaun ums Dorf ist geschlossen!', 'ev.stone_hut_planned': '{name} baut die Hütte aus Stein neu.', 'ev.stone_hut_built': 'Eine Steinhütte ist fertig!',
   'qty': '×{n}', 'yes': 'Ja', 'no': 'Nein',
 };

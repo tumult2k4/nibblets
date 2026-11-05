@@ -138,7 +138,7 @@ describe('Gnashers and the spawn director (P4.4)', () => {
     delete raw.threat;
     const s = deserialize(JSON.stringify(raw));
     expect(s.enemies).toEqual([]);
-    expect(s.threat).toEqual({ night: -1, spawnAt: [] });
+    expect(s.threat).toMatchObject({ night: -1, spawnAt: [] });
     expect(deserialize(serialize(w.s)).enemies).toHaveLength(1);
   });
 });

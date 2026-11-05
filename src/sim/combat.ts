@@ -11,7 +11,7 @@ import { isSleeping } from './goblin/goblin';
 import { bestWeapon, wearTool, weaponDmg } from './tools';
 import { spawnGroundItem } from './groundItems';
 import { itemDef } from './items';
-import { isWalkable } from './grid';
+import { enemyCanStand } from './fences';
 import { scare } from './goblin/safety';
 import type { DeathCause, ItemType } from '../shared/types';
 import type { Enemy, Goblin, Injury } from './state';
@@ -114,7 +114,7 @@ export function strike(w: World, g: Goblin, e: Enemy): boolean {
   // knockback hop away from the attacker
   const d = Math.max(0.01, dist(g.pos, e.pos));
   const nx = q4(e.pos.x + ((e.pos.x - g.pos.x) / d) * C.knockback), ny = q4(e.pos.y + ((e.pos.y - g.pos.y) / d) * C.knockback);
-  if (isWalkable(w.s, Math.floor(nx), Math.floor(ny))) e.pos = { x: nx, y: ny };
+  if (enemyCanStand(w, nx, ny)) e.pos = { x: nx, y: ny };
   // it turns on whoever hit it, unless it is about to run anyway
   if (e.mode !== 'flee' && e.mode !== 'leave' && e.hp >= CFG.enemies.gnasher.fleeAt * e.maxHp) {
     e.mode = 'attack';

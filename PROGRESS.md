@@ -1,5 +1,5 @@
 # Nibblets progress
-Current: P4.6 — fences, stone hut upgrade, RepairBuilding, enemy pathing around fences, campfire repel, torch scare
+Current: P4.7 — Bramblebeast + Night Wisp, spawnReinforcements (immigrants every 8 days while pop < 6, until P5)
 ## Done
 - [x] P1.1 scaffold: Vite + strict TS, ESLint flat config with sim architecture rules, Prettier, Vitest, scripts
 - [x] P1.2 shared/: math, ids, mulberry32 Rng with fork(label), typed EventBus
@@ -41,8 +41,8 @@ Current: P4.6 — fences, stone hut upgrade, RepairBuilding, enemy pathing aroun
 - [x] P4.3 campfire (PlanBuilding near the center, fuel from sticks/wood, TendFire evenings/cold, +14 °C warmth r5, night light r6), torch (night hand item, vision ×1.4, burns hourly), fire FX
 - [x] P4.4 Gnashers + spawn director (nightly threat budget × moon − defense, fog stragglers, far/out-of-sight spawns), Gnasher AI (sneak, steal from stockpile/ground, bite lone goblins, flee hurt/crowded/after 3 bites, leave at dawn), mesh with eye glint, save v5, notifications
 - [x] P4.5 safety need (event-driven drift + shocks), Flee / Attack / DefendVillage / Guard, danger interrupt, melee resolve (hit, damage, knockback, wear, skill), morale + veteran, injuries (limp, bruised arm, ear notch) healing ×2 at home, death drops kit + witness fear, grave markers, fight animations
+- [x] P4.6 fences (ring planned once Gnashers are seen, enemy-only blocking, goblins climb), enemy pathfinding around fences, campfire repel r6 + torch scare r3, stone hut upgrade (upgrade station), RepairBuilding, fence/stone hut meshes, save v7
 ## Next
-- [ ] P4.6 fences, stone hut upgrade, RepairBuilding, enemy pathing around fences, campfire repel, torch scare
 - [ ] P4.7 Bramblebeast, Night Wisp, spawnReinforcements
 - [ ] P4.8 wrath powers, lethal previews, Gentle mode, danger lens
 ## Notes / known issues

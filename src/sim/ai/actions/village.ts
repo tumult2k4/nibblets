@@ -1,6 +1,7 @@
 /**
- * Communal work (§10.1, P4.3): PlanBuilding marks out what the village lacks near its center (a campfire once someone
- * has a roof; fences and more later), and TendFire keeps the campfires fed with wood from the pack or spare stock.
+ * Communal work (§10.1, P4.3/P4.6): PlanBuilding marks out what the village lacks (a campfire near the center once
+ * someone has a roof; fence posts around the core once Gnashers have been seen) or, for a goblin who knows how and has
+ * the stone, starts turning its hut into a stone hut. TendFire keeps the campfires fed from the pack or spare stock.
  */
 import { CFG } from '../../config';
 import { dist, q4 } from '../../../shared/math';
@@ -8,46 +9,79 @@ import { addItem, countItem, removeItems } from '../../inventory';
 import { needUrgency } from '../../goblin/needs';
 import { moveAlong, planPath } from '../../steering';
 import { deposit, withdraw } from '../../stockpile';
-import { findCommunalSite, isComplete, placeBlueprint } from '../../buildings';
+import { buildingDef, findCommunalSite, isComplete, placeBlueprint, startUpgrade, workSpot } from '../../buildings';
+import { fenceSites, ringRadius, wantsFence } from '../../fences';
+import { knows } from '../../recipes';
+import { homeOf } from './home';
 import { spareStock } from '../../crafting';
 import { FUELS, addFuel, campfires, needsFuel, type FuelItem } from '../../fire';
 import { airTemperature } from '../../temperature';
-import { isNight } from '../../time';
-import type { BuildingType } from '../../../shared/types';
+import { isNight, daylight } from '../../time';
+import type { BuildingType, ItemType, Vec2 } from '../../../shared/types';
 import type { Building, Goblin } from '../../state';
 import type { World } from '../../world';
 import type { UtilityAction } from '../action';
 
 const F = CFG.fire;
-const busy = (g: Goblin): number => Math.max(needUrgency(g.needs.hunger), needUrgency(g.needs.thirst), needUrgency(g.needs.energy));
+const isDaytime = (c: Parameters<typeof daylight>[0]): boolean => daylight(c) > 0.5;
+export const busy = (g: Goblin): number => Math.max(needUrgency(g.needs.hunger), needUrgency(g.needs.thirst), needUrgency(g.needs.energy));
 const othersDoing = (g: Goblin, w: World, id: string, targetId?: number): boolean =>
   w.s.goblins.some((o) => o.id !== g.id && o.activity.action === id && o.activity.status === 'running' && (targetId === undefined || o.activity.targetId === targetId));
 
 /** The communal building the village lacks most, if any. */
 export function villageNeed(w: World): BuildingType | null {
   if (!campfires(w).length && w.s.buildings.some((b) => b.type === 'hut' && isComplete(b))) return 'campfire';
+  if (wantsFence(w)) return 'fence';
   return null;
 }
 
+/** Own finished hut this goblin could turn to stone now (knows how, the stone is spare, by day). */
+export function upgradeJob(g: Goblin, w: World): Building | null {
+  if (!knows(g, 'stone_hut') || !isDaytime(w.clock)) return null;
+  const home = homeOf(g, w);
+  if (!home || home.type !== 'hut' || !isComplete(home) || home.ownerId !== g.id) return null;
+  const cost = buildingDef('stone_hut')!.cost;
+  return Object.entries(cost).every(([t, n]) => spareStock(w, t as ItemType) >= n) ? home : null;
+}
+
+const siteFor = (w: World, type: BuildingType): Vec2 | null => (type === 'fence' ? fenceSites(w, 1)[0] ?? null : findCommunalSite(w, type));
+
 export const PlanBuilding: UtilityAction = {
   id: 'plan_building', tags: ['work'], minStage: 'adult', interruptible: true,
-  isAvailable: (g, w) => !!villageNeed(w) && !othersDoing(g, w, 'plan_building'),
-  score: (g) => 0.3 * (1 - busy(g)),
+  isAvailable: (g, w) => !!upgradeJob(g, w) || (!!villageNeed(w) && !othersDoing(g, w, 'plan_building')),
+  score: (g, w) => (upgradeJob(g, w) ? 0.35 : villageNeed(w) === 'fence' ? 0.24 : 0.3) * (1 - busy(g)),
   start(g, w) {
+    const up = upgradeJob(g, w);
+    if (up) {
+      g.activity.targetId = up.id;
+      return planPath(w, g, workSpot(w.s, up, g));
+    }
     const type = villageNeed(w);
-    const site = type && findCommunalSite(w, type);
+    const site = type && siteFor(w, type);
     if (!site) return false;
     g.activity.target = site;
-    return planPath(w, g, { x: site.x + 0.9, y: site.y + 0.3 });
+    return planPath(w, g, type === 'fence' ? site : { x: site.x + 0.9, y: site.y + 0.3 });
   },
   step(g, w) {
     if (moveAlong(w, g) !== 'arrived') return 'running';
+    w.emit({ type: 'emote', goblinId: g.id, emote: 'idea' });
+    if (g.activity.targetId !== null) {
+      const up = upgradeJob(g, w);
+      if (!up) return 'failed';
+      startUpgrade(w, up, 'stone_hut', g.id);
+      return 'done';
+    }
     const type = villageNeed(w);
     if (!type) return 'done'; // someone else saw to it
+    if (type === 'fence') {
+      w.s.village.fenceRing ||= ringRadius(w);
+      const open = w.s.buildings.filter((b) => b.type === 'fence' && !isComplete(b)).length;
+      for (const p of fenceSites(w, Math.min(CFG.fences.perTrip, CFG.fences.maxOpen - open))) placeBlueprint(w, 'fence', p, null);
+      return 'done';
+    }
     const site = findCommunalSite(w, type);
     if (!site) return 'failed';
     placeBlueprint(w, type, site, null);
-    w.emit({ type: 'emote', goblinId: g.id, emote: 'idea' });
     return 'done';
   },
 };

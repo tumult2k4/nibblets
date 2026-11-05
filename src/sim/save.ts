@@ -73,6 +73,12 @@ export const MIGRATIONS: Record<number, Migration> = {
     }
     return raw;
   },
+  // v6 → v7 (P4.6): fence ring radius; spotted-enemy count
+  6: (raw) => {
+    (raw.village as Record<string, unknown>).fenceRing = 0;
+    (raw.threat as Record<string, unknown>).alarms = 0;
+    return raw;
+  },
 };
 
 export function deserialize(json: string): WorldState {

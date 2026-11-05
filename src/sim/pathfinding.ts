@@ -68,23 +68,26 @@ class MinHeap {
  */
 
 
-/** A* over tiles, 8-neighbour, no corner cutting. Returns tile-center waypoints (excluding start). */
-export function findPath(s: WorldState, from: Vec2, to: Vec2, cache: Map<string, Vec2[] | null>): Vec2[] | null {
+/**
+ * A* over tiles, 8-neighbour, no corner cutting. Returns tile-center waypoints (excluding start). `blocked` marks extra
+ * impassable tiles for this walker (enemies: finished fences, P4.6); it must only change with terrainVersion.
+ */
+export function findPath(s: WorldState, from: Vec2, to: Vec2, cache: Map<string, Vec2[] | null>, blocked?: Uint8Array): Vec2[] | null {
   const sx = Math.floor(from.x), sy = Math.floor(from.y);
   const gx = Math.floor(to.x), gy = Math.floor(to.y);
-  if (!inBounds(s, gx, gy) || !s.tiles[tileIndex(s, gx, gy)]!.walkable) return null;
+  if (!inBounds(s, gx, gy) || !s.tiles[tileIndex(s, gx, gy)]!.walkable || blocked?.[tileIndex(s, gx, gy)]) return null;
   if (!inBounds(s, sx, sy)) return null;
   if (sx === gx && sy === gy) return [];
-  const key = `${s.terrainVersion}:${sx},${sy}:${gx},${gy}`;
+  const key = `${blocked ? 'e' : ''}${s.terrainVersion}:${sx},${sy}:${gx},${gy}`;
   const hit = cache.get(key);
   if (hit !== undefined) return hit ? hit.map((p) => ({ ...p })) : null;
-  const res = astar(s, sx, sy, gx, gy);
+  const res = astar(s, sx, sy, gx, gy, blocked);
   if (cache.size > CACHE_MAX) cache.delete(cache.keys().next().value as string);
   cache.set(key, res);
   return res ? res.map((p) => ({ ...p })) : null;
 }
 
-function astar(s: WorldState, sx: number, sy: number, gx: number, gy: number): Vec2[] | null {
+function astar(s: WorldState, sx: number, sy: number, gx: number, gy: number, blocked?: Uint8Array): Vec2[] | null {
   const W = s.size.w;
   const N = W * s.size.h;
   const g = new Float64Array(N).fill(Infinity);
@@ -94,6 +97,7 @@ function astar(s: WorldState, sx: number, sy: number, gx: number, gy: number): V
     const dx = Math.abs(x - gx), dy = Math.abs(y - gy);
     return 0.8 * (Math.max(dx, dy) + (SQRT2 - 1) * Math.min(dx, dy));
   };
+  const pass = blocked ? (i: number): boolean => s.tiles[i]!.walkable && !blocked[i] : (i: number): boolean => s.tiles[i]!.walkable;
   const start = sy * W + sx;
   const goal = gy * W + gx;
   g[start] = 0;
@@ -113,8 +117,8 @@ function astar(s: WorldState, sx: number, sy: number, gx: number, gy: number): V
         const nx = cx + dx, ny = cy + dy;
         if (!inBounds(s, nx, ny)) continue;
         const ni = ny * W + nx;
-        if (closed[ni] || !s.tiles[ni]!.walkable) continue;
-        if (dx && dy && (!s.tiles[cy * W + nx]!.walkable || !s.tiles[ny * W + cx]!.walkable)) continue;
+        if (closed[ni] || !pass(ni)) continue;
+        if (dx && dy && (!pass(cy * W + nx) || !pass(ny * W + cx))) continue;
         const step = (dx && dy ? SQRT2 : 1) * tileCost(s, ni);
         const ng = g[cur]! + step;
         if (ng < g[ni]!) {

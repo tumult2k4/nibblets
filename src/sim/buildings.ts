@@ -148,7 +148,7 @@ export function placeBlueprint(w: World, type: BuildingType, pos: Vec2, ownerId:
 export function laborRate(w: World, g: Goblin, b: Building): number {
   const skill = g.skills.building ?? 0;
   const mood = 0.95 + 0.25 * clamp(g.mood.value / 100, -1, 1);
-  let rate = B.buildRate * (1 + skill * B.skillBonus) * mood;
+  let rate = B.buildRate * (1 + skill * B.skillBonus) * mood * (buildingDef(b.type)?.labor ?? 1);
   const friend = w.s.goblins.some((o) => o.id !== g.id && o.activity.action === 'build' && o.activity.targetId === b.id
     && (g.relationships.find((r) => r.targetId === o.id)?.opinion ?? 0) >= CFG.social.friend);
   if (friend) rate *= B.friendBonus;
@@ -171,6 +171,7 @@ export function completeBuilding(w: World, b: Building, finisher: ID | null): vo
   b.buildProgress = 1;
   b.storage = []; // construction materials are used up; the storage now belongs to the building
   if (b.type === 'campfire') b.fuel = CFG.fire.startFuel; // lit with its kindling
+  if (b.type === 'fence') w.s.terrainVersion += 1; // enemy paths change
   for (const k of Object.keys(b.data ?? {})) {
     if (!k.startsWith('w')) continue;
     const g = w.goblin(Number(k.slice(1)));
@@ -178,6 +179,26 @@ export function completeBuilding(w: World, b: Building, finisher: ID | null): vo
     delete b.data![k];
   }
   w.emit({ type: 'building_completed', buildingId: b.id, kind: b.type, ...(finisher !== null ? { goblinId: finisher } : {}), at: b.pos });
+}
+
+/**
+ * Start an upgrade (§11 station `upgrade`, P4.6): the finished building becomes the part-built frame of `to` (a hut
+ * keeps its walls: 60 % done). Goods kept inside go to the stockpile so the storage can take the new materials.
+ */
+export function startUpgrade(w: World, b: Building, to: BuildingType, by: ID | null): void {
+  const def = buildingDef(to)!;
+  for (const st of b.storage) {
+    const pile = w.s.village.stockpile.find((x) => x.type === st.type && !x.divine === !st.divine);
+    if (pile) pile.qty += st.qty;
+    else w.s.village.stockpile.push({ ...st });
+  }
+  b.storage = [];
+  b.type = to;
+  b.buildProgress = CFG.fences.upgradeFrom;
+  b.maxHp = def.hp;
+  b.hp = q4(Math.max(b.hp, def.hp * CFG.fences.upgradeFrom));
+  if (b.data?.repair) delete b.data.repair;
+  w.emit({ type: 'building_placed', buildingId: b.id, kind: to, ...(by !== null ? { goblinId: by } : {}), at: b.pos });
 }
 
 /** Blueprints still in progress (oldest first). */

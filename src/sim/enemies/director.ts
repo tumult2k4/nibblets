@@ -10,6 +10,8 @@ import { isNight, type ClockState } from '../time';
 import { tileAt } from '../grid';
 import { isLit } from '../fire';
 import { bestWeapon } from '../tools';
+import { isComplete } from '../buildings';
+import { ringTiles } from '../fences';
 import type { EnemyKind, Vec2 } from '../../shared/types';
 import type { Enemy } from '../state';
 import type { World } from '../world';
@@ -17,11 +19,16 @@ import type { World } from '../world';
 const E = CFG.enemies;
 const DAY = CFG.time.dayTicks;
 
-/** Armed adults and lit fires count as defense (fences P4.6, watchtowers P5). */
+/** Armed adults, lit fires and the share of the fence ring standing count as defense (watchtowers P5). */
 export function defenseScore(w: World): number {
-  let d = 0;
+  let d = 0, posts = 0;
   for (const g of w.s.goblins) if (g.lifeStage === 'adult' && bestWeapon(g)) d += E.armedDefense;
-  for (const b of w.s.buildings) if (isLit(b)) d += E.fireDefense;
+  for (const b of w.s.buildings) {
+    if (isLit(b)) d += E.fireDefense;
+    if (b.type === 'fence' && isComplete(b)) posts++;
+  }
+  const ring = w.s.village.fenceRing;
+  if (ring && posts) d += E.fenceDefense * Math.min(1, posts / Math.max(1, ringTiles(w.s, ring).length));
   return d;
 }
 

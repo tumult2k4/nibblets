@@ -1,7 +1,7 @@
 /** Every tunable number lives here (§21). Additions beyond §21 are logged in DECISIONS.md. */
 export const CFG = {
   tickHz: 10,
-  saveVersion: 6,
+  saveVersion: 7,
   time: { dayTicks: 3600, daysPerSeason: 8, moonCycleDays: 8, phases: { dawn: 0.05, day: 0.6, dusk: 0.7 }, startTick: 360 },
   world: {
     w: 128, h: 128, waterLevel: 0.3, sandBand: 0.03, rockLevel: 0.8, forestNoiseThreshold: 0.6,
@@ -74,7 +74,9 @@ export const CFG = {
     defs: {
       hut: { cost: { wood: 6 } as Record<string, number>, footprint: 2, hp: 100, capacity: 2, storage: 6 },
       campfire: { cost: { wood: 2, stone: 1 } as Record<string, number>, footprint: 1, hp: 40, capacity: 0, storage: 0 },
-    } as Record<string, { cost: Record<string, number>; footprint: number; hp: number; capacity: number; storage: number }>,
+      fence: { cost: { wood: 1 } as Record<string, number>, footprint: 1, hp: 40, capacity: 0, storage: 0, labor: 8 },
+      stone_hut: { cost: { stone: 6 } as Record<string, number>, footprint: 2, hp: 220, capacity: 3, storage: 8, labor: 2.5 },
+    } as Record<string, { cost: Record<string, number>; footprint: number; hp: number; capacity: number; storage: number; labor?: number }>,
     buildRate: 0.002, skillBonus: 0.15, friendBonus: 1.3, skillPerTick: 0.001, workChunk: 300,
     siteRadius: 14, maxSlope: 0.06, waterPref: [4, 10] as [number, number], hutSpacing: [3.6, 7] as [number, number],
     occupiedCost: 4,
@@ -133,6 +135,11 @@ export const CFG = {
     warmRadius: 5, heat: 14, lightRadius: 6, repelRadius: 6, communalRadius: 6, communalSpacing: 2.6,
     torchLight: 4, torchVision: 1.4, torchScare: 3, tendTicks: 20,
   },
+  /** P4.6 fences (ring around the core once Gnashers have been seen), upgrades and repairs */
+  fences: {
+    alarmsToStart: 3, minAdults: 3, ringPad: 2, ringMin: 4, ringMax: 10, maxOpen: 3, perTrip: 3, stockpileGap: 1.2,
+    upgradeFrom: 0.6, repairTicks: 80, repairShare: 0.25, repairItem: { stone_hut: 'stone' } as Record<string, string>,
+  },
   /** P4.2 crafting (§11.1): skill is a level that grows per craft; level 4+ may make fine items */
   crafting: {
     skillPerCraft: 0.25, skillBonus: 0.15, fineLevel: 4, fineChance: 0.25, fineBonus: 1.5,
@@ -141,7 +148,7 @@ export const CFG = {
   enemies: {
     graceDays: 3, baseThreat: 1, rampPerDay: 0.05, newMoonMul: 1.6, fullMoonMul: 0.7, maxActive: 20, gnasher: { hp: 60, dmg: 10, speed: 2.4, fleeAt: 0.3 },
     // P4.4 director & AI
-    defenseMul: 0.3, armedDefense: 0.5, fireDefense: 1, fogChancePerHour: 0.08, spawnMinVillageDist: 28, spawnMinGoblinDist: 16,
+    defenseMul: 0.3, armedDefense: 0.5, fireDefense: 1, fenceDefense: 2, fogChancePerHour: 0.08, spawnMinVillageDist: 28, spawnMinGoblinDist: 16,
     decideEvery: 10, sneakMul: 0.6, stealQty: 3, loneRadius: 4, crowdFlee: 3, crowdRadius: 4, sightRange: 18,
     biteRange: 1.0, windupTicks: 4, biteCooldown: 10, maxBites: 6, despawnDist: 1.5, foodSearch: 20, biteHit: 0.75,
   },

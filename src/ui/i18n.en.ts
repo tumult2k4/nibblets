@@ -132,5 +132,7 @@ export const EN = {
   'cause.combat': 'killed in a fight', 'cause.lightning': 'lightning', 'ev.enemy_killed': '{name} killed a {enemy}!', 'ev.enemy_killed_none': 'A {enemy} was killed.',
   'ev.injury_limp': '{name} is limping.', 'ev.injury_bruised_arm': '{name} hurt an arm.', 'ev.injury_ear_notch': '{name} got a notched ear.',
   'injury.limp': 'limping', 'injury.bruised_arm': 'bruised arm', 'insp.scars': '{n} scars', 'insp.veteran': 'veteran', 'insp.fights': '{n} fights, {k} kills',
+  'bld.fence': 'Fence', 'bld.stone_hut': 'Stone hut', 'act.repair_building': 'Mending a building', 'ev.fence_started': 'The village has begun a fence around its huts.',
+  'ev.fence_closed': 'The fence around the village is closed!', 'ev.stone_hut_planned': '{name} is rebuilding the hut in stone.', 'ev.stone_hut_built': 'A stone hut is finished!',
   'qty': '×{n}', 'yes': 'Yes', 'no': 'No',
 } as const;

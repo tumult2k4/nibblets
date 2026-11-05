@@ -19,6 +19,7 @@ import { updateFires } from './fire';
 import { updateDirector } from './enemies/director';
 import { enemiesAct, enemiesDecide } from './enemies/gnasher';
 import { updateSafety } from './goblin/safety';
+import { fenceMask } from './fences';
 import { updateInjuries } from './combat';
 import { think, act } from './ai/utility';
 import { updateGod } from './god/godState';
@@ -73,6 +74,22 @@ export class World {
 
   path(from: Vec2, to: Vec2): Vec2[] | null {
     return findPath(this.s, from, to, this.pathCache);
+  }
+
+  private fenceVer = -1;
+  private fenceMask: Uint8Array = new Uint8Array(0);
+  /** Tiles enemies cannot enter: finished fences (P4.6). Rebuilt when terrainVersion moves. */
+  enemyBlocked(): Uint8Array {
+    if (this.fenceVer !== this.s.terrainVersion) {
+      this.fenceVer = this.s.terrainVersion;
+      this.fenceMask = fenceMask(this.s);
+    }
+    return this.fenceMask;
+  }
+
+  /** A path an enemy can walk (around fences). */
+  enemyPath(from: Vec2, to: Vec2): Vec2[] | null {
+    return findPath(this.s, from, to, this.pathCache, this.enemyBlocked());
   }
 
   markPlantsDirty(): void {

@@ -2,6 +2,12 @@ import type { SimEvent, Vec2, ID } from '../shared/types';
 import type { World } from '../sim/world';
 import { t } from './i18n';
 import { ITEM_ICON } from './icons';
+import { CFG } from '../sim/config';
+import { fenceSites } from '../sim/fences';
+
+/** The last open post on the ring was just finished. */
+const fenceJustClosed = (w: World): boolean =>
+  w.s.village.fenceRing > 0 && !fenceSites(w, 1).length && !w.s.buildings.some((b) => b.type === 'fence' && b.buildProgress < 1);
 
 export interface Note { text: string; tier: 'info' | 'notable' | 'critical'; at?: Vec2; id?: ID; tick: number; icon: string }
 
@@ -64,9 +70,13 @@ export function noteFor(e: SimEvent, w: World, names: Map<ID, string>): Note | n
       return { ...base, text: t('ev.campfire_out'), tier: 'info', icon: 'heat' };
     case 'building_placed':
       if (e.kind === 'campfire') return { ...base, text: t('ev.campfire_planned'), tier: 'info', icon: 'heat' };
+      if (e.kind === 'fence') return w.s.buildings.filter((b) => b.type === 'fence').length <= CFG.fences.perTrip ? { ...base, text: t('ev.fence_started'), tier: 'notable', icon: 'hill' } : null;
+      if (e.kind === 'stone_hut') return { ...base, id: e.goblinId, text: t('ev.stone_hut_planned', { name: name(e.goblinId) }), tier: 'info', icon: 'hill' };
       return e.goblinId !== undefined && e.kind === 'hut' ? { ...base, id: e.goblinId, text: t('ev.hut_planned', { name: name(e.goblinId) }), tier: 'info', icon: 'hill' } : null;
     case 'building_completed':
       if (e.kind === 'campfire') return { ...base, text: t('ev.campfire_lit'), tier: 'notable', icon: 'heat' };
+      if (e.kind === 'stone_hut') return { ...base, text: t('ev.stone_hut_built'), tier: 'notable', icon: 'hill' };
+      if (e.kind === 'fence') return fenceJustClosed(w) ? { ...base, text: t('ev.fence_closed'), tier: 'notable', icon: 'hill' } : null;
       return e.kind === 'hut' ? { ...base, text: t('ev.hut_built'), tier: 'notable', icon: 'hill' } : null;
     case 'building_destroyed':
       return { ...base, text: t('ev.hut_lost'), tier: 'critical', icon: 'storm' };

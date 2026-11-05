@@ -14,6 +14,9 @@ import { visionRadius } from '../ai/considerations';
 import { biteChance, hurtGoblin } from '../combat';
 import { weatherAt } from '../weather';
 import type { Enemy, Goblin, GroundItem } from '../state';
+import type { Vec2 } from '../../shared/types';
+import { litFireNear, torchLit } from '../fire';
+import { enemyCanStand } from '../fences';
 import type { World } from '../world';
 
 const E = CFG.enemies;
@@ -38,52 +41,79 @@ export function crowdAround(w: World, e: Enemy): number {
 
 const dark = (w: World, e: Enemy): boolean => isNight(w.clock) || weatherAt(w, e.pos) === 'fog';
 
-function setPath(w: World, e: Enemy, to: { x: number; y: number }): void {
-  const p = w.path(e.pos, to);
-  e.path = p ? [...p.slice(0, -1), { x: to.x, y: to.y }] : [{ x: to.x, y: to.y }];
+const running = (e: Enemy): boolean => e.mode === 'flee' || e.mode === 'leave';
+
+/** Path around fences; a running Gnasher scrambles over anything if it must. False if it cannot get there. */
+function setPath(w: World, e: Enemy, to: Vec2): boolean {
+  const p = w.enemyPath(e.pos, to) ?? (running(e) ? w.path(e.pos, to) ?? [] : null);
+  if (!p) return false;
+  e.path = [...p.slice(0, -1), { x: to.x, y: to.y }];
   e.target = { x: to.x, y: to.y };
+  return true;
 }
-function setMode(w: World, e: Enemy, mode: Enemy['mode'], to: { x: number; y: number }, targetId: number | null = null): void {
+function setMode(w: World, e: Enemy, mode: Enemy['mode'], to: Vec2, targetId: number | null = null): boolean {
+  const prev = { mode: e.mode, targetId: e.targetId };
   const fleeing = mode === 'flee' && e.mode !== 'flee';
   e.mode = mode;
   e.targetId = targetId;
   e.timer = 0;
-  setPath(w, e, to);
+  if (!setPath(w, e, to)) { e.mode = prev.mode; e.targetId = prev.targetId; return false; }
   if (fleeing) w.emit({ type: 'enemy_fled', enemyId: e.id, kind: e.kind, at: e.pos });
+  return true;
+}
+
+/** A lit campfire within 6 or a burning torch within 3: what a Gnasher will not go near (§11.1). */
+export function scareAt(w: World, p: Vec2): Vec2 | null {
+  const f = litFireNear(w, p, CFG.fire.repelRadius);
+  if (f) return f.pos;
+  for (const g of w.goblinHash.query(p, CFG.fire.torchScare)) if (torchLit(g, w) && dist(g.pos, p) <= CFG.fire.torchScare) return g.pos;
+  return null;
+}
+/** Back off to just outside whatever scares it. */
+function retreat(w: World, e: Enemy, from: Vec2): void {
+  const d = Math.max(0.01, dist(e.pos, from));
+  const r = (litFireNear(w, from, 0.01) ? CFG.fire.repelRadius : CFG.fire.torchScare) + 2;
+  const to = { x: q4(from.x + ((e.pos.x - from.x) / d) * r), y: q4(from.y + ((e.pos.y - from.y) / d) * r) };
+  if (!setMode(w, e, 'prowl', to)) setMode(w, e, 'leave', e.home);
 }
 
 function nearestLone(w: World, e: Enemy): Goblin | null {
   let best: Goblin | null = null, bd: number = E.sightRange;
   for (const g of w.goblinHash.query(e.pos, E.sightRange)) {
     const d = dist(g.pos, e.pos);
-    if (d < bd && isLone(w, g)) { bd = d; best = g; }
+    if (d < bd && isLone(w, g) && !scareAt(w, g.pos)) { bd = d; best = g; }
   }
   return best;
 }
 function nearestFood(w: World, e: Enemy): GroundItem | null {
-  return w.itemHash.nearest(e.pos, E.foodSearch, (it) => !it.airborne && isFood(it.stack.type) && it.stack.type !== 'apple_core');
+  return w.itemHash.nearest(e.pos, E.foodSearch, (it) => !it.airborne && isFood(it.stack.type) && it.stack.type !== 'apple_core' && !scareAt(w, it.pos));
 }
 
 /** Pick an intent (every 10 ticks, staggered). */
 function decide(w: World, e: Enemy): void {
   if (e.mode === 'flee' || e.mode === 'leave') return;
-  if (e.hp < G.fleeAt * e.maxHp || crowdAround(w, e) >= E.crowdFlee) return setMode(w, e, 'flee', e.home);
-  if (!dark(w, e) || e.carrying) return setMode(w, e, 'leave', e.home);
-  if (e.mode === 'attack' && e.hits >= E.maxBites) return setMode(w, e, 'flee', e.home);
+  if (e.hp < G.fleeAt * e.maxHp || crowdAround(w, e) >= E.crowdFlee) { setMode(w, e, 'flee', e.home); return; }
+  if (!dark(w, e) || e.carrying) { setMode(w, e, 'leave', e.home); return; }
+  if (e.mode === 'attack' && e.hits >= E.maxBites) { setMode(w, e, 'flee', e.home); return; }
   // keeps at whoever it is fighting while they stay close and outdoors
   const foe = e.mode === 'attack' && e.targetId !== null ? w.goblin(e.targetId) : undefined;
   if (foe && exposed(w, foe) && dist(foe.pos, e.pos) < 4) return;
   const lone = nearestLone(w, e);
-  if (lone && dist(lone.pos, e.pos) < 8) return setMode(w, e, 'attack', lone.pos, lone.id);
+  const keep = (mode: Enemy['mode'], id: number) => e.mode === mode && e.targetId === id;
+  if (lone && dist(lone.pos, e.pos) < 8 && setMode(w, e, 'attack', lone.pos, lone.id)) return;
   const sp = w.s.village.stockpilePos;
-  if (stockFood(w.s)) { if (e.mode !== 'steal' || e.targetId !== -1) setMode(w, e, 'steal', sp, -1); return; }
+  if (stockFood(w.s) && !scareAt(w, sp) && (keep('steal', -1) || setMode(w, e, 'steal', sp, -1))) return;
   const food = nearestFood(w, e);
-  if (food) { if (e.mode !== 'steal' || e.targetId !== food.id) setMode(w, e, 'steal', food.pos, food.id); return; }
-  if (lone) return setMode(w, e, 'attack', lone.pos, lone.id);
-  if (e.mode !== 'prowl' || !e.path.length) {
-    const c = w.s.village.center;
-    setMode(w, e, 'prowl', { x: q4(c.x + w.rng.range(-6, 6)), y: q4(c.y + w.rng.range(-6, 6)) });
+  if (food && (keep('steal', food.id) || setMode(w, e, 'steal', food.pos, food.id))) return;
+  if (lone && setMode(w, e, 'attack', lone.pos, lone.id)) return;
+  if (e.mode === 'prowl' && e.path.length) return;
+  // circle the village looking for a way in or a straggler
+  const c = w.s.village.center;
+  for (let i = 0; i < 4; i++) {
+    const p = { x: q4(c.x + w.rng.range(-9, 9)), y: q4(c.y + w.rng.range(-9, 9)) };
+    if (!scareAt(w, p) && setMode(w, e, 'prowl', p)) return;
   }
+  setMode(w, e, 'leave', e.home); // nothing to be had tonight
 }
 
 /** Walk along the path; returns true on arrival. */
@@ -98,7 +128,7 @@ function moveEnemy(w: World, e: Enemy, speedMul: number): boolean {
     return e.path.length === 0;
   }
   const nx = q4(e.pos.x + (dx / d) * speed), ny = q4(e.pos.y + (dy / d) * speed);
-  if (isWalkable(w.s, Math.floor(nx), Math.floor(ny))) e.pos = { x: nx, y: ny };
+  if (running(e) ? isWalkable(w.s, Math.floor(nx), Math.floor(ny)) : enemyCanStand(w, nx, ny)) e.pos = { x: nx, y: ny };
   else e.path.shift(); // stuck on a corner: skip the waypoint
   e.velocity = { x: q4((dx / d) * speed), y: q4((dy / d) * speed) };
   e.facing = q4(Math.atan2(dy, dx));
@@ -107,6 +137,7 @@ function moveEnemy(w: World, e: Enemy, speedMul: number): boolean {
 
 function spotted(w: World, e: Enemy, by: Goblin): void {
   e.seen = true;
+  w.s.threat.alarms++;
   w.emit({ type: 'enemy_spotted', goblinId: by.id, enemyId: e.id, at: e.pos });
   w.emit({ type: 'emote', goblinId: by.id, emote: 'exclaim' });
 }
@@ -143,11 +174,21 @@ export function enemiesAct(w: World): void {
   const s = w.s;
   const gone: Enemy[] = [];
   for (const e of s.enemies) {
+    // fire and torches: it will not come closer (§11.1, P4.6)
+    if (!running(e)) {
+      const fear = scareAt(w, e.pos);
+      if (fear && (e.mode !== 'prowl' || !e.target || scareAt(w, e.target))) retreat(w, e, fear);
+    }
     if (e.mode === 'attack') {
       const g = e.targetId !== null ? w.goblin(e.targetId) : undefined;
       if (!g || !exposed(w, g)) { e.nextDecide = s.tick; continue; }
-      if (dist(g.pos, e.pos) <= E.biteRange) { bite(w, e, g); continue; }
-      if (e.target && dist(e.target, g.pos) > 1.5) setPath(w, e, g.pos);
+      const mid = { x: (g.pos.x + e.pos.x) / 2, y: (g.pos.y + e.pos.y) / 2 };
+      if (dist(g.pos, e.pos) <= E.biteRange) {
+        if (enemyCanStand(w, mid.x, mid.y) && enemyCanStand(w, g.pos.x, g.pos.y)) bite(w, e, g); // never through a fence
+        else e.nextDecide = s.tick;
+        continue;
+      }
+      if (e.target && dist(e.target, g.pos) > 1.5 && !setPath(w, e, g.pos)) { e.nextDecide = s.tick; continue; }
       moveEnemy(w, e, 1);
       continue;
     }

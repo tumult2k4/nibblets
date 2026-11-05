@@ -21,6 +21,7 @@ import { Equip } from './actions/equip';
 import { PlanBuilding, TendFire } from './actions/village';
 import { Attack, DefendVillage } from './actions/fight';
 import { Flee, Guard, dangerCaught } from './actions/flee';
+import { RepairBuilding } from './actions/repair';
 import { findChopTarget } from './actions/chop';
 import { planFor } from './planner';
 import { Explore } from './actions/explore';
@@ -41,7 +42,7 @@ export const ACTIONS: Record<ActionId, UtilityAction> = {
   claim_home: ClaimHome, sleep_home: SleepHome, gather_for_goal: GatherForGoal,
   seek_shelter: SeekShelter, warm_up: WarmUp, forage: Forage, mine: Mine,
   craft: Craft, equip: Equip, plan_building: PlanBuilding, tend_fire: TendFire,
-  flee: Flee, attack: Attack, defend_village: DefendVillage, guard: Guard,
+  flee: Flee, attack: Attack, defend_village: DefendVillage, guard: Guard, repair_building: RepairBuilding,
 };
 const CHOOSABLE = (Object.values(ACTIONS) as UtilityAction[]).filter((a) => !a.forced);
 
