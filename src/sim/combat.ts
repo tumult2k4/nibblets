@@ -19,12 +19,13 @@ import type { DeathCause, ItemType } from '../shared/types';
 import type { Enemy, Goblin, Injury } from './state';
 import type { World } from './world';
 import { gainXp, skillLevel } from './goblin/skills';
+import { diseaseWorkMul } from './disease';
 
 const C = CFG.combat;
 
 export const hasInjury = (g: Goblin, k: Injury['kind']): boolean => g.health.injuries.some((i) => i.kind === k);
-/** Work speed: a bruised arm slows chopping, mining, building and crafting by 20 %. */
-export const workMul = (g: Goblin): number => (hasInjury(g, 'bruised_arm') ? C.armMul : 1);
+/** Work speed: a bruised arm slows chopping, mining, building and crafting by 20 %; so does being ill (P6.1). */
+export const workMul = (g: Goblin): number => (hasInjury(g, 'bruised_arm') ? C.armMul : 1) * diseaseWorkMul(g);
 export const isVeteran = (g: Goblin): boolean => g.traits.includes('veteran');
 const combatSkill = (g: Goblin): number => skillLevel(g, 'combat');
 
@@ -63,13 +64,15 @@ export function hurtGoblin(w: World, g: Goblin, dmg: number, cause: DeathCause):
   if (isSleeping(g) || g.activity.action === 'follow_wisp') g.activity.status = 'done'; // jolted awake (or out of a trance)
 }
 
-/** Wounds heal on their own; resting in one's hut heals them twice as fast (§14.2). */
+/** Wounds heal on their own; resting in one's hut (or lying down sick) heals them twice as fast, a friend's care ×1.5 (§14.2). */
 export function updateInjuries(w: World): void {
   const t = w.s.tick;
   for (const g of w.s.goblins) {
     const list = g.health.injuries;
     if (!list.length) continue;
-    if (g.activity.action === 'sleep_home' && isSleeping(g)) for (const i of list) i.until -= C.restHealMul - 1;
+    const rest = (g.activity.action === 'sleep_home' && isSleeping(g)) || (g.activity.action === 'rest_sick' && g.activity.stage === 1);
+    const mul = (rest ? C.restHealMul : 1) * (g.health.tendedUntil > t ? CFG.health.tendMul : 1);
+    if (mul > 1) for (const i of list) i.until -= mul - 1;
     if (list.some((i) => i.until <= t)) g.health.injuries = list.filter((i) => i.until > t);
   }
 }

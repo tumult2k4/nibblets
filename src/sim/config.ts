@@ -1,7 +1,9 @@
-/** Every tunable number lives here (§21). Additions beyond §21 are logged in DECISIONS.md. */
+/** Every tunable number lives here (§21), or in cfg/ files it pulls in. Additions beyond §21 are logged in DECISIONS.md. */
+import { HEALTH } from './cfg/health';
+
 export const CFG = {
   tickHz: 10,
-  saveVersion: 15,
+  saveVersion: 16,
   time: { dayTicks: 3600, daysPerSeason: 8, moonCycleDays: 8, phases: { dawn: 0.05, day: 0.6, dusk: 0.7 }, startTick: 360 },
   world: {
     w: 128, h: 128, waterLevel: 0.3, sandBand: 0.03, rockLevel: 0.8, forestNoiseThreshold: 0.6,
@@ -281,7 +283,8 @@ export const CFG = {
     max: 3, checkEvery: 150, greenThumbPlanted: 25, greenThumbGrowth: 1.5, scarredScars: 2, twinEcho: 0.4, twinEchoMin: 4,
     orphanBravery: 0.1, orphanSociability: -0.1, scarredCrowd: 1.5, scarredShun: 2, twinOpinion: 25, veteranWatch: 1.3, greenThumbWork: 1.3,
   },
-  disease: { feverMinPop: 25, feverYearlyChance: 0.5 },
+  /** P6.1 health and disease (§14.3): see cfg/health.ts */
+  health: HEALTH,
   llm: { diariesPerDay: 3, dialoguesPerDay: 4, barksPerDay: 6, tokensPerDay: 12000, rpm: 10, concurrency: 2, timeoutMs: 20000 },
   god: {
     startFavor: 50, maxFavorBase: 100, maxFavorPerBeliever: 15, believerFaith: 40, prayingFavorMul: 3,

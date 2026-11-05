@@ -13,6 +13,7 @@ import { isGear } from '../sim/items';
 import { wearGeo } from './fiberMeshes';
 import { flatMat } from './lowpoly';
 import type { Interp } from './interpolation';
+import { sickLook } from './sickLook';
 
 interface View {
   rig: GoblinRig; pheno: Phenotype; prop: THREE.Mesh | null; propType: string; held: THREE.Object3D | null; heldKey: string; blinkAt: number; walkPhase: number; zzz: THREE.Sprite | null;
@@ -120,8 +121,8 @@ export class GoblinViews {
       earFlop = Math.sin(k * 1.7) * 0.6;
       r.body.rotation.z = Math.sin(t * 3 + g.id) * 0.25;
       if (g.godView.fear > 50 && g.lifeStage === 'adult') r.root.position.x += Math.sin(t * 60) * 0.01;
-    } else if (sleeping || (act === 'sleep_ground' && g.activity.stage === 0) || (act === 'sleep_home' && g.activity.stage === 1)) {
-      r.body.rotation.z = Math.PI / 2 * (sleeping ? 1 : 0.5);
+    } else if (sleeping || (act === 'sleep_ground' && g.activity.stage === 0) || (act === 'sleep_home' && g.activity.stage === 1) || (act === 'rest_sick' && g.activity.stage === 1)) {
+      r.body.rotation.z = Math.PI / 2 * (sleeping || act === 'rest_sick' ? 1 : 0.5);
       r.body.position.y = 0.08;
       r.body.scale.set(1, 1 + Math.sin(t * 1.5 + g.id) * 0.04, 1);
       r.legL.rotation.x = 0.4;
@@ -223,8 +224,9 @@ export class GoblinViews {
       else if (act === 'play' && st === 1) { r.armL.rotation.x = r.armR.rotation.x = -2.0; r.armL.rotation.z = 0.35; r.armR.rotation.z = -0.35; r.head.rotation.x = 0.25; }
       else if (act === 'play') { r.body.scale.set(1.06, 0.82, 1.06); r.body.position.y = 0.06; r.head.rotation.y = Math.sin(t * 1.6 + g.id) * 0.6; earFlop = -0.2; }
       else { r.body.position.y = 0.05; r.legL.rotation.x = r.legR.rotation.x = -1.3; r.head.rotation.z = 0.12 + Math.sin(t * 0.9 + g.id) * 0.08; r.armL.rotation.x = r.armR.rotation.x = -0.6; earFlop = -0.25; }
-    } else if (act === 'comfort' && g.activity.stage === 1) {
-      // a hug: arms wrapped forward, leaning in, swaying a little
+    } else if ((act === 'comfort' || act === 'tend_sick') && g.activity.stage === 1) {
+      // a hug: arms wrapped forward, leaning in, swaying a little (tending: kneeling at the bedside, P6.1)
+      if (act === 'tend_sick') { r.body.position.y = 0.05; r.legL.rotation.x = r.legR.rotation.x = -1.2; }
       r.armL.rotation.x = r.armR.rotation.x = -1.35;
       r.armL.rotation.z = 0.55; r.armR.rotation.z = -0.55;
       r.body.rotation.x += 0.18;
@@ -238,6 +240,7 @@ export class GoblinViews {
       r.head.rotation.y = Math.sin(t * 0.5 + g.id * 1.3) * 0.5;
       earFlop = Math.max(0, Math.sin(t * 2.3 + g.id * 2)) ** 20 * 0.4;
     }
+    sickLook(g, r, t);
     r.earL.rotation.z = earBaseL - earFlop;
     r.earR.rotation.z = earBaseR + earFlop;
     // blink

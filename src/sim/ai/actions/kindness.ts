@@ -27,7 +27,7 @@ const has = (g: Goblin, id: string, tick: number): boolean => g.mood.modifiers.s
 const close = (g: Goblin, o: Goblin): boolean => isKin(g, o) || opinionOf(g, o.id) >= S.friend;
 
 /** Walk to `o`, re-planning when it has moved on; true once within reach. */
-function reach(g: Goblin, o: Goblin, w: World): boolean | null {
+export function reach(g: Goblin, o: Goblin, w: World): boolean | null {
   const a = g.activity;
   if (dist(g.pos, o.pos) <= 1.1) return true;
   if (!a.target || dist(a.target, o.pos) > 1.5) {

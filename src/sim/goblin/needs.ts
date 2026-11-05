@@ -14,6 +14,7 @@ import { markDanger } from '../danger';
 import { witnessDeath } from './safety';
 import { adoptOrphans, comeOfAge } from './family';
 import { loseKnowledge } from '../knowledge';
+import { diseaseHungerMul } from '../disease';
 
 const WORK_ACTIONS = new Set(['harvest_fruit', 'pick_up', 'chop', 'build', 'deliver_material', 'play']);
 
@@ -25,7 +26,7 @@ export function needDecay(g: Goblin, need: NeedId, season: string, heatwave = fa
     case 'hunger': {
       let m = express(g.genome, 'metabolism') * size;
       if (g.lifeStage === 'hatchling') m *= CFG.goblin.hatchlingHungerMul;
-      return perDay(D.hunger) * m;
+      return perDay(D.hunger) * m * diseaseHungerMul(g);
     }
     case 'thirst':
       return perDay(D.thirst) * (season === 'summer' ? 1.15 : 1) * (heatwave ? CFG.weather.heatwaveThirstMul : 1);

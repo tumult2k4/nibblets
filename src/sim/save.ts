@@ -135,6 +135,11 @@ export const MIGRATIONS: Record<number, Migration> = {
   },
   // P5.9 trinkets (the Shiny Gift)
   14: (raw) => ({ ...raw, trinkets: raw.trinkets ?? [] }),
+  // P6.1 diseases: nobody was ill before (the old `disease` field was always null)
+  15: (raw) => {
+    for (const g of raw.goblins as { health: Record<string, unknown> }[]) Object.assign(g.health, { disease: null, immune: {}, coldTicks: 0, tendedUntil: 0 });
+    return raw;
+  },
 };
 
 export function deserialize(json: string): WorldState {

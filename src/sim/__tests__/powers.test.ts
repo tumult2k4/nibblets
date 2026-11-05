@@ -57,7 +57,7 @@ describe('nature powers (§17.5.2, P3.8)', () => {
     expect(isWet(w, g)).toBe(false);
     expect(isWet(w, out)).toBe(true);
     expect(airAt(w, g.pos) - before).toBeGreaterThan(CFG.powers.warmSunDeg); // and the rain stops inside
-    w.run(HOUR);
+    for (let i = 0; i < HOUR; i++) { g.pos = { x: 20, y: 20 }; w.step(); } // kept inside the sunny cell (it would wander off exploring)
     expect(isWet(w, g)).toBe(false);
     expect(tileAt(w.s, 20, 20)!.snow).toBeLessThan(0.5);
     expect(tileAt(w.s, 35, 35)!.snow).toBeGreaterThan(0.7);

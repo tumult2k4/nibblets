@@ -33,7 +33,17 @@ export interface Personality {
 
 /** A healing wound (§14.2): `limp` slows, `bruised_arm` slows work, until `until`. Ear notches go straight to scars. */
 export interface Injury { kind: 'limp' | 'bruised_arm'; until: number }
-export interface HealthState { hp: number; maxHp: number; injuries: Injury[]; disease: string | null; scars: number }
+/** A disease a goblin carries (§14.3, P6.1): `progress` in days, through incubation and then the sickness itself. */
+export interface Illness { id: string; stage: 'incubating' | 'sick'; progress: number; since: number }
+export interface HealthState {
+  hp: number; maxHp: number; injuries: Injury[]; disease: Illness | null; scars: number;
+  /** disease id → tick until which it cannot be caught again */
+  immune: Record<string, number>;
+  /** ticks in a row with warmth at 0 (shivers after 2 h) */
+  coldTicks: number;
+  /** tended by a friend (TendSick) until then: wounds and illness heal faster */
+  tendedUntil: number;
+}
 
 export type ActionId =
   | 'idle' | 'wander' | 'harvest_fruit' | 'eat' | 'drink' | 'sleep_ground' | 'pick_up' | 'drop' | 'look_up' | 'struggle'
@@ -41,7 +51,7 @@ export type ActionId =
   | 'deliver_material' | 'build' | 'claim_home' | 'sleep_home' | 'gather_for_goal' | 'seek_shelter' | 'warm_up' | 'forage'
   | 'mine' | 'craft' | 'equip' | 'plan_building' | 'tend_fire' | 'flee' | 'attack' | 'defend_village' | 'guard' | 'repair_building'
   | 'follow_wisp' | 'scatter' | 'chat' | 'comfort' | 'gift' | 'court' | 'lay_egg' | 'incubate_egg' | 'feed_child' | 'follow_parent'
-  | 'play' | 'learn' | 'teach' | 'cut_grass' | 'pick_flowers' | 'process';
+  | 'play' | 'learn' | 'teach' | 'cut_grass' | 'pick_flowers' | 'process' | 'rest_sick' | 'tend_sick';
 
 export interface ActivityState {
   action: ActionId;

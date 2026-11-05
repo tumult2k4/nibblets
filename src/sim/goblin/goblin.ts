@@ -34,7 +34,7 @@ export function createGoblin(s: WorldState, rng: Rng, o: SpawnOpts): Goblin {
     },
     mood: { value: 20, modifiers: [], emotion: 'content' },
     personality,
-    health: { hp: maxHp, maxHp, injuries: [], disease: null, scars: 0 },
+    health: { hp: maxHp, maxHp, injuries: [], disease: null, scars: 0, immune: {}, coldTicks: 0, tendedUntil: 0 },
     inventory: [],
     equipped: { hand: null, body: null, neck: null, head: null },
     activity: idleActivity(s.tick),

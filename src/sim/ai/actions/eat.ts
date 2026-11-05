@@ -12,6 +12,7 @@ import type { Goblin } from '../../state';
 import type { World } from '../../world';
 import type { StepResult, UtilityAction } from '../action';
 import { witnessFact } from '../../knowledge';
+import { exposeTo } from '../../disease';
 
 const K = CFG.knowledge;
 
@@ -27,6 +28,7 @@ export function sicken(w: World, g: Goblin, type: ItemStack['type']): void {
   w.emit({ type: 'poisoned', goblinId: g.id, item: type, at: { ...g.pos } });
   w.emit({ type: 'emote', goblinId: g.id, emote: 'sweat' });
   witnessFact(w, 'redcap_is_poison', g.pos, K.redcapWitness, g);
+  exposeTo(w, g, 'gut_rot', CFG.health.redcapGutRot); // P6.1: and often a bout of gut rot after
 }
 
 /** Shared eat timer + effect. Apples leave a core (§8.1) in the pocket, or at the feet if full. */
@@ -35,6 +37,7 @@ function eatStep(g: Goblin, w: World, pick: () => ItemStack | undefined): StepRe
   if (g.activity.progress > 0) return 'running';
   const st = pick();
   if (!st) return 'failed';
+  const rotten = (st.rot ?? 0) >= CFG.health.rottenAt; // the unit about to go off (P6.1 gut rot)
   const one = takeOne(g, (s) => s === st)!;
   const nut = (itemDef(one.type).nutrition ?? 0) * (g.lifeStage === 'hatchling' ? 0.5 : 1);
   g.needs.hunger = q4(Math.min(100, g.needs.hunger + nut));
@@ -44,6 +47,7 @@ function eatStep(g: Goblin, w: World, pick: () => ItemStack | undefined): StepRe
   if (one.divine) addMood(w, g, 'sky_food', 3, 1800);
   sharedMeal(w, g);
   sicken(w, g, one.type);
+  if (rotten) exposeTo(w, g, 'gut_rot', CFG.health.rottenGutRot);
   w.emit({ type: 'item_eaten', goblinId: g.id, item: one.type, at: g.pos, ...(one.divine ? { divine: true } : {}) });
   // §8.2 accidental gardening: now and then a berry seed ends up in the ground
   if (one.type === 'berry' && w.rng.chance(CFG.plants.berryAccidentalSeed)) {

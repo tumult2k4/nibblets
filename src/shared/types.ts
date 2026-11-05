@@ -32,7 +32,7 @@ export interface ItemStack {
 }
 
 /** Billboard emotes over a goblin's head (§P2.6). */
-export type Emote = 'question' | 'exclaim' | 'heart' | 'zzz' | 'idea' | 'sweat' | 'music' | 'anger';
+export type Emote = 'question' | 'exclaim' | 'heart' | 'zzz' | 'idea' | 'sweat' | 'music' | 'anger' | 'sneeze' | 'sick';
 export type PlantKind = 'apple_bush' | 'berry_bush' | 'tree' | 'flower';
 export type PlantStage = 'seed' | 'sprout' | 'sapling' | 'young' | 'mature' | 'old' | 'dead' | 'stump';
 export type BuildingType =
@@ -133,6 +133,12 @@ export type SimEvent = BaseEvent &
     | { type: 'tower_warning'; goblinId: ID; enemyId: ID; kind: EnemyKind }
     | { type: 'tool_mended'; goblinId: ID; item: ItemType }
     | { type: 'goblin_transformed'; goblinId: ID }
+    // P6.1 health: caught (incubating, unseen), showing symptoms, better again; an outbreak; a friend at the bedside
+    | { type: 'caught_disease'; goblinId: ID; disease: string; fromId: ID | null }
+    | { type: 'fell_ill'; goblinId: ID; disease: string }
+    | { type: 'recovered'; goblinId: ID; disease: string }
+    | { type: 'outbreak'; goblinId: ID; disease: string }
+    | { type: 'tended'; goblinId: ID; byId: ID }
     | { type: 'trait_gained'; goblinId: ID; trait: string }
     | { type: 'sickness'; goblinId: ID; disease: DiseaseId; phase: 'infected' | 'symptomatic' | 'recovered' | 'died' }
     | { type: 'trinket_found'; goblinId: ID; trinket: TrinketKind; rarity: Rarity }

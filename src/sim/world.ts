@@ -20,6 +20,7 @@ import { updateDirector } from './enemies/director';
 import { enemiesAct, enemiesDecide } from './enemies';
 import { updateSafety } from './goblin/safety';
 import { fenceMask } from './fences';
+import { updateDiseases } from './disease';
 import { updateInjuries } from './combat';
 import { updateSocial } from './goblin/social';
 import { think, act } from './ai/utility';
@@ -139,6 +140,7 @@ export class World {
     updateSenses(this); //    11b senses + memory decay (§7.8)
     updateSafety(this); //    11c safety need (P4.5)
     updateInjuries(this); //  11d wounds heal
+    updateDiseases(this); //  11e diseases run their course and spread (P6.1)
     think(this); //           12
     act(this); //             13
     updateWear(this); //      13b path wear (§P2.7)

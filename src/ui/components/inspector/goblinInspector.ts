@@ -20,6 +20,7 @@ import { portraits } from '../../../render/portraits';
 import { CFG } from '../../../sim/config';
 import { feltTemperature, isWet, shelterOf, huddleBonus } from '../../../sim/temperature';
 import { MAX_LEVEL, SKILLS, skillLevel } from '../../../sim/goblin/skills';
+import { diseaseDef } from '../../../sim/disease';
 
 export const bar = (v: number, color = 'var(--moss)'): HTMLElement => el('div.bar', {}, el('i', { style: `width:${Math.max(0, Math.min(100, v))}%;background:${color}` }));
 const row = (label: string, v: number, shown: string, color?: string) =>
@@ -45,6 +46,18 @@ export function goblinHeader(g: Goblin, w: World, onFollow: () => void, onClose:
 const goalText = (goal: Goal, w: World): string => goal.kind === 'build'
   ? t('goal.build', { b: t(`bld.${w.s.buildings.find((b) => b.id === goal.buildingId)?.type ?? 'hut'}`) })
   : t('goal.obtain', { n: goal.qty, item: t(`item.${goal.item}`) });
+
+/** Illness (P6.1): what it has and how long to go, being tended, immunities. */
+function illnessLine(g: Goblin, w: World): string {
+  const h = g.health, d = h.disease, parts: string[] = [];
+  if (d) {
+    const def = diseaseDef(d.id), name = t(`disease.${d.id}`);
+    parts.push(d.stage === 'sick' ? t('insp.ill', { d: name, n: Math.max(1, Math.ceil((def?.durationDays ?? 1) - d.progress)) }) : t('insp.incubating', { d: name }));
+  }
+  if (h.tendedUntil > w.s.tick) parts.push(t('insp.tended'));
+  for (const [id, until] of Object.entries(h.immune)) if (until > w.s.tick) parts.push(t('insp.immune', { d: t(`disease.${id}`) }));
+  return parts.join(' · ');
+}
 
 /** Wounds, scars and fighting record, e.g. "limping · 1 scars · 5 fights, 2 kills". */
 function woundsLine(g: Goblin): string {
@@ -88,6 +101,7 @@ export function statusTab(g: Goblin, w: World): HTMLElement {
     el('h3', { text: t('insp.health') }),
     row(t('insp.hp'), (g.health.hp / g.health.maxHp) * 100, `${Math.round(g.health.hp)}/${g.health.maxHp}`, needColor((g.health.hp / g.health.maxHp) * 100)),
     woundsLine(g) ? el('div.sub', { text: woundsLine(g) }) : null,
+    illnessLine(g, w) ? el('div.sub.ill', { text: illnessLine(g, w) }) : null,
   );
 }
 

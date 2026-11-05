@@ -1,6 +1,10 @@
-/** All UI strings (§18.1 rule 6). `t(key, params)`; English + Deutsch. Split in two files for size. */
-import { EN } from './i18n.en';
-import { DE } from './i18n.de';
+/** All UI strings (§18.1 rule 6). `t(key, params)`; English + Deutsch. Split by language, with later phases in their own files (i18n.p6.ts …) for size. */
+import { EN as EN0 } from './i18n.en';
+import { DE as DE0 } from './i18n.de';
+import { DE6, EN6 } from './i18n.p6';
+
+const EN = { ...EN0, ...EN6 };
+const DE: Record<string, string> = { ...DE0, ...DE6 };
 
 export type Lang = 'en' | 'de';
 export type I18nKey = keyof typeof EN;

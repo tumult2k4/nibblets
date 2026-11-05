@@ -157,6 +157,14 @@ export function noteFor(e: SimEvent, w: World, names: Map<ID, string>): Note | n
       return { ...base, id: e.goblinId, text: t(e.level >= 10 ? 'ev.skill_master' : 'ev.skill_up', { name: name(e.goblinId), skill: t(`skill.${e.skill}`), n: e.level }), tier: e.level >= 10 ? 'notable' : 'info', icon: 'star' };
     case 'gift_given':
       return { ...base, id: e.fromId, text: t('ev.gift_given', { a: name(e.fromId), b: name(e.toId), item: t(`item.${e.item}`) }), tier: 'info', icon: 'gift' };
+    case 'fell_ill':
+      return { ...base, id: e.goblinId, text: t('ev.fell_ill', { name: name(e.goblinId), d: t(`disease.${e.disease}`) }), tier: e.disease === 'sniffles' ? 'info' : 'notable', icon: 'sick' };
+    case 'recovered':
+      return { ...base, id: e.goblinId, text: t('ev.recovered', { name: name(e.goblinId), d: t(`disease.${e.disease}`) }), tier: 'info', icon: 'heart' };
+    case 'outbreak':
+      return { ...base, id: e.goblinId, text: t('ev.outbreak', { name: name(e.goblinId) }), tier: 'critical', icon: 'sick' };
+    case 'tended':
+      return { ...base, id: e.goblinId, text: t('ev.tended', { a: name(e.byId), b: name(e.goblinId) }), tier: 'info', icon: 'heart' };
     case 'comforted':
       return { ...base, id: e.goblinId, text: t('ev.comforted', { a: name(e.byId), b: name(e.goblinId) }), tier: 'info', icon: 'heart' };
     case 'home_claimed':

@@ -48,6 +48,8 @@ interface Row {
   winterStarve: number; winterDeaths: number; spoiled: number; preserved: string;
   /** P5 acceptance: generations in the lineage book (founders = 1), and the living's average hue at the start and end */
   generations: number; hue: string;
+  /** P6.1: cases by disease, and how often a friend tended the sick */
+  ill: string; tended: number;
 }
 
 const meanHue = (hs: number[]): number => {
@@ -69,7 +71,11 @@ function runSeed(seed: number): Row {
   const foes = { spawned: 0, stolen: 0, bites: 0, fled: 0, killed: 0, wounds: 0 };
   let winterStarve = 0, winterDeaths = 0, mash = 0, dried = 0;
   const rare = { beasts: 0, smashed: 0, wisps: 0, lured: 0, newcomers: 0 };
+  const ill: Record<string, number> = {};
+  let tended = 0;
   w.bus.subscribe((e) => {
+    if (e.type === 'fell_ill') ill[e.disease] = (ill[e.disease] ?? 0) + 1;
+    if (e.type === 'tended') tended++;
     if (e.type === 'goblin_died' && e.cause === 'starvation' && w.clock.season === 'winter') winterDeaths++;
     if (e.type === 'food_processed') { if (e.item === 'apple_mash') mash += e.qty; else dried += e.qty; }
     if (e.type === 'enemy_spawned' && e.kind !== 'gnasher') rare[e.kind === 'bramblebeast' ? 'beasts' : 'wisps']++;
@@ -143,6 +149,7 @@ function runSeed(seed: number): Row {
   const friends = w.s.goblins.reduce((n, g) => n + g.relationships.filter((r) => r.targetId > g.id && friendBond(g, r.targetId) && friendBond(w.goblin(r.targetId) ?? g, g.id)).length, 0);
   return {
     winterStarve, winterDeaths, spoiled: w.s.stats.spoiled ?? 0, preserved: `${mash}/${dried}`, generations: gens, hue: `${Math.round(hue0)}°→${Math.round(hue1)}°`,
+    ill: Object.entries(ill).map(([k, v]) => `${k} ${v}`).join(', ') || '—', tended,
     specialists: `${Object.entries(spec).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${k} ${n}`).join(', ') || '—'} · top ${top.toFixed(1)}`, friends,
     lost: totalDeaths, residents: founders + rare.newcomers,
     seed, popMin, popAvg: popSum / Math.max(1, samples), popMax, popEnd: w.s.goblins.length, births: w.s.stats.births,
@@ -159,14 +166,14 @@ const rows: Row[] = [];
 for (let i = 0; i < seedCount; i++) {
   const r = runSeed(firstSeed + i);
   rows.push(r);
-  console.log(`seed ${r.seed}: pop ${r.popEnd} (min ${r.popMin}, max ${r.popMax}) deaths ${JSON.stringify(r.deaths)} eaten ${r.eaten} bushes ${r.bushes0}→${r.bushesEnd} plantedMature ${r.plantedMature} wood ${r.wood} stone/flint/sticks ${r.stone} armed ${r.armed} fires ${r.fires} gnashers/stolen/bites/fled/killed/wounds ${r.foes} veterans ${r.veterans} huts ${r.huts} fences ${r.fences} beasts/smashed wisps/lured newcomers ${r.rare} housed@autumn ${r.housedAutumn < 0 ? '—' : Math.round(r.housedAutumn * 100) + '%'} specialists ${r.specialists} friends ${r.friends} winterStarve ${r.winterStarve} winterDeaths ${r.winterDeaths} spoiled ${r.spoiled} mash/dried ${r.preserved} generations ${r.generations} hue ${r.hue} (drift ${r.hueDrift.toFixed(1)}°) tick ${r.tickMs.toFixed(3)}ms ${r.fails.length ? 'FAIL ' + r.fails.join(',') : 'ok'}`);
+  console.log(`seed ${r.seed}: pop ${r.popEnd} (min ${r.popMin}, max ${r.popMax}) deaths ${JSON.stringify(r.deaths)} eaten ${r.eaten} bushes ${r.bushes0}→${r.bushesEnd} plantedMature ${r.plantedMature} wood ${r.wood} stone/flint/sticks ${r.stone} armed ${r.armed} fires ${r.fires} gnashers/stolen/bites/fled/killed/wounds ${r.foes} veterans ${r.veterans} huts ${r.huts} fences ${r.fences} beasts/smashed wisps/lured newcomers ${r.rare} housed@autumn ${r.housedAutumn < 0 ? '—' : Math.round(r.housedAutumn * 100) + '%'} specialists ${r.specialists} friends ${r.friends} winterStarve ${r.winterStarve} winterDeaths ${r.winterDeaths} spoiled ${r.spoiled} mash/dried ${r.preserved} generations ${r.generations} hue ${r.hue} (drift ${r.hueDrift.toFixed(1)}°) ill [${r.ill}] tended ${r.tended} tick ${r.tickMs.toFixed(3)}ms ${r.fails.length ? 'FAIL ' + r.fails.join(',') : 'ok'}`);
 }
 const lines = [
   `# Balance report — ${days} days × ${seedCount} seeds${noCraft ? ' (control: no crafting)' : ''}${noPreserve ? ' (control: no preservation)' : ''}`,
   '',
-  '| seed | pop min/avg/max/end | births | deaths | starvation deaths | food eaten | god food | starvation days | hue drift° | bushes start→end | goblin-planted mature | wood | stone/flint/sticks | armed | campfires built/lit | gnashers/stolen/bites/fled/killed/wounds | huts | fence posts/ring | housed end of autumn | weather deaths | specialists (best skill ≥ 2) | friend pairs | winter starving goblin-days / deaths | food rotted | mash/dried made | generations | avg hue start→end | tick ms | result |',
-  '|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|',
-  ...rows.map((r) => `| ${r.seed} | ${r.popMin}/${r.popAvg.toFixed(1)}/${r.popMax}/${r.popEnd} | ${r.births} | ${Object.values(r.deaths).reduce((a, b) => a + b, 0)} ${JSON.stringify(r.deaths)} | ${r.deaths.starvation ?? 0} | ${r.eaten} | ${r.divineFood} | ${r.starvationDays} | ${r.hueDrift.toFixed(1)} | ${r.bushes0}→${r.bushesEnd} | ${r.plantedMature} | ${r.wood} | ${r.stone} | ${r.armed} | ${r.fires} | ${r.foes} | ${r.huts} | ${r.fences} | ${r.housedAutumn < 0 ? '—' : Math.round(r.housedAutumn * 100) + '%'} | ${r.weatherDeaths} | ${r.specialists} | ${r.friends} | ${r.winterStarve} / ${r.winterDeaths} | ${r.spoiled} | ${r.preserved} | ${r.generations} | ${r.hue} | ${r.tickMs.toFixed(3)} | ${r.fails.length ? 'FAIL: ' + r.fails.join(', ') : 'ok'} |`),
+  '| seed | pop min/avg/max/end | births | deaths | starvation deaths | food eaten | god food | starvation days | hue drift° | bushes start→end | goblin-planted mature | wood | stone/flint/sticks | armed | campfires built/lit | gnashers/stolen/bites/fled/killed/wounds | huts | fence posts/ring | housed end of autumn | weather deaths | specialists (best skill ≥ 2) | friend pairs | winter starving goblin-days / deaths | food rotted | mash/dried made | generations | avg hue start→end | illnesses | tended | tick ms | result |',
+  '|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|',
+  ...rows.map((r) => `| ${r.seed} | ${r.popMin}/${r.popAvg.toFixed(1)}/${r.popMax}/${r.popEnd} | ${r.births} | ${Object.values(r.deaths).reduce((a, b) => a + b, 0)} ${JSON.stringify(r.deaths)} | ${r.deaths.starvation ?? 0} | ${r.eaten} | ${r.divineFood} | ${r.starvationDays} | ${r.hueDrift.toFixed(1)} | ${r.bushes0}→${r.bushesEnd} | ${r.plantedMature} | ${r.wood} | ${r.stone} | ${r.armed} | ${r.fires} | ${r.foes} | ${r.huts} | ${r.fences} | ${r.housedAutumn < 0 ? '—' : Math.round(r.housedAutumn * 100) + '%'} | ${r.weatherDeaths} | ${r.specialists} | ${r.friends} | ${r.winterStarve} / ${r.winterDeaths} | ${r.spoiled} | ${r.preserved} | ${r.generations} | ${r.hue} | ${r.ill} | ${r.tended} | ${r.tickMs.toFixed(3)} | ${r.fails.length ? 'FAIL: ' + r.fails.join(', ') : 'ok'} |`),
   '',
   `Aggregate: avg end pop ${(rows.reduce((a, r) => a + r.popEnd, 0) / rows.length).toFixed(1)}, starvation deaths ${rows.reduce((a, r) => a + (r.deaths.starvation ?? 0), 0)}, avg tick ${(rows.reduce((a, r) => a + r.tickMs, 0) / rows.length).toFixed(3)} ms.`,
 ];
