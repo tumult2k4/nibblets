@@ -34,4 +34,24 @@ describe('replay (§17.8)', () => {
     const replayed = replayTo(w.s, w.s.tick, (s) => new World(s), (p) => createWorldState(p));
     expect(stateHash(replayed.s)).toBe(stateHash(w.s));
   });
+
+  it('nature powers and time skips replay identically (P3.8)', () => {
+    const w = createWorld({ seed: 31 });
+    const c = w.s.village.center;
+    const casts: Command[] = [
+      { type: 'god_cast', power: 'rain', pos: c, radius: 10 },
+      { type: 'god_cast', power: 'warm_sun', pos: { x: c.x + 6, y: c.y }, radius: 8 },
+      { type: 'god_cast', power: 'gust', pos: { x: c.x - 4, y: c.y }, to: { x: c.x + 6, y: c.y + 1 } },
+      { type: 'god_cast', power: 'apple_shower', pos: c, radius: 4 },
+      { type: 'god_cast', power: 'fast_forward', pos: { x: 0, y: 0 } },
+      { type: 'god_cast', power: 'snowfall', pos: c, radius: 12 },
+    ];
+    for (let t = 0; t < 3000; t++) {
+      if (t % 400 === 50 && casts.length) w.push(casts.shift()!);
+      w.step();
+    }
+    expect(w.s.commandLog.filter((x) => x.cmd.type === 'god_cast').length).toBe(6);
+    const replayed = replayTo(w.s, w.s.tick, (s) => new World(s), (p) => createWorldState(p));
+    expect(stateHash(replayed.s)).toBe(stateHash(w.s));
+  });
 });

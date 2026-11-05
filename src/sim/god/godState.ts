@@ -26,6 +26,8 @@ export interface GodState {
   cooldowns: Record<string, number>;
   godName: string | null;
   held: HeldState | null;
+  /** Fast-Forward Day / Hasten Season: the game loop runs at full tilt until this tick (§17.5.2) */
+  skipTo?: number;
   /** counters used by divine deeds & stats */
   counts: { grabs: number; gentleSetDowns: number; drops: number; gifts: number; pets: number };
 }
@@ -68,4 +70,5 @@ export function updateGod(w: World): void {
     }
   }
   for (const g of s.goblins) if (g.airborne && !g.airborne.held) stepGoblinFlight(w, g);
+  if (s.god.skipTo !== undefined && s.tick >= s.god.skipTo) delete s.god.skipTo;
 }

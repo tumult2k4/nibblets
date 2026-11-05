@@ -106,6 +106,8 @@ export function updateWetness(w: World): void {
   const s = w.s;
   if (s.tick % 10 !== 0) return;
   for (const g of s.goblins) {
+    // a Warm Sun cell (§17.5.2) keeps drying everyone standing in it
+    if (g.wetUntil > s.tick && s.weather.cells.some((c) => c.tempOffset >= CFG.powers.warmCellAbove && Math.hypot(g.pos.x - c.pos.x, g.pos.y - c.pos.y) <= c.radius)) dryOff(g);
     if (g.airborne?.held || !RAINY.has(weatherAt(w, g.pos)) || shelterOf(w, g)) continue;
     g.wetUntil = s.tick + T.wetTicks;
     if (g.needs.warmth < T.coldMoodBelow && !g.mood.modifiers.some((m) => m.id === 'cold_rain'))

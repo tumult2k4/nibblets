@@ -6,6 +6,8 @@ export class Rings {
   private pool: THREE.Mesh[] = [];
   private used = 0;
   private geo = new THREE.RingGeometry(0.85, 1, 32).rotateX(-Math.PI / 2);
+  /** wide rings (power radius) get a thin band and draw over hills so the whole circle reads */
+  private wide = new THREE.RingGeometry(0.955, 1, 64).rotateX(-Math.PI / 2);
 
   begin(): void {
     this.used = 0;
@@ -23,7 +25,9 @@ export class Rings {
     m.visible = true;
     m.position.set(x, y + 0.08, z);
     m.scale.setScalar(radius);
+    m.geometry = radius > 2.5 ? this.wide : this.geo;
     const mat = m.material as THREE.MeshBasicMaterial;
+    mat.depthTest = radius <= 2.5;
     mat.color.set(color);
     mat.opacity = opacity;
   }

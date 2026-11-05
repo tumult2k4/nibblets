@@ -90,3 +90,12 @@ Small choices the design doc left open, one line of rationale each.
 - **Weather fog overrides the distance-fog setting**: fog/blizzard are gameplay (vision ×0.5/×0.3), so they show even with distance fog off.
 - **Lit windows are shown while any goblin stands inside the hut** (within the shelter radius) and it is night; because the roof hides the walls from a top-down camera, a warm additive light pool spills past the door.
 
+## P3.8 nature powers & casting UX
+- **One `god_cast` command for targeted/global powers** (`power`, `pos`, optional `radius` and `to`); terraform brushes keep `god_power`. Validation lives in `sim/god/cast.ts`: unknown power, bounds, a direction target for Gust, and in Divine mode the unlock tier, favor and cooldown. Sandbox is free with no cooldowns (the optional sandbox-cooldown setting is not implemented yet).
+- **Weather powers are local cells** (≤ 4, the soonest-expiring gives way): Rain and Snowfall last 2 h; Snowfall chills its cell so the air sits near −2 °C (snow actually settles out of season); Warm Sun is a `clear` cell at +15 °C that dries goblins on cast and keeps drying anyone standing in it. Clear Sky resets the global weather (cells stay).
+- **Time skips are not a sim jump**: Fast-Forward Day / Hasten Season set `god.skipTo` and the game loop steps flat out (600 ticks per frame) until it is reached, so replays stay identical tick by tick.
+- **Area powers are witnessed across their whole radius** (not only within vision of the center); Clear Sky is seen by every awake goblin. Reactions: growth/shower +4 faith +3 love; rain/warm sun +3/+2; clear sky +2; Gust targets +2 faith +4 fear; snow in spring/summer is an omen (+6 faith, +4 fear; superstition rolls arrive in P5).
+- **Gust** pushes goblins (not held/airborne) and loose items within 1.5 of the dragged line up to 2.5 tiles down-wind, stopping at unwalkable tiles; no damage, a small mood dip.
+- **Casting UX**: arming a card sets `armed`; LMB casts and the power stays armed; Esc or a right click without drag puts it away; global powers cast straight from their card. Wide rings (power radius) use a thin band and ignore depth so the whole circle reads over hills.
+- **Temperature lens** colors tiles by local air temperature (cells included) on a −10/0/10/20/30 °C scale and recolors when the rounded global temperature or the cell set changes.
+

@@ -10,7 +10,7 @@ import { rainingAt } from './weather';
 
 const P = CFG.plants;
 const GROW: PlantStage[] = ['seed', 'sprout', 'sapling', 'young'];
-const NEXT: Partial<Record<PlantStage, PlantStage>> = { seed: 'sprout', sprout: 'sapling', sapling: 'young', young: 'mature' };
+export const NEXT_STAGE: Partial<Record<PlantStage, PlantStage>> = { seed: 'sprout', sprout: 'sapling', sapling: 'young', young: 'mature' };
 const GROW_DAYS = GROW.reduce((a, st) => a + P.stageDays[st as keyof typeof P.stageDays], 0);
 
 /** §8.1 growth multipliers. hydration 0 → 0.25 (dry) … 1 → 1.5 (soaked); 0.6 → 1.0. */
@@ -49,7 +49,7 @@ export function removePlant(w: World, p: Plant): void {
   w.markPlantsDirty();
 }
 
-function setStage(w: World, p: Plant, stage: PlantStage): void {
+export function setStage(w: World, p: Plant, stage: PlantStage): void {
   p.stage = stage;
   p.growth = 0;
   if (maxFruit(p) < p.fruit) p.fruit = maxFruit(p);
@@ -107,7 +107,7 @@ export function updatePlants(w: World): void {
       if (p.growth >= 1) {
         // §8.3: a plant draws 0.15 fertility over its growth, charged per finished stage
         t.fertility = q4(Math.max(0, t.fertility - (P.fertilityDraw * days) / GROW_DAYS));
-        setStage(w, p, NEXT[p.stage]!);
+        setStage(w, p, NEXT_STAGE[p.stage]!);
       }
       continue;
     }

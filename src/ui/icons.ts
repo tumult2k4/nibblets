@@ -22,6 +22,8 @@ const SPRITE = [
   S('drop', `<path d="M12 3s7 8 7 12a7 7 0 01-14 0c0-4 7-12 7-12z" fill="#7fb3d5" stroke="${I}" stroke-width="1.5"/>`),
   S('moon', `<path d="M15 3a9 9 0 100 18 7 7 0 010-18z" fill="#e8d98a" stroke="${I}" stroke-width="1.5"/>`),
   S('sun', `<circle cx="12" cy="12" r="5" fill="#e8b64c" stroke="${I}" stroke-width="1.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2" stroke="${I}" stroke-width="1.5" stroke-linecap="round"/>`),
+  S('wind', `<path d="M3 9h11a3 3 0 10-3-3M3 14h15a3 3 0 11-3 3M3 19h7" fill="none" stroke="${I}" stroke-width="2" stroke-linecap="round"/><path d="M3 9h11" stroke="#7cc7f2" stroke-width="1" stroke-linecap="round"/>`),
+  S('clock', `<circle cx="12" cy="12" r="9" fill="#f3e9d2" stroke="${I}" stroke-width="1.5"/><path d="M12 7v5l3.5 2.5" fill="none" stroke="${I}" stroke-width="2" stroke-linecap="round"/><path d="M17 3l3 3" stroke="#e8b64c" stroke-width="2" stroke-linecap="round"/>`),
   S('cloud', `<path d="M7 18a4 4 0 010-8 5 5 0 019.6-1A4 4 0 1117 18z" fill="#dfe8ef" stroke="${I}" stroke-width="1.5"/>`),
   S('rain', `<path d="M7 14a4 4 0 010-8 5 5 0 019.6-1A4 4 0 1117 14z" fill="#dfe8ef" stroke="${I}" stroke-width="1.5"/><path d="M8 17l-1 3M12 17l-1 3M16 17l-1 3" stroke="#4f86b0" stroke-width="2" stroke-linecap="round"/>`),
   S('storm', `<path d="M7 14a4 4 0 010-8 5 5 0 019.6-1A4 4 0 1117 14z" fill="#8f9aa6" stroke="${I}" stroke-width="1.5"/><path d="M13 13l-3 4h3l-2 5 5-6h-3l2-3z" fill="#e8b64c" stroke="${I}" stroke-linejoin="round"/>`),

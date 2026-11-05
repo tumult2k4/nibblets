@@ -51,7 +51,12 @@ export class Game {
       let n = 0;
       const batch: SimEvent[] = [];
       let ms = 0;
-      while (this.acc >= tickDur && n < MAX_TICKS_PER_FRAME) {
+      // Fast-Forward Day / Hasten Season (§17.5.2): run flat out until the target tick
+      const skipTo = this.world.s.god.skipTo ?? 0;
+      const skipping = !this.paused && skipTo > this.world.s.tick;
+      if (skipping) this.acc = Math.min(skipTo - this.world.s.tick, CFG.powers.skipPerFrame) * tickDur;
+      const cap = skipping ? CFG.powers.skipPerFrame : MAX_TICKS_PER_FRAME;
+      while (this.acc >= tickDur - 1e-9 && n < cap) {
         this.acc -= tickDur;
         // apply god commands even while paused? no: commands wait for the next tick
         for (const e of this.world.step()) batch.push(e);
@@ -60,7 +65,7 @@ export class Game {
         n++;
       }
       if (n) this.tickMs = this.tickMs * 0.9 + (ms / n) * 0.1;
-      if (n >= MAX_TICKS_PER_FRAME) this.acc = 0; // behind: drop time
+      if (n >= cap || skipping) this.acc = 0; // behind (or done skipping): drop time
       // while paused, still apply queued god commands so the hand stays responsive (see World.applyNow)
       if (!n && this.world.queue.length) for (const e of this.world.applyNow()) batch.push(e);
       if (batch.length) {

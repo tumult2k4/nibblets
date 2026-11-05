@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import type { World } from '../sim/world';
 import type { WeatherKind } from '../shared/types';
 import { weatherAt } from '../sim/weather';
+import { heightAt } from '../sim/grid';
+import { CFG } from '../sim/config';
 
 const R = 32, H = 26;
 const RAIN_N = 2600, SNOW_N = 2200;
@@ -29,6 +31,9 @@ export class WeatherFx {
   private boltLife = 0;
   private nextBolt = 3;
   private look: WeatherLook = { overcast: 0, flash: 0, fogMul: 1, wet: 0 };
+  /** cloud discs above local cells (§17.5.2), warm glow under Warm Sun cells */
+  private discs: THREE.Mesh[] = [];
+  private discGeo = new THREE.CircleGeometry(1, 28).rotateX(-Math.PI / 2);
 
   constructor() {
     for (const [base, n] of [[this.rainBase, RAIN_N], [this.snowBase, SNOW_N]] as const)
@@ -94,6 +99,7 @@ export class WeatherFx {
     }
     sp.needsUpdate = true;
     for (const c of cells) if (c.kind === 'storm') anyStorm = true;
+    this.cellDiscs(w);
     this.lightning(dt, anyStorm, center, kindAt);
     const L = this.look;
     L.overcast = smooth(L.overcast, OVERCAST[kind], 0.6, dt);
@@ -101,6 +107,29 @@ export class WeatherFx {
     const raining = kind === 'rain' || kind === 'storm';
     L.wet = smooth(L.wet, raining ? 1 : 0, raining ? 0.08 : 0.02, dt);
     return L;
+  }
+
+  private cellDiscs(w: World): void {
+    const cells = w.s.weather.cells;
+    while (this.discs.length < cells.length) {
+      const m = new THREE.Mesh(this.discGeo, new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false, fog: false, map: flake() }));
+      m.renderOrder = 4;
+      this.discs.push(m);
+      this.group.add(m);
+    }
+    this.discs.forEach((m, i) => {
+      const c = cells[i];
+      m.visible = !!c;
+      if (!c) return;
+      const warm = c.tempOffset > 0 && c.kind === 'clear';
+      const left = Math.min(1, (c.untilTick - w.s.tick) / CFG.god.hourTicks); // fade over the last hour
+      const mat = m.material as THREE.MeshBasicMaterial;
+      mat.color.set(warm ? '#ffd27a' : c.kind === 'snow' || c.kind === 'blizzard' ? '#e6ecf2' : '#6f7884');
+      mat.blending = warm ? THREE.AdditiveBlending : THREE.NormalBlending;
+      mat.opacity = (warm ? 0.3 : 0.5) * left;
+      m.position.set(c.pos.x, heightAt(w.s, c.pos) * CFG.world.heightScale + (warm ? 0.12 : 18), c.pos.y);
+      m.scale.setScalar(c.radius);
+    });
   }
 
   private lightning(dt: number, storm: boolean, c: THREE.Vector3, kindAt: (x: number, z: number) => WeatherKind): void {

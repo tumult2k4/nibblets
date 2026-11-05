@@ -114,3 +114,8 @@ table.genome td { padding: 1px 4px; border-bottom: 1px solid rgba(0,0,0,.08); }
 .topbar .stat.clickable { cursor: pointer; }
 .wxmenu { position: fixed; z-index: 40; display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 6px; }
 .wxmenu .btn { justify-content: flex-start; gap: 4px; white-space: nowrap; }
+.castlabel { position: fixed; left: 0; top: 0; z-index: 30; pointer-events: none; padding: 4px 8px; border-radius: 8px; background: rgba(46,42,36,.82); color: #fdf6e3; font-size: .82em; white-space: nowrap; }
+.castlabel.hidden { display: none; }
+.card { position: relative; }
+.card .cdring { position: absolute; inset: 4px; border-radius: 8px; pointer-events: none; }
+

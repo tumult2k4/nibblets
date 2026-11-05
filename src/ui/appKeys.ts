@@ -11,9 +11,10 @@ export function keyHandlers(app: App): KeyHandlers {
   return {
     pause: () => inGame() && app.topBar.setSpeed(app.game.speedIdx === 0 ? 1 : 0),
     speed1: speed(1), speed2: speed(2), speed3: speed(3), speed4: speed(4),
-    hand: () => inGame() && app.store.set({ activeTool: 'hand', openPanels: { ...st().openPanels, tray: false, flyout: false } }),
-    terraform: () => inGame() && !app.readOnly() && app.store.set({ activeTool: st().activeTool === 'terraform' ? 'hand' : 'terraform', openPanels: { ...st().openPanels, tray: false, flyout: st().activeTool !== 'terraform' } }),
-    gifts: () => inGame() && !app.readOnly() && app.store.set({ activeTool: 'gifts', openPanels: { ...st().openPanels, tray: !st().openPanels.tray, flyout: !st().openPanels.tray } }),
+    hand: () => inGame() && app.store.set({ activeTool: 'hand', armed: null, openPanels: { ...st().openPanels, tray: false, flyout: false } }),
+    terraform: () => inGame() && !app.readOnly() && app.toolbar.choose('terraform'),
+    nature: () => inGame() && !app.readOnly() && app.toolbar.choose('nature'),
+    gifts: () => inGame() && !app.readOnly() && app.store.set({ activeTool: 'gifts', armed: null, openPanels: { ...st().openPanels, tray: !st().openPanels.tray, flyout: !st().openPanels.tray } }),
     follow: () => {
       const id = st().selection[0];
       if (id !== undefined && st().selectedKind === 'goblin') app.follow(app.game.renderer.camera.followId === id ? null : id);

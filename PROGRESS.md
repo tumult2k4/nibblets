@@ -1,5 +1,5 @@
 # Nibblets progress
-Current: P3.8 — nature powers with local weather cells, casting UX, temperature lens, forecast tooltip
+Current: P4.1 — rocks harvestable (Mine, finite stone, flint chance), sticks, tool items with durability
 ## Done
 - [x] P1.1 scaffold: Vite + strict TS, ESLint flat config with sim architecture rules, Prettier, Vitest, scripts
 - [x] P1.2 shared/: math, ids, mulberry32 Rng with fork(label), typed EventBus
@@ -29,10 +29,17 @@ Current: P3.8 — nature powers with local weather cells, casting UX, temperatur
 - [x] P3.3 building system: findSite (flatness, water 4–10, spacing 3–6, orchards/fertility/trails avoided), blueprints reserve footprints (path cost ×4), DeliverMaterial (cooperative, no over-delivery), Build (skill, mood, friend ×1.3), completion + deeds + building skill; ghost/scaffold/hut meshes with delivered piles; hammering animation; sandbox spawn_building
 - [x] P3.4 huts: ClaimHome (free bed in a built/planned hut, else plan a new one; ≤ 2 unsupplied blueprints), capacity 2, home pantry (storage 6) for surplus food, SleepHome (2× restore, sheltered +8 °C), chop also feeds blueprints, bed freed on death; building picking + inspector, housed count, feed notes
 - [x] P3.5 planner goal stack: pure `resolve` (build → deliver/labor/obtain; obtain → stockpile via GatherForGoal, loose items, chop, explore), max depth 4, ×1.5 focus with a 0.25 floor, abandon after 300 ticks of urgent pre-emption, ClaimHome pushes build goals; goal line in the inspector, focus column in the debug overlay
-## Next
 - [x] P3.6 SeekShelter (home → any hut within 25 → tree shade in heatwaves; waits it out; storm/blizzard interrupt), WarmUp (roof → huddle partner, friends first → sunshine), huddling +2 °C per goblin (max +4), heatwave shade spares the extra thirst; storms batter huts below 50 % hp, repair flag below 70 %, destroyBuilding; mushrooms (worldgen scatter, forest/marsh sprouting ×season, mostly in rain, rot after 4 days), Forage (brown/glowcap, redcap ignored), mushroom memory; instanced mushroom meshes with night-glowing glowcaps; shelter/huddle/forage poses, inspector tags
 - [x] P3.7 weather FX: rain/snow particles only where it precipitates, lightning bolts + flash, overcast sky, weather fog, wet ground tint, lit hut windows at night
+- [x] P3.8 nature powers via `god_cast` (Rain, Snowfall, Warm Sun as local weather cells ≤ 4; Clear Sky; Gust along a dragged line; Fast-Forward Day and Hasten Season as fast time skips; Apple Shower and Bountiful Growth), Divine-mode tier/favor/cooldown checks (Sandbox free), area witnesses, out-of-season snow omen; casting UX (Nature toolbar + gift power cards with cost/shortfall/cooldown rings, armed hand glow in the category color, radius ring with Shift+wheel and slider, affected goblins ringed, cursor label with cost and counts, Esc/right-click disarm, global powers cast from the card); cloud discs over cells; temperature lens; forecast tooltip with local cells
+### Phase 3 acceptance
+- [x] Rain test green (shelter.test: unsheltered goblin with a home is inside within 300 ticks); build-a-hut test green (homes.test)
+- [x] Balance 32 days × 5 seeds: 100 % of adults housed by the end of autumn, 0 weather deaths on every seed
+- [x] Local rain cell test green; Warm Sun dries wet goblins (powers.test)
+## Next
+- [ ] P4.1 Mine (finite stone, flint chance), sticks, tool items with durability
 ## Notes / known issues
+- Balance (32 days × 5 seeds, after P3.8): unchanged from P3.4 — 0 deaths, 5–6 huts, 100 % housed by the end of autumn, ~0.13–0.15 ms/tick.
 - Balance (32 days × 5 seeds, after P3.4): 0 deaths, 5 huts and 100 % housed by the end of autumn on every seed, 29–55 goblin-planted mature bushes, ~0.14 ms/tick.
 - Balance (20 days × 5 seeds, after P2): population 10, 0 deaths, 25–36 goblin-planted mature bushes, apple bushes 70→~105, ~29 wood stored, ~0.12 ms/tick.
 - Commits for Phase 1 were batched into three (see DECISIONS.md); from P2 on, one commit per step.

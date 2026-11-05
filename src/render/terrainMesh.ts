@@ -23,7 +23,7 @@ export function cornerPos(s: WorldState, cx: number, cy: number): THREE.Vector3 
   return new THREE.Vector3(cx + jx, cornerHeight(s, cx, cy) * HS, cy + jz);
 }
 
-export type TerrainLens = 'fertility' | 'moisture' | 'paths';
+export type TerrainLens = 'fertility' | 'moisture' | 'paths' | 'temperature';
 /** Snow cover in fifths: what the renderer can see change. */
 const snowBucket = (v: number): number => (v < 0.05 ? 0 : Math.min(5, Math.ceil(v * 5)));
 
@@ -31,6 +31,14 @@ const BIOME_IDX: Record<string, number> & Record<'meadow', number> = { meadow: 0
 const L_LOW = new THREE.Color('#9a4a2a'), L_MID = new THREE.Color('#e8cf62'), L_HIGH = new THREE.Color('#2f9e3a');
 const M_LOW = new THREE.Color('#d8c48e'), M_HIGH = new THREE.Color('#2f78c4');
 const P_HOT = new THREE.Color('#f08a24');
+const T_STOPS = ['#2f5fd0', '#8ec5f0', '#f2efe2', '#f4b860', '#e0502a'].map((h) => new THREE.Color(h));
+
+/** Temperature lens scale (§P3.8): −10 °C blue, 0 °C ice, 10 °C pale, 20 °C amber, 30 °C red. */
+export function tempColor(c: THREE.Color, deg: number): void {
+  const k = Math.max(0, Math.min(3.999, (deg + 10) / 10));
+  const i = Math.floor(k);
+  c.copy(T_STOPS[i]!).lerp(T_STOPS[i + 1]!, k - i);
+}
 
 function lensColor(c: THREE.Color, t: { fertility: number; moisture: number; wear: number }, l: TerrainLens): void {
   if (l === 'fertility') {
@@ -47,8 +55,11 @@ export class TerrainMesh {
   readonly group = new THREE.Group();
   readonly chunks = new Map<string, THREE.Mesh>();
   private mat = new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true });
-  /** Terrain lens (§18.10, P2.7): recolors tiles by fertility, moisture or path wear. */
+  /** Terrain lens (§18.10, P2.7): recolors tiles by fertility, moisture, path wear or air temperature. */
   lens: TerrainLens | null = null;
+  /** air temperature at a tile (set by the renderer; the mesh only sees plain state) */
+  tempAt: ((x: number, y: number) => number) | null = null;
+  private tempSig = '';
   private snap: { h: Float32Array; b: Uint8Array; w: Uint8Array; f: Uint8Array; sn: Uint8Array };
   /** current seasonal biome palette (§9.3) */
   private biomes: Record<Biome, THREE.Color> = BIOME_COLORS;
@@ -79,6 +90,13 @@ export class TerrainMesh {
     if (l === this.lens) return;
     this.lens = l;
     this.rebuildAll();
+  }
+
+  /** Temperatures drift with the clock and weather cells: recolor when the rounded picture changes. */
+  setTempSig(sig: string): void {
+    if (sig === this.tempSig) return;
+    this.tempSig = sig;
+    if (this.lens === 'temperature') this.rebuildAll();
   }
 
   /** Swap the seasonal palette; rebuilds every chunk only when the blend step changes. */
@@ -153,7 +171,8 @@ export class TerrainMesh {
         if (slope > 0.9 && t.biome !== 'water') c.lerp(pal.rock, Math.min(0.6, (slope - 0.9) * 0.8));
         if (t.wear > 0.2) c.lerp(DIRT, Math.min(0.8, t.wear));
         if (t.snow > 0.05 && t.biome !== 'water') c.lerp(SNOW_WHITE, Math.min(0.95, snowBucket(t.snow) / 5 + 0.15));
-        if (this.lens && t.biome !== 'water') lensColor(c, t, this.lens);
+        if (this.lens === 'temperature') { if (this.tempAt) tempColor(c, this.tempAt(x + 0.5, y + 0.5)); }
+        else if (this.lens && t.biome !== 'water') lensColor(c, t, this.lens);
         // gentle per-tile variation
         const v = jitter(x, y, 7) * 0.12;
         const tri = (p: THREE.Vector3[], k: number) => {

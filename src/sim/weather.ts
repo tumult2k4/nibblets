@@ -1,8 +1,10 @@
 /** Weather state machine (§9.1): season-dependent Markov chain stepped every quarter day, local cells. */
 import { CFG } from './config';
-import { q4 } from '../shared/math';
+import { q2, q4 } from '../shared/math';
+import { allocId } from '../shared/ids';
 import type { Season, Vec2, WeatherKind } from '../shared/types';
 import type { World } from './world';
+import type { WeatherCell } from './state';
 import { clockAt, daylight } from './time';
 import { airTemperature, updateWetness } from './temperature';
 
@@ -41,6 +43,19 @@ export const rainingAt = (w: World, pos: Vec2): boolean => RAINY.has(weatherAt(w
 
 /** Vision multiplier from the weather around a goblin (fog −50 %, blizzard −70 %). */
 export const weatherVisionMul = (w: World, pos: Vec2): number => W.vision[weatherAt(w, pos)] ?? 1;
+
+/** Add a local weather cell (§17.5.2); beyond `maxCells` the one expiring soonest gives way. */
+export function addCell(w: World, kind: WeatherKind, pos: Vec2, radius: number, ticks: number, tempOffset = 0): WeatherCell {
+  const cells = w.s.weather.cells;
+  while (cells.length >= W.maxCells) {
+    let lo = 0;
+    for (let i = 1; i < cells.length; i++) if (cells[i]!.untilTick < cells[lo]!.untilTick) lo = i;
+    cells.splice(lo, 1);
+  }
+  const c: WeatherCell = { id: allocId(w.s), kind, pos: { x: q2(pos.x), y: q2(pos.y) }, radius, untilTick: w.s.tick + ticks, tempOffset: q2(tempOffset) };
+  cells.push(c);
+  return c;
+}
 
 /** Force a weather state now (sandbox / Clear Sky); the next transition is a full period away. */
 export function setWeather(w: World, kind: WeatherKind): void {

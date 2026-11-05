@@ -17,6 +17,7 @@ import { pick, type Pick } from './picking';
 import { Rings } from './decals';
 import { seasonLook } from './seasons';
 import { BuildingViews } from './buildingView';
+import { airAt } from '../sim/temperature';
 
 export interface RenderSettings { shadows: 'off' | 'low' | 'high'; renderScale: number; outlines: boolean; fog: boolean }
 
@@ -67,6 +68,7 @@ export class Renderer {
     }
     this.world = w;
     this.terrain = new TerrainMesh(w.s);
+    this.terrain.tempAt = (x, y) => airAt(w, { x, y });
     this.water = makeWater(w.s);
     this.props = new Props(w);
     this.goblins = new GoblinViews(w);
@@ -148,6 +150,7 @@ export class Renderer {
     // weather fog/blizzard/rain thickens the air regardless of the distance-fog setting (it is gameplay vision)
     if (wx.fogMul < 0.99) { fog.near = Math.min(fog.near, (20 + d * 0.5) * wx.fogMul); fog.far = Math.min(fog.far, (60 + d * 1.6) * wx.fogMul + 8); }
     this.terrain.setWet(wx.wet);
+    this.terrain.setTempSig(`${Math.round(w.s.weather.temperature)}:${w.s.weather.cells.map((c) => c.id).join(',')}`);
     this.water.update(this.time);
     this.terrainTimer -= dt;
     if (w.s.terrainVersion !== this.terrainSeen || this.terrainTimer <= 0) {

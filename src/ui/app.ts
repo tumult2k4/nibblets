@@ -31,6 +31,7 @@ export class App implements Ctx {
   screens!: Screens;
   fx!: WorldFx;
   topBar!: TopBar;
+  toolbar!: GodToolbar;
   feed!: Feed;
   tray!: GiftTray;
   minimap!: Minimap;
@@ -71,7 +72,8 @@ export class App implements Ctx {
     this.feed = new Feed(this);
     this.tray = new GiftTray(this, (item, e) => this.input.tray.start(item, e));
     this.minimap = new Minimap(this);
-    this.comps = [this.topBar, new GodToolbar(this), new Inspector(this), this.feed, this.tray, this.minimap, new DebugOverlay(this),
+    this.toolbar = new GodToolbar(this);
+    this.comps = [this.topBar, this.toolbar, new Inspector(this), this.feed, this.tray, this.minimap, new DebugOverlay(this),
       new QuickRing(this, {
         pickUp: (id) => this.push({ type: 'god_grab', entityId: id }),
         pet: (id) => this.push({ type: 'god_pet', goblinId: id, ticks: 30 }),

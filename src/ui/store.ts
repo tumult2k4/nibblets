@@ -3,11 +3,11 @@ import type { TerraformPower } from '../sim/god/terraform';
 import type { ID } from '../shared/types';
 import type { Lang } from './i18n';
 
-export type ToolId = 'hand' | 'gifts' | 'terraform';
-export type Lens = 'default' | 'needs' | 'faith' | 'mood' | 'genetics' | 'fertility' | 'moisture' | 'paths';
-export const LENSES: Lens[] = ['default', 'needs', 'faith', 'mood', 'genetics', 'fertility', 'moisture', 'paths'];
+export type ToolId = 'hand' | 'gifts' | 'nature' | 'terraform';
+export type Lens = 'default' | 'needs' | 'faith' | 'mood' | 'genetics' | 'fertility' | 'moisture' | 'paths' | 'temperature';
+export const LENSES: Lens[] = ['default', 'needs', 'faith', 'mood', 'genetics', 'fertility', 'moisture', 'paths', 'temperature'];
 /** Lenses that recolor the terrain instead of ringing goblins. */
-export const TERRAIN_LENSES: Lens[] = ['fertility', 'moisture', 'paths'];
+export const TERRAIN_LENSES: Lens[] = ['fertility', 'moisture', 'paths', 'temperature'];
 
 export interface Settings {
   shadows: 'off' | 'low' | 'high'; renderScale: number; outlines: boolean; fog: boolean;
@@ -32,6 +32,9 @@ export interface UIState {
   power: TerraformPower;
   brushRadius: number;
   powerOption: string;
+  /** armed god_cast power (§18.4 casting UX) and its radius */
+  armed: string | null;
+  castRadius: number;
   inspectorTab: 'status' | 'mind' | 'body' | 'inventory';
   settings: Settings;
 }
@@ -74,7 +77,7 @@ export function initialState(): UIState {
   return {
     screen: 'title', selection: [], selectedKind: null, hoveredId: null, activeTool: 'hand',
     openPanels: { inspector: true, feed: true, debug: false, flyout: false, tray: false },
-    overlay: null, lens: 'default', trayTab: 'food', inspectorTab: 'status', power: 'raise_land', brushRadius: 3, powerOption: 'apple_bush',
+    overlay: null, lens: 'default', trayTab: 'food', inspectorTab: 'status', power: 'raise_land', brushRadius: 3, powerOption: 'apple_bush', armed: null, castRadius: 8,
     settings: loadPref('settings', DEFAULT_SETTINGS),
   };
 }

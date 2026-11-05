@@ -80,13 +80,17 @@ export class TopBar implements Component {
     setText(this.cal, `${t('top.day', { season: t(`season.${c.season}`), day: c.seasonDay + 1 })} · ${t('top.year', { year: c.year })} · ${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`);
     const wx = s.weather;
     const deg = Math.round(wx.temperature);
-    const key = `${wx.kind}:${c.phase === 'night'}:${deg}:${wx.upcoming}:${this.ctx.store.state.settings.language}`;
+    const hoursLeft = Math.max(0, Math.ceil((wx.nextChangeTick - s.tick) / CFG.god.hourTicks));
+    const cellKey = wx.cells.map((cl) => `${cl.id}:${Math.ceil((cl.untilTick - s.tick) / CFG.god.hourTicks)}`).join(',');
+    const key = `${wx.kind}:${c.phase === 'night'}:${deg}:${wx.upcoming}:${hoursLeft}:${cellKey}:${this.ctx.store.state.settings.language}`;
     if (this.weather.dataset.k !== key) {
       const ic = wx.kind === 'clear' && c.phase === 'night' ? 'moon' : WEATHER_ICON[wx.kind];
       this.weather.replaceChildren(icon(ic), ` ${t(`weather.${wx.kind}`)} · ${deg}°C`);
       this.weather.dataset.k = key;
-      const hours = Math.max(0, Math.ceil((wx.nextChangeTick - s.tick) / CFG.god.hourTicks));
-      this.weather.dataset.tip = t('weather.forecast2', { now: t(`weather.${wx.kind}`), t: deg, next: t(`weather.${wx.upcoming}`), h: hours })
+      // §P3.8 forecast tooltip: now, next change, and any local weather cells the god has called
+      const cells = wx.cells.map((cl) => t('weather.cell', { w: t(`weather.${cl.kind === 'clear' && cl.tempOffset > 0 ? 'warm' : cl.kind}`), h: Math.max(1, Math.ceil((cl.untilTick - s.tick) / CFG.god.hourTicks)) }));
+      this.weather.dataset.tip = t('weather.forecast2', { now: t(`weather.${wx.kind}`), t: deg, next: t(`weather.${wx.upcoming}`), h: hoursLeft })
+        + (cells.length ? ` · ${t('weather.cells')}: ${cells.join(', ')}` : '')
         + (s.god.mode === 'sandbox' && !this.ctx.readOnly() ? ` · ${t('weather.setHint')}` : '');
     }
     const gs = s.goblins;

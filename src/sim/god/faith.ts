@@ -13,11 +13,11 @@ export interface Reaction { faith?: number; love?: number; fear?: number }
  * Perception rule (§17.4): a goblin witnesses an act if it is the target, or it is awake and the act
  * happens within its vision radius. Sorted by id.
  */
-export function witnessesOf(w: World, at: Vec2, targetId?: ID): Goblin[] {
+export function witnessesOf(w: World, at: Vec2, targetId?: ID, area = 0): Goblin[] {
   return w.s.goblins.filter((g) => {
     if (g.id === targetId) return true;
     if (isSleeping(g) || g.heldByGod) return false;
-    return dist(g.pos, at) <= visionRadius(g, w);
+    return dist(g.pos, at) <= Math.max(area, visionRadius(g, w));
   });
 }
 
@@ -49,19 +49,37 @@ export function reactionFor(act: DivineActKind | 'hurt', g: Goblin, isTarget: bo
     case 'drop':
     case 'throw':
       return isTarget ? {} : { faith: 2 };
+    case 'apple_shower':
+    case 'bountiful_growth':
+      return { faith: 4, love: 3 };
+    case 'rain':
+    case 'warm_sun':
+      return { faith: 3, love: 2 };
+    case 'clear_sky':
+    case 'snowfall':
+      return { faith: 2 };
+    case 'gust':
+      return isTarget ? { faith: 2, fear: 4 } : { faith: 1, fear: 1 };
     default:
       return {};
   }
 }
 
 /**
- * Emit a divine act: compute witnesses, apply reactions, make non-target witnesses look up.
+ * Emit a divine act: compute witnesses, apply reactions, make non-target witnesses look up (§17.4).
  * Returns the witness ids (also on the event).
  */
-export function divineAct(w: World, act: DivineActKind | 'hurt', at: Vec2, targetId?: ID, lookUp = true): ID[] {
-  const ws = witnessesOf(w, at, targetId);
+export interface ActOpts {
+  /** everyone within this radius of `at` witnesses too (area powers); Infinity = every awake goblin (sky acts) */
+  area?: number;
+  /** replaces the reaction table entry (omens such as out-of-season snow) */
+  reaction?: Reaction;
+}
+
+export function divineAct(w: World, act: DivineActKind | 'hurt', at: Vec2, targetId?: ID, lookUp = true, opts: ActOpts = {}): ID[] {
+  const ws = witnessesOf(w, at, targetId, opts.area);
   for (const g of ws) {
-    applyReaction(g, reactionFor(act, g, g.id === targetId));
+    applyReaction(g, opts.reaction ?? reactionFor(act, g, g.id === targetId));
     if (lookUp && g.id !== targetId && !g.airborne && g.activity.action !== 'look_up') forceAction(g, w, 'look_up', at);
   }
   const ids = ws.map((g) => g.id);

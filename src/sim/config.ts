@@ -80,6 +80,11 @@ export const CFG = {
   },
   /** P3.5 planner goal stack (§7.4) */
   planner: { focus: 1.5, floor: 0.25, maxDepth: 4, abandonUrgency: 0.85, abandonTicks: 300, groundSearch: 20 },
+  /** P3.8 nature & weather powers (§17.5.2): cells last 2 h; Warm Sun +15 °C; Snowfall chills its cell to −2 °C */
+  powers: {
+    cellHours: 2, warmSunDeg: 15, warmCellAbove: 10, snowCellAir: -2, showerApples: [12, 18] as [number, number],
+    gustWidth: 1.5, gustMaxLen: 16, gustPush: 2.5, gustMood: -2, skipPerFrame: 600,
+  },
   /** P3.6 shelter, warming up, storms, mushrooms */
   shelter: {
     seekScore: { rain: 0.45, storm: 0.75, snow: 0.3, blizzard: 0.9, heatwave: 0.25 } as Record<string, number>,
