@@ -167,6 +167,7 @@ export class App implements Ctx {
     this.game.renderer.applySettings({ shadows: s.shadows, renderScale: s.renderScale, outlines: s.outlines, fog: s.fog });
     this.game.renderer.emotes.reducedMotion = s.reducedMotion;
     this.game.renderer.weatherFx.reduced = s.reducedMotion;
+    this.game.renderer.wrathFx.reduced = s.reducedMotion;
   }
 
   t = t;

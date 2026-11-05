@@ -127,7 +127,7 @@ export class GoblinViews {
       earFlop = Math.sin(ph - 0.8) * 0.25; // secondary motion with phase lag
       if (baby) r.body.rotation.z = Math.sin(ph * 0.5) * 0.12; // babies wobble
       if (act === 'seek_shelter') { r.armL.rotation.x = -2.7; r.armR.rotation.x = -2.7; } // hands over the head, hurrying in
-      if (act === 'flee') { r.armL.rotation.x = -2.6 + Math.sin(ph * 1.5) * 0.4; r.armR.rotation.x = -2.6 - Math.sin(ph * 1.5) * 0.4; earFlop = 0.6; } // flailing panic, ears flat
+      if (act === 'flee' || act === 'scatter') { r.armL.rotation.x = -2.6 + Math.sin(ph * 1.5) * 0.4; r.armR.rotation.x = -2.6 - Math.sin(ph * 1.5) * 0.4; earFlop = 0.6; } // flailing panic, ears flat
       if (act === 'attack' || act === 'defend_village') { r.armR.rotation.x = -1.5; r.body.rotation.x += 0.2; } // charging, weapon levelled
       if (act === 'follow_wisp') { r.armL.rotation.x = r.armR.rotation.x = -1.4; r.head.rotation.x = -0.25; earFlop = 0.1; } // sleepwalking after the light
     } else if (act === 'follow_wisp') {

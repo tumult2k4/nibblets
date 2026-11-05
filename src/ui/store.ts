@@ -4,20 +4,22 @@ import type { TerraformPower } from '../sim/god/terraform';
 import type { ID } from '../shared/types';
 import type { Lang } from './i18n';
 
-export type ToolId = 'hand' | 'gifts' | 'nature' | 'terraform';
-export type Lens = 'default' | 'needs' | 'faith' | 'mood' | 'genetics' | 'fertility' | 'moisture' | 'paths' | 'temperature';
-export const LENSES: Lens[] = ['default', 'needs', 'faith', 'mood', 'genetics', 'fertility', 'moisture', 'paths', 'temperature'];
+export type ToolId = 'hand' | 'gifts' | 'nature' | 'terraform' | 'wrath';
+export type Lens = 'default' | 'needs' | 'faith' | 'mood' | 'genetics' | 'fertility' | 'moisture' | 'paths' | 'temperature' | 'danger';
+export const LENSES: Lens[] = ['default', 'needs', 'faith', 'mood', 'genetics', 'fertility', 'moisture', 'paths', 'temperature', 'danger'];
 /** Lenses that recolor the terrain instead of ringing goblins. */
-export const TERRAIN_LENSES: Lens[] = ['fertility', 'moisture', 'paths', 'temperature'];
+export const TERRAIN_LENSES: Lens[] = ['fertility', 'moisture', 'paths', 'temperature', 'danger'];
 
 export interface Settings {
   shadows: 'off' | 'low' | 'high'; renderScale: number; outlines: boolean; fog: boolean;
   edgePan: boolean; invertOrbit: boolean; autopauseDeath: boolean; tooltipDelay: number;
   uiScale: number; reducedMotion: boolean; language: Lang;
+  /** §18.4 step 4: ask before a cast that would kill a goblin */
+  confirmLethal: boolean;
 }
 export const DEFAULT_SETTINGS: Settings = {
   shadows: 'high', renderScale: 1, outlines: true, fog: true, edgePan: false, invertOrbit: false, autopauseDeath: false,
-  tooltipDelay: 350, uiScale: 1, reducedMotion: false, language: 'en',
+  tooltipDelay: 350, uiScale: 1, reducedMotion: false, language: 'en', confirmLethal: true,
 };
 
 export interface UIState {

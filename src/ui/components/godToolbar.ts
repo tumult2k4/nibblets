@@ -32,6 +32,7 @@ export class GodToolbar implements Component {
       ['gifts', 'gift', t('tool.giftsTip'), 'gifts'],
       ['nature', 'cloud', t('tool.natureTip'), 'nature'],
       ['terraform', 'hill', t('tool.terraformTip'), 'terraform'],
+      ['wrath', 'bolt', t('tool.wrathTip'), 'wrath'],
     ];
     for (const [id, ic, tip, key] of tools) {
       const b = el('button.btn.iconbtn', { onclick: () => this.choose(id) }, icon(ic));
@@ -47,7 +48,8 @@ export class GodToolbar implements Component {
 
   choose(id: ToolId): void {
     const st = this.ctx.store.state;
-    if (id === 'terraform' || id === 'nature') {
+    if (id === 'wrath' && this.ctx.game.world.s.god.gentle) id = 'hand';
+    if (id === 'terraform' || id === 'nature' || id === 'wrath') {
       const open = st.activeTool !== id;
       this.ctx.store.set({ activeTool: open ? id : 'hand', armed: null, openPanels: { ...st.openPanels, tray: false, flyout: open } });
       this.flyout.replaceChildren();
@@ -81,11 +83,11 @@ export class GodToolbar implements Component {
     this.flyout.replaceChildren(...cards, opts);
   }
 
-  /** Flyouts of the Gifts (tray + gift powers) and Nature categories (§18.4). */
+  /** Flyouts of the Gifts (tray + gift powers), Nature and Wrath categories (§18.4). */
   private renderFlyout(): void {
     const st = this.ctx.store.state;
     if (st.activeTool === 'terraform') return this.renderTerraform();
-    if (st.activeTool === 'nature') return void this.flyout.replaceChildren(...powerCards(this.ctx, 'nature'), this.radiusBox());
+    if (st.activeTool === 'nature' || st.activeTool === 'wrath') return void this.flyout.replaceChildren(...powerCards(this.ctx, st.activeTool), this.radiusBox());
     const tray = el(`div.card${st.armed ? '' : '.on'}`, { onclick: () => this.ctx.store.set({ armed: null }) }, icon('gift'),
       el('div.name', { text: t('power.gift_tray') }), el('div.meta', { text: this.ctx.game.world.s.god.mode === 'sandbox' ? t('power.free') : t('power.trayCost') }));
     tray.dataset.tip = t('power.gift_trayDesc');
@@ -107,10 +109,13 @@ export class GodToolbar implements Component {
   update(): void {
     const st = this.ctx.store.state;
     this.root.classList.toggle('hidden', this.ctx.readOnly());
+    const gentle = this.ctx.game.world.s.god.gentle;
     for (const [id, b] of this.btns) b.classList.toggle('on', st.activeTool === id);
+    this.btns.get('wrath')?.classList.toggle('hidden', gentle); // §17.2 Gentle mode hides the Wrath category
+    if (gentle && st.activeTool === 'wrath') this.choose('hand');
     const show = st.openPanels.flyout && !this.ctx.readOnly();
     this.flyout.classList.toggle('hidden', !show);
-    const cat = st.activeTool === 'nature' ? 'nature' : 'gift';
+    const cat = st.activeTool === 'nature' || st.activeTool === 'wrath' ? st.activeTool : 'gift';
     const sig = `${st.activeTool}:${st.power}:${st.powerOption}:${st.settings.language}:${cardsSig(this.ctx, cat)}`;
     if (show && (!this.flyout.firstChild || sig !== this.flySig)) {
       this.flySig = sig;

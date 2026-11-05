@@ -39,6 +39,7 @@ export const POWER_DEFS: PowerDef[] = [
   P('curse', 'wrath', 'goblin', 20, 24, 4, 2),
   P('blight', 'wrath', 'area', 25, 24, 6, 3, { radius: [3, 6] }),
   P('summon_gnashers', 'wrath', 'point', 30, 24, 4, 3, { lethal: true }),
+  P('summon_bramblebeast', 'wrath', 'point', 60, 24, 4, 3, { lethal: true }),
   P('plague', 'wrath', 'goblin', 40, 48, 6, 3, { lethal: true }),
   P('meteor', 'wrath', 'area', 60, 48, 4, 3, { lethal: true, radius: [4, 4] }),
   P('flood', 'wrath', 'area', 60, 48, 6, 3, { radius: [6, 14] }),

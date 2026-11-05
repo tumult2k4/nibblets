@@ -29,6 +29,17 @@ export function applyReaction(g: Goblin, r: Reaction): void {
   if (r.fear) v.fear = q4(clamp(v.fear + r.fear, 0, 100));
 }
 
+/** A kindness from the god melts anger at it (§17.4). */
+export function calmAnger(w: World, g: Goblin): void {
+  if (!g.godView.angryAtGod) return;
+  g.godView.angryAtGod = false;
+  g.godView.angryUntil = 0;
+  const m = g.mood.modifiers.find((x) => x.id === 'angry_at_god');
+  if (m) m.expiresTick = w.s.tick;
+}
+/** Acts that count as a kindness toward their target (or toward everyone inside an area gift). */
+const KIND: ReadonlySet<string> = new Set(['gift', 'set_down', 'pet', 'apple_shower', 'bountiful_growth', 'warm_sun']);
+
 const isYoung = (g: Goblin) => g.lifeStage === 'hatchling' || g.lifeStage === 'youngling';
 
 /** Reaction table (§17.4) for the acts implemented so far. */
@@ -60,6 +71,16 @@ export function reactionFor(act: DivineActKind | 'hurt', g: Goblin, isTarget: bo
       return { faith: 2 };
     case 'gust':
       return isTarget ? { faith: 2, fear: 4 } : { faith: 1, fear: 1 };
+    case 'lightning':
+    case 'meteor':
+      return { faith: 8, fear: 15 };
+    case 'swarm':
+      return { faith: 3, fear: 6 };
+    case 'curse':
+      return isTarget ? { faith: 5, love: -8, fear: 10 } : { faith: 3, fear: 5 };
+    case 'summon_gnashers':
+    case 'summon_bramblebeast':
+      return { faith: 4, fear: 10 };
     default:
       return {};
   }
@@ -80,6 +101,7 @@ export function divineAct(w: World, act: DivineActKind | 'hurt', at: Vec2, targe
   const ws = witnessesOf(w, at, targetId, opts.area);
   for (const g of ws) {
     applyReaction(g, opts.reaction ?? reactionFor(act, g, g.id === targetId));
+    if (KIND.has(act) && (g.id === targetId || (opts.area !== undefined && opts.area < Infinity && dist(g.pos, at) <= opts.area))) calmAnger(w, g);
     if (lookUp && g.id !== targetId && !g.airborne && g.activity.action !== 'look_up') forceAction(g, w, 'look_up', at);
   }
   const ids = ws.map((g) => g.id);

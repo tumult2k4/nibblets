@@ -23,7 +23,7 @@ export function cornerPos(s: WorldState, cx: number, cy: number): THREE.Vector3 
   return new THREE.Vector3(cx + jx, cornerHeight(s, cx, cy) * HS, cy + jz);
 }
 
-export type TerrainLens = 'fertility' | 'moisture' | 'paths' | 'temperature';
+export type TerrainLens = 'fertility' | 'moisture' | 'paths' | 'temperature' | 'danger';
 /** Snow cover in fifths: what the renderer can see change. */
 const snowBucket = (v: number): number => (v < 0.05 ? 0 : Math.min(5, Math.ceil(v * 5)));
 
@@ -38,6 +38,16 @@ export function tempColor(c: THREE.Color, deg: number): void {
   const k = Math.max(0, Math.min(3.999, (deg + 10) / 10));
   const i = Math.floor(k);
   c.copy(T_STOPS[i]!).lerp(T_STOPS[i + 1]!, k - i);
+}
+
+const D_CALM = new THREE.Color('#5fae5a'), D_WARN = new THREE.Color('#f2b13c'), D_HOT = new THREE.Color('#d8332a');
+/** Danger lens (P4.8): calm ground dims toward green, recent trouble glows amber, then red. */
+export function dangerColor(c: THREE.Color, v: number): void {
+  c.multiplyScalar(0.5);
+  if (v < 0.05) { c.lerp(D_CALM, 0.3); return; }
+  const k = Math.min(1, v);
+  const hot = D_WARN.clone().lerp(D_HOT, k);
+  c.lerp(hot, Math.min(1, 0.35 + k * 0.65));
 }
 
 function lensColor(c: THREE.Color, t: { fertility: number; moisture: number; wear: number }, l: TerrainLens): void {
@@ -59,7 +69,10 @@ export class TerrainMesh {
   lens: TerrainLens | null = null;
   /** air temperature at a tile (set by the renderer; the mesh only sees plain state) */
   tempAt: ((x: number, y: number) => number) | null = null;
+  /** danger at a tile (set by the renderer) */
+  dangerAt: ((x: number, y: number) => number) | null = null;
   private tempSig = '';
+  private dangerSig = '';
   private snap: { h: Float32Array; b: Uint8Array; w: Uint8Array; f: Uint8Array; sn: Uint8Array };
   /** current seasonal biome palette (§9.3) */
   private biomes: Record<Biome, THREE.Color> = BIOME_COLORS;
@@ -97,6 +110,13 @@ export class TerrainMesh {
     if (sig === this.tempSig) return;
     this.tempSig = sig;
     if (this.lens === 'temperature') this.rebuildAll();
+  }
+
+  /** Danger marks come and fade and beasts move: recolor when the rounded picture changes. */
+  setDangerSig(sig: string): void {
+    if (sig === this.dangerSig) return;
+    this.dangerSig = sig;
+    if (this.lens === 'danger') this.rebuildAll();
   }
 
   /** Swap the seasonal palette; rebuilds every chunk only when the blend step changes. */
@@ -172,6 +192,7 @@ export class TerrainMesh {
         if (t.wear > 0.2) c.lerp(DIRT, Math.min(0.8, t.wear));
         if (t.snow > 0.05 && t.biome !== 'water') c.lerp(SNOW_WHITE, Math.min(0.95, snowBucket(t.snow) / 5 + 0.15));
         if (this.lens === 'temperature') { if (this.tempAt) tempColor(c, this.tempAt(x + 0.5, y + 0.5)); }
+        else if (this.lens === 'danger') { if (this.dangerAt) dangerColor(c, this.dangerAt(x + 0.5, y + 0.5)); }
         else if (this.lens && t.biome !== 'water') lensColor(c, t, this.lens);
         // gentle per-tile variation
         const v = jitter(x, y, 7) * 0.12;

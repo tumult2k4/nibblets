@@ -55,6 +55,10 @@ const SPRITE = [
   S('leaf', `<path d="M5 19C5 9 11 4 20 4c0 9-5 15-15 15z" fill="#6e8b3d" stroke="${I}" stroke-width="1.5"/><path d="M5 19L14 10" stroke="${I}"/>`),
   S('help', `<circle cx="12" cy="12" r="9" fill="#7fb3d5" stroke="${I}" stroke-width="1.5"/><path d="M9.5 9.5a2.5 2.5 0 115 .5c-.5 1.5-2.5 1.5-2.5 3.5" stroke="${I}" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="12" cy="17" r="1.2" fill="${I}"/>`),
   S('replay', `<path d="M4 12a8 8 0 108-8H8" stroke="${I}" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M9 1L5 4l4 3z" fill="${I}"/><path d="M10 9l5 3-5 3z" fill="#c8452d"/>`),
+  S('bolt', `<path d="M14 2L5 13h6l-2 9 10-12h-6l3-8z" fill="#a77bf0" stroke="${I}" stroke-width="1.5" stroke-linejoin="round"/>`),
+  S('swarm', `<circle cx="7" cy="8" r="2" fill="#5d5a66" stroke="${I}"/><circle cx="16" cy="6" r="2" fill="#5d5a66" stroke="${I}"/><circle cx="12" cy="13" r="2.4" fill="#5d5a66" stroke="${I}"/><circle cx="6" cy="17" r="1.8" fill="#5d5a66" stroke="${I}"/><circle cx="18" cy="16" r="2" fill="#5d5a66" stroke="${I}"/><path d="M5 6l-1-1m11 0l1-1m-5 7l-1-1m3 0l1-1m-9 7l-1-1m13-1l1-1" stroke="${I}"/>`),
+  S('curse', `<path d="M6 12a4 4 0 010-8 5 5 0 019.6-1A4 4 0 1116 12z" fill="#5a4a6e" stroke="${I}" stroke-width="1.5"/><path d="M8 15l-1 3m5-3l-1 3m5-3l-1 3" stroke="#a77bf0" stroke-width="2" stroke-linecap="round"/>`),
+  S('meteor', `<path d="M3 3l9 6M6 2l7 7M2 7l9 5" stroke="#e8763a" stroke-width="2" stroke-linecap="round"/><circle cx="15.5" cy="15.5" r="5.5" fill="#7a6a5e" stroke="${I}" stroke-width="1.5"/><circle cx="14" cy="14" r="1.3" fill="${I}"/><circle cx="17.5" cy="17" r="1" fill="${I}"/>`),
   S('fang', `<path d="M3 9l4-5 3 4h4l3-4 4 5-2 8c-2 3-5 4-7 4s-5-1-7-4z" fill="#5d5a66" stroke="${I}" stroke-width="1.5" stroke-linejoin="round"/><circle cx="9" cy="11" r="1.6" fill="#e9c35b"/><circle cx="15" cy="11" r="1.6" fill="#e9c35b"/><path d="M8 15l1.5 3 1.5-3m2 0l1.5 3 1.5-3" fill="#f3e9d2" stroke="${I}" stroke-linejoin="round"/>`),
 ].join('');
 

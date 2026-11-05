@@ -10,6 +10,7 @@ import { enemyCanStand } from '../fences';
 import type { EnemyKind, Vec2 } from '../../shared/types';
 import type { Enemy, Goblin } from '../state';
 import type { World } from '../world';
+import { markDanger } from '../danger';
 
 const E = CFG.enemies;
 
@@ -77,6 +78,7 @@ export function spotted(w: World, e: Enemy, by: Goblin): void {
   e.seen = true;
   if (harmless(e)) return;
   w.s.threat.alarms++;
+  markDanger(w, e.pos, 0.5);
   w.emit({ type: 'enemy_spotted', goblinId: by.id, enemyId: e.id, at: e.pos });
   w.emit({ type: 'emote', goblinId: by.id, emote: 'exclaim' });
 }

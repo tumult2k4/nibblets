@@ -5,6 +5,9 @@ import type { World } from '../world';
 import { stepGoblinFlight } from './hand';
 import { addMood } from '../goblin/mood';
 import { q4 } from '../../shared/math';
+import { updateZones } from './zones';
+import { updateAnger } from './anger';
+import { resolvePending } from './powers/wrath';
 
 export type GameMode = 'sandbox' | 'divine' | 'observer';
 
@@ -17,6 +20,11 @@ export interface HeldState {
   fearApplied: boolean;
 }
 
+/** A patch the god made unbearable for a while (P4.8): `swarm` (biting bugs) or `dread` (after lightning or a meteor). */
+export interface AvoidZone { kind: 'swarm' | 'dread'; pos: Vec2; r: number; until: number }
+/** A wrath strike still on its way down (the meteor's fall, P4.8). */
+export interface PendingStrike { power: string; pos: Vec2; r: number; at: number }
+
 export interface GodState {
   mode: GameMode;
   gentle: boolean;
@@ -28,13 +36,15 @@ export interface GodState {
   held: HeldState | null;
   /** Fast-Forward Day / Hasten Season: the game loop runs at full tilt until this tick (§17.5.2) */
   skipTo?: number;
+  zones: AvoidZone[];
+  pending: PendingStrike[];
   /** counters used by divine deeds & stats */
   counts: { grabs: number; gentleSetDowns: number; drops: number; gifts: number; pets: number };
 }
 
 export function newGodState(mode: GameMode, gentle = false): GodState {
   return {
-    mode, gentle, favor: CFG.god.startFavor, alignment: 0, tier: 0, cooldowns: {}, godName: null, held: null,
+    mode, gentle, favor: CFG.god.startFavor, alignment: 0, tier: 0, cooldowns: {}, godName: null, held: null, zones: [], pending: [],
     counts: { grabs: 0, gentleSetDowns: 0, drops: 0, gifts: 0, pets: 0 },
   };
 }
@@ -71,4 +81,7 @@ export function updateGod(w: World): void {
   }
   for (const g of s.goblins) if (g.airborne && !g.airborne.held) stepGoblinFlight(w, g);
   if (s.god.skipTo !== undefined && s.tick >= s.god.skipTo) delete s.god.skipTo;
+  resolvePending(w);
+  updateZones(w);
+  updateAnger(w);
 }

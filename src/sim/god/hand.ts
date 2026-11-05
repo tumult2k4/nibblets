@@ -13,6 +13,8 @@ import { killGoblin } from '../goblin/needs';
 import { addMood } from '../goblin/mood';
 import { spawnGroundItem } from '../groundItems';
 import { nearestShores } from '../ai/targets';
+import { hitEnemiesAt, massOf } from './impact';
+import { godHarmed } from './anger';
 
 export type GrabResult = string | null; // null = ok, string = rejection reason
 
@@ -116,8 +118,10 @@ export function stepGoblinFlight(w: World, g: Goblin): void {
   const air = g.airborne!;
   const r = stepAirborne(w, g.pos, air, 0);
   if (!r.landed) return;
-  const dmg = landingDamage(air, r.water);
+  // Gentle mode (§17.2): the hand never hurts anyone
+  const dmg = w.s.god.gentle ? 0 : landingDamage(air, r.water);
   g.airborne = null;
+  if (!r.water) hitEnemiesAt(w, g.pos, r.impactSpeed, massOf('goblin'));
   if (r.water) {
     g.wetUntil = w.s.tick + CFG.time.dayTicks / 24;
     const shore = nearestShores(g, w, 1)[0];
@@ -129,6 +133,7 @@ export function stepGoblinFlight(w: World, g: Goblin): void {
     g.health.hp = q4(g.health.hp - dmg);
     w.emit({ type: 'goblin_hurt', goblinId: g.id, damage: dmg, cause: 'fall', at: g.pos });
     divineAct(w, 'hurt', g.pos, g.id);
+    godHarmed(w, g, g.pos);
     if (g.health.hp <= 0) killGoblin(w, g, 'fall');
   }
 }
@@ -173,6 +178,7 @@ export function flick(w: World, g: Goblin, dir: Vec2): void {
   startAction(g, w, 'idle');
   g.activity.status = 'done';
   divineAct(w, 'flick', g.pos, g.id);
+  godHarmed(w, g, g.pos);
   if (g.health.hp <= 0) killGoblin(w, g, 'divine');
 }
 

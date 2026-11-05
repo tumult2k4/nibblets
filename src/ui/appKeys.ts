@@ -14,6 +14,7 @@ export function keyHandlers(app: App): KeyHandlers {
     hand: () => inGame() && app.store.set({ activeTool: 'hand', armed: null, openPanels: { ...st().openPanels, tray: false, flyout: false } }),
     terraform: () => inGame() && !app.readOnly() && app.toolbar.choose('terraform'),
     nature: () => inGame() && !app.readOnly() && app.toolbar.choose('nature'),
+    wrath: () => inGame() && !app.readOnly() && !app.game.world.s.god.gentle && app.toolbar.choose('wrath'),
     gifts: () => inGame() && !app.readOnly() && app.store.set({ activeTool: 'gifts', armed: null, openPanels: { ...st().openPanels, tray: !st().openPanels.tray, flyout: !st().openPanels.tray } }),
     follow: () => {
       const id = st().selection[0];

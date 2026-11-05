@@ -40,7 +40,7 @@ export type ActionId =
   | 'eat_core' | 'plant_seed' | 'water_plant' | 'chop' | 'store_item' | 'take_item' | 'explore'
   | 'deliver_material' | 'build' | 'claim_home' | 'sleep_home' | 'gather_for_goal' | 'seek_shelter' | 'warm_up' | 'forage'
   | 'mine' | 'craft' | 'equip' | 'plan_building' | 'tend_fire' | 'flee' | 'attack' | 'defend_village' | 'guard' | 'repair_building'
-  | 'follow_wisp';
+  | 'follow_wisp' | 'scatter';
 
 export interface ActivityState {
   action: ActionId;
@@ -58,6 +58,8 @@ export interface DivineWish {
 }
 export interface GodView {
   faith: number; love: number; fear: number; angryAtGod: boolean; wishes: DivineWish[];
+  /** when the anger at the god wears off (P4.8: 8 days after a loved one was harmed) */
+  angryUntil: number;
   answeredPrayers: number; ignoredPrayers: number; lastVoiceTick: number;
   petLoveToday: number; petDay: number;
 }
@@ -113,7 +115,12 @@ export interface Enemy {
   home: Vec2; spawnTick: number; nextDecide: number; timer: number; hits: number;
   /** has any goblin noticed it yet (one alarm per enemy) */
   seen: boolean;
+  /** called down by the god (Summon Gnashers, P4.8): hunts by day for a few hours */
+  summoned?: boolean;
 }
+
+/** A remembered spot of danger (P4.8 danger lens): where, when and how bad (0.5 sighting … 2 death). */
+export interface DangerMark { pos: Vec2; tick: number; weight: number }
 
 export interface Rock { id: ID; pos: Vec2; size: 1 | 2 | 3; stoneLeft: number; flintChance: number }
 export interface GrassPatch { id: ID; pos: Vec2; density: number }
@@ -151,9 +158,9 @@ export interface WorldState {
   tiles: Tile[];
   goblins: Goblin[]; eggs: Egg[]; plants: Plant[]; rocks: Rock[]; grass: GrassPatch[]; mushrooms: Mushroom[];
   wildlife: unknown[]; groundItems: GroundItem[]; buildings: Building[]; fires: unknown[]; enemies: Enemy[];
-  /** spawn director (§14.1): the night last budgeted and the ticks of spawns still to come */
-  /** spawn director: last budgeted night, queued spawn ticks, enemies spotted so far (drives fencing) */
-  threat: { night: number; spawnAt: number[]; alarms: number };
+  /** spawn director: last budgeted night, queued spawn ticks, enemies spotted so far (drives fencing), and recent
+   * danger marks (sightings, bites, thefts, smashes, deaths) for the danger lens (P4.8) */
+  threat: { night: number; spawnAt: number[]; alarms: number; marks: DangerMark[] };
   graves: { id: ID; goblinId: ID; name: string; pos: Vec2; tick: number; cause: string }[];
   places: unknown[]; clans: Clan[]; village: VillageState; god: GodState;
   commandLog: LoggedCommand[]; weather: WeatherState; stats: StatsSeries; llm: LlmAnnotations;

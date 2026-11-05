@@ -119,3 +119,5 @@ table.genome td { padding: 1px 4px; border-bottom: 1px solid rgba(0,0,0,.08); }
 .card { position: relative; }
 .card .cdring { position: absolute; inset: 4px; border-radius: 8px; pointer-events: none; }
 
+.skullmark { position: fixed; left: 0; top: 0; z-index: 29; pointer-events: none; width: 18px; height: 18px; line-height: 18px; text-align: center; border-radius: 50%; background: #e0503c; color: #fff; font-size: 13px; box-shadow: 0 0 0 2px rgba(46,42,36,.6); }
+.skullmark.hidden { display: none; }

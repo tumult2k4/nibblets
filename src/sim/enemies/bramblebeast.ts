@@ -13,6 +13,7 @@ import type { Enemy } from '../state';
 import type { World } from '../world';
 import { findSpawnPoint, spawnEnemy } from './director';
 import { atHome, exposed, running, setMode } from './common';
+import { markDanger } from '../danger';
 
 const B = CFG.enemies.bramblebeast;
 
@@ -111,7 +112,7 @@ export function bramblebeastAct(w: World, e: Enemy): boolean {
     if (--e.timer > 0) return false;
     e.timer = B.smashEvery;
     damageBuilding(w, b, B.smashDmg, 'bramblebeast');
-    if (!w.s.buildings.includes(b)) { e.mode = 'prowl'; e.targetId = null; }
+    if (!w.s.buildings.includes(b)) { e.mode = 'prowl'; e.targetId = null; markDanger(w, b.pos, 1); }
     return false;
   }
   if (e.mode === 'attack') {
@@ -129,7 +130,7 @@ export function bramblebeastAct(w: World, e: Enemy): boolean {
     e.hits++;
     const hit = w.rng.chance(biteChance(g));
     w.emit({ type: 'enemy_bit', enemyId: e.id, goblinId: g.id, damage: hit ? B.dmg : 0, at: g.pos });
-    if (hit) hurtGoblin(w, g, B.dmg, 'combat');
+    if (hit) { markDanger(w, g.pos, 1); hurtGoblin(w, g, B.dmg, 'combat'); }
     return false;
   }
   const arrived = trudge(w, e, !running(e));

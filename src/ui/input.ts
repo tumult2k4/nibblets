@@ -120,8 +120,13 @@ export class Input {
       e.preventDefault();
       if (this.tray.active) this.tray.cancel();
       else if (this.hand.holding) this.hand.cancel();
+      else if (this.cast.cancel()) return;
       else if (this.ctx.store.state.armed) this.cast.arm(null);
       else this.escape();
+      return;
+    }
+    if (e.code === 'Enter' && this.casting() && this.cast.confirm()) {
+      e.preventDefault();
       return;
     }
     this.keysDown.add(e.code);

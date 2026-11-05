@@ -23,6 +23,7 @@ import { Attack, DefendVillage } from './actions/fight';
 import { Flee, Guard, dangerCaught } from './actions/flee';
 import { RepairBuilding } from './actions/repair';
 import { FollowWisp } from './actions/followWisp';
+import { Scatter } from './actions/scatter';
 import { findChopTarget } from './actions/chop';
 import { planFor } from './planner';
 import { Explore } from './actions/explore';
@@ -44,7 +45,7 @@ export const ACTIONS: Record<ActionId, UtilityAction> = {
   seek_shelter: SeekShelter, warm_up: WarmUp, forage: Forage, mine: Mine,
   craft: Craft, equip: Equip, plan_building: PlanBuilding, tend_fire: TendFire,
   flee: Flee, attack: Attack, defend_village: DefendVillage, guard: Guard, repair_building: RepairBuilding,
-  follow_wisp: FollowWisp,
+  follow_wisp: FollowWisp, scatter: Scatter,
 };
 const CHOOSABLE = (Object.values(ACTIONS) as UtilityAction[]).filter((a) => !a.forced);
 
@@ -91,7 +92,7 @@ export function startAction(g: Goblin, w: World, id: ActionId): boolean {
 }
 
 /** Interrupt whatever the goblin does with a forced action (look_up, struggle). */
-export function forceAction(g: Goblin, w: World, id: 'look_up' | 'struggle', lookAt?: Vec2): void {
+export function forceAction(g: Goblin, w: World, id: 'look_up' | 'struggle' | 'scatter', lookAt?: Vec2): void {
   startAction(g, w, id);
   if (lookAt) g.activity.target = { x: lookAt.x, y: lookAt.y };
 }
@@ -102,6 +103,8 @@ function releaseReservations(g: Goblin, w: World): void {
     if (it && it.reservedBy === g.id) it.reservedBy = null;
   }
 }
+
+const cursed = (g: Goblin, tick: number): boolean => g.mood.modifiers.some((m) => m.id === 'cursed' && m.expiresTick > tick);
 
 /** §6 step 12: staggered re-decision. */
 export function think(w: World): void {
@@ -122,6 +125,12 @@ export function think(w: World): void {
     g.lastDecisionTick = s.tick;
     const best = rows[0]?.id ?? 'idle';
     if (!finished && best === g.activity.action) continue;
+    // a cursed goblin (P4.8) fumbles one new task in four: it stands there flustered instead
+    if (best !== 'idle' && !ACTIONS[best].tags.includes('danger') && cursed(g, s.tick) && w.rng.chance(CFG.powers.curseFail)) {
+      startAction(g, w, 'idle');
+      w.emit({ type: 'emote', goblinId: g.id, emote: 'sweat' });
+      continue;
+    }
     startAction(g, w, best);
   }
 }

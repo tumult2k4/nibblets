@@ -79,6 +79,13 @@ export const MIGRATIONS: Record<number, Migration> = {
     (raw.threat as Record<string, unknown>).alarms = 0;
     return raw;
   },
+  // v7 → v8 (P4.8): anger at the god wears off; wrath zones and falling strikes; danger marks
+  7: (raw) => {
+    for (const g of raw.goblins as { godView: Record<string, unknown> }[]) g.godView.angryUntil = 0;
+    Object.assign(raw.god as Record<string, unknown>, { zones: [], pending: [] });
+    (raw.threat as Record<string, unknown>).marks = [];
+    return raw;
+  },
 };
 
 export function deserialize(json: string): WorldState {

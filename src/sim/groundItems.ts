@@ -1,6 +1,7 @@
 import { CFG } from './config';
 import { itemDef } from './items';
 import { stepAirborne } from './god/airborne';
+import { hitEnemiesAt, massOf } from './god/impact';
 import type { World } from './world';
 import type { GroundItem } from './state';
 import { allocId } from '../shared/ids';
@@ -21,6 +22,7 @@ export function updateGroundItems(w: World): void {
   for (const it of s.groundItems) {
     if (it.airborne && !it.airborne.held) {
       const r = stepAirborne(w, it.pos, it.airborne, CFG.god.itemBounce);
+      if (r.impactSpeed > 0 && !r.water) hitEnemiesAt(w, it.pos, r.impactSpeed, massOf(it.stack.type));
       if (r.landed) {
         it.airborne = null;
         it.droppedTick = s.tick;

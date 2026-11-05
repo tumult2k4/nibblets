@@ -42,7 +42,7 @@ export function createGoblin(s: WorldState, rng: Rng, o: SpawnOpts): Goblin {
     reputation: 0, traits: [],
     deeds: { eaten: 0, drank: 0, harvested: 0, planted: 0, kills: 0, builds: 0, gifts: 0, timesHeld: 0, fights: 0 },
     godView: {
-      faith: q4(20 + personality.piety * 30), love: 30, fear: 10, angryAtGod: false, wishes: [],
+      faith: q4(20 + personality.piety * 30), love: 30, fear: 10, angryAtGod: false, angryUntil: 0, wishes: [],
       answeredPrayers: 0, ignoredPrayers: 0, lastVoiceTick: -1, petLoveToday: 0, petDay: -1,
     },
     role: 'none', heldByGod: false, lastDecisionTick: -1, airborne: null, lifespanDays, wetUntil: -1,

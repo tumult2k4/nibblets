@@ -1,5 +1,5 @@
 # Nibblets progress
-Current: P4.8 — wrath powers (lightning, swarm, curse, summon Gnashers, meteor), lethal previews, Gentle mode, danger lens
+Current: P4 acceptance tuning — the control run without crafting must lose ≥ 30 %, armed villages 0–3 combat deaths per seed
 ## Done
 - [x] P1.1 scaffold: Vite + strict TS, ESLint flat config with sim architecture rules, Prettier, Vitest, scripts
 - [x] P1.2 shared/: math, ids, mulberry32 Rng with fork(label), typed EventBus
@@ -43,8 +43,10 @@ Current: P4.8 — wrath powers (lightning, swarm, curse, summon Gnashers, meteor
 - [x] P4.5 safety need (event-driven drift + shocks), Flee / Attack / DefendVillage / Guard, danger interrupt, melee resolve (hit, damage, knockback, wear, skill), morale + veteran, injuries (limp, bruised arm, ear notch) healing ×2 at home, death drops kit + witness fear, grave markers, fight animations
 - [x] P4.6 fences (ring planned once Gnashers are seen, enemy-only blocking, goblins climb), enemy pathfinding around fences, campfire repel r6 + torch scare r3, stone hut upgrade (upgrade station), RepairBuilding, fence/stone hut meshes, save v7
 - [x] P4.7 enemy brains split per kind (common/gnasher/bramblebeast/wisp + dispatcher); Bramblebeast (rare, tramples a straight line through the village smashing what blocks it, swipes back when struck, only mobbed by 3+ heavy weapons); Night Wisp (full-moon nights over marsh, drifts up to goblins outdoors, forced `follow_wisp` trance, torch scatters, fades leaving the goblin far out and glum); `spawnReinforcements` (2 founder-like newcomers every 8th morning while pop < 6); meshes, poses, notifications, en/de
+- [x] P4.8 Wrath category (Lightning Bolt, Swarm, Curse, Summon Gnashers / Bramblebeast, Meteor) through `god_cast` with goblin targets; dread and swarm avoid-zones with a forced `scatter`; pending strikes (meteor falls 1.5 s later: crater, rubble, flint); lethal preview (red rings + ☠ markers, count in the cursor label) and the "confirm lethal" setting (second click or Enter); Gentle mode hides the Wrath toolbar button, quick-ring Smite and rejects wrath casts; thrown/dropped goblins and stones hurt enemies; `angryAtGod` (kin and friends who see the god hurt one of theirs), calmed by a kindness; danger marks + danger lens; wrath FX (bolt + scorch, bug swarms, curse rain cloud, falling meteor with shockwave and ring of flames, summon puff); save v8
 ## Next
-- [ ] P4.8 wrath powers, lethal previews, Gentle mode, danger lens
+- [ ] P4 acceptance tuning (control run without crafting loses ≥ 30 %; armed villages 0–3 combat deaths per seed)
+- [ ] P5.1
 ## Notes / known issues
 - P4 acceptance still open: the control run without crafting (`npx tsx tools/balance.ts --days 32 --seeds 5 --no-craft`) loses nobody yet (Gnashers flee from groups and from fists). Tune threat after P4.6–P4.7 so it loses ≥ 30 % while armed villages keep to 0–3 combat deaths per seed.
 - Balance (32 days × 5 seeds, after P3.8): unchanged from P3.4 — 0 deaths, 5–6 huts, 100 % housed by the end of autumn, ~0.13–0.15 ms/tick.

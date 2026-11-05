@@ -132,6 +132,27 @@ export class WeatherFx {
     });
   }
 
+  /** A bolt and a flash at a world point (the god's Lightning Bolt). */
+  strike(at: THREE.Vector3): void {
+    const pts: THREE.Vector3[] = [];
+    let px = at.x + (Math.random() - 0.5) * 6, pz = at.z + (Math.random() - 0.5) * 6;
+    for (let i = 0, n = 10; i <= n; i++) {
+      const f = i / n;
+      pts.push(new THREE.Vector3(px + (at.x - px) * f, at.y + 40 * (1 - f), pz + (at.z - pz) * f));
+      px += (Math.random() - 0.5) * 1.6 * (1 - f); pz += (Math.random() - 0.5) * 1.6 * (1 - f);
+    }
+    this.bolt.geometry.dispose();
+    this.bolt.geometry = new THREE.BufferGeometry().setFromPoints(pts);
+    this.bolt.visible = !this.reduced;
+    this.boltLife = 0.25;
+    this.look.flash = this.reduced ? 0.4 : 1;
+  }
+
+  /** A flash without a bolt (meteor impact). */
+  flash(k: number): void {
+    this.look.flash = Math.max(this.look.flash, this.reduced ? k * 0.4 : k);
+  }
+
   private lightning(dt: number, storm: boolean, c: THREE.Vector3, kindAt: (x: number, z: number) => WeatherKind): void {
     const L = this.look;
     L.flash = Math.max(0, L.flash - dt * 3);

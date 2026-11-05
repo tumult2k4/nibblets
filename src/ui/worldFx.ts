@@ -10,6 +10,7 @@ import type { TerrainLens } from '../render/terrainMesh';
 import { castPreview, castRadius, powerDef } from '../sim/god/cast';
 import { CATEGORY_COLOR } from './tools/castTool';
 import { t as tr } from './i18n';
+import type { ID } from '../shared/types';
 
 const lerpColor = (a: THREE.Color, b: THREE.Color, t: number) => a.clone().lerp(b, Math.max(0, Math.min(1, t)));
 const BAD = new THREE.Color('#e0503c');
@@ -49,10 +50,29 @@ export class WorldFx {
   private t = 0;
   private label = document.createElement('div');
   private labelText = '';
+  /** red skull markers over goblins a lethal cast would kill (§18.4 step 3) */
+  private skulls: HTMLDivElement[] = [];
 
   constructor(private app: App) {
     this.label.className = 'castlabel hidden';
     document.body.append(this.label);
+  }
+
+  private skullsOver(ids: ID[]): void {
+    const r = this.app.game.renderer;
+    while (this.skulls.length < ids.length) {
+      const d = document.createElement('div');
+      d.className = 'skullmark';
+      d.textContent = '☠';
+      document.body.append(d);
+      this.skulls.push(d);
+    }
+    this.skulls.forEach((d, i) => {
+      const p = i < ids.length ? r.goblinWorldPos(ids[i]!) : null;
+      const sc = p ? r.toScreen(p.setY(p.y + 0.9)) : null;
+      d.classList.toggle('hidden', !sc?.visible);
+      if (sc?.visible) d.style.transform = `translate(${Math.round(sc.x - 9)}px, ${Math.round(sc.y - 22)}px)`;
+    });
   }
 
   /** §18.4 step 2: "Rain · Free · 3 goblins, 12 plants" next to the cursor. */
@@ -122,6 +142,7 @@ export class WorldFx {
       }
       // armed power: radius ring, affected goblins outlined in the category color (§18.4 steps 2–3)
       let label = '';
+      let doomed: ID[] = [];
       if (casting && def && input.cast.ground) {
         const cg = input.cast.ground;
         const free = w.s.god.mode !== 'divine';
@@ -135,18 +156,40 @@ export class WorldFx {
           }
           r.rings.ring(cg.x, cg.y, cg.z, CFG.powers.gustWidth, catColor, 0.5);
           if (!input.cast.dragFrom) label += ` · ${tr('cast.drag')}`;
+        } else if (def.target === 'goblin') {
+          // Curse: the goblin under the cursor is the target
+          const hg = input.cast.hoverGoblin !== null ? w.goblin(input.cast.hoverGoblin) : undefined;
+          const p = hg ? r.goblinWorldPos(hg.id) : null;
+          if (hg && p) r.rings.ring(p.x, p.y - 0.35, p.z, 0.8 * pulse, catColor, 0.95);
+          label += ` · ${hg ? hg.name : tr('cast.pickGoblin')}`;
         } else {
-          const rad = castRadius(def, st.castRadius);
-          r.rings.ring(cg.x, cg.y, cg.z, rad, catColor, 0.85 * pulse);
-          r.rings.ring(cg.x, cg.y, cg.z, 0.35, catColor, 0.9);
-          const pv = castPreview(w, def.id, { x: cg.x, y: cg.z }, rad);
+          const pend = input.cast.pending;
+          const rad = castRadius(def, pend?.radius ?? st.castRadius);
+          const at = pend ? { x: pend.pos.x, y: pend.pos.y } : { x: cg.x, y: cg.z };
+          const ay = pend ? r.terrainY(at.x, at.y) : cg.y;
+          if (rad) r.rings.ring(at.x, ay, at.y, rad, catColor, 0.85 * pulse);
+          r.rings.ring(at.x, ay, at.y, 0.35, catColor, 0.9);
+          if (def.id.startsWith('summon_')) {
+            // no summoning inside the village (§17.5.4): show where that is
+            const c = w.s.village.center;
+            r.rings.ring(c.x, r.terrainY(c.x, c.y), c.y, CFG.combat.villageRadius, '#e0503c', 0.35);
+          }
+          const pv = castPreview(w, def.id, at, rad);
+          const lethal = new Set(pv.lethal);
           for (const id of pv.goblins) {
             const p = r.goblinWorldPos(id);
-            if (p) r.rings.ring(p.x, p.y - 0.35, p.z, 0.6, catColor, 0.9);
+            if (!p) continue;
+            r.rings.ring(p.x, p.y - 0.35, p.z, 0.6, lethal.has(id) ? '#e0503c' : catColor, 0.9);
+            if (lethal.has(id)) r.rings.ring(p.x, p.y - 0.35, p.z, 0.75 * pulse, '#e0503c', 0.7);
           }
-          label += ` · ${tr('cast.affects', { g: pv.goblins.length, p: pv.plants })}`;
+          doomed = pv.lethal;
+          if (rad) label += ` · ${tr('cast.affects', { g: pv.goblins.length, p: pv.plants })}`;
+          if (pv.enemies) label += ` · ${tr('cast.beasts', { n: pv.enemies })}`;
+          if (pv.lethal.length) label += ` · ☠ ${pv.lethal.length}`;
+          if (pend) label = tr('cast.confirm', { n: pend.lethal.length });
         }
       }
+      this.skullsOver(inGame ? doomed : []);
       this.castLabel(inGame ? label : '', input.cast.ground);
       // terraform brush footprint
       if (brushing && input.brush.ground) {

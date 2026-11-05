@@ -9,6 +9,7 @@ const GLYPH: Record<Emote, { text: string; color: string }> = {
   idea: { text: '✦', color: '#e0a822' },
   sweat: { text: '💧', color: '#4aa3d8' },
   music: { text: '♪', color: '#5a9a3c' },
+  anger: { text: '💢', color: '#d0402a' },
 };
 
 const textures = new Map<Emote, THREE.Texture>();
@@ -32,7 +33,7 @@ function texture(e: Emote): THREE.Texture {
   x.fillStyle = '#fff8ea';
   x.fillRect(27, 44, 10, 6);
   const g = GLYPH[e];
-  x.font = e === 'sweat' ? '26px sans-serif' : 'bold 30px Fredoka, sans-serif';
+  x.font = e === 'sweat' || e === 'anger' ? '26px sans-serif' : 'bold 30px Fredoka, sans-serif';
   x.textAlign = 'center';
   x.textBaseline = 'middle';
   x.fillStyle = g.color;

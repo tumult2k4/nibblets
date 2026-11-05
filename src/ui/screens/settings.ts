@@ -60,6 +60,7 @@ export function settingsScreen(cur: Settings, gentle: boolean, apply: (s: Settin
     else if (tab === 'gameplay')
       content = el('div.form', {},
         ...field(t('set.gentle'), checkbox(g, (v) => { g = v; apply(s, g); })),
+        ...field(t('set.confirmLethal'), checkbox(s.confirmLethal, (v) => set('confirmLethal', v))),
         ...field(t('set.edgePan'), checkbox(s.edgePan, (v) => set('edgePan', v))),
         ...field(t('set.invert'), checkbox(s.invertOrbit, (v) => set('invertOrbit', v))),
         ...field(t('set.autopauseDeath'), checkbox(s.autopauseDeath, (v) => set('autopauseDeath', v))),

@@ -30,7 +30,7 @@ export interface ItemStack {
 }
 
 /** Billboard emotes over a goblin's head (§P2.6). */
-export type Emote = 'question' | 'exclaim' | 'heart' | 'zzz' | 'idea' | 'sweat' | 'music';
+export type Emote = 'question' | 'exclaim' | 'heart' | 'zzz' | 'idea' | 'sweat' | 'music' | 'anger';
 export type PlantKind = 'apple_bush' | 'berry_bush' | 'tree' | 'flower';
 export type PlantStage = 'seed' | 'sprout' | 'sapling' | 'young' | 'mature' | 'old' | 'dead' | 'stump';
 export type BuildingType =

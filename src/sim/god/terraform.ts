@@ -117,7 +117,7 @@ export function terraform(w: World, power: TerraformPower, pos: Vec2, radius: nu
 }
 
 /** Plants drown, items sink, goblins scramble to the nearest dry tile. */
-function afterReshape(w: World, c: Vec2, r: number): void {
+export function afterReshape(w: World, c: Vec2, r: number): void {
   const s = w.s;
   const wet = (p: Vec2) => !isWalkable(s, Math.floor(p.x), Math.floor(p.y));
   for (const p of [...s.plants]) if (Math.hypot(p.pos.x - c.x, p.pos.y - c.y) <= r && wet(p.pos)) {

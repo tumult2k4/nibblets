@@ -1,7 +1,7 @@
 /** Every tunable number lives here (§21). Additions beyond §21 are logged in DECISIONS.md. */
 export const CFG = {
   tickHz: 10,
-  saveVersion: 7,
+  saveVersion: 8,
   time: { dayTicks: 3600, daysPerSeason: 8, moonCycleDays: 8, phases: { dawn: 0.05, day: 0.6, dusk: 0.7 }, startTick: 360 },
   world: {
     w: 128, h: 128, waterLevel: 0.3, sandBand: 0.03, rockLevel: 0.8, forestNoiseThreshold: 0.6,
@@ -87,7 +87,19 @@ export const CFG = {
   powers: {
     cellHours: 2, warmSunDeg: 15, warmCellAbove: 10, snowCellAir: -2, showerApples: [12, 18] as [number, number],
     gustWidth: 1.5, gustMaxLen: 16, gustPush: 2.5, gustMood: -2, skipPerFrame: 600,
+    // P4.8 wrath (§17.5.4): lightning 60 dmg within 1 tile; a 6-tile dread zone scatters onlookers for 300 ticks
+    lightningDmg: 60, lightningRadius: 1, lightningSeen: 16, dreadRadius: 6, dreadTicks: 300,
+    swarmHours: 1, swarmMood: -6, curseMood: -30, curseDays: 2, curseFail: 0.25,
+    summonGnashers: [2, 4] as [number, number], summonHuntHours: 3, scatterMul: 1.15,
+    // meteor: falls for 1.5 s, kills within 1.5, 100 dmg fading to 0 at the rim; crater 0.12 deep, rubble stone
+    meteorDelay: 15, meteorDmg: 100, meteorKill: 1.5, meteorDepth: 0.12, meteorStone: 6, meteorSeen: 24,
+    // thrown/dropped goblins and items hurt enemies they land on: (impact speed − 3) × 4 × mass
+    thrownFree: 3, thrownPerSpeed: 4, thrownHit: 0.9, thrownMass: { goblin: 1.5, stone: 1, flint: 1, wood: 0.8, bone: 0.6 } as Record<string, number>,
+    // angryAtGod (§17.4): a loved one hurt by the god; clears after 8 days or a benevolent act toward them
+    angerDays: 8, angerMood: -10,
   },
+  /** P4.8 danger lens (§18.10): marks fade over 3 days within 6 tiles; live threats weigh 1.5 within 8; fire calms */
+  danger: { maxMarks: 48, days: 3, radius: 6, live: 1.5, liveRadius: 8, fireCalm: 0.6, zone: 0.8 },
   /** P3.6 shelter, warming up, storms, mushrooms */
   shelter: {
     seekScore: { rain: 0.45, storm: 0.75, snow: 0.3, blizzard: 0.9, heatwave: 0.25 } as Record<string, number>,

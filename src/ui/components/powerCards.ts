@@ -10,6 +10,7 @@ import { armPower, CATEGORY_COLOR } from '../tools/castTool';
 export const POWER_ICONS: Record<string, string> = {
   apple_shower: 'apple', bountiful_growth: 'leaf', warm_sun: 'heat', rain: 'rain', clear_sky: 'sun', snowfall: 'snow',
   gust: 'wind', fast_forward: 'clock', hasten_season: 'leaf',
+  lightning: 'bolt', swarm: 'swarm', curse: 'curse', summon_gnashers: 'fang', summon_bramblebeast: 'fang', meteor: 'meteor',
 };
 
 /** Castable powers of a category (implemented phases only). */

@@ -16,6 +16,7 @@ import type { Enemy, Goblin } from '../state';
 import type { World } from '../world';
 import { spawnEnemy } from './director';
 import { awake, exposed } from './common';
+import { markDanger } from '../danger';
 
 const W = CFG.enemies.night_wisp;
 const DAY = CFG.time.dayTicks;
@@ -102,6 +103,7 @@ export function wispDecide(w: World, e: Enemy): void {
     e.targetId = g.id;
     e.timer = W.lureTicks;
     e.path = [lurePoint(w, e)];
+    markDanger(w, e.pos, 0.5);
     w.emit({ type: 'wisp', enemyId: e.id, goblinId: g.id, phase: 'lure', at: e.pos });
     return;
   }

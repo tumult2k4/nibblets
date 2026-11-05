@@ -10,6 +10,7 @@ import { allocId } from '../../shared/ids';
 import { coldDamage, inShade, warmthDelta } from '../temperature';
 import { weatherAt } from '../weather';
 import { spawnGroundItem } from '../groundItems';
+import { markDanger } from '../danger';
 import { witnessDeath } from './safety';
 
 const WORK_ACTIONS = new Set(['harvest_fruit', 'pick_up', 'chop', 'build', 'deliver_material']);
@@ -92,6 +93,7 @@ export function killGoblin(w: World, g: Goblin, cause: DeathCause): void {
   g.inventory = [];
   g.equipped = { hand: null, body: null, neck: null, head: null };
   witnessDeath(w, g.pos, g.id);
+  if (cause === 'combat' || cause === 'divine' || cause === 'lightning') markDanger(w, g.pos, 2);
   w.emit({ type: 'goblin_died', goblinId: g.id, cause, at: g.pos });
 }
 

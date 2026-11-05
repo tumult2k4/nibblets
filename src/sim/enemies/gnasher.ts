@@ -16,6 +16,7 @@ import { litFireNear, torchLit } from '../fire';
 import { enemyCanStand } from '../fences';
 import type { World } from '../world';
 import { atHome, awake, exposed, moveEnemy, running, setMode, setPath, spotted } from './common';
+import { markDanger } from '../danger';
 
 const E = CFG.enemies;
 const G = E.gnasher;
@@ -34,7 +35,9 @@ export function crowdAround(w: World, e: Enemy): number {
   return n;
 }
 
-const dark = (w: World, e: Enemy): boolean => isNight(w.clock) || weatherAt(w, e.pos) === 'fog';
+/** Night, fog, or the first hours after the god summoned it. */
+const dark = (w: World, e: Enemy): boolean =>
+  isNight(w.clock) || weatherAt(w, e.pos) === 'fog' || (!!e.summoned && w.s.tick - e.spawnTick < CFG.powers.summonHuntHours * CFG.god.hourTicks);
 
 /** A lit campfire within 6 or a burning torch within 3: what a Gnasher will not go near (§11.1). */
 export function scareAt(w: World, p: Vec2): Vec2 | null {
@@ -100,6 +103,7 @@ function bite(w: World, e: Enemy, g: Goblin): void {
   e.hits++;
   w.emit({ type: 'enemy_bit', enemyId: e.id, goblinId: g.id, damage: G.dmg, at: g.pos });
   w.emit({ type: 'emote', goblinId: g.id, emote: 'exclaim' });
+  markDanger(w, g.pos, 1);
   hurtGoblin(w, g, G.dmg, 'combat');
 }
 
@@ -144,6 +148,7 @@ function steal(w: World, e: Enemy): void {
     const type = f.type;
     const n = withdraw(s, type, E.stealQty);
     e.carrying = { type, qty: n };
+    markDanger(w, e.pos, 0.7);
     w.emit({ type: 'enemy_stole', enemyId: e.id, item: type, qty: n, at: e.pos });
     return;
   }
@@ -153,5 +158,6 @@ function steal(w: World, e: Enemy): void {
   it.stack.qty -= n;
   if (it.stack.qty <= 0) s.groundItems.splice(s.groundItems.indexOf(it), 1);
   e.carrying = { type: it.stack.type, qty: n };
+  markDanger(w, e.pos, 0.7);
   w.emit({ type: 'enemy_stole', enemyId: e.id, item: it.stack.type, qty: n, at: e.pos });
 }

@@ -84,6 +84,7 @@ export function mindTab(g: Goblin): HTMLElement {
     row(t('insp.faith'), v.faith, String(Math.round(v.faith)), 'var(--gold)'),
     row(t('insp.love'), v.love, String(Math.round(v.love)), '#e57a9a'),
     row(t('insp.fear'), v.fear, String(Math.round(v.fear)), 'var(--wrath)'),
+    v.angryAtGod ? el('div.sub', { text: t('insp.angryAtGod'), style: 'color:var(--apple)' }) : null,
     el('h3', { text: t('insp.deeds') }),
     el('div.sub', { text: t('insp.deedsLine', { e: g.deeds.eaten, d: g.deeds.drank, h: g.deeds.harvested, g: g.deeds.timesHeld }) }),
     el('div.sub', { text: t('insp.deedsLine2', { p: g.deeds.planted }) }),

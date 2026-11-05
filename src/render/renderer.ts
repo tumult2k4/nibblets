@@ -6,6 +6,7 @@ import { SkyLights } from './sky';
 import { Props } from './props';
 import { MushroomViews } from './mushroomView';
 import { WeatherFx } from './weatherFx';
+import { WrathFx } from './wrathFx';
 import { FireFx } from './fireView';
 import { EnemyViews } from './enemyView';
 import { GraveViews } from './graveView';
@@ -21,6 +22,9 @@ import { Rings } from './decals';
 import { seasonLook } from './seasons';
 import { BuildingViews } from './buildingView';
 import { airAt } from '../sim/temperature';
+import { dangerAt } from '../sim/danger';
+import { heightAt } from '../sim/grid';
+import { CFG } from '../sim/config';
 
 export interface RenderSettings { shadows: 'off' | 'low' | 'high'; renderScale: number; outlines: boolean; fog: boolean }
 
@@ -43,6 +47,7 @@ export class Renderer {
   fires!: FireFx;
   enemies!: EnemyViews;
   graves!: GraveViews;
+  wrathFx!: WrathFx;
   readonly weatherFx = new WeatherFx();
   interp!: Interp;
   sky: SkyLights;
@@ -75,6 +80,7 @@ export class Renderer {
     this.world = w;
     this.terrain = new TerrainMesh(w.s);
     this.terrain.tempAt = (x, y) => airAt(w, { x, y });
+    this.terrain.dangerAt = (x, y) => dangerAt(w, { x, y });
     this.water = makeWater(w.s);
     this.props = new Props(w);
     this.goblins = new GoblinViews(w);
@@ -83,9 +89,11 @@ export class Renderer {
     this.fires = new FireFx(w);
     this.enemies = new EnemyViews(w);
     this.graves = new GraveViews(w);
+    this.wrathFx = new WrathFx(w, this.weatherFx, (id) => this.goblinWorldPos(id));
+    this.wrathFx.reduced = this.weatherFx.reduced;
     this.goblins.outlines = this.settings.outlines;
     this.interp = new Interp(w);
-    this.worldGroup.add(this.terrain.group, this.water.mesh, this.props.group, this.buildings.group, this.mushrooms.group, this.goblins.group, this.weatherFx.group, this.fires.group, this.enemies.group, this.graves.group);
+    this.worldGroup.add(this.terrain.group, this.water.mesh, this.props.group, this.buildings.group, this.mushrooms.group, this.goblins.group, this.weatherFx.group, this.fires.group, this.enemies.group, this.graves.group, this.wrathFx.group);
     const c = w.s.village.center;
     this.camera.setTarget(c.x, c.y, true);
   }
@@ -135,6 +143,11 @@ export class Renderer {
       this.buildings.group.children);
   }
 
+  /** Height of the ground (or the water surface) at a sim position, in world units. */
+  terrainY(x: number, y: number): number {
+    return Math.max(heightAt(this.world.s, { x, y }), CFG.world.waterLevel) * CFG.world.heightScale;
+  }
+
   /** Screen position of a world point (for the quick ring, tooltips). */
   toScreen(v: THREE.Vector3): { x: number; y: number; visible: boolean } {
     const p = v.clone().project(this.camera.cam);
@@ -160,6 +173,11 @@ export class Renderer {
     if (wx.fogMul < 0.99) { fog.near = Math.min(fog.near, (20 + d * 0.5) * wx.fogMul); fog.far = Math.min(fog.far, (60 + d * 1.6) * wx.fogMul + 8); }
     this.terrain.setWet(wx.wet);
     this.terrain.setTempSig(`${Math.round(w.s.weather.temperature)}:${w.s.weather.cells.map((c) => c.id).join(',')}`);
+    if (this.terrain.lens === 'danger') {
+      const m = w.s.threat.marks;
+      this.terrain.setDangerSig(`${m.length}:${m[m.length - 1]?.tick ?? 0}:${Math.floor(w.s.tick / CFG.god.hourTicks)}:` +
+        w.s.enemies.map((e) => `${Math.floor(e.pos.x / 3)},${Math.floor(e.pos.y / 3)}`).join(';'));
+    }
     this.water.update(this.time);
     this.terrainTimer -= dt;
     if (w.s.terrainVersion !== this.terrainSeen || this.terrainTimer <= 0) {
@@ -184,6 +202,7 @@ export class Renderer {
     this.goblins.update(this.interp, alpha, this.time, this.sky.night, dt);
     this.enemies.update(this.interp, alpha, this.time, dt);
     this.graves.update();
+    this.wrathFx.update(dt, alpha);
     this.ambientEmotes(dt);
     this.emotes.update(dt, (id) => this.goblins.headPos(id), this.camera.dist);
     this.gl.render(this.scene, this.camera.cam);
@@ -195,6 +214,7 @@ export class Renderer {
 
   /** Event-driven emotes (§P2.6); the renderer only reads events, it never changes the sim. */
   onEvents(evs: SimEvent[]): void {
+    this.wrathFx.onEvents(evs);
     for (const e of evs) {
       if (e.type === 'emote') this.emotes.show(e.goblinId, e.emote);
       else if (e.type === 'divine_act' && e.act === 'pet' && e.targetId !== undefined) this.emotes.show(e.targetId, 'heart');
