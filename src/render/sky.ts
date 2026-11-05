@@ -3,6 +3,8 @@ import type { ClockState } from '../sim/time';
 import { daylight } from '../sim/time';
 import { SKY } from './palette';
 
+const GREY = new THREE.Color('#8a929c'), HAZE = new THREE.Color('#f3e2b8'), FLASH = new THREE.Color('#eef2ff');
+
 /** Gradient sky dome, stars, sun/moon lights and fog that follow the clock (§23.1). */
 export class SkyLights {
   readonly group = new THREE.Group();
@@ -45,16 +47,24 @@ export class SkyLights {
     this.sun.shadow.normalBias = 0.03;
   }
 
-  update(c: ClockState, target: THREE.Vector3, camPos: THREE.Vector3): void {
+  /** `overcast` (−0.15 heat haze … 1 storm) greys and dims the sky; `flash` is a lightning flash 0..1 (P3.7). */
+  update(c: ClockState, target: THREE.Vector3, camPos: THREE.Vector3, overcast = 0, flash = 0): void {
     const dl = daylight(c);
     this.night = 1 - dl;
     const duskness = c.phase === 'dusk' || c.phase === 'dawn' ? 0.7 : 0;
     const top = SKY.night.top.clone().lerp(SKY.day.top, dl).lerp(SKY.dusk.top, duskness * 0.5);
     const hor = SKY.night.horizon.clone().lerp(SKY.day.horizon, dl).lerp(SKY.dusk.horizon, duskness);
+    const oc = Math.max(0, overcast);
+    if (oc > 0) {
+      const grey = GREY.clone().multiplyScalar(0.25 + 0.75 * dl);
+      top.lerp(grey, oc * 0.85);
+      hor.lerp(grey, oc * 0.6);
+    } else if (overcast < 0) hor.lerp(HAZE, -overcast * 2 * dl);
+    if (flash > 0) { top.lerp(FLASH, flash * 0.7); hor.lerp(FLASH, flash * 0.5); }
     this.uniforms.top.value.copy(top);
     this.uniforms.horizon.value.copy(hor);
     this.fogColor.copy(hor);
-    (this.stars.material as THREE.PointsMaterial).opacity = Math.max(0, 1 - dl * 1.6);
+    (this.stars.material as THREE.PointsMaterial).opacity = Math.max(0, 1 - dl * 1.6) * (1 - oc);
     this.dome.position.copy(camPos);
     this.stars.position.copy(camPos);
     // sun arc: rises at dawn (dayFrac 0) and sets at dusk end (0.7); moon the rest
@@ -67,12 +77,12 @@ export class SkyLights {
     this.sun.target.updateMatrixWorld();
     if (isDay) {
       this.sun.color.set(duskness ? '#ffc890' : '#fff3d6');
-      this.sun.intensity = 0.35 + 1.35 * dl;
+      this.sun.intensity = (0.35 + 1.35 * dl) * (1 - 0.85 * oc);
     } else {
       this.sun.color.set('#9fb4ff');
       this.sun.intensity = 0.28;
     }
-    this.hemi.intensity = 0.35 + 0.65 * dl;
+    this.hemi.intensity = (0.35 + 0.65 * dl) * (1 - 0.5 * oc) + flash * 1.6;
     this.hemi.color.copy(new THREE.Color('#5d6fa8').lerp(new THREE.Color('#d6ecff'), dl));
     this.hemi.groundColor.copy(new THREE.Color('#1f2635').lerp(new THREE.Color('#6b7a45'), dl));
   }

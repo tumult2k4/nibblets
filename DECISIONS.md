@@ -83,3 +83,10 @@ Small choices the design doc left open, one line of rationale each.
 - **Mushrooms**: 25 at worldgen, then every 300 ticks up to 6 × season (autumn ×2, winter 0) random tries on forest/marsh tiles; dry weather only keeps 30 % of tries. They rot after 4 days; cap 70. Redcaps are never foraged (or remembered) until P5 knowledge brings the danger.
 - **Test worlds clear worldgen mushrooms** like other scatter; an rng-luck test (berry accidental seeding) was given more trials after the new rng consumer shifted its stream.
 
+## P3.7 weather FX
+- **Particles live in a 64×26×64 box that follows the camera target** and are hidden per particle wherever `weatherAt` says it is not raining/snowing there, so local weather cells (P3.8) render as rain columns without extra code. With no cells the per-particle lookup short-circuits to the global kind.
+- **Render-side randomness (Math.random) is allowed** for purely visual effects (particle seeds, lightning timing); the sim never sees it. Natural lightning *strikes* (damage, fire) arrive with P6.2 and will be sim events the FX can mirror.
+- **Overcast is a smoothed scalar** (cloudy .45 … storm .92, heatwave −.15 = warm haze) that greys the sky dome and dims sun (−85 %) and ambient (−50 %): a storm noon reads clearly darker without going night-black.
+- **Weather fog overrides the distance-fog setting**: fog/blizzard are gameplay (vision ×0.5/×0.3), so they show even with distance fog off.
+- **Lit windows are shown while any goblin stands inside the hut** (within the shelter radius) and it is night; because the roof hides the walls from a top-down camera, a warm additive light pool spills past the door.
+

@@ -5,6 +5,7 @@ import { TerrainMesh, makeWater } from './terrainMesh';
 import { SkyLights } from './sky';
 import { Props } from './props';
 import { MushroomViews } from './mushroomView';
+import { WeatherFx } from './weatherFx';
 import { GoblinViews } from './goblinView';
 import { Emotes } from './emotes';
 import type { TerrainLens } from './terrainMesh';
@@ -35,6 +36,7 @@ export class Renderer {
   goblins!: GoblinViews;
   buildings!: BuildingViews;
   mushrooms!: MushroomViews;
+  readonly weatherFx = new WeatherFx();
   interp!: Interp;
   sky: SkyLights;
   private water!: ReturnType<typeof makeWater>;
@@ -72,7 +74,7 @@ export class Renderer {
     this.mushrooms = new MushroomViews(w);
     this.goblins.outlines = this.settings.outlines;
     this.interp = new Interp(w);
-    this.worldGroup.add(this.terrain.group, this.water.mesh, this.props.group, this.buildings.group, this.mushrooms.group, this.goblins.group);
+    this.worldGroup.add(this.terrain.group, this.water.mesh, this.props.group, this.buildings.group, this.mushrooms.group, this.goblins.group, this.weatherFx.group);
     const c = w.s.village.center;
     this.camera.setTarget(c.x, c.y, true);
   }
@@ -136,11 +138,16 @@ export class Renderer {
     const fp = followId !== null ? this.interp.get(followId, alpha) : null;
     if (followId !== null && !fp) this.camera.followId = null;
     this.camera.update(dt, fp ? { x: fp.x, z: fp.y } : null);
-    this.sky.update(w.clock, this.camera.target, this.camera.cam.position);
+    const wx = this.weatherFx.update(w, dt, this.camera.target);
+    this.sky.update(w.clock, this.camera.target, this.camera.cam.position, wx.overcast, wx.flash);
     const fog = this.scene.fog as THREE.Fog;
     fog.color.copy(this.sky.fogColor);
-    fog.near = this.settings.fog ? 50 + this.camera.dist * 0.6 : 900;
-    fog.far = this.settings.fog ? 180 + this.camera.dist * 1.5 : 1000;
+    const d = this.camera.dist;
+    fog.near = this.settings.fog ? 50 + d * 0.6 : 900;
+    fog.far = this.settings.fog ? 180 + d * 1.5 : 1000;
+    // weather fog/blizzard/rain thickens the air regardless of the distance-fog setting (it is gameplay vision)
+    if (wx.fogMul < 0.99) { fog.near = Math.min(fog.near, (20 + d * 0.5) * wx.fogMul); fog.far = Math.min(fog.far, (60 + d * 1.6) * wx.fogMul + 8); }
+    this.terrain.setWet(wx.wet);
     this.water.update(this.time);
     this.terrainTimer -= dt;
     if (w.s.terrainVersion !== this.terrainSeen || this.terrainTimer <= 0) {
@@ -159,6 +166,7 @@ export class Renderer {
     this.props.setLook(season.look, season.sig);
     this.props.update(this.interp, alpha);
     this.buildings.update();
+    this.buildings.lights(this.sky.night);
     this.mushrooms.update(this.sky.night);
     this.goblins.update(this.interp, alpha, this.time, this.sky.night, dt);
     this.ambientEmotes(dt);

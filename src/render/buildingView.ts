@@ -42,6 +42,11 @@ function scaffoldGroup(progress: number): THREE.Group {
 
 const GHOST_MAT = new THREE.MeshLambertMaterial({ color: '#9ec5e8', transparent: true, opacity: 0.32, depthWrite: false, flatShading: true });
 let HUT: THREE.BufferGeometry | null = null;
+/** Lit window + doorway, and a pool of warm light spilling out past the roof's overhang. */
+const WINDOW = merge([new THREE.BoxGeometry(0.05, 0.2, 0.22).translate(1.0, 0.6, 0), new THREE.BoxGeometry(0.34, 0.54, 0.04).translate(0, 0.29, 1.04)]);
+const WINDOW_MAT = new THREE.MeshBasicMaterial({ color: '#ffc561', fog: false });
+const POOL = new THREE.CircleGeometry(0.55, 10).rotateX(-Math.PI / 2).scale(1, 1, 1.4).translate(0, 0.04, 1.75);
+const POOL_MAT = new THREE.MeshBasicMaterial({ color: '#ffb347', transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false });
 
 const progressBucket = (b: Building) => (b.buildProgress >= 1 ? 10 : Math.floor(b.buildProgress * 10));
 const sigOf = (b: Building) => `${b.type}:${progressBucket(b)}:${b.storage.map((s) => s.qty).join('.')}`;
@@ -68,6 +73,19 @@ export class BuildingViews {
     for (const [id, v] of this.views) if (!seen.has(id)) { this.group.remove(v.obj); this.views.delete(id); }
   }
 
+  /** Hut windows glow at night while someone is inside (§P3.7). */
+  lights(night: number): void {
+    const on = night > 0.35;
+    WINDOW_MAT.color.setRGB(1, 0.62 + 0.15 * night, 0.25 + 0.1 * night);
+    POOL_MAT.opacity = Math.max(0, night - 0.35) * 0.55;
+    for (const [id, v] of this.views) {
+      const win = v.obj.getObjectByName('window');
+      if (!win) continue;
+      const b = on ? this.w.s.buildings.find((x) => x.id === id) : undefined;
+      win.visible = !!b && this.w.s.goblins.some((g) => !g.airborne && Math.hypot(g.pos.x - b.pos.x, g.pos.y - b.pos.y) <= CFG.temperature.shelterRadius);
+    }
+  }
+
   /** Re-seat buildings after terraforming. */
   reseat(): void {
     for (const v of this.views.values()) this.group.remove(v.obj);
@@ -85,6 +103,11 @@ export class BuildingViews {
       const m = new THREE.Mesh(HUT, flatMat);
       m.castShadow = m.receiveShadow = true;
       g.add(m);
+      const win = new THREE.Mesh(WINDOW, WINDOW_MAT);
+      win.add(new THREE.Mesh(POOL, POOL_MAT));
+      win.name = 'window';
+      win.visible = false;
+      g.add(win);
     } else {
       const ghost = new THREE.Mesh(HUT, GHOST_MAT);
       ghost.renderOrder = 2;

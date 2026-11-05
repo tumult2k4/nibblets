@@ -53,6 +53,15 @@ export class TerrainMesh {
   /** current seasonal biome palette (§9.3) */
   private biomes: Record<Biome, THREE.Color> = BIOME_COLORS;
   private paletteSig = 'spring';
+  private wetSeen = -1;
+
+  /** Darken the ground while it rains (0 dry … 1 soaked), §P3.7. */
+  setWet(k: number): void {
+    const q = Math.round(k * 20) / 20;
+    if (q === this.wetSeen) return;
+    this.wetSeen = q;
+    this.mat.color.setRGB(1 - 0.28 * q, 1 - 0.24 * q, 1 - 0.18 * q);
+  }
 
   constructor(private s: WorldState) {
     const n = s.tiles.length;
