@@ -6,9 +6,11 @@ import type { Goal } from '../../../sim/ai/planner';
 import type { World } from '../../../sim/world';
 import { ageDays } from '../../../sim/goblin/goblin';
 import { phenotypeOf } from '../../../sim/goblin/genetics/phenotype';
-import { express } from '../../../sim/goblin/genetics/phenotype';
+import { express, PATTERNS } from '../../../sim/goblin/genetics/phenotype';
 import { LOCUS_DEFS, type LocusDef } from '../../../sim/goblin/genetics/genome';
-import { describePersonality, TRAITS } from '../../../sim/goblin/personality';
+import { describePersonality } from '../../../sim/goblin/personality';
+import { growthChart, personalityRadar } from './charts';
+import { knowers } from '../../../sim/knowledge';
 import { slotCount } from '../../../sim/inventory';
 import type { ItemStack } from '../../../shared/types';
 import { isTool, maxUses, usesLeft } from '../../../sim/tools';
@@ -23,7 +25,7 @@ const row = (label: string, v: number, shown: string, color?: string) =>
   el('div.row', {}, el('span.lbl', { text: label }), bar(v, color), el('span.val', { text: shown }));
 const needColor = (v: number) => (v < 15 ? 'var(--apple)' : v < 40 ? 'var(--gold)' : 'var(--moss)');
 
-export function goblinHeader(g: Goblin, w: World, onFollow: () => void, onClose: () => void): HTMLElement {
+export function goblinHeader(g: Goblin, w: World, onFollow: () => void, onClose: () => void, onFamily: () => void): HTMLElement {
   const ph = phenotypeOf({ genome: g.genome, ageDays: ageDays(g, w.s.tick), stage: g.lifeStage, hunger: 70, scars: g.health.scars });
   const img = el('img.portrait', { src: portraits.get(ph, g.id * 31 + 7), alt: g.name });
   const seasons = (ageDays(g, w.s.tick) / CFG.time.daysPerSeason).toFixed(1);
@@ -35,6 +37,7 @@ export function goblinHeader(g: Goblin, w: World, onFollow: () => void, onClose:
       el('div.sub', { text: t('insp.descriptor', { d: desc }) }),
       el('div', { style: 'margin-top:4px;display:flex;gap:4px' },
         el('button.btn', { onclick: onFollow, 'data-tip': t('insp.follow') }, icon('eye')),
+        el('button.btn', { onclick: onFamily, 'data-tip': t('insp.familyTree') }, icon('egg')),
         el('button.btn', { onclick: onClose, 'data-tip': t('insp.close') }, icon('close')))));
 }
 
@@ -51,11 +54,11 @@ function woundsLine(g: Goblin): string {
 }
 
 const TRAIT_ICON: Record<string, string> = { veteran: 'spear', scarred: 'fang', green_thumb: 'leaf', orphan: 'heart', twin: 'egg', grudge_holder: 'curse' };
-/** Acquired traits (§7.7, P5.7) as icon chips; hover for what each does. */
-function traitChips(g: Goblin): HTMLElement | null {
-  if (!g.traits.length) return null;
-  return el('div.trait-chips', {}, ...g.traits.map((tr) =>
-    el('span.trait-chip', { 'data-tip': t(`atrait.${tr}.d`) }, icon(TRAIT_ICON[tr] ?? 'star'), el('span', { text: t(`atrait.${tr}`) }))));
+/** Acquired traits (§7.7, P5.7) with icons and what each does. */
+function traitList(g: Goblin): HTMLElement[] {
+  if (!g.traits.length) return [el('div.sub', { text: t('insp.noLifeTraits') })];
+  return g.traits.map((tr) => el('div.trait-row', {},
+    el('span.trait-chip', {}, icon(TRAIT_ICON[tr] ?? 'star'), el('span', { text: t(`atrait.${tr}`) })), el('span.sub', { text: t(`atrait.${tr}.d`) })));
 }
 
 export function statusTab(g: Goblin, w: World): HTMLElement {
@@ -83,7 +86,6 @@ export function statusTab(g: Goblin, w: World): HTMLElement {
     el('h3', { text: t('insp.health') }),
     row(t('insp.hp'), (g.health.hp / g.health.maxHp) * 100, `${Math.round(g.health.hp)}/${g.health.maxHp}`, needColor((g.health.hp / g.health.maxHp) * 100)),
     woundsLine(g) ? el('div.sub', { text: woundsLine(g) }) : null,
-    g.traits.length ? el('h3', { text: t('insp.lifeTraits') }) : null, traitChips(g),
   );
 }
 
@@ -100,8 +102,8 @@ export function mindTab(g: Goblin): HTMLElement {
   const v = g.godView;
   return el('div', {},
     el('h3', { text: t('insp.skills') }), ...skillRows(g),
-    el('h3', { text: t('insp.personality') }),
-    ...TRAITS.map((k) => row(t(`trait.${k}`), g.personality[k] * 100, g.personality[k].toFixed(2), 'var(--sky)')),
+    el('h3', { text: t('insp.personality') }), personalityRadar(g),
+    el('h3', { text: t('insp.lifeTraits') }), ...traitList(g),
     el('h3', { text: t('insp.godview') }),
     row(t('insp.faith'), v.faith, String(Math.round(v.faith)), 'var(--gold)'),
     row(t('insp.love'), v.love, String(Math.round(v.love)), '#e57a9a'),
@@ -120,20 +122,31 @@ export function mindTab(g: Goblin): HTMLElement {
 
 function fmtAllele(def: LocusDef, v: number): string | HTMLElement {
   if (def.kind === 'hue') return el('span', {}, el('span.swatch', { style: `background:${hslCss({ h: v, s: 0.6, l: 0.5 })}` }), ` ${Math.round(v)}°`);
-  if (def.key === 'pattern') return ['none', 'freckles', 'spots', 'stripes', 'two-tone'][v] ?? String(v);
+  if (def.key === 'pattern') return t(`pattern.${PATTERNS[v] ?? 'none'}`);
   if (def.kind === 'recessive') return v ? '●' : '○';
   return v.toFixed(2);
 }
 
+/** How the two alleles combine: a carrier of a recessive, which pattern wins, colors and sizes blend. */
+function dominanceNote(d: LocusDef, a: number, b: number): string {
+  if (d.kind === 'recessive') return a + b === 2 ? ` (${t('insp.shows')})` : a + b === 1 ? ` (${t('insp.carrier')})` : '';
+  if (d.kind === 'discrete') return a === b ? '' : ` (${t('insp.dominant')})`;
+  return '';
+}
+
 export function bodyTab(g: Goblin, w: World): HTMLElement {
-  const ph = phenotypeOf({ genome: g.genome, ageDays: ageDays(g, w.s.tick), stage: g.lifeStage, hunger: g.needs.hunger, scars: g.health.scars });
+  const age = ageDays(g, w.s.tick);
+  const ph = phenotypeOf({ genome: g.genome, ageDays: age, stage: g.lifeStage, hunger: g.needs.hunger, scars: g.health.scars });
   const full = el('img', { src: portraits.get(ph, g.id * 31 + 7, 0.5, true), style: 'width:128px;height:128px;display:block;margin:0 auto' });
   const rows = (LOCUS_DEFS as readonly LocusDef[]).map((d) => {
     const l = g.genome[d.key];
-    const note = d.kind === 'recessive' ? (l.a + l.b === 1 ? ' (carrier)' : '') : '';
+    const note = dominanceNote(d, l.a, l.b);
     return el('tr', {}, el('td', { text: d.label }), el('td', {}, fmtAllele(d, l.a)), el('td', {}, fmtAllele(d, l.b)), el('td', {}, fmtAllele(d, express(g.genome, d.key)), note));
   });
   return el('div', {}, full,
+    g.health.scars ? el('div.sub', { style: 'text-align:center', text: t('insp.scars', { n: g.health.scars }) }) : null,
+    el('h3', { text: t('insp.growth') }), growthChart(g, age),
+    el('div.sub', { text: t('insp.growthLine', { s: express(g.genome, 'adultSize').toFixed(2), now: ph.scale.toFixed(2) }) }),
     el('h3', { text: t('insp.genome') }),
     el('table.genome', {}, el('tr', {}, el('td', {}, el('b', { text: t('insp.allele') })), el('td', { text: 'a' }), el('td', { text: 'b' }), el('td', {}, el('b', { text: t('insp.expressed') }))), ...rows));
 }
@@ -144,7 +157,7 @@ const stackLabel = (s: ItemStack): string =>
 const itemRow = (s: ItemStack): HTMLElement => el('div.row', {}, icon(ITEM_ICON[s.type] ?? 'gift'), el('span', { text: stackLabel(s) }));
 
 /** Hand slot, pack, crafting skill and known hand/site recipes (§P4.2). */
-export function inventoryTab(g: Goblin): HTMLElement {
+export function inventoryTab(g: Goblin, w: World): HTMLElement {
   const items = g.inventory.map(itemRow);
   const hand = g.equipped.hand;
   const worn = [g.equipped.body, g.equipped.head].filter((s): s is ItemStack => !!s);
@@ -153,6 +166,8 @@ export function inventoryTab(g: Goblin): HTMLElement {
     ...(worn.length ? [el('h3', { text: t('insp.wearing') }), ...worn.map(itemRow)] : []),
     el('h3', { text: t('insp.pack') }), el('div.sub', { text: t('insp.slots', { n: slotCount(g) }) }), ...(items.length ? items : [el('div.sub', { text: t('insp.empty') })]),
     el('h3', { text: t('insp.recipes') }),
-    el('div.sub', { text: g.knownRecipes.map((r) => t(`recipe.${r}`)).join(' · ') }),
+    el('div.recipes', {}, ...g.knownRecipes.map((r) => knowers(w.s, r) === 1
+      ? el('span.recipe.only', { 'data-tip': t('insp.onlyKnowerTip') }, `${t(`recipe.${r}`)} · ${t('insp.onlyKnower')}`)
+      : el('span.recipe', { text: t(`recipe.${r}`) }))),
     ...(g.knownFacts.length ? [el('h3', { text: t('insp.facts') }), el('div.sub', { text: g.knownFacts.map((f) => t(`fact.${f}`)).join(' · ') })] : []));
 }

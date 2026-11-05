@@ -9,6 +9,7 @@ import type { Biome } from '../shared/types';
 import { xpFor } from './goblin/skills';
 import { express } from './goblin/genetics/phenotype';
 import { q4 } from '../shared/math';
+import { lineageEntry } from './goblin/lineage';
 
 const BIOMES: Biome[] = ['meadow', 'forest', 'sand', 'rock', 'water', 'marsh', 'snow'];
 
@@ -124,6 +125,12 @@ export const MIGRATIONS: Record<number, Migration> = {
   12: (raw) => {
     for (const g of raw.goblins as { knownRecipes: string[] }[])
       for (const id of STARTER_RECIPES) if (!g.knownRecipes.includes(id)) g.knownRecipes.push(id);
+    return raw;
+  },
+  // P5.8 family tree: the living's lineage entries learn their clan, true color and recessive alleles (the dead's stay unknown)
+  13: (raw) => {
+    const lineage = raw.lineage as Record<number, LineageEntry>;
+    for (const g of raw.goblins as Goblin[]) if (lineage[g.id]) lineage[g.id] = { ...lineageEntry(g), died: lineage[g.id]!.died };
     return raw;
   },
 };

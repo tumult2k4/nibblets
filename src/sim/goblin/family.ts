@@ -14,6 +14,7 @@ import { express } from './genetics/phenotype';
 import { createGoblin } from './goblin';
 import { isKin, opinionOf, relate, relationOf } from './social';
 import { bondTwins, grantTrait, twinOf } from './traits';
+import { lineageEntry } from './lineage';
 import { buildingDef, isComplete } from '../buildings';
 import { foodStores } from '../spoilage';
 
@@ -22,7 +23,7 @@ const DAY = CFG.time.dayTicks;
 
 /** Remember a goblin in the lineage book (founders, newcomers, hatchlings). */
 export function registerLineage(s: WorldState, g: Goblin): void {
-  s.lineage[g.id] = { parents: g.parents, name: g.name, hue: q4(express(g.genome, 'skinHue')), born: g.bornTick, died: null };
+  s.lineage[g.id] = lineageEntry(g);
 }
 
 const parentsOf = (s: WorldState, id: ID): readonly ID[] => s.lineage[id]?.parents ?? [];

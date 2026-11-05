@@ -194,5 +194,13 @@ export const DE: Record<keyof typeof EN, string> = {
   'atrait.grudge_holder': 'Nachtragend', 'atrait.grudge_holder.d': 'Vergisst keine Kränkung.',
   'insp.lookout': 'Auf Wache',
   'insp.atBench': 'an der Werkbank',
+  'key.family': 'Stammbaum', 'tree.title': 'Stammbaum', 'tree.noFilter': 'Hervorheben: niemand', 'tree.carriers': 'Träger: {trait}',
+  'tree.locus.tusks': 'Hauer', 'tree.locus.albino': 'Albino', 'tree.clanLine': 'Sippe {clan}: {g} Generationen, {n} geboren, Farbton im Schnitt {h}°',
+  'tree.hint': 'Ziehen zum Verschieben, Mausrad zum Zoomen, Klick zeigt den Goblin. Goldener Ring: trägt es; rot: zeigt es.', 'insp.familyTree': 'Stammbaum',
+  'insp.family': 'Familie', 'insp.parents': 'Eltern', 'insp.mate': 'Gefährte', 'insp.children': 'Kinder', 'insp.siblings': 'Geschwister', 'insp.noFamily': 'Keine Familie hier: ein Gründer.',
+  'insp.growth': 'Wachstum', 'insp.dominant': 'dominant', 'insp.onlyKnower': 'Nur einer weiß es!',
+  'insp.shows': 'ausgeprägt', 'insp.carrier': 'Träger', 'insp.seasons': 'Jahreszeiten', 'insp.noLifeTraits': 'Das Leben hat es noch nicht gezeichnet.',
+  'insp.growthLine': 'Wird {s}× so groß wie ein üblicher Goblin; jetzt {now}×.', 'insp.onlyKnowerTip': 'Sonst weiß das niemand mehr. Lehre es, sonst stirbt es mit ihm.',
+  'pattern.none': 'keins', 'pattern.freckles': 'Sommersprossen', 'pattern.spots': 'Flecken', 'pattern.stripes': 'Streifen', 'pattern.twotone': 'zweifarbig',
   'qty': '×{n}', 'yes': 'Ja', 'no': 'Nein',
 };

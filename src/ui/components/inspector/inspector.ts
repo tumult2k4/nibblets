@@ -45,14 +45,14 @@ export class Inspector implements Component {
       const g = w.goblin(id);
       if (!g) return this.ctx.select(null, []);
       if (fresh) {
-        this.head.replaceChildren(goblinHeader(g, w, () => this.ctx.follow(g.id), () => this.ctx.select(null, [])));
+        const family = () => this.ctx.store.set({ familyFocus: g.id, openPanels: { ...this.ctx.store.state.openPanels, family: true } });
+        this.head.replaceChildren(goblinHeader(g, w, () => this.ctx.follow(g.id), () => this.ctx.select(null, []), family));
         this.tabs.replaceChildren(...TABS.map((tab) => el(`button.btn${tab === st.inspectorTab ? '.on' : ''}`, { onclick: () => this.ctx.store.set({ inspectorTab: tab }) }, t(`insp.${tab}`))));
         if (st.selection.length > 1) this.tabs.prepend(el('span.badge', { text: `+${st.selection.length - 1}` }));
       }
       const tab = st.inspectorTab;
       const pick = (o: number) => this.ctx.select('goblin', [o]);
-      this.body.replaceChildren(tab === 'status' ? statusTab(g, w) : tab === 'mind' ? mindTab(g) : tab === 'social' ? socialTab(g, w, pick) : tab === 'body' ? bodyTab(g, w) : inventoryTab(g));
-      if (tab === 'body' && !fresh) return;
+      this.body.replaceChildren(tab === 'status' ? statusTab(g, w) : tab === 'mind' ? mindTab(g) : tab === 'social' ? socialTab(g, w, pick) : tab === 'body' ? bodyTab(g, w) : inventoryTab(g, w));
       return;
     }
     this.tabs.replaceChildren();

@@ -192,5 +192,13 @@ export const EN = {
   'atrait.grudge_holder': 'Grudge holder', 'atrait.grudge_holder.d': 'Never lets a slight fade.',
   'insp.lookout': 'On watch',
   'insp.atBench': 'at the workbench',
+  'key.family': 'Family tree', 'tree.title': 'Family tree', 'tree.noFilter': 'Highlight: nobody', 'tree.carriers': 'Carriers: {trait}',
+  'tree.locus.tusks': 'tusks', 'tree.locus.albino': 'albino', 'tree.clanLine': 'Clan {clan}: {g} generations, {n} born, average hue {h}°',
+  'tree.hint': 'Drag to pan, wheel to zoom, click a goblin to find it. Gold ring: carries it; red: shows it.', 'insp.familyTree': 'Family tree',
+  'insp.family': 'Family', 'insp.parents': 'Parents', 'insp.mate': 'Mate', 'insp.children': 'Children', 'insp.siblings': 'Siblings', 'insp.noFamily': 'No family here: a founder.',
+  'insp.growth': 'Growth', 'insp.dominant': 'dominant', 'insp.onlyKnower': 'Only knower!',
+  'insp.shows': 'shows it', 'insp.carrier': 'carrier', 'insp.seasons': 'seasons', 'insp.noLifeTraits': 'Nothing has marked it yet.',
+  'insp.growthLine': 'Grows to {s}× a typical goblin; now {now}×.', 'insp.onlyKnowerTip': 'Nobody else alive knows this. Teach it, or it dies with them.',
+  'pattern.none': 'none', 'pattern.freckles': 'freckles', 'pattern.spots': 'spots', 'pattern.stripes': 'stripes', 'pattern.twotone': 'two-tone',
   'qty': '×{n}', 'yes': 'Yes', 'no': 'No',
 } as const;

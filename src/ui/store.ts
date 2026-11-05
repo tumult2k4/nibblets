@@ -28,7 +28,9 @@ export interface UIState {
   selectedKind: EntityKind | null;
   hoveredId: ID | null;
   activeTool: ToolId;
-  openPanels: { inspector: boolean; feed: boolean; debug: boolean; flyout: boolean; tray: boolean; village: boolean };
+  openPanels: { inspector: boolean; feed: boolean; debug: boolean; flyout: boolean; tray: boolean; village: boolean; family?: boolean };
+  /** the family tree centers on this goblin when opened from its inspector (P5.8) */
+  familyFocus?: ID | null;
   overlay: null | 'pause' | 'saves' | 'settings' | 'help' | 'wizard';
   lens: Lens;
   trayTab: TrayTab;

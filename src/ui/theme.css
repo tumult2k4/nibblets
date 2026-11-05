@@ -33,6 +33,17 @@ button { font-family: var(--font); font-size: 1em; color: var(--ink); cursor: po
 .trait-chips { display: flex; flex-wrap: wrap; gap: 4px; margin: 2px 0 4px; }
 .trait-chip { display: inline-flex; align-items: center; gap: .3em; background: #f3e6c8; border: 2px solid var(--bark); border-radius: 999px; padding: 1px .6em 1px .3em; font-size: .9em; }
 .trait-chip .icon { width: 18px; height: 18px; }
+.trait-row { display: flex; align-items: center; gap: 6px; margin: 3px 0; } .trait-row .sub { font-size: .85em; }
+.chart svg { display: block; width: 100%; height: auto; max-width: 300px; margin: 2px auto; font: 9px Fredoka, sans-serif; fill: var(--ink-2); }
+.chart .grid polygon, .chart .grid line { fill: none; stroke: #c9b896; stroke-width: .8; }
+.chart .shape { fill: rgba(91, 151, 196, .35); stroke: var(--sky); stroke-width: 1.6; }
+.chart .axis { stroke: var(--bark); stroke-width: 1; } .chart .mark { stroke: #c9b896; stroke-dasharray: 2 2; }
+.chart .curve { fill: none; stroke: var(--moss); stroke-width: 1.8; } .chart .now { fill: var(--gold); stroke: var(--bark); stroke-width: 1; }
+.kinrow { align-items: flex-start; } .kins { display: flex; flex-wrap: wrap; gap: 4px; flex: 1; }
+.kin { display: inline-flex; align-items: center; gap: .3em; background: #f3e6c8; border: 1.5px solid var(--bark); border-radius: 999px; padding: 0 .5em 0 .2em; cursor: pointer; font-size: .9em; }
+.kin.dead { opacity: .55; cursor: default; } .kin .swatch { width: 12px; height: 12px; border-radius: 50%; display: inline-block; border: 1px solid var(--bark); }
+.recipes { display: flex; flex-wrap: wrap; gap: 3px 8px; font-size: .9em; color: var(--ink-2); }
+.recipe.only { color: var(--apple); font-weight: 600; }
 .badge { background: var(--gold); border: 2px solid var(--bark); border-radius: 999px; padding: 0 .6em; font-weight: 600; }
 .speed { display: inline-flex; gap: 4px; }
 .speed .btn { padding: .15em .5em; min-width: 2.4em; }
@@ -48,9 +59,13 @@ button { font-family: var(--font); font-size: 1em; color: var(--ink); cursor: po
 /* right inspector */
 .villagepanel { position: absolute; top: 76px; left: 80px; width: 300px; max-height: calc(100vh - 300px); overflow: auto; padding: 10px; z-index: 4; pointer-events: auto; }
 .villagepanel h2 { margin: 0; font-size: 1.2em; } .villagepanel h3 { margin: 10px 0 4px; font-size: 1em; } .villagepanel .sub { color: var(--ink-2); font-size: .9em; }
+.familytree { position: absolute; top: 76px; left: 80px; width: 640px; padding: 10px; z-index: 5; pointer-events: auto; }
+.familytree h2 { margin: 0; font-size: 1.2em; } .familytree .sub { color: var(--ink-2); font-size: .9em; margin: 4px 0; }
+.familytree canvas { display: block; width: 620px; height: 360px; background: #f6edd9; border: 2px solid var(--bark); border-radius: 10px; cursor: grab; touch-action: none; }
+.familytree select { margin-left: auto; margin-right: 8px; font: inherit; }
 .vp-head { display: flex; justify-content: space-between; align-items: center; }
 .vp-row { display: flex; justify-content: space-between; gap: 8px; padding: 2px 0; } .vp-risk span { color: #b3412e; font-weight: 600; } .vp-lost { margin-top: 8px; color: #8a6d5a; font-style: italic; }
-.inspector { position: absolute; top: 76px; right: 8px; width: 320px; max-height: calc(100vh - 300px); overflow: auto; padding: 10px; }
+.inspector { position: absolute; top: 76px; right: 8px; width: 320px; max-height: calc(100vh - 380px); overflow: auto; padding: 10px; }
 .inspector h2 { margin: 0; font-size: 1.25em; } .inspector .sub { color: var(--ink-2); font-size: .9em; }
 .insp-head { display: flex; gap: 10px; align-items: center; }
 .portrait { width: 84px; height: 84px; border-radius: 12px; border: 2px solid var(--bark); background: #cfe6f2; flex: none; }

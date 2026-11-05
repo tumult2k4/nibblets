@@ -79,7 +79,11 @@ export interface Relation {
   court?: number; courtTick?: number;
 }
 /** §13.4 lineage book: everyone who ever lived, for kinship and the family tree (P5.3) */
-export interface LineageEntry { parents: [ID, ID] | null; name: string; hue: number; born: number; died: number | null }
+export interface LineageEntry {
+  parents: [ID, ID] | null; name: string; hue: number; born: number; died: number | null;
+  /** P5.8 (save v14): clan, true skin color [h, s, l] and recessive allele counts, for the family tree */
+  clan?: ID; skin?: [number, number, number]; rec?: Record<string, number>;
+}
 export interface DeedCounters { eaten: number; drank: number; harvested: number; planted: number; kills: number; builds: number; gifts: number; timesHeld: number; fights: number }
 
 /** Ballistic state of a held/thrown/dropped entity. z is absolute altitude in world units. */
