@@ -18,6 +18,7 @@ import { foughtTogether } from './goblin/social';
 import type { DeathCause, ItemType } from '../shared/types';
 import type { Enemy, Goblin, Injury } from './state';
 import type { World } from './world';
+import { gainXp, skillLevel } from './goblin/skills';
 
 const C = CFG.combat;
 
@@ -25,7 +26,7 @@ export const hasInjury = (g: Goblin, k: Injury['kind']): boolean => g.health.inj
 /** Work speed: a bruised arm slows chopping, mining, building and crafting by 20 %. */
 export const workMul = (g: Goblin): number => (hasInjury(g, 'bruised_arm') ? C.armMul : 1);
 export const isVeteran = (g: Goblin): boolean => g.traits.includes('veteran');
-const combatSkill = (g: Goblin): number => g.skills.combat ?? 0;
+const combatSkill = (g: Goblin): number => skillLevel(g, 'combat');
 
 /** Enemies that still mean harm within `r` of `pos`. */
 export function threatsNear(w: World, pos: { x: number; y: number }, r: number): Enemy[] {
@@ -111,7 +112,7 @@ export function strike(w: World, g: Goblin, e: Enemy): boolean {
   const dmg = hit ? q4(Math.max(1, strikeDamage(g) - armor)) : 0;
   w.emit({ type: 'attack', attackerId: g.id, targetId: e.id, damage: dmg, at: e.pos });
   if (!hit) return false;
-  g.skills.combat = q4(combatSkill(g) + C.skillPerHit);
+  gainXp(w, g, 'combat', CFG.skills.xp.hit);
   const wpn = bestWeapon(g);
   if (wpn) wearTool(w, g, wpn);
   e.hp = q4(e.hp - dmg);

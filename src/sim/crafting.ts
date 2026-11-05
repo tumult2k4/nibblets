@@ -16,6 +16,8 @@ import { stoneWanted, woodWanted } from './ai/wants';
 import type { ItemStack, ItemType, RecipeId } from '../shared/types';
 import type { Goblin } from './state';
 import type { World } from './world';
+import { gainXp, skillLevel } from './goblin/skills';
+import type { SkillId } from '../shared/types';
 
 const C = CFG.crafting;
 /** The strongest weapon there is: wants scale with how much a new weapon would add. */
@@ -70,19 +72,22 @@ export function chooseCraft(g: Goblin, w: World): { id: RecipeId; value: number 
   return best;
 }
 
-/** Work ticks for recipe `id`, shortened by crafting skill (+15 % speed per level). */
+/** The skill a recipe trains and draws on: woodcraft for wooden things, cooking for food, else crafting. */
+export const recipeSkill = (id: RecipeId): SkillId => RECIPES[id]?.skill ?? 'crafting';
+
+/** Work ticks for recipe `id`, shortened by its skill (+15 % speed per level). */
 export const craftTicks = (g: Goblin, id: RecipeId): number =>
-  Math.round((RECIPES[id]?.ticks ?? 120) / ((1 + (g.skills.crafting ?? 0) * C.skillBonus) * workMul(g)));
+  Math.round((RECIPES[id]?.ticks ?? 120) / ((1 + skillLevel(g, recipeSkill(id)) * C.skillBonus) * workMul(g)));
 
 /** Use up exactly the inputs and make the item: fine with 25 % from skill level 4. Null if inputs are missing. */
 export function finishCraft(w: World, g: Goblin, id: RecipeId): ItemStack | null {
   const r = RECIPES[id];
   if (!r?.output || missingInputs(g, id).length) return null;
   for (const [t, n] of Object.entries(r.inputs)) removeItems(g, t as ItemType, n);
-  const skill = g.skills.crafting ?? 0;
-  const fine = skill >= C.fineLevel && w.rng.chance(C.fineChance);
+  const sk = recipeSkill(id);
+  const fine = skillLevel(g, sk) >= C.fineLevel && w.rng.chance(C.fineChance);
   const out: ItemStack = fine ? { type: r.output, qty: 1, fine: true } : { type: r.output, qty: 1 };
-  g.skills.crafting = q4(skill + C.skillPerCraft);
+  gainXp(w, g, sk, (r.ticks ?? 120) * CFG.skills.xp.craftPerTick);
   if (addItem(g, out) < 1) spawnGroundItem(w, out, { x: q4(g.pos.x + 0.3), y: g.pos.y });
   w.emit({ type: 'item_crafted', goblinId: g.id, recipe: id, item: r.output, fine, at: { x: g.pos.x, y: g.pos.y } });
   return out;

@@ -16,6 +16,7 @@ import { icon, ITEM_ICON } from '../../icons';
 import { portraits } from '../../../render/portraits';
 import { CFG } from '../../../sim/config';
 import { feltTemperature, isWet, shelterOf, huddleBonus } from '../../../sim/temperature';
+import { MAX_LEVEL, SKILLS, skillLevel } from '../../../sim/goblin/skills';
 
 export const bar = (v: number, color = 'var(--moss)'): HTMLElement => el('div.bar', {}, el('i', { style: `width:${Math.max(0, Math.min(100, v))}%;background:${color}` }));
 const row = (label: string, v: number, shown: string, color?: string) =>
@@ -75,9 +76,19 @@ export function statusTab(g: Goblin, w: World): HTMLElement {
   );
 }
 
+/** Skill bars (P5.2): level 0–10 from XP, only the skills it has practised. */
+function skillRows(g: Goblin): HTMLElement[] {
+  const rows = SKILLS.filter((k) => (g.skills[k] ?? 0) > 0)
+    .map((k) => ({ k, lv: skillLevel(g, k) }))
+    .sort((a, b) => b.lv - a.lv)
+    .map(({ k, lv }) => row(t(`skill.${k}`), (lv / MAX_LEVEL) * 100, lv.toFixed(1), 'var(--gold)'));
+  return rows.length ? rows : [el('div.sub', { text: t('insp.noSkills') })];
+}
+
 export function mindTab(g: Goblin): HTMLElement {
   const v = g.godView;
   return el('div', {},
+    el('h3', { text: t('insp.skills') }), ...skillRows(g),
     el('h3', { text: t('insp.personality') }),
     ...TRAITS.map((k) => row(t(`trait.${k}`), g.personality[k] * 100, g.personality[k].toFixed(2), 'var(--sky)')),
     el('h3', { text: t('insp.godview') }),
@@ -129,5 +140,5 @@ export function inventoryTab(g: Goblin): HTMLElement {
     el('h3', { text: t('insp.hand') }), hand ? itemRow(hand) : el('div.sub', { text: t('insp.emptyHand') }),
     el('h3', { text: t('insp.pack') }), el('div.sub', { text: t('insp.slots', { n: slotCount(g) }) }), ...(items.length ? items : [el('div.sub', { text: t('insp.empty') })]),
     el('h3', { text: t('insp.recipes') }),
-    el('div.sub', { text: g.knownRecipes.map((r) => t(`recipe.${r}`)).join(' · ') + (g.skills.crafting ? ` — ${t('insp.craftSkill', { n: g.skills.crafting.toFixed(1) })}` : '') }));
+    el('div.sub', { text: g.knownRecipes.map((r) => t(`recipe.${r}`)).join(' · ') }));
 }

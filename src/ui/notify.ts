@@ -100,6 +100,9 @@ export function noteFor(e: SimEvent, w: World, names: Map<ID, string>): Note | n
       if (e.kind === 'rival' || e.kind === 'enemy') return { ...base, id: e.aId, text: t(`ev.${e.kind}`, pair), tier: e.kind === 'enemy' ? 'notable' : 'info', icon: 'bolt' };
       return null;
     }
+    case 'skill_up':
+      if (!CFG.skills.notify.includes(e.level)) return null;
+      return { ...base, id: e.goblinId, text: t(e.level >= 10 ? 'ev.skill_master' : 'ev.skill_up', { name: name(e.goblinId), skill: t(`skill.${e.skill}`), n: e.level }), tier: e.level >= 10 ? 'notable' : 'info', icon: 'star' };
     case 'gift_given':
       return { ...base, id: e.fromId, text: t('ev.gift_given', { a: name(e.fromId), b: name(e.toId), item: t(`item.${e.item}`) }), tier: 'info', icon: 'gift' };
     case 'comforted':

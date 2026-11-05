@@ -18,7 +18,7 @@ export const DE: Record<keyof typeof EN, string> = {
   'tray.tools': 'Werkzeug', 'ev.tool_broken': '{item} von {name} ist zerbrochen', 'ev.flint': '{name} hat Feuerstein gefunden', 'insp.uses': '{n}/{max} Nutzungen',
   'recipe.hut': 'Hütte', 'recipe.campfire': 'Lagerfeuer', 'recipe.spear': 'Speer', 'recipe.stone_spear': 'Steinspeer', 'recipe.club': 'Keule', 'recipe.stone_axe': 'Steinaxt', 'recipe.pick': 'Spitzhacke', 'recipe.fence': 'Zaun', 'recipe.stone_hut': 'Steinhütte', 'recipe.torch': 'Fackel',
   'act.craft': 'Bastelt', 'act.equip': 'Nimmt Werkzeug zur Hand', 'item.rope': 'Seil', 'ev.crafted': '{name} hat {item} gemacht.', 'ev.craftedFine': '{name} hat ein feines Stück gemacht: {item}!',
-  'insp.hand': 'In der Hand', 'insp.emptyHand': 'Nichts in der Hand.', 'insp.pack': 'Gepäck', 'insp.recipes': 'Kann herstellen', 'insp.craftSkill': 'Handwerk {n}', 'insp.fine': 'Fein',
+  'insp.hand': 'In der Hand', 'insp.emptyHand': 'Nichts in der Hand.', 'insp.pack': 'Gepäck', 'insp.recipes': 'Kann herstellen', 'insp.fine': 'Fein',
   'bld.campfire': 'Lagerfeuer', 'act.plan_building': 'Steckt einen Platz ab', 'act.tend_fire': 'Hütet das Feuer', 'item.torch': 'Fackel', 'ev.campfire_planned': 'Das Dorf hat einen Platz für ein Lagerfeuer abgesteckt.',
   'ev.campfire_lit': 'Das Lagerfeuer brennt!', 'ev.campfire_out': 'Das Lagerfeuer ist ausgegangen.', 'insp.fuel': 'Brennstoff', 'insp.fuelHours': 'noch {n} h', 'insp.fireOut': 'aus',
   'ev.hut_lost': 'Der Sturm hat eine Hütte zerstört!', 'insp.repair': 'reparaturbedürftig', 'insp.huddle': 'kuschelt',
@@ -155,5 +155,9 @@ export const DE: Record<keyof typeof EN, string> = {
   'insp.familiarity': 'Vertrautheit {n}', 'ev.friends': '{a} und {b} sind Freunde geworden.', 'ev.best_friends': '{a} und {b} sind jetzt beste Freunde!',
   'ev.rival': '{a} kann {b} nicht ausstehen.', 'ev.enemy': '{a} und {b} sind erbitterte Feinde.', 'ev.gift_given': '{a} hat {b} etwas geschenkt: {item}.',
   'ev.comforted': '{a} hat {b} umarmt und aufgemuntert.',
+  'insp.skills': 'Fertigkeiten', 'insp.noSkills': 'Noch keine geübten Fertigkeiten.', 'skill.forage': 'Sammeln', 'skill.woodcraft': 'Holzarbeit',
+  'skill.building': 'Bauen', 'skill.mining': 'Steinbruch', 'skill.crafting': 'Handwerk', 'skill.combat': 'Kampf', 'skill.farming': 'Gärtnern',
+  'skill.cooking': 'Kochen', 'skill.teaching': 'Lehren', 'ev.skill_up': '{name} ist jetzt geübt in {skill} (Stufe {n}).',
+  'ev.skill_master': '{name} ist jetzt Meister in {skill}!',
   'qty': '×{n}', 'yes': 'Ja', 'no': 'Nein',
 };

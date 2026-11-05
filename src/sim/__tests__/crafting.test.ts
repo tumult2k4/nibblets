@@ -13,6 +13,7 @@ import { deserialize, serialize } from '../save';
 import { makeWorld, spawnGoblin } from './helpers';
 import type { World } from '../world';
 import type { Goblin } from '../state';
+import { skillLevel } from '../goblin/skills';
 
 function runAction(w: World, g: Goblin, id: 'craft' | 'equip' | 'mine'): void {
   expect(startAction(g, w, id)).toBe(true);
@@ -73,6 +74,7 @@ describe('crafting, quality and equip (P4.2)', () => {
   it('fine items need skill 4 and come about a quarter of the time', () => {
     const w = makeWorld();
     const g = spawnGoblin(w);
+    g.personality.industry = 0.5; // learns at the plain rate
     let fine = 0;
     for (let i = 0; i < 16; i++) {
       addItem(g, { type: 'wood', qty: 2 });
@@ -80,7 +82,8 @@ describe('crafting, quality and equip (P4.2)', () => {
       g.inventory = [];
     }
     expect(fine).toBe(0);
-    expect(g.skills.crafting).toBeCloseTo(16 * CFG.crafting.skillPerCraft);
+    expect(g.skills.woodcraft).toBeCloseTo(16 * 120 * CFG.skills.xp.craftPerTick); // a wooden spear trains woodcraft
+    expect(skillLevel(g, 'woodcraft')).toBeLessThan(CFG.crafting.fineLevel);
     for (let i = 0; i < 400; i++) {
       addItem(g, { type: 'wood', qty: 2 });
       if (finishCraft(w, g, 'spear')?.fine) fine++;

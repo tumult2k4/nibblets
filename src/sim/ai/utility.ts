@@ -37,6 +37,7 @@ import { Drink } from './actions/drink';
 import { SleepGround } from './actions/sleepGround';
 import { LookUp, Struggle } from './actions/divine';
 import type { Vec2 } from '../../shared/types';
+import { skillFocus } from '../goblin/skills';
 
 export const ACTIONS: Record<ActionId, UtilityAction> = {
   idle: Idle, wander: Wander, eat: Eat, harvest_fruit: HarvestFruit, pick_up: PickUp, drop: Drop,
@@ -51,7 +52,7 @@ export const ACTIONS: Record<ActionId, UtilityAction> = {
 };
 const CHOOSABLE = (Object.values(ACTIONS) as UtilityAction[]).filter((a) => !a.forced);
 
-export interface ScoreRow { id: ActionId; base: number; personality: number; mood: number; hysteresis: number; focus: number; final: number }
+export interface ScoreRow { id: ActionId; base: number; personality: number; mood: number; skill: number; hysteresis: number; focus: number; final: number }
 
 function moodMul(g: Goblin, a: UtilityAction): number {
   // §7.5: mood multiplies work and social action scores (sulky goblins keep to themselves)
@@ -71,9 +72,10 @@ export function scoreActions(g: Goblin, w: World, noise = true, planned: ActionI
     if (base <= 0) continue;
     const pw = personalityWeight(g.personality, a.id);
     const mm = moodMul(g, a);
+    const sk = skillFocus(g, a.id);
     const hy = g.activity.action === a.id && g.activity.status === 'running' ? CFG.goblin.hysteresis : 1;
     const n = noise ? w.rng.range(0.95, 1.05) : 1;
-    rows.push({ id: a.id, base, personality: pw, mood: mm, hysteresis: hy, focus: fo, final: base * pw * mm * hy * fo * n });
+    rows.push({ id: a.id, base, personality: pw, mood: mm, skill: sk, hysteresis: hy, focus: fo, final: base * pw * mm * sk * hy * fo * n });
   }
   rows.sort((x, y) => y.final - x.final || (x.id < y.id ? -1 : 1));
   return rows;

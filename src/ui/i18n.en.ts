@@ -16,7 +16,7 @@ export const EN = {
   'tray.tools': 'Tools', 'ev.tool_broken': "{name}'s {item} broke", 'ev.flint': '{name} found flint', 'insp.uses': '{n}/{max} uses',
   'recipe.hut': 'Hut', 'recipe.campfire': 'Campfire', 'recipe.spear': 'Spear', 'recipe.stone_spear': 'Stone spear', 'recipe.club': 'Club', 'recipe.stone_axe': 'Stone axe', 'recipe.pick': 'Pick', 'recipe.fence': 'Fence', 'recipe.stone_hut': 'Stone hut', 'recipe.torch': 'Torch',
   'act.craft': 'Crafting', 'act.equip': 'Taking up a tool', 'item.rope': 'Rope', 'ev.crafted': '{name} made a {item}.', 'ev.craftedFine': '{name} made a fine {item}!',
-  'insp.hand': 'In hand', 'insp.emptyHand': 'Nothing in hand.', 'insp.pack': 'Pack', 'insp.recipes': 'Knows how to make', 'insp.craftSkill': 'crafting {n}', 'insp.fine': 'Fine',
+  'insp.hand': 'In hand', 'insp.emptyHand': 'Nothing in hand.', 'insp.pack': 'Pack', 'insp.recipes': 'Knows how to make', 'insp.fine': 'Fine',
   'bld.campfire': 'Campfire', 'act.plan_building': 'Marking out a site', 'act.tend_fire': 'Tending the fire', 'item.torch': 'Torch', 'ev.campfire_planned': 'The village marked out a spot for a campfire.',
   'ev.campfire_lit': 'The campfire is lit!', 'ev.campfire_out': 'The campfire went out.', 'insp.fuel': 'Fuel', 'insp.fuelHours': '{n} h left', 'insp.fireOut': 'out',
   'ev.hut_lost': 'The storm brought down a hut!', 'insp.repair': 'needs repair', 'insp.huddle': 'huddling',
@@ -153,5 +153,9 @@ export const EN = {
   'insp.familiarity': 'Familiarity {n}', 'ev.friends': '{a} and {b} have become friends.', 'ev.best_friends': '{a} and {b} are best friends now!',
   'ev.rival': '{a} can\'t stand {b}.', 'ev.enemy': '{a} and {b} are bitter enemies.', 'ev.gift_given': '{a} gave {b} a {item}.',
   'ev.comforted': '{a} hugged {b} and cheered them up.',
+  'insp.skills': 'Skills', 'insp.noSkills': 'No practised skills yet.', 'skill.forage': 'Foraging', 'skill.woodcraft': 'Woodcraft',
+  'skill.building': 'Building', 'skill.mining': 'Mining', 'skill.crafting': 'Crafting', 'skill.combat': 'Combat', 'skill.farming': 'Farming',
+  'skill.cooking': 'Cooking', 'skill.teaching': 'Teaching', 'ev.skill_up': '{name} has become skilled at {skill} (level {n}).',
+  'ev.skill_master': '{name} is now a master of {skill}!',
   'qty': '×{n}', 'yes': 'Yes', 'no': 'No',
 } as const;

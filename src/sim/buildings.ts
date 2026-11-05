@@ -10,6 +10,7 @@ import type { World } from './world';
 import { tileAt } from './grid';
 import { countItem } from './inventory';
 import { spawnGroundItem } from './groundItems';
+import { gainXp, skillLevel } from './goblin/skills';
 
 const B = CFG.buildings;
 
@@ -146,7 +147,7 @@ export function placeBlueprint(w: World, type: BuildingType, pos: Vec2, ownerId:
 
 /** Labor rate per tick (§10.2): 0.002 × (1 + skill × 0.15) × mood speed, ×1.3 when a friend works alongside. */
 export function laborRate(w: World, g: Goblin, b: Building): number {
-  const skill = g.skills.building ?? 0;
+  const skill = skillLevel(g, 'building');
   const mood = 0.95 + 0.25 * clamp(g.mood.value / 100, -1, 1);
   let rate = B.buildRate * (1 + skill * B.skillBonus) * mood * (buildingDef(b.type)?.labor ?? 1);
   const friend = w.s.goblins.some((o) => o.id !== g.id && o.activity.action === 'build' && o.activity.targetId === b.id
@@ -159,7 +160,7 @@ export function laborRate(w: World, g: Goblin, b: Building): number {
 export function addLabor(w: World, g: Goblin, b: Building): boolean {
   if (isComplete(b) || missingMaterials(b).length) return false;
   b.buildProgress = q4(Math.min(1, b.buildProgress + laborRate(w, g, b) * workMul(g)));
-  g.skills.building = q4((g.skills.building ?? 0) + B.skillPerTick);
+  gainXp(w, g, 'building', CFG.skills.xp.buildTick);
   const key = `w${g.id}`;
   b.data![key] = (b.data![key] ?? 0) + 1;
   if (b.buildProgress < 1) return false;

@@ -10,6 +10,7 @@ import { isEdibleMushroom, mushroomItem, removeMushroom } from '../../ecology';
 import type { Goblin } from '../../state';
 import type { World } from '../../world';
 import type { UtilityAction } from '../action';
+import { gainXp, skillSpeed } from '../../goblin/skills';
 
 const M = CFG.mushrooms;
 const FAR = 40;
@@ -67,7 +68,7 @@ export const Forage: UtilityAction = {
       if (dist(g.pos, m.pos) < 0.5) a.path = [];
       if (moveAlong(w, g) !== 'arrived') return 'running';
       a.stage = 1;
-      a.progress = M.forageTicks;
+      a.progress = Math.round(M.forageTicks / skillSpeed(g, 'forage'));
       faceToward(g, m.pos);
     }
     if (--a.progress > 0) return 'running';
@@ -76,6 +77,7 @@ export const Forage: UtilityAction = {
     removeMushroom(w, m);
     forget(g, 'mushroom', m.id);
     g.deeds.harvested += 1;
+    gainXp(w, g, 'forage', CFG.skills.xp.forage);
     w.emit({ type: 'foraged', goblinId: g.id, item, at: m.pos });
     return 'done';
   },

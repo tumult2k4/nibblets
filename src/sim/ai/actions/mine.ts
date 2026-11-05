@@ -17,6 +17,7 @@ import type { ItemType } from '../../../shared/types';
 import type { Goblin, Rock } from '../../state';
 import type { World } from '../../world';
 import type { UtilityAction } from '../action';
+import { gainXp, skillLevel, skillSpeed } from '../../goblin/skills';
 
 const M = CFG.mining;
 
@@ -43,7 +44,7 @@ function workSpot(g: Goblin, rk: Rock): { x: number; y: number } {
   return { x: q4(rk.pos.x + ux * off), y: q4(rk.pos.y + uy * off) };
 }
 
-export const mineTicks = (g: Goblin): number => Math.round(M.ticksPerStone / (toolFor(g, 'mine').mul * workMul(g)));
+export const mineTicks = (g: Goblin): number => Math.round(M.ticksPerStone / (toolFor(g, 'mine').mul * workMul(g) * skillSpeed(g, 'mining')));
 
 function give(g: Goblin, w: World, type: ItemType): void {
   if (addItem(g, { type, qty: 1 }) < 1) spawnGroundItem(w, { type, qty: 1 }, { x: q4(g.pos.x + 0.2), y: q4(g.pos.y + 0.2) });
@@ -86,10 +87,11 @@ export const Mine: UtilityAction = {
     }
     if (--a.progress > 0) return 'running';
     const pick = toolFor(g, 'mine').stack;
-    const flint = w.rng.chance(rk.flintChance);
+    const flint = w.rng.chance(rk.flintChance + CFG.skills.flintPerLevel * skillLevel(g, 'mining')); // a practised eye spots the flint
     rk.stoneLeft -= 1;
     rk.size = clamp(Math.ceil(rk.stoneLeft / 4), 1, 3) as Rock['size'];
     give(g, w, 'stone');
+    gainXp(w, g, 'mining', CFG.skills.xp.stone);
     if (flint) give(g, w, 'flint');
     w.emit({ type: 'rock_mined', goblinId: g.id, rockId: rk.id, flint, left: rk.stoneLeft });
     if (pick) wearTool(w, g, pick);

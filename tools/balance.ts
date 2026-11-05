@@ -13,6 +13,7 @@ import { isLit } from '../src/sim/fire';
 import { ACTIONS } from '../src/sim/ai/utility';
 import { ringTiles } from '../src/sim/fences';
 import { RECIPES } from '../src/sim/recipes';
+import { bestSkill } from '../src/sim/goblin/skills';
 import type { Goblin } from '../src/sim/state';
 
 const arg = (name: string, def: number): number => {
@@ -37,6 +38,8 @@ interface Row {
   hueDrift: number; tickMs: number; fails: string[];
   bushes0: number; bushesEnd: number; planted: number; plantedMature: number; wood: number; stone: string; armed: number; fires: string; foes: string;
   housedAutumn: number; huts: number; weatherDeaths: number; veterans: number; fences: string; rare: string;
+  /** P5: best skill per goblin (level ≥ 2), the top level, and mutual friendships */
+  specialists: string; friends: number;
 }
 
 const meanHue = (hs: number[]): number => {
@@ -114,7 +117,17 @@ function runSeed(seed: number): Row {
   if (housedAutumn >= 0 && housedAutumn < 0.8) fails.push('housed<80%');
   if (days >= 24 && weatherDeaths >= 2) fails.push('weather deaths');
   if (!noCraft && (deaths.combat ?? 0) > 3) fails.push('combat deaths>3');
+  const spec: Record<string, number> = {};
+  let top = 0;
+  for (const g of w.s.goblins) {
+    const b = bestSkill(g);
+    if (b && b.level >= 2) spec[b.id] = (spec[b.id] ?? 0) + 1;
+    top = Math.max(top, b?.level ?? 0);
+  }
+  const friendBond = (g: Goblin, id: number) => ['friend', 'best_friend'].includes(g.relationships.find((r) => r.targetId === id)?.bond ?? '');
+  const friends = w.s.goblins.reduce((n, g) => n + g.relationships.filter((r) => r.targetId > g.id && friendBond(g, r.targetId) && friendBond(w.goblin(r.targetId) ?? g, g.id)).length, 0);
   return {
+    specialists: `${Object.entries(spec).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${k} ${n}`).join(', ') || '—'} · top ${top.toFixed(1)}`, friends,
     lost: totalDeaths, residents: founders + rare.newcomers,
     seed, popMin, popAvg: popSum / Math.max(1, samples), popMax, popEnd: w.s.goblins.length, births: w.s.stats.births,
     deaths, eaten: w.s.stats.eaten, divineFood: w.s.stats.divineFood, starvationDays,
@@ -130,14 +143,14 @@ const rows: Row[] = [];
 for (let i = 0; i < seedCount; i++) {
   const r = runSeed(firstSeed + i);
   rows.push(r);
-  console.log(`seed ${r.seed}: pop ${r.popEnd} (min ${r.popMin}, max ${r.popMax}) deaths ${JSON.stringify(r.deaths)} eaten ${r.eaten} bushes ${r.bushes0}→${r.bushesEnd} plantedMature ${r.plantedMature} wood ${r.wood} stone/flint/sticks ${r.stone} armed ${r.armed} fires ${r.fires} gnashers/stolen/bites/fled/killed/wounds ${r.foes} veterans ${r.veterans} huts ${r.huts} fences ${r.fences} beasts/smashed wisps/lured newcomers ${r.rare} housed@autumn ${r.housedAutumn < 0 ? '—' : Math.round(r.housedAutumn * 100) + '%'} tick ${r.tickMs.toFixed(3)}ms ${r.fails.length ? 'FAIL ' + r.fails.join(',') : 'ok'}`);
+  console.log(`seed ${r.seed}: pop ${r.popEnd} (min ${r.popMin}, max ${r.popMax}) deaths ${JSON.stringify(r.deaths)} eaten ${r.eaten} bushes ${r.bushes0}→${r.bushesEnd} plantedMature ${r.plantedMature} wood ${r.wood} stone/flint/sticks ${r.stone} armed ${r.armed} fires ${r.fires} gnashers/stolen/bites/fled/killed/wounds ${r.foes} veterans ${r.veterans} huts ${r.huts} fences ${r.fences} beasts/smashed wisps/lured newcomers ${r.rare} housed@autumn ${r.housedAutumn < 0 ? '—' : Math.round(r.housedAutumn * 100) + '%'} specialists ${r.specialists} friends ${r.friends} tick ${r.tickMs.toFixed(3)}ms ${r.fails.length ? 'FAIL ' + r.fails.join(',') : 'ok'}`);
 }
 const lines = [
   `# Balance report — ${days} days × ${seedCount} seeds${noCraft ? ' (control: no crafting)' : ''}`,
   '',
-  '| seed | pop min/avg/max/end | births | deaths | starvation deaths | food eaten | god food | starvation days | hue drift° | bushes start→end | goblin-planted mature | wood | stone/flint/sticks | armed | campfires built/lit | gnashers/stolen/bites/fled/killed/wounds | huts | fence posts/ring | housed end of autumn | weather deaths | tick ms | result |',
-  '|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|',
-  ...rows.map((r) => `| ${r.seed} | ${r.popMin}/${r.popAvg.toFixed(1)}/${r.popMax}/${r.popEnd} | ${r.births} | ${Object.values(r.deaths).reduce((a, b) => a + b, 0)} ${JSON.stringify(r.deaths)} | ${r.deaths.starvation ?? 0} | ${r.eaten} | ${r.divineFood} | ${r.starvationDays} | ${r.hueDrift.toFixed(1)} | ${r.bushes0}→${r.bushesEnd} | ${r.plantedMature} | ${r.wood} | ${r.stone} | ${r.armed} | ${r.fires} | ${r.foes} | ${r.huts} | ${r.fences} | ${r.housedAutumn < 0 ? '—' : Math.round(r.housedAutumn * 100) + '%'} | ${r.weatherDeaths} | ${r.tickMs.toFixed(3)} | ${r.fails.length ? 'FAIL: ' + r.fails.join(', ') : 'ok'} |`),
+  '| seed | pop min/avg/max/end | births | deaths | starvation deaths | food eaten | god food | starvation days | hue drift° | bushes start→end | goblin-planted mature | wood | stone/flint/sticks | armed | campfires built/lit | gnashers/stolen/bites/fled/killed/wounds | huts | fence posts/ring | housed end of autumn | weather deaths | specialists (best skill ≥ 2) | friend pairs | tick ms | result |',
+  '|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|',
+  ...rows.map((r) => `| ${r.seed} | ${r.popMin}/${r.popAvg.toFixed(1)}/${r.popMax}/${r.popEnd} | ${r.births} | ${Object.values(r.deaths).reduce((a, b) => a + b, 0)} ${JSON.stringify(r.deaths)} | ${r.deaths.starvation ?? 0} | ${r.eaten} | ${r.divineFood} | ${r.starvationDays} | ${r.hueDrift.toFixed(1)} | ${r.bushes0}→${r.bushesEnd} | ${r.plantedMature} | ${r.wood} | ${r.stone} | ${r.armed} | ${r.fires} | ${r.foes} | ${r.huts} | ${r.fences} | ${r.housedAutumn < 0 ? '—' : Math.round(r.housedAutumn * 100) + '%'} | ${r.weatherDeaths} | ${r.specialists} | ${r.friends} | ${r.tickMs.toFixed(3)} | ${r.fails.length ? 'FAIL: ' + r.fails.join(', ') : 'ok'} |`),
   '',
   `Aggregate: avg end pop ${(rows.reduce((a, r) => a + r.popEnd, 0) / rows.length).toFixed(1)}, starvation deaths ${rows.reduce((a, r) => a + (r.deaths.starvation ?? 0), 0)}, avg tick ${(rows.reduce((a, r) => a + r.tickMs, 0) / rows.length).toFixed(3)} ms.`,
 ];

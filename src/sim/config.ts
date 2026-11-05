@@ -1,7 +1,7 @@
 /** Every tunable number lives here (§21). Additions beyond §21 are logged in DECISIONS.md. */
 export const CFG = {
   tickHz: 10,
-  saveVersion: 9,
+  saveVersion: 10,
   time: { dayTicks: 3600, daysPerSeason: 8, moonCycleDays: 8, phases: { dawn: 0.05, day: 0.6, dusk: 0.7 }, startTick: 360 },
   world: {
     w: 128, h: 128, waterLevel: 0.3, sandBand: 0.03, rockLevel: 0.8, forestNoiseThreshold: 0.6,
@@ -77,7 +77,7 @@ export const CFG = {
       fence: { cost: { wood: 1 } as Record<string, number>, footprint: 1, hp: 40, capacity: 0, storage: 0, labor: 8 },
       stone_hut: { cost: { stone: 6 } as Record<string, number>, footprint: 2, hp: 220, capacity: 3, storage: 8, labor: 2.5 },
     } as Record<string, { cost: Record<string, number>; footprint: number; hp: number; capacity: number; storage: number; labor?: number }>,
-    buildRate: 0.002, skillBonus: 0.15, friendBonus: 1.3, skillPerTick: 0.001, workChunk: 300,
+    buildRate: 0.002, skillBonus: 0.15, friendBonus: 1.3, workChunk: 300,
     siteRadius: 14, maxSlope: 0.06, waterPref: [4, 10] as [number, number], hutSpacing: [3.6, 7] as [number, number],
     occupiedCost: 4,
   },
@@ -154,7 +154,7 @@ export const CFG = {
   },
   /** P4.2 crafting (§11.1): skill is a level that grows per craft; level 4+ may make fine items */
   crafting: {
-    skillPerCraft: 0.25, skillBonus: 0.15, fineLevel: 4, fineChance: 0.25, fineBonus: 1.5,
+    skillBonus: 0.15, fineLevel: 4, fineChance: 0.25, fineBonus: 1.5,
     weaponWant: 0.1, braveryWant: 0.16, toolWant: 0.3, equipTicks: 10, fetchTicks: 8,
   },
   enemies: {
@@ -180,7 +180,7 @@ export const CFG = {
     fists: 5, spear: 15, stone_spear: 28, club: 20, sling: 10, injuryChance: 0.25,
     // P4.5 melee (§14.2): windup 0.4 s, 60–90 % hit, dmg × (0.8 + 0.4 × size) × skill
     windupTicks: 4, cooldownTicks: 10, reach: 1.2, hitBase: 0.7, hitPerSkill: 0.04, hitMin: 0.6, hitMax: 0.9, evadePerSkill: 0.02,
-    skillPerHit: 0.15, dmgPerSkill: 0.05, knockback: 0.35, knockbackFull: 12,
+    dmgPerSkill: 0.05, knockback: 0.35, knockbackFull: 12,
     // morale (§14.2): panic when safety < 20 and bravery < 0.5, or hp < 30 % unless veteran
     panicSafety: 20, panicBravery: 0.5, panicHp: 0.3, veteranFights: 5, sprintMul: 1.15, fleeTicks: 400, safeDist: 9,
     // injuries: hp < 50 % after a hit, 25 %; limp −30 % speed and bruised arm −20 % work for 3 days; ear notch +1 scar
@@ -202,6 +202,20 @@ export const CFG = {
     companyRadius: 3, companyPerDay: 20, chatRange: 10, chatLines: [4, 6] as [number, number], lineTicks: 25, chatSocial: 25, topicMatch: 2,
     gossipShare: 3, gossipConfidence: 0.8, personSway: 0.2, comfortMood: 10, comfortOpinion: 10, comfortSocial: 15, comfortRange: 14,
     sadBelow: -30, giftRange: 15, giftSocial: 10, mealSocial: 6, mealRange: 3, fightBondRange: 8, moodMul: 0.2,
+  },
+  /** P5.2 skills: XP per skill; a level is read off the cumulative thresholds (fractional in between) */
+  skills: {
+    levelXp: [10, 30, 60, 100, 150, 210, 280, 360, 450, 550] as readonly number[],
+    /** gather, chop, mine, plant and water faster: +10 % per level */
+    speedPerLevel: 0.1,
+    /** goblins like doing what they are good at: action score × (1 + 0.06 × level) (specialization) */
+    focusPerLevel: 0.06,
+    /** XP × (0.8 + 0.4 × industry) */
+    industryXp: 0.4,
+    xp: { harvest: 0.5, forage: 1, chopHit: 0.3, felled: 2, stone: 2, buildTick: 0.04, repair: 1, craftPerTick: 0.05, hit: 3, plant: 3, water: 1.5, teach: 5 },
+    flintPerLevel: 0.02, waterPerLevel: 0.1,
+    /** skill-ups worth a note */
+    notify: [5, 10] as readonly number[],
   },
   knowledge: { discoveryBase: 0.01, teachTicks: 300, observeChance: 0.02, younglingLearnMul: 2, elderTeachMul: 1.5 },
   disease: { feverMinPop: 25, feverYearlyChance: 0.5 },

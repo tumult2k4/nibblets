@@ -16,6 +16,7 @@ import { busy } from './village';
 import type { Building, Goblin } from '../../state';
 import type { World } from '../../world';
 import type { UtilityAction } from '../action';
+import { gainXp } from '../../goblin/skills';
 
 const F = CFG.fences;
 
@@ -80,7 +81,7 @@ export const RepairBuilding: UtilityAction = {
     removeItems(g, item, 1);
     b.hp = q4(Math.min(b.maxHp, b.hp + b.maxHp * F.repairShare));
     if (b.hp >= b.maxHp * CFG.storms.repairBelow && b.data?.repair) delete b.data.repair;
-    g.skills.building = q4((g.skills.building ?? 0) + 0.05);
+    gainXp(w, g, 'building', CFG.skills.xp.repair);
     return 'done';
   },
 };

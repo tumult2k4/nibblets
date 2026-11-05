@@ -4,6 +4,7 @@ import { needUrgency } from '../../goblin/needs';
 import { moveAlong, planPath, faceToward } from '../../steering';
 import { findDryPlant, nearestShores } from '../targets';
 import type { UtilityAction } from '../action';
+import { gainXp, skillLevel, skillSpeed } from '../../goblin/skills';
 
 /**
  * §P2.2: visit water first (cupped hands, "wet hands" for 600 ticks), then splash a dry young plant.
@@ -35,7 +36,7 @@ export const WaterPlant: UtilityAction = {
       case 0:
         if (moveAlong(w, g) !== 'arrived') return 'running';
         a.stage = 1;
-        a.progress = CFG.plants.waterTicks;
+        a.progress = Math.round(CFG.plants.waterTicks / skillSpeed(g, 'farming'));
         return 'running';
       case 1:
         if (--a.progress > 0) return 'running';
@@ -49,11 +50,12 @@ export const WaterPlant: UtilityAction = {
         if (moveAlong(w, g) !== 'arrived') return 'running';
         faceToward(g, p.pos);
         a.stage = 3;
-        a.progress = CFG.plants.waterTicks;
+        a.progress = Math.round(CFG.plants.waterTicks / skillSpeed(g, 'farming'));
         return 'running';
       default:
         if (--a.progress > 0) return 'running';
-        p.hydration = q4(Math.min(1, p.hydration + CFG.plants.waterHydration));
+        p.hydration = q4(Math.min(1, p.hydration + CFG.plants.waterHydration * (1 + CFG.skills.waterPerLevel * skillLevel(g, 'farming'))));
+        gainXp(w, g, 'farming', CFG.skills.xp.water);
         w.emit({ type: 'plant_watered', goblinId: g.id, plantId: p.id, at: p.pos });
         return 'done';
     }

@@ -5,6 +5,7 @@ import { STARTER_RECIPES } from './recipes';
 import type { LoggedCommand, Tile, WorldState } from './state';
 import { World } from './world';
 import type { Biome } from '../shared/types';
+import { xpFor } from './goblin/skills';
 
 const BIOMES: Biome[] = ['meadow', 'forest', 'sand', 'rock', 'water', 'marsh', 'snow'];
 
@@ -90,6 +91,12 @@ export const MIGRATIONS: Record<number, Migration> = {
   8: (raw) => {
     for (const g of raw.goblins as { relationships: Record<string, unknown>[] }[])
       g.relationships = g.relationships.map((r) => ({ familiarity: 0, bond: 'none', lastInteraction: 0, ...r }));
+    return raw;
+  },
+  // v9 → v10 (P5.2): skills were stored as levels; now they are XP
+  9: (raw) => {
+    for (const g of raw.goblins as { skills: Record<string, number> }[])
+      for (const k of Object.keys(g.skills)) g.skills[k] = xpFor(g.skills[k]!);
     return raw;
   },
 };

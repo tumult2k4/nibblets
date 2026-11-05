@@ -11,6 +11,7 @@ import { woodWanted } from '../wants';
 import type { Goblin, Plant } from '../../state';
 import type { World } from '../../world';
 import type { UtilityAction } from '../action';
+import { gainXp, skillSpeed } from '../../goblin/skills';
 
 const P = CFG.plants;
 
@@ -75,12 +76,13 @@ export const Chop: UtilityAction = {
       if (moveAlong(w, g) !== 'arrived') return 'running';
       faceToward(g, p.pos);
       a.stage = 1;
-      a.progress = P.chopTicksPerHit;
+      a.progress = Math.round(P.chopTicksPerHit / skillSpeed(g, 'woodcraft'));
     }
     if (--a.progress > 0) return 'running';
     const tool = toolFor(g, 'chop');
     p.hp -= (P.chopHitDmg * tool.mul * workMul(g)) / (p.kind === 'tree' ? P.treeToughness : 1);
-    a.progress = P.chopTicksPerHit;
+    gainXp(w, g, 'woodcraft', CFG.skills.xp.chopHit);
+    a.progress = Math.round(P.chopTicksPerHit / skillSpeed(g, 'woodcraft'));
     if (p.hp > 0) return 'running';
     const tree = p.kind === 'tree';
     const wood = tree ? (p.stage === 'young' ? P.wood.young * 2 : P.wood.tree)
@@ -90,6 +92,7 @@ export const Chop: UtilityAction = {
     if (tool.stack) wearTool(w, g, tool.stack);
     spawnGroundItem(w, { type: 'wood', qty: wood }, { x: p.pos.x + 0.3, y: p.pos.y });
     if (sticks) spawnGroundItem(w, { type: 'stick', qty: sticks }, { x: p.pos.x - 0.3, y: p.pos.y + 0.2 });
+    gainXp(w, g, 'woodcraft', CFG.skills.xp.felled);
     w.emit({ type: 'plant_chopped', goblinId: g.id, plantId: p.id, wood });
     if (p.stage === 'mature' || p.stage === 'old') {
       p.stage = 'stump';

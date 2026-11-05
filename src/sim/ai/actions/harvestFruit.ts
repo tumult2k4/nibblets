@@ -7,6 +7,7 @@ import { moveAlong, planPath, faceToward } from '../../steering';
 import { distanceFalloff, visionRadius } from '../considerations';
 import { findFruitPlant } from '../targets';
 import type { UtilityAction } from '../action';
+import { gainXp, skillSpeed } from '../../goblin/skills';
 
 /** Walk to a fruiting bush (seen or remembered) and pick fruit into the inventory. */
 export const HarvestFruit: UtilityAction = {
@@ -45,7 +46,7 @@ export const HarvestFruit: UtilityAction = {
       if (dist(g.pos, p.pos) < 0.9) a.path = [];
       if (moveAlong(w, g) !== 'arrived') return 'running';
       a.stage = 1;
-      a.progress = CFG.goblin.harvestTicks;
+      a.progress = Math.round(CFG.goblin.harvestTicks / skillSpeed(g, 'forage'));
       faceToward(g, p.pos);
     }
     a.progress -= 1;
@@ -57,6 +58,7 @@ export const HarvestFruit: UtilityAction = {
     remember(g, w, 'fruit_plant', p.pos, p.fruit, p.id);
     if (got <= 0) return 'failed';
     g.deeds.harvested += got;
+    gainXp(w, g, 'forage', CFG.skills.xp.harvest * got);
     w.emit({ type: 'harvested', goblinId: g.id, plantId: p.id, item, at: p.pos });
     return 'done';
   },

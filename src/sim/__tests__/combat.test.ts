@@ -19,6 +19,7 @@ import { makeWorld, spawnGoblin } from './helpers';
 import type { World } from '../world';
 import type { Goblin } from '../state';
 import type { SimEvent } from '../../shared/types';
+import { xpFor } from '../goblin/skills';
 
 const DAY = CFG.time.dayTicks;
 const C = CFG.combat;
@@ -100,12 +101,12 @@ describe('goblin combat, morale and injuries (P4.5)', () => {
     expect(strikeDamage(g)).toBeCloseTo(C.fists * (0.8 + 0.4 * size), 3);
     armed(g);
     expect(strikeDamage(g)).toBeCloseTo(C.spear * (0.8 + 0.4 * size), 3);
-    g.skills.combat = 2;
+    g.skills.combat = xpFor(2);
     expect(strikeDamage(g)).toBeCloseTo(C.spear * (0.8 + 0.4 * size) * (1 + 2 * C.dmgPerSkill), 3);
     expect(hitChance(g)).toBeCloseTo(C.hitBase + 2 * C.hitPerSkill);
     g.skills.combat = 0;
     expect(hitChance(g)).toBe(C.hitBase);
-    g.skills.combat = 50;
+    g.skills.combat = xpFor(10);
     expect(hitChance(g)).toBe(C.hitMax);
   });
 

@@ -9,6 +9,7 @@ import { setWeather } from '../weather';
 import { deposit, stockCount } from '../stockpile';
 import { makeWorld, spawnGoblin } from './helpers';
 import type { SimEvent } from '../../shared/types';
+import { xpFor } from '../goblin/skills';
 
 const DAY = CFG.time.dayTicks;
 
@@ -75,7 +76,7 @@ describe('building system (§10.1–10.2, P3.3)', () => {
     g.mood.value = 0;
     const base = laborRate(w, g, b);
     expect(base).toBeCloseTo(0.002 * 0.95, 6);
-    g.skills.building = 4;
+    g.skills.building = xpFor(4);
     expect(laborRate(w, g, b)).toBeCloseTo(base * 1.6, 6);
     g.skills.building = 0;
     g.mood.value = 100;
