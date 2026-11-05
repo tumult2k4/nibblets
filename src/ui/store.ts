@@ -1,3 +1,4 @@
+import type { EntityKind } from '../render/picking';
 import type { TerraformPower } from '../sim/god/terraform';
 import type { ID } from '../shared/types';
 import type { Lang } from './i18n';
@@ -21,7 +22,7 @@ export const DEFAULT_SETTINGS: Settings = {
 export interface UIState {
   screen: 'title' | 'game' | 'replay';
   selection: ID[];
-  selectedKind: 'goblin' | 'plant' | 'item' | null;
+  selectedKind: EntityKind | null;
   hoveredId: ID | null;
   activeTool: ToolId;
   openPanels: { inspector: boolean; feed: boolean; debug: boolean; flyout: boolean; tray: boolean };

@@ -39,6 +39,12 @@ export function noteFor(e: SimEvent, w: World, names: Map<ID, string>): Note | n
     }
     case 'plant_chopped':
       return { ...base, id: e.goblinId, text: t('ev.chopped', { name: name(e.goblinId), n: e.wood }), tier: 'info', icon: 'leaf' };
+    case 'building_placed':
+      return e.goblinId !== undefined && e.kind === 'hut' ? { ...base, id: e.goblinId, text: t('ev.hut_planned', { name: name(e.goblinId) }), tier: 'info', icon: 'hill' } : null;
+    case 'building_completed':
+      return e.kind === 'hut' ? { ...base, text: t('ev.hut_built'), tier: 'notable', icon: 'hill' } : null;
+    case 'home_claimed':
+      return { ...base, id: e.goblinId, text: t('ev.home_claimed', { name: name(e.goblinId) }), tier: 'info', icon: 'heart' };
     case 'freezing':
       return { ...base, id: e.goblinId, text: t('ev.hypothermia', { name: name(e.goblinId) }), tier: 'critical', icon: 'snow' };
     case 'weather_changed':

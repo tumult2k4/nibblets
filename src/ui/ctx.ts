@@ -1,3 +1,4 @@
+import type { EntityKind } from '../render/picking';
 import type { Game } from '../game';
 import type { Store } from './store';
 import type { ID, Vec2 } from '../shared/types';
@@ -8,7 +9,7 @@ export interface Ctx {
   game: Game;
   store: Store;
   push(cmd: Command): void;
-  select(kind: 'goblin' | 'plant' | 'item' | null, ids: ID[]): void;
+  select(kind: EntityKind | null, ids: ID[]): void;
   flyTo(p: Vec2): void;
   follow(id: ID | null): void;
   toast(text: string, tier: 'info' | 'notable' | 'critical', at?: Vec2, id?: ID): void;

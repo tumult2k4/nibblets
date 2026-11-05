@@ -57,3 +57,12 @@ Small choices the design doc left open, one line of rationale each.
 - **StoreItem leaves materials alone while a blueprint needs them** — otherwise haulers were pre-empted by StoreItem and put the wood straight back (an endless loop seen in the first browser run).
 - **Contributors are tracked in `building.data` (`w<goblinId>` = labor ticks)** and each gets a `builds` deed on completion; construction materials are consumed, the storage then belongs to the hut.
 - **Building skill grows 0.001 per labor tick** (a solo hut ≈ +0.5).
+
+## P3.4 huts & homes
+- **Residents are `building.occupants`** (claimed beds), not whoever is inside at the moment; shelter is positional (see P3.1).
+- **Claiming works on planned huts too**: a homeless goblin takes a free bed in a finished or planned hut; only when none exists does it walk to `findSite` and plan a new one (and own it). At most 2 blueprints may wait for materials at once.
+- **ClaimHome urgency** = 0.22 + season (autumn +0.15, winter +0.25) + 0.4 × cold urgency, damped by hunger/thirst.
+- **SleepHome is preferred over the ground** (sleep score × 1.15) and restores energy at the `hut` rate (520/day, 2× ground).
+- **Hut storage is a personal pantry** for surplus food (≤ 6 items); TakeItem checks home first. Materials still go to the village stockpile.
+- **Chop's wood wish includes blueprint shortfalls**, so a planned village keeps the axes busy.
+- **Hut spacing 3.6–7** (was 3–6): roofs nearly touched at 3.

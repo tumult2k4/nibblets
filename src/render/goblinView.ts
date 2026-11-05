@@ -106,7 +106,7 @@ export class GoblinViews {
       earFlop = Math.sin(k * 1.7) * 0.6;
       r.body.rotation.z = Math.sin(t * 3 + g.id) * 0.25;
       if (g.godView.fear > 50 && g.lifeStage === 'adult') r.root.position.x += Math.sin(t * 60) * 0.01;
-    } else if (sleeping || (act === 'sleep_ground' && g.activity.stage === 0)) {
+    } else if (sleeping || (act === 'sleep_ground' && g.activity.stage === 0) || (act === 'sleep_home' && g.activity.stage === 1)) {
       r.body.rotation.z = Math.PI / 2 * (sleeping ? 1 : 0.5);
       r.body.position.y = 0.08;
       r.body.scale.set(1, 1 + Math.sin(t * 1.5 + g.id) * 0.04, 1);

@@ -4,17 +4,22 @@ import { perDay } from '../../time';
 import { needUrgency } from '../../goblin/needs';
 import { isNightNow } from '../considerations';
 import type { UtilityAction } from '../action';
+import type { Goblin } from '../../state';
+import type { World } from '../../world';
+
+/** How much a goblin wants to sleep now: night/dusk pull plus tiredness (hatchlings nap more). */
+export function sleepScore(g: Goblin, w: World): number {
+  const night = isNightNow(w) ? 0.62 : 0;
+  const dusk = w.clock.phase === 'dusk' ? 0.25 : 0;
+  const baby = g.lifeStage === 'hatchling' ? 0.2 : 0;
+  return Math.min(1.1, Math.max(night, dusk) + 0.9 * needUrgency(g.needs.energy) + baby);
+}
 
 /** Lie down where you are and sleep. Stage 0 = lying down, 1 = asleep. */
 export const SleepGround: UtilityAction = {
   id: 'sleep_ground', tags: ['rest'], minStage: 'hatchling', interruptible: true,
   isAvailable: (g) => g.needs.energy < 97,
-  score(g, w) {
-    const night = isNightNow(w) ? 0.62 : 0;
-    const dusk = w.clock.phase === 'dusk' ? 0.25 : 0;
-    const baby = g.lifeStage === 'hatchling' ? 0.2 : 0;
-    return Math.min(1.1, Math.max(night, dusk) + 0.9 * needUrgency(g.needs.energy) + baby);
-  },
+  score: (g, w) => sleepScore(g, w),
   start(g) {
     g.activity.stage = 0;
     g.activity.progress = 20;

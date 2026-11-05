@@ -7,6 +7,7 @@ import { tileAt } from '../../../sim/grid';
 import { icon, ITEM_ICON } from '../../icons';
 import { keyLabel } from '../../keys';
 import { tipKey } from '../tooltip';
+import { buildingBody, buildingHead } from './buildingInspector';
 
 type Tab = 'status' | 'mind' | 'body' | 'inventory';
 const TABS: Tab[] = ['status', 'mind', 'body', 'inventory'];
@@ -72,6 +73,13 @@ export class Inspector implements Component {
       );
       return;
     }
+    if (st.selectedKind === 'building' && id !== undefined) {
+      const b = w.s.buildings.find((x) => x.id === id);
+      if (!b) return this.ctx.select(null, []);
+      if (fresh) this.head.replaceChildren(buildingHead(b, () => this.ctx.select(null, [])));
+      this.body.replaceChildren(buildingBody(b, w));
+      return;
+    }
     if (st.selectedKind === 'item' && id !== undefined) {
       const it = w.s.groundItems.find((x) => x.id === id);
       if (!it) return this.ctx.select(null, []);
@@ -96,6 +104,7 @@ export class Inspector implements Component {
     setText(godLine, t('insp.glanceGod', { name: s.god.godName ?? t('insp.glanceUnnamed') }));
     this.body.replaceChildren(godLine, el('h3', { text: t('insp.glanceNeeds') }),
       ...needs.map((n) => el('div.row', {}, el('span.lbl', { text: t(`need.${n.k}`) }), bar(n.v), el('span.val', { text: String(Math.round(n.v)) }))),
+      el('div.row', {}, el('span.lbl', { text: t('top.housed', { n: gs.filter((g) => g.homeId !== null && s.buildings.some((b) => b.id === g.homeId && b.buildProgress >= 1)).length, m: gs.length }) })),
       el('h3', { text: t('insp.stockpile') }),
       el('div.sub', { text: s.village.stockpile.length ? s.village.stockpile.map((x) => `${t(`item.${x.type}`)} ${x.qty}`).join(' · ') : t('insp.stockEmpty') }),
       el('p.sub', {}, t('insp.noSelection')),

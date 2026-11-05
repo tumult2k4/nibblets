@@ -1,3 +1,4 @@
+import type { EntityKind } from '../render/picking';
 import './theme.css';
 import type { Game } from '../game';
 import type { ID, SimEvent, Vec2 } from '../shared/types';
@@ -124,7 +125,7 @@ export class App implements Ctx {
   readOnly(): boolean {
     return this.replayMode;
   }
-  select(kind: 'goblin' | 'plant' | 'item' | null, ids: ID[]): void {
+  select(kind: EntityKind | null, ids: ID[]): void {
     this.store.set({ selection: ids, selectedKind: ids.length ? kind : null, openPanels: { ...this.store.state.openPanels, inspector: true } });
   }
   flyTo(p: Vec2): void {

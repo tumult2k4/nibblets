@@ -2,7 +2,8 @@ import * as THREE from 'three';
 import type { World } from '../sim/world';
 import type { ID } from '../shared/types';
 
-export interface Pick { ground: THREE.Vector3 | null; entity: { kind: 'goblin' | 'item' | 'plant'; id: ID } | null }
+export type EntityKind = 'goblin' | 'item' | 'plant' | 'building';
+export interface Pick { ground: THREE.Vector3 | null; entity: { kind: EntityKind; id: ID } | null }
 
 const ray = new THREE.Raycaster();
 const ndc = new THREE.Vector2();
@@ -12,7 +13,7 @@ const tmp = new THREE.Vector3();
 export function pick(
   w: World, cam: THREE.Camera, x: number, y: number, width: number, height: number,
   terrain: THREE.Object3D[], goblinPos: (id: ID) => THREE.Vector3 | null, items: THREE.Object3D[], plants: THREE.InstancedMesh[],
-  plantList: (m: THREE.InstancedMesh) => { id: ID }[] | undefined,
+  plantList: (m: THREE.InstancedMesh) => { id: ID }[] | undefined, buildings: THREE.Object3D[] = [],
 ): Pick {
   ndc.set((x / width) * 2 - 1, -(y / height) * 2 + 1);
   ray.setFromCamera(ndc, cam);
@@ -35,7 +36,10 @@ export function pick(
   const ih = ray.intersectObjects(items, true)[0];
   const io = ih?.object.parent?.userData.kind === 'item' ? ih.object.parent : ih?.object;
   if (io?.userData.kind === 'item') return { ground, entity: { kind: 'item', id: io.userData.id as ID } };
+  const bh = ray.intersectObjects(buildings, true)[0];
+  const bid = bh?.object.userData.buildingId as ID | undefined;
   const ph = ray.intersectObjects(plants, false)[0];
+  if (bid !== undefined && (!ph || bh!.distance < ph.distance)) return { ground, entity: { kind: 'building', id: bid } };
   if (ph && ph.instanceId !== undefined) {
     const list = plantList(ph.object as THREE.InstancedMesh);
     const p = list?.[ph.instanceId];

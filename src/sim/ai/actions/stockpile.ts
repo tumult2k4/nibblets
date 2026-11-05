@@ -6,9 +6,10 @@ import { needUrgency } from '../../goblin/needs';
 import { moveAlong, planPath } from '../../steering';
 import { distanceFalloff } from '../considerations';
 import { deposit, stockFood, withdraw } from '../../stockpile';
-import { blueprints, missingMaterials } from '../../buildings';
+import { blueprints, buildingDef, isComplete, missingMaterials } from '../../buildings';
+import { bedSpot, homeOf } from './home';
 import type { ItemStack } from '../../../shared/types';
-import type { Goblin } from '../../state';
+import type { Building, Goblin } from '../../state';
 import type { World } from '../../world';
 import type { StepResult, UtilityAction } from '../action';
 
@@ -22,7 +23,7 @@ function storable(g: Goblin, w: World): ItemStack[] {
 function walkTo(g: Goblin, w: World): StepResult | null {
   const a = g.activity;
   if (a.stage === 0) {
-    if (dist(g.pos, w.s.village.stockpilePos) < 0.9) a.path = [];
+    if (a.targetId === null && dist(g.pos, w.s.village.stockpilePos) < 0.9) a.path = [];
     if (moveAlong(w, g) !== 'arrived') return 'running';
     a.stage = 1;
     a.progress = CFG.goblin.pickupTicks;
@@ -30,7 +31,15 @@ function walkTo(g: Goblin, w: World): StepResult | null {
   return --a.progress > 0 ? 'running' : null;
 }
 
-/** Carry materials (and surplus food) to the village stockpile. */
+/** A finished home with free storage slots (hut storage 6, §11.1). */
+function pantry(g: Goblin, w: World): Building | null {
+  const b = homeOf(g, w);
+  if (!b || !isComplete(b)) return null;
+  const used = b.storage.reduce((n, s) => n + s.qty, 0);
+  return used < (buildingDef(b.type)?.storage ?? 0) ? b : null;
+}
+
+/** Carry materials (and surplus food) to the village stockpile — or surplus food home to the pantry. */
 export const StoreItem: UtilityAction = {
   id: 'store_item', tags: ['work'], minStage: 'youngling', interruptible: true,
   isAvailable: (g, w) => storable(g, w).length > 0,
@@ -39,10 +48,17 @@ export const StoreItem: UtilityAction = {
     const full = g.inventory.length >= CFG.goblin.inventorySlots ? 1.4 : 1;
     return Math.min(0.6, 0.18 + 0.05 * n) * full * (1 - needUrgency(Math.min(g.needs.hunger, g.needs.thirst)));
   },
-  start: (g, w) => planPath(w, g, w.s.village.stockpilePos),
+  start(g, w) {
+    const home = pantry(g, w);
+    const onlyFood = storable(g, w).every((st) => isFood(st.type));
+    g.activity.targetId = home && onlyFood ? home.id : null;
+    return planPath(w, g, home && onlyFood ? bedSpot(home, g) : w.s.village.stockpilePos);
+  },
   step(g, w) {
     const r = walkTo(g, w);
     if (r) return r;
+    const home = g.activity.targetId !== null ? pantry(g, w) : null;
+    if (home) return stashAtHome(g, w, home);
     const keepFood = CFG.plants.stockFoodKeep;
     let kept = 0;
     for (const st of [...g.inventory]) {
@@ -66,12 +82,24 @@ export const StoreItem: UtilityAction = {
 /** Fetch food from the stockpile when hungry and the pockets are empty. */
 export const TakeItem: UtilityAction = {
   id: 'take_item', tags: ['food'], minStage: 'youngling', interruptible: true,
-  isAvailable: (g, w) => g.needs.hunger < 70 && !foodStack(g) && !!stockFood(w.s),
-  score: (g, w) => (0.06 + 1.1 * needUrgency(g.needs.hunger)) * distanceFalloff(dist(g.pos, w.s.village.stockpilePos), 40),
-  start: (g, w) => planPath(w, g, w.s.village.stockpilePos),
+  isAvailable: (g, w) => g.needs.hunger < 70 && !foodStack(g) && (!!stockFood(w.s) || !!homeFood(g, w)),
+  score: (g, w) => (0.06 + 1.1 * needUrgency(g.needs.hunger)) * distanceFalloff(dist(g.pos, homeFood(g, w)?.pos ?? w.s.village.stockpilePos), 40),
+  start(g, w) {
+    const home = homeFood(g, w);
+    g.activity.targetId = home?.id ?? null;
+    return planPath(w, g, home ? bedSpot(home, g) : w.s.village.stockpilePos);
+  },
   step(g, w) {
     const r = walkTo(g, w);
     if (r) return r;
+    const home = g.activity.targetId !== null ? homeFood(g, w) : null;
+    if (home) {
+      const st = home.storage.find((x) => isFood(x.type) && x.qty > 0)!;
+      const got = addItem(g, { type: st.type, qty: Math.min(2, st.qty) });
+      st.qty -= got;
+      home.storage = home.storage.filter((x) => x.qty > 0);
+      return got > 0 ? 'done' : 'failed';
+    }
     const f = stockFood(w.s);
     if (!f) return 'failed';
     const type = f.type;
@@ -83,3 +111,31 @@ export const TakeItem: UtilityAction = {
     return countItem(g, type) > 0 ? 'done' : 'failed';
   },
 };
+
+/** The goblin's home, if it holds food. */
+function homeFood(g: Goblin, w: World): Building | null {
+  const b = homeOf(g, w);
+  return b && isComplete(b) && b.storage.some((x) => isFood(x.type) && x.qty > 0) ? b : null;
+}
+
+/** Put surplus food into the home pantry up to its capacity; the rest stays in the pockets. */
+function stashAtHome(g: Goblin, w: World, home: Building): StepResult {
+  const cap = buildingDef(home.type)?.storage ?? 0;
+  let room = cap - home.storage.reduce((n, s) => n + s.qty, 0);
+  let kept = 0;
+  for (const st of g.inventory) {
+    if (!isFood(st.type) || st.type === 'apple_core' || room <= 0) continue;
+    const keep = Math.min(st.qty, Math.max(0, CFG.plants.stockFoodKeep - kept));
+    kept += keep;
+    const n = Math.min(room, st.qty - keep);
+    if (n <= 0) continue;
+    st.qty -= n;
+    room -= n;
+    const slot = home.storage.find((x) => x.type === st.type);
+    if (slot) slot.qty += n;
+    else home.storage.push({ type: st.type, qty: n });
+    w.emit({ type: 'item_stored', goblinId: g.id, item: st.type, qty: n });
+  }
+  g.inventory = g.inventory.filter((s) => s.qty > 0);
+  return 'done';
+}

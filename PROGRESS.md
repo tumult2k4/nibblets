@@ -1,5 +1,5 @@
 # Nibblets progress
-Current: P3.4 — huts: ClaimHome, capacity, storage, SleepHome, warmth
+Current: P3.5 — planner goal stack + GatherForGoal
 ## Done
 - [x] P1.1 scaffold: Vite + strict TS, ESLint flat config with sim architecture rules, Prettier, Vitest, scripts
 - [x] P1.2 shared/: math, ids, mulberry32 Rng with fork(label), typed EventBus
@@ -27,9 +27,11 @@ Current: P3.4 — huts: ClaimHome, capacity, storage, SleepHome, warmth
 - [x] P3.1 weather Markov chain (season weights, forecast one step ahead, local cells ready), air/felt temperature, warmth need + hypothermia, wet status, fog/blizzard vision, heatwave thirst, rain hydrates plants; top-bar temperature + forecast, sandbox weather picker (save v3)
 - [x] P3.2 seasonal terrain palettes + foliage tints blended over each season's first day, snow cover (falls ≤ 2 °C, melts above 0, faster in rain/sun, local cells), deep snow/mud slow walking, winter dormancy with temporary `winterFoodEase` (berries fruit at 50 % in winter until P5.6), spring planting rush, less exploring in winter
 - [x] P3.3 building system: findSite (flatness, water 4–10, spacing 3–6, orchards/fertility/trails avoided), blueprints reserve footprints (path cost ×4), DeliverMaterial (cooperative, no over-delivery), Build (skill, mood, friend ×1.3), completion + deeds + building skill; ghost/scaffold/hut meshes with delivered piles; hammering animation; sandbox spawn_building
+- [x] P3.4 huts: ClaimHome (free bed in a built/planned hut, else plan a new one; ≤ 2 unsupplied blueprints), capacity 2, home pantry (storage 6) for surplus food, SleepHome (2× restore, sheltered +8 °C), chop also feeds blueprints, bed freed on death; building picking + inspector, housed count, feed notes
 ## Next
-- [ ] P3.4 hut: ClaimHome, capacity, storage, SleepHome (2×), warmth bonus
+- [ ] P3.5 planner goal stack (§7.4) with GatherForGoal
 ## Notes / known issues
+- Balance (32 days × 5 seeds, after P3.4): 0 deaths, 5 huts and 100 % housed by the end of autumn on every seed, 29–55 goblin-planted mature bushes, ~0.14 ms/tick.
 - Balance (20 days × 5 seeds, after P2): population 10, 0 deaths, 25–36 goblin-planted mature bushes, apple bushes 70→~105, ~29 wood stored, ~0.12 ms/tick.
 - Commits for Phase 1 were batched into three (see DECISIONS.md); from P2 on, one commit per step.
 - God hand mesh reads as a simple blocky hand from far zoom; art polish can come with the P8 powers.

@@ -78,6 +78,11 @@ export function killGoblin(w: World, g: Goblin, cause: DeathCause): void {
   s.graves.push({ id: allocId(s), goblinId: g.id, name: g.name, pos: { ...g.pos }, tick: s.tick, cause });
   s.stats.deaths[cause] = (s.stats.deaths[cause] ?? 0) + 1;
   if (s.god.held?.id === g.id) s.god.held = null;
+  for (const b of s.buildings) {
+    if (!b.occupants.includes(g.id)) continue;
+    b.occupants = b.occupants.filter((id) => id !== g.id);
+    if (b.ownerId === g.id) b.ownerId = b.occupants[0] ?? null;
+  }
   for (const it of s.groundItems) if (it.reservedBy === g.id) it.reservedBy = null;
   w.emit({ type: 'goblin_died', goblinId: g.id, cause, at: g.pos });
 }

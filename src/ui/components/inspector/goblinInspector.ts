@@ -41,6 +41,8 @@ export function statusTab(g: Goblin, w: World): HTMLElement {
   const tags = [t('insp.felt', { t: Math.round(feltTemperature(w, g)) })];
   if (isWet(w, g)) tags.push(t('insp.wet'));
   if (shelterOf(w, g)) tags.push(t('insp.sheltered'));
+  const home = g.homeId !== null ? w.s.buildings.find((b) => b.id === g.homeId) : undefined;
+  tags.push(home ? `${t('bld.hut')} ${home.buildProgress >= 1 ? '' : `(${t('insp.blueprint')})`}`.trim() : t('insp.homeless'));
   const mood = g.mood.value;
   const mods = [...g.mood.modifiers].sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount)).slice(0, 3).map((m) => `${m.id.replace(/_/g, ' ')} ${m.amount > 0 ? '+' : ''}${Math.round(m.amount)}`);
   return el('div', {},

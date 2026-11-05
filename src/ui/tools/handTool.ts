@@ -1,3 +1,4 @@
+import type { EntityKind } from '../../render/picking';
 import * as THREE from 'three';
 import type { Ctx } from '../ctx';
 import { CFG } from '../../sim/config';
@@ -6,7 +7,7 @@ import type { ID } from '../../shared/types';
 
 type State =
   | { k: 'idle' }
-  | { k: 'pending'; x: number; y: number; t: number; entity: { kind: 'goblin' | 'item' | 'plant'; id: ID } | null; petSent: number }
+  | { k: 'pending'; x: number; y: number; t: number; entity: { kind: EntityKind; id: ID } | null; petSent: number }
   | { k: 'holding'; id: ID }
   | { k: 'box'; x: number; y: number };
 
@@ -58,14 +59,14 @@ export class HandTool {
     if (st.k === 'pending') {
       const moved = Math.hypot(e.clientX - st.x, e.clientY - st.y);
       if (moved > 6 && !this.petting) {
-        if (st.entity && this.canAct()) {
-          // goblins, items, and plants (uproot, §P2.7) can be lifted
+        if (st.entity && st.entity.kind !== 'building' && this.canAct()) {
+          // goblins, items, and plants (uproot, §P2.7) can be lifted; buildings stay put
           this.ctx.push({ type: 'god_grab', entityId: st.entity.id });
           this.holdHeight = CFG.god.holdHeight.start;
           this.st = { k: 'holding', id: st.entity.id };
           this.samples = [];
           audio.play('hand_grab');
-        } else if (!st.entity) this.st = { k: 'box', x: st.x, y: st.y };
+        } else if (!st.entity || st.entity.kind === 'building') this.st = { k: 'box', x: st.x, y: st.y };
       }
     }
     if (this.st.k === 'holding' && this.ground) {

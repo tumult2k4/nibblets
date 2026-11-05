@@ -1,4 +1,5 @@
 import { CFG } from '../../config';
+import { missingMaterials } from '../../buildings';
 import { dist } from '../../../shared/math';
 import { canCarry, countItem } from '../../inventory';
 import { needUrgency } from '../../goblin/needs';
@@ -43,8 +44,12 @@ function findChopTarget(g: Goblin, w: World): Plant | null {
   return best;
 }
 
-export const woodWanted = (g: Goblin, w: World): number =>
-  Math.max(0, 1 - (stockCount(w.s, 'wood') + countItem(g, 'wood')) / P.woodTarget);
+/** 0..1 wish for more wood: the stockpile target plus whatever blueprints still wait for. */
+export function woodWanted(g: Goblin, w: World): number {
+  let need = P.woodTarget;
+  for (const b of w.s.buildings) for (const m of missingMaterials(b)) if (m.type === 'wood') need += m.qty;
+  return Math.max(0, 1 - (stockCount(w.s, 'wood') + countItem(g, 'wood')) / need);
+}
 
 const busy = (g: Goblin): number => Math.max(needUrgency(g.needs.hunger), needUrgency(g.needs.thirst), needUrgency(g.needs.energy));
 

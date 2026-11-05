@@ -62,4 +62,5 @@ export function goblinSpeed(g: Goblin): number {
   return (CFG.goblin.speed * mul) / CFG.tickHz;
 }
 
-export const isSleeping = (g: Goblin): boolean => g.activity.action === 'sleep_ground' && g.activity.stage === 1;
+export const isSleeping = (g: Goblin): boolean =>
+  (g.activity.action === 'sleep_ground' && g.activity.stage === 1) || (g.activity.action === 'sleep_home' && g.activity.stage === 2);
