@@ -113,7 +113,7 @@ export function updatePlants(w: World): void {
     if (p.stage === 'mature' && p.kind !== 'tree' && p.age >= P.matureUntilDays) setStage(w, p, 'old');
     else if (p.stage === 'old' && p.age >= P.oldUntilDays) { dead.push(p); continue; }
     if (p.stage === 'old' && season > 0 && w.rng.chance(P.oldSeedChancePerDay * dtDays)) selfSeed(w, p);
-    growFruit(p, dtDays, season);
+    growFruit(p, dtDays, season > 0 || p.kind !== 'berry_bush' ? season : P.winterFoodEase);
   }
   for (const p of dead) {
     if (p.stage !== 'stump') spawnGroundItem(w, { type: 'wood', qty: P.deadWood }, p.pos);

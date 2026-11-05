@@ -41,3 +41,11 @@ Small choices the design doc left open, one line of rationale each.
 - **Rain sets plant hydration's target to 1** (instead of soil moisture × 0.8); puddles and mud are deferred to P3.6/P3.7.
 - **Warmth only lowers mood** (below 50), so warm summers don't inflate mood.
 - **Sandbox `set_weather` op** (click the weather in the top bar) is a logged command, so replays match.
+
+## P3.2 seasons & snow
+- **Foliage tints are per-instance colors** computed as linear-space ratios toward a target color (instance colors multiply vertex colors in linear space, so an sRGB-looking multiplier turned autumn olive instead of orange). Recoloring is in place, no geometry rebuild.
+- **Season blend is quantized to tenths of the first day** so the terrain rebuilds at most ten times per season change.
+- **Snow is a tile field updated every 50 ticks**: falls during snow/blizzard while the local air is ≤ 2 °C, melts 0.04/h per °C above 0 (×2 in rain, up to ×1.5 in sunshine). Local cells use their own temperature, so a Warm Sun melts a clearing.
+- **Ground speed**: snow > 0.5 → ×0.8; worn trails (wear > 0.5) in rain → mud ×0.85.
+- **`winterFoodEase: 0.5`** (temporary, remove in P5.6): berry bushes keep fruiting at half rate in winter; apples, growth and planting stop.
+- **Season gameplay multipliers** live in `CFG.seasons`: planting ×1.4 spring / ×0.8 autumn / off in winter, exploring ×0.6 in winter.

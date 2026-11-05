@@ -26,7 +26,7 @@ const busy = (g: Goblin): number => Math.max(needUrgency(g.needs.hunger), needUr
 export const PlantSeed: UtilityAction = {
   id: 'plant_seed', tags: ['work'], minStage: 'youngling', interruptible: true,
   isAvailable: (g, w) => countItem(g, 'apple_core') > 0 && CFG.plants.seasonMul[w.clock.season] > 0 && g.needs.hunger > 30,
-  score: (g, w) => 0.42 * (1 - busy(g)) * Math.min(1.3, 0.85 + 0.15 * countItem(g, 'apple_core')) / (1 + youngNearVillage(w) / 6),
+  score: (g, w) => 0.42 * CFG.seasons.plantingMul[w.clock.season] * (1 - busy(g)) * Math.min(1.3, 0.85 + 0.15 * countItem(g, 'apple_core')) / (1 + youngNearVillage(w) / 6),
   start(g, w) {
     const site = findPlantingSite(g, w);
     if (!site || !planPath(w, g, site)) return false;

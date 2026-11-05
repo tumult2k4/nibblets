@@ -1,8 +1,10 @@
 import * as THREE from 'three';
 import type { WorldState } from '../sim/state';
+import type { Biome } from '../shared/types';
 import { CFG } from '../sim/config';
 import { cornerHeight, tileAt } from '../sim/grid';
 import { BIOME_COLORS, DIRT } from './palette';
+import { SNOW_WHITE } from './seasons';
 
 const HS = CFG.world.heightScale;
 const JITTER = 0.15;
@@ -22,6 +24,9 @@ export function cornerPos(s: WorldState, cx: number, cy: number): THREE.Vector3 
 }
 
 export type TerrainLens = 'fertility' | 'moisture' | 'paths';
+/** Snow cover in fifths: what the renderer can see change. */
+const snowBucket = (v: number): number => (v < 0.05 ? 0 : Math.min(5, Math.ceil(v * 5)));
+
 const BIOME_IDX: Record<string, number> & Record<'meadow', number> = { meadow: 0, forest: 1, sand: 2, rock: 3, water: 4, marsh: 5, snow: 6 };
 const L_LOW = new THREE.Color('#9a4a2a'), L_MID = new THREE.Color('#e8cf62'), L_HIGH = new THREE.Color('#2f9e3a');
 const M_LOW = new THREE.Color('#d8c48e'), M_HIGH = new THREE.Color('#2f78c4');
@@ -44,11 +49,14 @@ export class TerrainMesh {
   private mat = new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true });
   /** Terrain lens (§18.10, P2.7): recolors tiles by fertility, moisture or path wear. */
   lens: TerrainLens | null = null;
-  private snap: { h: Float32Array; b: Uint8Array; w: Uint8Array; f: Uint8Array };
+  private snap: { h: Float32Array; b: Uint8Array; w: Uint8Array; f: Uint8Array; sn: Uint8Array };
+  /** current seasonal biome palette (§9.3) */
+  private biomes: Record<Biome, THREE.Color> = BIOME_COLORS;
+  private paletteSig = 'spring';
 
   constructor(private s: WorldState) {
     const n = s.tiles.length;
-    this.snap = { h: new Float32Array(n), b: new Uint8Array(n), w: new Uint8Array(n), f: new Uint8Array(n) };
+    this.snap = { h: new Float32Array(n), b: new Uint8Array(n), w: new Uint8Array(n), f: new Uint8Array(n), sn: new Uint8Array(n) };
     this.takeSnapshot();
     this.rebuildAll();
   }
@@ -64,13 +72,22 @@ export class TerrainMesh {
     this.rebuildAll();
   }
 
+  /** Swap the seasonal palette; rebuilds every chunk only when the blend step changes. */
+  setPalette(biomes: Record<Biome, THREE.Color>, sig: string): void {
+    if (sig === this.paletteSig) return;
+    this.paletteSig = sig;
+    this.biomes = biomes;
+    this.rebuildAll();
+  }
+
   private takeSnapshot(): void {
-    const { h, b, w, f } = this.snap;
+    const { h, b, w, f, sn } = this.snap;
     this.s.tiles.forEach((t, i) => {
       h[i] = t.height;
       b[i] = (BIOME_IDX[t.biome] ?? 0);
       w[i] = Math.min(9, Math.floor(t.wear * 10));
       f[i] = Math.min(15, Math.floor(t.fertility * 10));
+      sn[i] = snowBucket(t.snow);
     });
   }
 
@@ -81,14 +98,15 @@ export class TerrainMesh {
   refresh(): number {
     const s = this.s;
     const C = CFG.world.chunk;
-    const { h, b, w, f } = this.snap;
+    const { h, b, w, f, sn } = this.snap;
     const dirty = new Set<string>();
     const W = s.size.w;
     s.tiles.forEach((t, i) => {
       const wb = Math.min(9, Math.floor(t.wear * 10));
       const fb = Math.min(15, Math.floor(t.fertility * 10));
-      if (h[i] === t.height && b[i] === (BIOME_IDX[t.biome] ?? 0) && w[i] === wb && (f[i] === fb || this.lens !== 'fertility')) return;
-      h[i] = t.height; b[i] = (BIOME_IDX[t.biome] ?? 0); w[i] = wb; f[i] = fb;
+      const sb = snowBucket(t.snow);
+      if (h[i] === t.height && b[i] === (BIOME_IDX[t.biome] ?? 0) && w[i] === wb && sn[i] === sb && (f[i] === fb || this.lens !== 'fertility')) return;
+      h[i] = t.height; b[i] = (BIOME_IDX[t.biome] ?? 0); w[i] = wb; f[i] = fb; sn[i] = sb;
       const x = i % W, y = Math.floor(i / W);
       for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
         const xx = x + dx, yy = y + dy;
@@ -120,10 +138,12 @@ export class TerrainMesh {
         const t = tileAt(s, x, y)!;
         const a = cornerPos(s, x, y), b = cornerPos(s, x + 1, y), cc = cornerPos(s, x + 1, y + 1), d = cornerPos(s, x, y + 1);
         const slope = Math.max(a.y, b.y, cc.y, d.y) - Math.min(a.y, b.y, cc.y, d.y);
-        c.copy(BIOME_COLORS[t.biome]);
-        if (t.biome === 'water') c.copy(BIOME_COLORS.sand).lerp(BIOME_COLORS.water, 0.5);
-        if (slope > 0.9 && t.biome !== 'water') c.lerp(BIOME_COLORS.rock, Math.min(0.6, (slope - 0.9) * 0.8));
+        const pal = this.biomes;
+        c.copy(pal[t.biome]);
+        if (t.biome === 'water') c.copy(pal.sand).lerp(pal.water, 0.5);
+        if (slope > 0.9 && t.biome !== 'water') c.lerp(pal.rock, Math.min(0.6, (slope - 0.9) * 0.8));
         if (t.wear > 0.2) c.lerp(DIRT, Math.min(0.8, t.wear));
+        if (t.snow > 0.05 && t.biome !== 'water') c.lerp(SNOW_WHITE, Math.min(0.95, snowBucket(t.snow) / 5 + 0.15));
         if (this.lens && t.biome !== 'water') lensColor(c, t, this.lens);
         // gentle per-tile variation
         const v = jitter(x, y, 7) * 0.12;

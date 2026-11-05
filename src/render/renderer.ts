@@ -13,6 +13,7 @@ import { OrbitCam } from './camera';
 import { GodHand } from './godHand';
 import { pick, type Pick } from './picking';
 import { Rings } from './decals';
+import { seasonLook } from './seasons';
 
 export interface RenderSettings { shadows: 'off' | 'low' | 'high'; renderScale: number; outlines: boolean; fog: boolean }
 
@@ -142,6 +143,9 @@ export class Renderer {
       if (this.terrain.refresh() > 0 && shaped) this.props.buildStatic();
       else if (shaped) this.props.buildStatic();
     }
+    const season = seasonLook(w.clock);
+    this.terrain.setPalette(season.look.biomes, season.sig);
+    this.props.setLook(season.look, season.sig);
     this.props.update(this.interp, alpha);
     this.goblins.update(this.interp, alpha, this.time, this.sky.night, dt);
     this.ambientEmotes(dt);

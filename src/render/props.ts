@@ -6,6 +6,8 @@ import { heightAt } from '../sim/grid';
 import { flatMat } from './lowpoly';
 import { berryGeo, palletGeo, appleGeo, berryBushGeo, bushGeo, flowerGeo, grassGeo, itemGeo, rockGeo, saplingGeo, seedMoundGeo, sproutGeo, stumpGeo, treeGeo } from './meshFactory';
 import { PROP_COLORS } from './palette';
+import { seasonLook, type SeasonLook } from './seasons';
+import { clockAt } from '../sim/time';
 import type { Interp } from './interpolation';
 
 const HS = CFG.world.heightScale;
@@ -79,6 +81,9 @@ export class Props {
   private stockSig = '';
   private plantsSig = '';
   private sigTimer = 0;
+  private look: SeasonLook = seasonLook(clockAt(0)).look;
+  private lookSig = 'spring';
+  private grassMesh: THREE.InstancedMesh | null = null;
   /** plant id → [mesh, instance index] for picking */
   readonly plantIndex = new Map<THREE.InstancedMesh, Plant[]>();
 
@@ -94,6 +99,33 @@ export class Props {
 
   private ground(x: number, y: number): number {
     return heightAt(this.w.s, { x, y }) * HS;
+  }
+
+  /** Per-instance color: plant variety × seasonal foliage tint (§9.3). */
+  private tint(p: Plant, col: THREE.Color): THREE.Color {
+    const L = this.look;
+    if (p.kind === 'flower') return col.set(PROP_COLORS.flower[p.id % 4]!).multiply(L.flower);
+    if (p.stage === 'old') col.setRGB(0.85, 0.78, 0.62);
+    else col.setScalar(0.9 + hash(p.id + 7) * 0.2);
+    if (p.stage === 'stump' || p.stage === 'seed') return col;
+    return col.multiply(p.kind === 'tree' ? L.tree : L.bush);
+  }
+
+  /** Apply a new seasonal look by recoloring instances in place (no geometry rebuild). */
+  setLook(look: SeasonLook, sig: string): void {
+    if (sig === this.lookSig) return;
+    this.lookSig = sig;
+    this.look = look;
+    const col = new THREE.Color();
+    for (const [mesh, list] of this.plantIndex) {
+      list.forEach((p, i) => mesh.setColorAt(i, this.tint(p, col)));
+      if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+    }
+    const g = this.grassMesh;
+    if (g) {
+      for (let i = 0; i < g.count; i++) g.setColorAt(i, look.grass);
+      if (g.instanceColor) g.instanceColor.needsUpdate = true;
+    }
   }
 
   buildStatic(): void {
@@ -122,9 +154,7 @@ export class Props {
         q.setFromAxisAngle(up, r * Math.PI * 2);
         m4.compose(v.set(p.pos.x, this.ground(p.pos.x, p.pos.y), p.pos.y), q, sc.set(size, size, size));
         mesh.setMatrixAt(i, m4);
-        if (kind === 'flower') mesh.setColorAt(i, col.set(PROP_COLORS.flower[p.id % 4]!));
-        else if (p.stage === 'old') mesh.setColorAt(i, col.setRGB(0.85, 0.78, 0.62));
-        else mesh.setColorAt(i, col.setScalar(0.9 + hash(p.id + 7) * 0.2));
+        mesh.setColorAt(i, this.tint(p, col));
       });
       mesh.name = kind;
       this.plantIndex.set(mesh, list);
@@ -153,6 +183,8 @@ export class Props {
         grass.setMatrixAt(gi++, m4);
       }
     grass.count = gi;
+    for (let i = 0; i < gi; i++) grass.setColorAt(i, this.look.grass);
+    this.grassMesh = grass;
     this.group.add(grass);
     this.plantMeshes.push(grass);
     this.plantsSig = plantsSig(s.plants, s.god.held);

@@ -3,10 +3,11 @@ import { CFG } from './config';
 import { q4 } from '../shared/math';
 import type { Season, Vec2, WeatherKind } from '../shared/types';
 import type { World } from './world';
-import { clockAt } from './time';
+import { clockAt, daylight } from './time';
 import { airTemperature, updateWetness } from './temperature';
 
 const W = CFG.weather;
+const S = CFG.seasons;
 export const WEATHER_KINDS: readonly WeatherKind[] = ['clear', 'cloudy', 'fog', 'rain', 'storm', 'snow', 'blizzard', 'heatwave'];
 export const RAINY: ReadonlySet<WeatherKind> = new Set(['rain', 'storm']);
 export const SNOWY: ReadonlySet<WeatherKind> = new Set(['snow', 'blizzard']);
@@ -66,4 +67,46 @@ export function updateWeather(w: World): void {
   if (wx.cells.length && wx.cells.some((c) => c.untilTick <= s.tick)) wx.cells = wx.cells.filter((c) => c.untilTick > s.tick);
   if (s.tick % 10 === 0) wx.temperature = q4(airTemperature(w.clock, wx.kind));
   updateWetness(w);
+  if (s.tick % S.snowEvery === 0) updateSnow(w);
+}
+
+/**
+ * Snow cover (§9.1, P3.2): falls during snow/blizzard, melts above 0 °C (twice as fast in rain, faster in sun).
+ * Air temperature per tile honors local cells, so a Warm Sun cell melts a clearing.
+ */
+export function updateSnow(w: World): void {
+  const s = w.s;
+  const hours = S.snowEvery / CFG.god.hourTicks;
+  const global = w.s.weather.kind;
+  const air = airTemperature(w.clock, global);
+  const sun = daylight(w.clock);
+  const cells = s.weather.cells;
+  const cols = s.size.w;
+  for (let i = 0; i < s.tiles.length; i++) {
+    const t = s.tiles[i]!;
+    if (t.biome === 'water' || t.biome === 'snow') continue;
+    let kind = global, temp = air;
+    if (cells.length) {
+      const x = (i % cols) + 0.5, y = Math.floor(i / cols) + 0.5;
+      for (const c of cells)
+        if (Math.hypot(x - c.pos.x, y - c.pos.y) <= c.radius) { kind = c.kind; temp = airTemperature(w.clock, c.kind) + c.tempOffset; }
+    }
+    const fall = S.snowPerHour[kind] ?? 0;
+    if (fall > 0 && temp <= 2) {
+      if (t.snow < 1) t.snow = q4(Math.min(1, t.snow + fall * hours));
+    } else if (t.snow > 0 && temp > 0) {
+      const mul = (RAINY.has(kind) ? S.rainMeltMul : 1) * (kind === 'clear' || kind === 'heatwave' ? 1 + sun * 0.5 : 1);
+      t.snow = q4(Math.max(0, t.snow - S.meltPerDegHour * temp * mul * hours));
+    }
+  }
+}
+
+/** Walking speed factor of the ground: deep snow and rain-soaked trails (mud) slow goblins. */
+export function groundSpeedMul(w: World, pos: Vec2): number {
+  const t = w.s.tiles[Math.floor(pos.y) * w.s.size.w + Math.floor(pos.x)];
+  if (!t) return 1;
+  let m = 1;
+  if (t.snow > S.deepSnow) m *= S.deepSnowSpeed;
+  if (t.wear > S.mudWear && rainingAt(w, pos)) m *= S.mudSpeed;
+  return m;
 }

@@ -21,7 +21,7 @@ const familiarity = (g: Goblin, p: Vec2): number => g.memory.reduce((n, m) => n 
 export const Explore: UtilityAction = {
   id: 'explore', tags: ['fun'], minStage: 'youngling', interruptible: true,
   isAvailable: (g) => g.needs.energy > 30,
-  score: (g) => 0.05 + 0.6 * needUrgency(g.needs.curiosity) * (1 - needUrgency(Math.min(g.needs.hunger, g.needs.thirst))),
+  score: (g, w) => (0.05 + 0.6 * needUrgency(g.needs.curiosity) * (1 - needUrgency(Math.min(g.needs.hunger, g.needs.thirst)))) * CFG.seasons.exploreMul[w.clock.season],
   start(g, w) {
     g.activity.progress = g.memory.length;
     const base = w.rng.range(0, Math.PI * 2);

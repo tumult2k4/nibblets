@@ -40,6 +40,8 @@ export const CFG = {
     chopTicksPerHit: 15, chopHitDmg: 20, sticks: { mature: 2, old: 1 }, berryWood: 1, minBushesPerGoblin: 4,
     woodTarget: 30, stockFoodKeep: 2,
     keepCoreBase: 0.04, keepCorePerIndustry: 0.16, plantTicks: 40, waterTicks: 20, wetHandsTicks: 600, waterBelow: 0.5, waterRadius: 25, minSeedGap: 1.6,
+    /** TEMPORARY (P3.2 → remove in P5.6): berry bushes keep fruiting at this rate in winter until preservation exists */
+    winterFoodEase: 0.5,
   },
   memory: {
     capacity: 60, forgetBelow: 0.1, senseEvery: 20, initialRadius: 24, mergeDist: 3,
@@ -66,6 +68,12 @@ export const CFG = {
     follows: { storm: ['rain', 'cloudy', 'storm'], blizzard: ['snow', 'cloudy', 'blizzard'] } as Record<string, string[]>,
     vision: { fog: 0.5, blizzard: 0.3, storm: 0.7, snow: 0.85, rain: 0.9 } as Record<string, number>,
     heatwaveThirstMul: 1.8, rainHydration: 1, maxCells: 4, windJitter: 0.8,
+  },
+  /** P3.2 season gameplay multipliers and snow cover */
+  seasons: {
+    plantingMul: { spring: 1.4, summer: 1, autumn: 0.8, winter: 0 }, exploreMul: { spring: 1, summer: 1.1, autumn: 1, winter: 0.6 },
+    snowEvery: 50, snowPerHour: { snow: 0.25, blizzard: 0.45 } as Record<string, number>, meltPerDegHour: 0.04, rainMeltMul: 2,
+    deepSnow: 0.5, deepSnowSpeed: 0.8, mudWear: 0.5, mudSpeed: 0.85,
   },
   temperature: {
     seasonBase: { spring: 12, summer: 24, autumn: 10, winter: -4 }, daySwing: 6, comfortMin: 10, comfortMax: 24,

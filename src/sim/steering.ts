@@ -4,6 +4,7 @@ import { isWalkable } from './grid';
 import type { Goblin } from './state';
 import type { World } from './world';
 import { goblinSpeed } from './goblin/goblin';
+import { groundSpeedMul } from './weather';
 import type { Vec2 } from '../shared/types';
 
 /** Plan a path for the goblin's current activity to `to`. Returns false if unreachable. */
@@ -28,7 +29,7 @@ export function moveAlong(w: World, g: Goblin, speedMul = 1): 'arrived' | 'movin
     g.velocity = { x: 0, y: 0 };
     return 'arrived';
   }
-  const speed = goblinSpeed(g) * speedMul;
+  const speed = goblinSpeed(g) * speedMul * groundSpeedMul(w, g.pos);
   const dx = wp.x - g.pos.x;
   const dy = wp.y - g.pos.y;
   const d = Math.hypot(dx, dy);
