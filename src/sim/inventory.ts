@@ -43,9 +43,9 @@ export function takeOne(g: Goblin, pred: (s: ItemStack) => boolean): ItemStack |
   return { type: s.type, qty: 1, ...(s.divine ? { divine: true } : {}) };
 }
 
-export const foodStack = (g: Goblin): ItemStack | undefined =>
-  // eat the most nutritious first
-  [...g.inventory].filter((s) => isFood(s.type)).sort((a, b) => (itemDef(b.type).nutrition ?? 0) - (itemDef(a.type).nutrition ?? 0))[0];
+/** Best food in the inventory (most nutritious first). Apple cores are kept for planting unless `cores`. */
+export const foodStack = (g: Goblin, cores = false): ItemStack | undefined =>
+  [...g.inventory].filter((s) => isFood(s.type) && (cores || s.type !== 'apple_core')).sort((a, b) => (itemDef(b.type).nutrition ?? 0) - (itemDef(a.type).nutrition ?? 0))[0];
 
 export const countItem = (g: Goblin, t: ItemType): number =>
   g.inventory.reduce((n, s) => n + (s.type === t ? s.qty : 0), 0);

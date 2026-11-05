@@ -34,7 +34,8 @@ export interface Personality {
 export interface HealthState { hp: number; maxHp: number; injuries: number; disease: string | null; scars: number }
 
 export type ActionId =
-  | 'idle' | 'wander' | 'harvest_fruit' | 'eat' | 'drink' | 'sleep_ground' | 'pick_up' | 'drop' | 'look_up' | 'struggle';
+  | 'idle' | 'wander' | 'harvest_fruit' | 'eat' | 'drink' | 'sleep_ground' | 'pick_up' | 'drop' | 'look_up' | 'struggle'
+  | 'eat_core' | 'plant_seed' | 'water_plant' | 'chop' | 'store_item' | 'take_item' | 'explore';
 
 export interface ActivityState {
   action: ActionId;

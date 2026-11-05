@@ -2,7 +2,9 @@
 import type { Goblin, GroundItem, Plant } from '../state';
 import type { World } from '../world';
 import { visionRadius } from './considerations';
-import { isShore } from '../grid';
+import { isShore, tileAt } from '../grid';
+import { CFG } from '../config';
+import { isGrowing, siteOk } from '../plants';
 import type { Vec2 } from '../../shared/types';
 
 const FAR = 48;
@@ -51,4 +53,46 @@ export function nearestShores(g: Goblin, w: World, k: number): Vec2[] {
     }
   }
   return best.map((b) => b.p);
+}
+
+/**
+ * §P2.2 site rules for planting a core: fertile meadow, not adjacent to another plant, within
+ * `seedSiteVillageRadius` tiles of home/village. Samples candidates with the world rng (deterministic).
+ */
+export function findPlantingSite(g: Goblin, w: World): Vec2 | null {
+  const C = CFG.plants;
+  const home = w.s.village.center;
+  let best: Vec2 | null = null;
+  let bestD = Infinity;
+  for (let i = 0; i < 14; i++) {
+    const a = w.rng.range(0, Math.PI * 2);
+    const r = w.rng.range(3, C.seedSiteVillageRadius);
+    const p = { x: Math.floor(home.x + Math.cos(a) * r) + 0.5, y: Math.floor(home.y + Math.sin(a) * r) + 0.5 };
+    const t = tileAt(w.s, p.x, p.y);
+    if (!t || t.biome !== 'meadow' || t.fertility < 0.35 || !siteOk(w, p, C.minSeedGap)) continue;
+    if (claimedSite(w, p, g.id)) continue;
+    const d = (p.x - g.pos.x) ** 2 + (p.y - g.pos.y) ** 2;
+    if (d < bestD) { bestD = d; best = p; }
+  }
+  return best;
+}
+
+function claimedSite(w: World, p: Vec2, except: number): boolean {
+  for (const o of w.s.goblins)
+    if (o.id !== except && o.activity.action === 'plant_seed' && o.activity.target && Math.hypot(o.activity.target.x - p.x, o.activity.target.y - p.y) < CFG.plants.minSeedGap) return true;
+  return false;
+}
+
+/** A thirsty young plant nearby that nobody else is already watering (own plantings first). */
+export function findDryPlant(g: Goblin, w: World): Plant | null {
+  const C = CFG.plants;
+  let best: Plant | null = null;
+  let bestS = 0;
+  for (const p of w.plantHash.query(g.pos, C.waterRadius)) {
+    if (!isGrowing(p) || p.hydration >= C.waterBelow || p.kind === 'tree') continue;
+    if (w.s.goblins.some((o) => o.id !== g.id && o.activity.action === 'water_plant' && o.activity.targetId === p.id)) continue;
+    const s = (1 - p.hydration / C.waterBelow) * (p.plantedBy === g.id ? 1.3 : 1) / (1 + Math.hypot(p.pos.x - g.pos.x, p.pos.y - g.pos.y) / C.waterRadius);
+    if (s > bestS) { bestS = s; best = p; }
+  }
+  return best;
 }

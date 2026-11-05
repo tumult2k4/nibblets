@@ -34,6 +34,8 @@ export const EN = {
   'act.idle': 'Standing around', 'act.wander': 'Wandering about', 'act.harvest_fruit': 'Picking apples', 'act.eat': 'Eating',
   'act.drink': 'Going for a drink', 'act.sleep_ground': 'Sleeping on the ground', 'act.pick_up': 'Picking something up',
   'act.drop': 'Putting something down', 'act.look_up': 'Staring at the sky', 'act.struggle': 'Dangling and kicking',
+  'act.eat_core': 'Nibbling an apple core', 'act.plant_seed': 'Planting an apple core', 'act.water_plant': 'Watering a young plant',
+  'act.chop': 'Chopping', 'act.store_item': 'Storing things', 'act.take_item': 'Fetching from the stockpile', 'act.explore': 'Exploring',
   'trait.gluttony': 'Gluttony', 'trait.bravery': 'Bravery', 'trait.sociability': 'Sociability', 'trait.industry': 'Industry',
   'trait.wanderlust': 'Wanderlust', 'trait.mischief': 'Mischief', 'trait.piety': 'Piety',
   'word.gluttony.0': 'dainty', 'word.gluttony.1': 'greedy', 'word.bravery.0': 'timid', 'word.bravery.1': 'brave',

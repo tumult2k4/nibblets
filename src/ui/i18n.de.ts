@@ -36,6 +36,8 @@ export const DE: Record<keyof typeof EN, string> = {
   'act.idle': 'Steht herum', 'act.wander': 'Streift umher', 'act.harvest_fruit': 'Pflückt Äpfel', 'act.eat': 'Isst',
   'act.drink': 'Geht trinken', 'act.sleep_ground': 'Schläft auf dem Boden', 'act.pick_up': 'Hebt etwas auf',
   'act.drop': 'Legt etwas ab', 'act.look_up': 'Starrt in den Himmel', 'act.struggle': 'Zappelt in der Luft',
+  'act.eat_core': 'Knabbert einen Apfelbutzen', 'act.plant_seed': 'Pflanzt einen Apfelbutzen', 'act.water_plant': 'Gießt eine junge Pflanze',
+  'act.chop': 'Hackt Holz', 'act.store_item': 'Räumt Sachen ins Lager', 'act.take_item': 'Holt etwas aus dem Lager', 'act.explore': 'Erkundet',
   'trait.gluttony': 'Gefräßigkeit', 'trait.bravery': 'Mut', 'trait.sociability': 'Geselligkeit', 'trait.industry': 'Fleiß',
   'trait.wanderlust': 'Fernweh', 'trait.mischief': 'Schabernack', 'trait.piety': 'Frömmigkeit',
   'word.gluttony.0': 'mäkelig', 'word.gluttony.1': 'verfressen', 'word.bravery.0': 'ängstlich', 'word.bravery.1': 'mutig',

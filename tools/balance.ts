@@ -21,6 +21,7 @@ interface Row {
   seed: number; popMin: number; popAvg: number; popMax: number; popEnd: number; births: number;
   deaths: Record<string, number>; eaten: number; divineFood: number; starvationDays: number;
   hueDrift: number; tickMs: number; fails: string[];
+  bushes0: number; bushesEnd: number; planted: number; plantedMature: number; wood: number;
 }
 
 const meanHue = (hs: number[]): number => {
@@ -31,6 +32,8 @@ const meanHue = (hs: number[]): number => {
 
 function runSeed(seed: number): Row {
   const w = createWorld({ seed });
+  const bushCount = () => w.s.plants.filter((p) => p.kind === 'apple_bush' && (p.stage === 'mature' || p.stage === 'old')).length;
+  const bushes0 = bushCount();
   const hue0 = meanHue(w.s.goblins.map((g) => express(g.genome, 'skinHue')));
   const ticks = days * CFG.time.dayTicks;
   let popMin = Infinity, popMax = 0, popSum = 0, samples = 0, starvationDays = 0;
@@ -44,6 +47,11 @@ function runSeed(seed: number): Row {
     }
   }
   const tickMs = (performance.now() - t0) / ticks;
+  const c = w.s.village.center;
+  const near = (p: { pos: { x: number; y: number } }) => Math.hypot(p.pos.x - c.x, p.pos.y - c.y) <= CFG.plants.seedSiteVillageRadius + 2;
+  const plantedMature = w.s.plants.filter((p) => p.plantedBy !== null && p.kind === 'apple_bush' && (p.stage === 'mature' || p.stage === 'old') && near(p)).length;
+  const wood = w.s.groundItems.reduce((n, i) => n + (i.stack.type === 'wood' ? i.stack.qty : 0), 0)
+    + w.s.goblins.reduce((n, g) => n + g.inventory.reduce((m, s) => m + (s.type === 'wood' ? s.qty : 0), 0), 0);
   const deaths = { ...w.s.stats.deaths };
   const totalDeaths = Object.values(deaths).reduce((a, b) => a + b, 0);
   const hue1 = w.s.goblins.length ? meanHue(w.s.goblins.map((g) => express(g.genome, 'skinHue'))) : hue0;
@@ -52,10 +60,13 @@ function runSeed(seed: number): Row {
   if (popMax > 3 * CFG.goblin.softCap) fails.push('overpopulation');
   if (totalDeaths > 0 && (deaths.starvation ?? 0) / totalDeaths > 0.2) fails.push('starvation>20%');
   if (tickMs > 2) fails.push('tick>2ms');
+  if (days >= 20 && plantedMature < 8) fails.push('planted<8');
+  if (bushCount() < bushes0 * 0.9) fails.push('bushes shrinking');
   return {
     seed, popMin, popAvg: popSum / Math.max(1, samples), popMax, popEnd: w.s.goblins.length, births: w.s.stats.births,
     deaths, eaten: w.s.stats.eaten, divineFood: w.s.stats.divineFood, starvationDays,
     hueDrift: Math.abs(hueDelta(hue0, hue1)), tickMs, fails,
+    bushes0, bushesEnd: bushCount(), planted: w.s.plants.filter((p) => p.plantedBy !== null).length, plantedMature, wood,
   };
 }
 
@@ -63,14 +74,14 @@ const rows: Row[] = [];
 for (let i = 0; i < seedCount; i++) {
   const r = runSeed(firstSeed + i);
   rows.push(r);
-  console.log(`seed ${r.seed}: pop ${r.popEnd} (min ${r.popMin}, max ${r.popMax}) deaths ${JSON.stringify(r.deaths)} eaten ${r.eaten} tick ${r.tickMs.toFixed(3)}ms ${r.fails.length ? 'FAIL ' + r.fails.join(',') : 'ok'}`);
+  console.log(`seed ${r.seed}: pop ${r.popEnd} (min ${r.popMin}, max ${r.popMax}) deaths ${JSON.stringify(r.deaths)} eaten ${r.eaten} bushes ${r.bushes0}→${r.bushesEnd} plantedMature ${r.plantedMature} wood ${r.wood} tick ${r.tickMs.toFixed(3)}ms ${r.fails.length ? 'FAIL ' + r.fails.join(',') : 'ok'}`);
 }
 const lines = [
   `# Balance report — ${days} days × ${seedCount} seeds`,
   '',
-  '| seed | pop min/avg/max/end | births | deaths | starvation deaths | food eaten | god food | starvation days | hue drift° | tick ms | result |',
-  '|---|---|---|---|---|---|---|---|---|---|---|',
-  ...rows.map((r) => `| ${r.seed} | ${r.popMin}/${r.popAvg.toFixed(1)}/${r.popMax}/${r.popEnd} | ${r.births} | ${Object.values(r.deaths).reduce((a, b) => a + b, 0)} ${JSON.stringify(r.deaths)} | ${r.deaths.starvation ?? 0} | ${r.eaten} | ${r.divineFood} | ${r.starvationDays} | ${r.hueDrift.toFixed(1)} | ${r.tickMs.toFixed(3)} | ${r.fails.length ? 'FAIL: ' + r.fails.join(', ') : 'ok'} |`),
+  '| seed | pop min/avg/max/end | births | deaths | starvation deaths | food eaten | god food | starvation days | hue drift° | bushes start→end | goblin-planted mature | wood | tick ms | result |',
+  '|---|---|---|---|---|---|---|---|---|---|---|---|---|---|',
+  ...rows.map((r) => `| ${r.seed} | ${r.popMin}/${r.popAvg.toFixed(1)}/${r.popMax}/${r.popEnd} | ${r.births} | ${Object.values(r.deaths).reduce((a, b) => a + b, 0)} ${JSON.stringify(r.deaths)} | ${r.deaths.starvation ?? 0} | ${r.eaten} | ${r.divineFood} | ${r.starvationDays} | ${r.hueDrift.toFixed(1)} | ${r.bushes0}→${r.bushesEnd} | ${r.plantedMature} | ${r.wood} | ${r.tickMs.toFixed(3)} | ${r.fails.length ? 'FAIL: ' + r.fails.join(', ') : 'ok'} |`),
   '',
   `Aggregate: avg end pop ${(rows.reduce((a, r) => a + r.popEnd, 0) / rows.length).toFixed(1)}, starvation deaths ${rows.reduce((a, r) => a + (r.deaths.starvation ?? 0), 0)}, avg tick ${(rows.reduce((a, r) => a + r.tickMs, 0) / rows.length).toFixed(3)} ms.`,
 ];

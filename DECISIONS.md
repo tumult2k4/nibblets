@@ -15,3 +15,8 @@ Small choices the design doc left open, one line of rationale each.
 - **Replay viewer** wraps `World.step` to inject logged commands at their tick and pauses when it reaches the save's tick.
 - **God hand scales with camera distance** (0.9–3 units) so it stays readable at every zoom.
 - **Phase 1 committed in three batches** instead of one commit per step: it was built in one long session; per-step commits resume in P2.
+- **Not every apple core gets planted**: a goblin pockets a core with chance 0.04 + 0.16 × industry, else tosses it; ground cores are only picked up when hungry. Keeping every core gave ~120 new bushes in 20 days; this gives ~30.
+- **Planting slows as the nursery fills**: PlantSeed score ÷ (1 + growing apple plants near the village / 6).
+- **Fertility draw is charged per finished growth stage** (0.15 × stage share), because per-tick draws round to zero under 4-decimal quantization.
+- **`tileAt` floors fractional coordinates**: callers pass positions; flooring in one place avoids silent misses.
+- **Worldgen mature bushes get ages 8–55 days** so they don't all turn old on the same day.

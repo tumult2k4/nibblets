@@ -9,7 +9,8 @@ import type { UtilityAction } from '../action';
 import type { Goblin, GroundItem } from '../../state';
 import type { World } from '../../world';
 
-const wantItem = (g: Goblin) => (it: GroundItem) => canCarry(g, it.stack.type) && (isFood(it.stack.type) ? g.needs.hunger < 92 : true);
+const wantItem = (g: Goblin) => (it: GroundItem) =>
+  canCarry(g, it.stack.type) && (it.stack.type === 'apple_core' ? g.needs.hunger < 30 : isFood(it.stack.type) ? g.needs.hunger < 92 : true);
 
 function target(g: Goblin, w: World): GroundItem | null {
   return findGroundItem(g, w, wantItem(g));

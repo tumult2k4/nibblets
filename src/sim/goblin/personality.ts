@@ -27,6 +27,14 @@ export function personalityWeight(p: Personality, action: string): number {
       return 0.85 + 0.3 * p.gluttony;
     case 'wander':
       return 0.6 + 0.8 * p.wanderlust;
+    case 'plant_seed':
+    case 'water_plant':
+      return 0.6 + 0.8 * p.industry;
+    case 'chop':
+    case 'store_item':
+      return 0.5 + 1.0 * p.industry;
+    case 'explore':
+      return 0.5 + 1.0 * p.wanderlust;
     case 'idle':
       return 1.2 - 0.6 * p.industry;
     default:
