@@ -1,6 +1,6 @@
 /** Plain-data world state (§5). Everything here is serializable; no class instances. */
 import type {
-  Biome, BuildingType, ID, ItemStack, ItemType, LifeStage, PlantKind, PlantStage, Vec2, WeatherKind, Tone, WishIntent,
+  Biome, BuildingType, ID, ItemStack, LifeStage, PlantKind, PlantStage, Vec2, WeatherKind, Tone, WishIntent,
 } from '../shared/types';
 import type { Genome } from './goblin/genetics/genome';
 import type { GodState } from './god/godState';
@@ -37,7 +37,7 @@ export type ActionId =
   | 'idle' | 'wander' | 'harvest_fruit' | 'eat' | 'drink' | 'sleep_ground' | 'pick_up' | 'drop' | 'look_up' | 'struggle'
   | 'eat_core' | 'plant_seed' | 'water_plant' | 'chop' | 'store_item' | 'take_item' | 'explore'
   | 'deliver_material' | 'build' | 'claim_home' | 'sleep_home' | 'gather_for_goal' | 'seek_shelter' | 'warm_up' | 'forage'
-  | 'mine';
+  | 'mine' | 'craft' | 'equip';
 
 export interface ActivityState {
   action: ActionId;
@@ -80,7 +80,8 @@ export interface Goblin {
   pos: Vec2; facing: number; velocity: Vec2;
   needs: Needs; mood: MoodState; personality: Personality; health: HealthState;
   inventory: ItemStack[];
-  equipped: { hand: ItemType | null; body: ItemType | null; neck: ItemType | null; head: ItemType | null };
+  /** worn / held items (§P4.2): the hand holds a weapon or tool and does not use an inventory slot */
+  equipped: { hand: ItemStack | null; body: ItemStack | null; neck: ItemStack | null; head: ItemStack | null };
   activity: ActivityState; goalStack: import('./ai/planner').GoalEntry[]; homeId: ID | null;
   memory: MemoryEntry[]; relationships: Relation[]; skills: Record<string, number>; knownRecipes: string[];
   trinkets: ID[]; reputation: number; traits: string[]; deeds: DeedCounters; godView: GodView;

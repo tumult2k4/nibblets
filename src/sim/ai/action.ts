@@ -9,7 +9,8 @@ export interface UtilityAction {
   id: ActionId;
   tags: ActionTag[];
   minStage: LifeStage;
-  interruptible: boolean;
+  /** may a re-decision cut this action short? A function decides per goblin (e.g. only while walking) */
+  interruptible: boolean | ((g: Goblin) => boolean);
   /** forced actions (look_up, struggle) are never chosen by scoring */
   forced?: boolean;
   isAvailable(g: Goblin, w: World): boolean;

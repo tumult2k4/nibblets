@@ -31,6 +31,8 @@ export const ITEM_DEFS: Partial<Record<ItemType, ItemDef>> = {
   flint: { stack: 10, weight: 1, value: 5, tray: 'materials' },
   fiber: { stack: 20, weight: 0.3, value: 2, burnable: true, tray: 'materials' },
   clay: { stack: 10, weight: 2, value: 2, tray: 'materials' },
+  // rope is twisted from fiber in P5; defined now because P4 recipes (stone axe, pick) need it
+  rope: { stack: 10, weight: 0.5, value: 4, burnable: true },
   // tools & weapons (§11.1/§11.3): one per slot; a use = one finished job (tree felled, stone mined) or one hit
   spear: { stack: 1, weight: 2, value: 6, weapon: { dmg: CFG.combat.spear, range: 1.5 }, uses: 25, breaksInto: { stick: 1 }, tray: 'tools' },
   stone_spear: { stack: 1, weight: 2, value: 10, weapon: { dmg: CFG.combat.stone_spear, range: 1.5 }, uses: 35, breaksInto: { stick: 1 } },

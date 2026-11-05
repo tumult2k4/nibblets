@@ -8,6 +8,7 @@ import type { Genome } from './genetics/genome';
 import { express, lifeStageForAge } from './genetics/phenotype';
 import { personalityFromGenome } from './personality';
 import { makeName } from './names';
+import { STARTER_RECIPES } from '../recipes';
 
 export const ageDays = (g: Goblin, tick: number): number => (tick - g.bornTick) / CFG.time.dayTicks;
 
@@ -37,7 +38,7 @@ export function createGoblin(s: WorldState, rng: Rng, o: SpawnOpts): Goblin {
     inventory: [],
     equipped: { hand: null, body: null, neck: null, head: null },
     activity: idleActivity(s.tick),
-    goalStack: [], homeId: null, memory: [], relationships: [], skills: {}, knownRecipes: [], trinkets: [],
+    goalStack: [], homeId: null, memory: [], relationships: [], skills: {}, knownRecipes: [...STARTER_RECIPES], trinkets: [],
     reputation: 0, traits: [],
     deeds: { eaten: 0, drank: 0, harvested: 0, planted: 0, kills: 0, builds: 0, gifts: 0, timesHeld: 0 },
     godView: {

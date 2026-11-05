@@ -10,6 +10,7 @@ import { express } from '../../../sim/goblin/genetics/phenotype';
 import { LOCUS_DEFS, type LocusDef } from '../../../sim/goblin/genetics/genome';
 import { describePersonality, TRAITS } from '../../../sim/goblin/personality';
 import { slotCount } from '../../../sim/inventory';
+import type { ItemStack } from '../../../shared/types';
 import { isTool, maxUses, usesLeft } from '../../../sim/tools';
 import { icon, ITEM_ICON } from '../../icons';
 import { portraits } from '../../../render/portraits';
@@ -104,9 +105,18 @@ export function bodyTab(g: Goblin, w: World): HTMLElement {
     el('table.genome', {}, el('tr', {}, el('td', {}, el('b', { text: t('insp.allele') })), el('td', { text: 'a' }), el('td', { text: 'b' }), el('td', {}, el('b', { text: t('insp.expressed') }))), ...rows));
 }
 
+const stackLabel = (s: ItemStack): string =>
+  `${s.fine ? t('insp.fine') + ' ' : ''}${t(`item.${s.type}`)}${s.qty > 1 ? ` ×${s.qty}` : ''}`
+  + `${isTool(s.type) ? ` · ${t('insp.uses', { n: usesLeft(s), max: maxUses(s.type, s.fine) })}` : ''}${s.divine ? ` (${t('insp.sky')})` : ''}`;
+const itemRow = (s: ItemStack): HTMLElement => el('div.row', {}, icon(ITEM_ICON[s.type] ?? 'gift'), el('span', { text: stackLabel(s) }));
+
+/** Hand slot, pack, crafting skill and known hand/site recipes (§P4.2). */
 export function inventoryTab(g: Goblin): HTMLElement {
-  const items = g.inventory.map((s) => el('div.row', {}, icon(ITEM_ICON[s.type] ?? 'gift'), el('span', {
-    text: `${t(`item.${s.type}`)} ×${s.qty}${isTool(s.type) ? ` · ${t('insp.uses', { n: usesLeft(s), max: maxUses(s.type) })}` : ''}${s.divine ? ` (${t('insp.sky')})` : ''}`,
-  })));
-  return el('div', {}, el('div.sub', { text: t('insp.slots', { n: slotCount(g) }) }), ...(items.length ? items : [el('div.sub', { text: t('insp.empty') })]));
+  const items = g.inventory.map(itemRow);
+  const hand = g.equipped.hand;
+  return el('div', {},
+    el('h3', { text: t('insp.hand') }), hand ? itemRow(hand) : el('div.sub', { text: t('insp.emptyHand') }),
+    el('h3', { text: t('insp.pack') }), el('div.sub', { text: t('insp.slots', { n: slotCount(g) }) }), ...(items.length ? items : [el('div.sub', { text: t('insp.empty') })]),
+    el('h3', { text: t('insp.recipes') }),
+    el('div.sub', { text: g.knownRecipes.map((r) => t(`recipe.${r}`)).join(' · ') + (g.skills.crafting ? ` — ${t('insp.craftSkill', { n: g.skills.crafting.toFixed(1) })}` : '') }));
 }

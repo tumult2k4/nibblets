@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { merge, paint, wobble } from './lowpoly';
+import { flatMat, merge, paint, wobble } from './lowpoly';
 import { PROP_COLORS as P } from './palette';
 import type { ItemType } from '../shared/types';
 
@@ -32,4 +32,33 @@ export function toolGeo(t: ItemType): THREE.BufferGeometry | null {
     default:
       return null;
   }
+}
+
+const GOLD = new THREE.MeshLambertMaterial({ color: '#f2c94c', emissive: '#6b4a00', flatShading: true });
+const HELD = new Map<ItemType, THREE.BufferGeometry>();
+
+/**
+ * A tool held in the right hand: the shaft sticks out forward from the fist with the head ahead, so arm swings
+ * read as blows. Fine items get a tiny gold band at the grip (§11.1).
+ */
+export function heldMesh(t: ItemType, fine: boolean): THREE.Object3D {
+  let geo = HELD.get(t);
+  if (!geo) {
+    geo = toolGeo(t)?.clone() ?? new THREE.BoxGeometry(0.1, 0.1, 0.1);
+    geo.computeBoundingBox();
+    const minX = geo.boundingBox!.min.x;
+    geo.translate(-minX - 0.06, -0.02, 0).rotateY(-Math.PI / 2); // grip at the fist, business end forward
+    HELD.set(t, geo);
+  }
+  const g = new THREE.Group();
+  const m = new THREE.Mesh(geo, flatMat);
+  m.castShadow = true;
+  g.add(m);
+  if (fine) {
+    const band = new THREE.Mesh(new THREE.TorusGeometry(0.03, 0.012, 4, 8), GOLD);
+    band.position.set(0, 0, 0.05);
+    g.add(band);
+  }
+  g.rotation.x = -0.5; // tilt the head up a little
+  return g;
 }

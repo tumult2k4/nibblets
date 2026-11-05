@@ -25,6 +25,8 @@ export interface ItemStack {
   divine?: boolean;
   /** tools & weapons: uses left (absent = brand new, §11.3) */
   dur?: number;
+  /** fine quality (§11.1): +50 % durability and effect */
+  fine?: boolean;
 }
 
 /** Billboard emotes over a goblin's head (§P2.6). */
@@ -82,7 +84,7 @@ export type SimEvent = BaseEvent &
     | { type: 'plant_chopped'; goblinId: ID; plantId: ID; wood: number }
     | { type: 'rock_mined'; goblinId: ID; rockId: ID; flint: boolean; left: number }
     | { type: 'tool_broken'; goblinId: ID; item: ItemType; at: Vec2 }
-    | { type: 'item_crafted'; goblinId: ID; item: ItemType }
+    | { type: 'item_crafted'; goblinId: ID; recipe: RecipeId; item: ItemType; fine: boolean; at: Vec2 }
     | { type: 'building_placed' | 'building_completed' | 'building_destroyed'; buildingId: ID; kind: BuildingType; goblinId?: ID; cause?: string }
     | { type: 'weather_changed'; from: WeatherKind; to: WeatherKind }
     | { type: 'season_changed'; season: Season; year: number }

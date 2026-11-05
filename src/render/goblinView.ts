@@ -5,10 +5,12 @@ import { ageDays, isSleeping } from '../sim/goblin/goblin';
 import { phenotypeOf, type Phenotype } from '../sim/goblin/genetics/phenotype';
 import { buildGoblin, disposeRig, phenoBucket, type GoblinRig } from './goblinMesh';
 import { itemGeo } from './meshFactory';
+import { heldMesh } from './toolMeshes';
+import { isTool, toolFor } from '../sim/tools';
 import { flatMat } from './lowpoly';
 import type { Interp } from './interpolation';
 
-interface View { rig: GoblinRig; pheno: Phenotype; prop: THREE.Mesh | null; propType: string; blinkAt: number; walkPhase: number; zzz: THREE.Sprite | null }
+interface View { rig: GoblinRig; pheno: Phenotype; prop: THREE.Mesh | null; propType: string; held: THREE.Object3D | null; heldKey: string; blinkAt: number; walkPhase: number; zzz: THREE.Sprite | null }
 
 function zzzTexture(): THREE.Texture {
   const c = document.createElement('canvas');
@@ -41,7 +43,7 @@ export class GoblinViews {
     const rig = buildGoblin(pheno, g.id * 31 + 7, this.outlines);
     rig.root.userData = { kind: 'goblin', id: g.id };
     this.group.add(rig.root);
-    return { rig, pheno, prop: null, propType: '', blinkAt: 0, walkPhase: g.id, zzz: null };
+    return { rig, pheno, prop: null, propType: '', held: null, heldKey: '', blinkAt: 0, walkPhase: g.id, zzz: null };
   }
 
   update(interp: Interp, alpha: number, time: number, night: number, dt: number): void {
@@ -161,18 +163,19 @@ export class GoblinViews {
     if (t > v.blinkAt) v.blinkAt = t + 3 + ((g.id * 7919) % 300) / 100;
     const blinking = sleeping || v.blinkAt - t < 0.12;
     r.eyeMat.visible = !blinking;
-    // carried item prop
-    const carried = g.inventory[0]?.type ?? '';
+    // carried item in the left hand, weapon/tool in the right (§P4.2)
+    const carried = g.inventory.find((s) => !isTool(s.type))?.type ?? '';
     if (carried !== v.propType) {
-      if (v.prop) r.hand.remove(v.prop);
+      if (v.prop) r.handL.remove(v.prop);
       v.prop = null;
       v.propType = carried;
       if (carried) {
-        v.prop = new THREE.Mesh(itemGeo(g.inventory[0]!.type), flatMat);
+        v.prop = new THREE.Mesh(itemGeo(carried), flatMat);
         v.prop.scale.setScalar(0.9);
-        r.hand.add(v.prop);
+        r.handL.add(v.prop);
       }
     }
+    this.updateHeld(g, v);
     // Zzz sprite
     if (sleeping && !v.zzz) {
       v.zzz = new THREE.Sprite(this.zzzMat);
@@ -183,6 +186,19 @@ export class GoblinViews {
       v.zzz = null;
     }
     if (v.zzz) v.zzz.position.set(p.x, p.z + 0.6 * scale + 0.25 + Math.sin(t * 2) * 0.05, p.y);
+  }
+
+  /** The right hand shows the tool for the current job (pick while mining, axe while chopping), else the held item. */
+  private updateHeld(g: Goblin, v: View): void {
+    const act = g.activity.action;
+    const job = act === 'mine' ? toolFor(g, 'mine').stack : act === 'chop' ? toolFor(g, 'chop').stack : null;
+    const s = job ?? g.equipped.hand;
+    const key = s ? `${s.type}${s.fine ? '*' : ''}` : '';
+    if (key === v.heldKey) return;
+    if (v.held) v.rig.hand.remove(v.held);
+    v.held = s ? heldMesh(s.type, !!s.fine) : null;
+    v.heldKey = key;
+    if (v.held) v.rig.hand.add(v.held);
   }
 
   rigOf(id: number): GoblinRig | undefined {

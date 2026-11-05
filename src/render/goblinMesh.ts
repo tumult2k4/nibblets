@@ -11,6 +11,8 @@ export interface GoblinRig {
   head: THREE.Group;
   earL: THREE.Object3D; earR: THREE.Object3D;
   armL: THREE.Object3D; armR: THREE.Object3D;
+  /** left hand carries loose items; `hand` (right) holds the equipped weapon or tool */
+  handL: THREE.Object3D;
   legL: THREE.Object3D; legR: THREE.Object3D;
   hand: THREE.Object3D; // carried prop anchor
   belly: THREE.Mesh;
@@ -114,6 +116,9 @@ export function buildGoblin(p: Phenotype, seed: number, outlines: boolean): Gobl
   }
   hand.position.set(0, -0.2, 0.05);
   armR.add(hand);
+  const handL = new THREE.Group();
+  handL.position.set(0, -0.2, 0.05);
+  armL.add(handL);
   // head
   const head = new THREE.Group();
   const hr = (p.headRatio * 0.8) / 2;
@@ -172,7 +177,7 @@ export function buildGoblin(p: Phenotype, seed: number, outlines: boolean): Gobl
     outline.scale.setScalar(1.08);
     belly.add(outline);
   }
-  return { root, body, head, earL, earR, armL, armR, legL, legR, hand, belly, eyeMat, outline, triangles: tris, bucket: phenoBucket(p) };
+  return { root, body, head, earL, earR, armL, armR, legL, legR, hand, handL, belly, eyeMat, outline, triangles: tris, bucket: phenoBucket(p) };
 }
 
 export const OUTLINE_MAT = new THREE.MeshBasicMaterial({ color: '#2a2418', side: THREE.BackSide });

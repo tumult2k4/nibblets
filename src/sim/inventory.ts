@@ -21,6 +21,7 @@ export function copyStack(s: ItemStack, qty: number): ItemStack {
   const c: ItemStack = { type: s.type, qty };
   if (s.divine) c.divine = true;
   if (s.dur !== undefined) c.dur = s.dur;
+  if (s.fine) c.fine = true;
   return c;
 }
 
@@ -28,7 +29,7 @@ export function addItem(g: Goblin, stack: ItemStack): number {
   let left = stack.qty;
   const max = itemDef(stack.type).stack;
   for (const s of g.inventory)
-    if (s.type === stack.type && !!s.divine === !!stack.divine && s.dur === stack.dur && s.qty < max) {
+    if (s.type === stack.type && !!s.divine === !!stack.divine && s.dur === stack.dur && !!s.fine === !!stack.fine && s.qty < max) {
       const n = Math.min(left, max - s.qty);
       s.qty += n;
       left -= n;
@@ -49,6 +50,20 @@ export function takeOne(g: Goblin, pred: (s: ItemStack) => boolean): ItemStack |
   s.qty -= 1;
   if (s.qty <= 0) g.inventory.splice(i, 1);
   return copyStack(s, 1);
+}
+
+/** Remove up to `n` units of `t` from the inventory (smallest stacks first); returns how many were removed. */
+export function removeItems(g: Goblin, t: ItemType, n: number): number {
+  let left = n;
+  const stacks = g.inventory.filter((s) => s.type === t).sort((a, b) => a.qty - b.qty);
+  for (const s of stacks) {
+    const k = Math.min(left, s.qty);
+    s.qty -= k;
+    left -= k;
+    if (left <= 0) break;
+  }
+  g.inventory = g.inventory.filter((s) => s.qty > 0);
+  return n - left;
 }
 
 /** Best food in the inventory (most nutritious first). Apple cores are kept for planting unless `cores`. */

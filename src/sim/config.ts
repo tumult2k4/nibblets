@@ -1,7 +1,7 @@
 /** Every tunable number lives here (§21). Additions beyond §21 are logged in DECISIONS.md. */
 export const CFG = {
   tickHz: 10,
-  saveVersion: 3,
+  saveVersion: 4,
   time: { dayTicks: 3600, daysPerSeason: 8, moonCycleDays: 8, phases: { dawn: 0.05, day: 0.6, dusk: 0.7 }, startTick: 360 },
   world: {
     w: 128, h: 128, waterLevel: 0.3, sandBand: 0.03, rockLevel: 0.8, forestNoiseThreshold: 0.6,
@@ -122,6 +122,11 @@ export const CFG = {
   mining: {
     ticksPerStone: 60, stonesPerTrip: 3, stoneTarget: 12, flintTarget: 4, searchRadius: 30, minStone: 1,
     stickTarget: 8, stickFallTries: 4, stickFallChance: 0.12, stickStormMul: 3, looseStickCap: 30,
+  },
+  /** P4.2 crafting (§11.1): skill is a level that grows per craft; level 4+ may make fine items */
+  crafting: {
+    skillPerCraft: 0.25, skillBonus: 0.15, fineLevel: 4, fineChance: 0.25, fineBonus: 1.5,
+    weaponWant: 0.1, braveryWant: 0.16, toolWant: 0.3, equipTicks: 10, fetchTicks: 8,
   },
   enemies: { graceDays: 3, baseThreat: 1, rampPerDay: 0.05, newMoonMul: 1.6, fullMoonMul: 0.7, maxActive: 20, gnasher: { hp: 60, dmg: 10, speed: 2.4, fleeAt: 0.3 } },
   combat: { fists: 5, spear: 15, stone_spear: 28, club: 20, sling: 10, injuryChance: 0.25 },

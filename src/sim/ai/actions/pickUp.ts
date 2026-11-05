@@ -7,7 +7,7 @@ import { moveAlong, planPath } from '../../steering';
 import { findGroundItem } from '../targets';
 import type { UtilityAction } from '../action';
 import { stickWanted, woodWanted } from '../wants';
-import { isTool } from '../../tools';
+import { gear, isTool } from '../../tools';
 import type { Goblin, GroundItem } from '../../state';
 import type { World } from '../../world';
 
@@ -15,7 +15,7 @@ import type { World } from '../../world';
 const wantItem = (g: Goblin) => (it: GroundItem) => {
   const t = it.stack.type;
   if (!canCarry(g, t)) return false;
-  if (isTool(t)) return g.lifeStage === 'adult' && !g.inventory.some((s) => s.type === t);
+  if (isTool(t)) return g.lifeStage === 'adult' && !gear(g).some((s) => s.type === t);
   return t === 'apple_core' ? g.needs.hunger < 30 : isFood(t) ? g.needs.hunger < 92 : true;
 };
 

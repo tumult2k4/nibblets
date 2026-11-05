@@ -3,13 +3,14 @@ import { dist } from '../../../shared/math';
 import { addItem, countItem, foodStack } from '../../inventory';
 import { isFood } from '../../items';
 import { isTool } from '../../tools';
+import { HAND_RECIPES, RECIPES } from '../../recipes';
 import { needUrgency } from '../../goblin/needs';
 import { moveAlong, planPath } from '../../steering';
 import { distanceFalloff } from '../considerations';
 import { deposit, stockFood, withdraw } from '../../stockpile';
 import { blueprints, buildingDef, isComplete, missingMaterials } from '../../buildings';
 import { bedSpot, homeOf } from './home';
-import type { ItemStack } from '../../../shared/types';
+import type { ItemStack, ItemType } from '../../../shared/types';
 import type { Building, Goblin } from '../../state';
 import type { World } from '../../world';
 import type { StepResult, UtilityAction } from '../action';
@@ -18,6 +19,9 @@ import type { StepResult, UtilityAction } from '../action';
 function storable(g: Goblin, w: World): ItemStack[] {
   const food = g.inventory.filter((s) => isFood(s.type) && s.type !== 'apple_core').reduce((n, s) => n + s.qty, 0);
   const wanted = new Set(blueprints(w.s).flatMap((b) => missingMaterials(b).map((m) => m.type)));
+  // inputs of the piece being crafted stay in the pack
+  const crafting = g.activity.action === 'craft' && g.activity.status === 'running' ? RECIPES[HAND_RECIPES[g.activity.targetId ?? -1] ?? ''] : undefined;
+  for (const t of Object.keys(crafting?.inputs ?? {})) wanted.add(t as ItemType);
   return g.inventory.filter((s) => (isTool(s.type) ? false : !isFood(s.type) ? !wanted.has(s.type) : s.type !== 'apple_core' && food > CFG.plants.stockFoodKeep + 1));
 }
 

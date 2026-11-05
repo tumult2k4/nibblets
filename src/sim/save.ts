@@ -1,6 +1,7 @@
 /** Versioned JSON saves with stepwise migrations (§23.5) and the canonical state hash (§3.2). */
 import { fnv1a } from '../shared/rng';
 import { CFG } from './config';
+import { STARTER_RECIPES } from './recipes';
 import type { LoggedCommand, Tile, WorldState } from './state';
 import { World } from './world';
 import type { Biome } from '../shared/types';
@@ -48,6 +49,14 @@ export const MIGRATIONS: Record<number, Migration> = {
   2: (raw) => {
     const wx = raw.weather as Record<string, unknown>;
     raw.weather = { ...wx, upcoming: wx.kind, cells: [] };
+    return raw;
+  },
+  // v3 → v4 (P4.2): starter recipes known; equipped slots hold stacks (durability, quality)
+  3: (raw) => {
+    for (const g of raw.goblins as { knownRecipes: string[]; equipped: Record<string, unknown> }[]) {
+      g.knownRecipes = [...new Set([...g.knownRecipes, ...STARTER_RECIPES])];
+      for (const k of Object.keys(g.equipped)) if (typeof g.equipped[k] === 'string') g.equipped[k] = { type: g.equipped[k], qty: 1 };
+    }
     return raw;
   },
 };
