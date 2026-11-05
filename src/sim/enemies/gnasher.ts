@@ -11,7 +11,7 @@ import { isFood } from '../items';
 import { stockFood, withdraw } from '../stockpile';
 import { shelterOf } from '../temperature';
 import { visionRadius } from '../ai/considerations';
-import { hurtGoblin } from '../combat';
+import { biteChance, hurtGoblin } from '../combat';
 import { weatherAt } from '../weather';
 import type { Enemy, Goblin, GroundItem } from '../state';
 import type { World } from '../world';
@@ -70,6 +70,9 @@ function decide(w: World, e: Enemy): void {
   if (e.hp < G.fleeAt * e.maxHp || crowdAround(w, e) >= E.crowdFlee) return setMode(w, e, 'flee', e.home);
   if (!dark(w, e) || e.carrying) return setMode(w, e, 'leave', e.home);
   if (e.mode === 'attack' && e.hits >= E.maxBites) return setMode(w, e, 'flee', e.home);
+  // keeps at whoever it is fighting while they stay close and outdoors
+  const foe = e.mode === 'attack' && e.targetId !== null ? w.goblin(e.targetId) : undefined;
+  if (foe && exposed(w, foe) && dist(foe.pos, e.pos) < 4) return;
   const lone = nearestLone(w, e);
   if (lone && dist(lone.pos, e.pos) < 8) return setMode(w, e, 'attack', lone.pos, lone.id);
   const sp = w.s.village.stockpilePos;
@@ -112,9 +115,10 @@ function bite(w: World, e: Enemy, g: Goblin): void {
   e.facing = q4(Math.atan2(g.pos.y - e.pos.y, g.pos.x - e.pos.x));
   e.velocity = { x: 0, y: 0 };
   if (e.timer > 0) { e.timer--; return; }
-  e.hits++;
   e.timer = E.biteCooldown + E.windupTicks;
-  if (!e.seen) spotted(w, e, g); // a bite wakes anyone up
+  if (!e.seen) spotted(w, e, g); // a bite (even a miss) wakes anyone up
+  if (!w.rng.chance(biteChance(g))) { w.emit({ type: 'enemy_bit', enemyId: e.id, goblinId: g.id, damage: 0, at: g.pos }); return; }
+  e.hits++;
   w.emit({ type: 'enemy_bit', enemyId: e.id, goblinId: g.id, damage: G.dmg, at: g.pos });
   w.emit({ type: 'emote', goblinId: g.id, emote: 'exclaim' });
   hurtGoblin(w, g, G.dmg, 'combat');

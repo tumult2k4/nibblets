@@ -1,4 +1,5 @@
 /** Buildings (§10.1–10.2): site finding, blueprints, material delivery bookkeeping, labor, completion. */
+import { workMul } from './combat';
 import { CFG } from './config';
 import { clamp, dist, q4 } from '../shared/math';
 import { allocId } from '../shared/ids';
@@ -157,7 +158,7 @@ export function laborRate(w: World, g: Goblin, b: Building): number {
 /** One tick of work on `b` by `g`. Returns true when this tick completed the building. */
 export function addLabor(w: World, g: Goblin, b: Building): boolean {
   if (isComplete(b) || missingMaterials(b).length) return false;
-  b.buildProgress = q4(Math.min(1, b.buildProgress + laborRate(w, g, b)));
+  b.buildProgress = q4(Math.min(1, b.buildProgress + laborRate(w, g, b) * workMul(g)));
   g.skills.building = q4((g.skills.building ?? 0) + B.skillPerTick);
   const key = `w${g.id}`;
   b.data![key] = (b.data![key] ?? 0) + 1;

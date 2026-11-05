@@ -65,6 +65,14 @@ export const MIGRATIONS: Record<number, Migration> = {
     raw.threat = { night: -1, spawnAt: [] };
     return raw;
   },
+  // v5 → v6 (P4.5): injuries become a list of healing wounds; fights survived are counted
+  5: (raw) => {
+    for (const g of raw.goblins as { health: { injuries: unknown }; deeds: Record<string, number> }[]) {
+      g.health.injuries = [];
+      g.deeds.fights ??= 0;
+    }
+    return raw;
+  },
 };
 
 export function deserialize(json: string): WorldState {

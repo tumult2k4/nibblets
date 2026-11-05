@@ -19,6 +19,8 @@ import { Mine } from './actions/mine';
 import { Craft } from './actions/craft';
 import { Equip } from './actions/equip';
 import { PlanBuilding, TendFire } from './actions/village';
+import { Attack, DefendVillage } from './actions/fight';
+import { Flee, Guard, dangerCaught } from './actions/flee';
 import { findChopTarget } from './actions/chop';
 import { planFor } from './planner';
 import { Explore } from './actions/explore';
@@ -39,6 +41,7 @@ export const ACTIONS: Record<ActionId, UtilityAction> = {
   claim_home: ClaimHome, sleep_home: SleepHome, gather_for_goal: GatherForGoal,
   seek_shelter: SeekShelter, warm_up: WarmUp, forage: Forage, mine: Mine,
   craft: Craft, equip: Equip, plan_building: PlanBuilding, tend_fire: TendFire,
+  flee: Flee, attack: Attack, defend_village: DefendVillage, guard: Guard,
 };
 const CHOOSABLE = (Object.values(ACTIONS) as UtilityAction[]).filter((a) => !a.forced);
 
@@ -105,9 +108,12 @@ export function think(w: World): void {
     if (g.heldByGod || g.airborne) continue;
     const cur = ACTIONS[g.activity.action];
     const finished = g.activity.status !== 'running';
-    // §7.2 interrupts: a storm caught outdoors re-decides at once (rate-limited to every 10 ticks)
-    const due = s.tick % iv === g.id % iv || (s.tick - g.lastDecisionTick >= 10 && stormCaught(g, w));
-    const canCut = typeof cur.interruptible === 'function' ? cur.interruptible(g) : cur.interruptible;
+    // §7.2 interrupts: a storm caught outdoors re-decides at once; danger in sight cuts any unforced action
+    // (both rate-limited to every 10 ticks)
+    const ready = s.tick - g.lastDecisionTick >= 10;
+    const danger = ready && !cur.forced && dangerCaught(g, w);
+    const due = s.tick % iv === g.id % iv || danger || (ready && stormCaught(g, w));
+    const canCut = danger || (typeof cur.interruptible === 'function' ? cur.interruptible(g) : cur.interruptible);
     if (!finished && (!due || !canCut)) continue;
     const rows = scoreActions(g, w, true, planFor(g, w, (gg, ww) => !!findChopTarget(gg, ww)));
     g.lastDecisionTick = s.tick;

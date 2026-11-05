@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { CFG } from '../sim/config';
 import type { World } from '../sim/world';
 import type { Goblin } from '../sim/state';
 import { ageDays, isSleeping } from '../sim/goblin/goblin';
@@ -126,6 +127,28 @@ export class GoblinViews {
       earFlop = Math.sin(ph - 0.8) * 0.25; // secondary motion with phase lag
       if (baby) r.body.rotation.z = Math.sin(ph * 0.5) * 0.12; // babies wobble
       if (act === 'seek_shelter') { r.armL.rotation.x = -2.7; r.armR.rotation.x = -2.7; } // hands over the head, hurrying in
+      if (act === 'flee') { r.armL.rotation.x = -2.6 + Math.sin(ph * 1.5) * 0.4; r.armR.rotation.x = -2.6 - Math.sin(ph * 1.5) * 0.4; earFlop = 0.6; } // flailing panic, ears flat
+      if (act === 'attack' || act === 'defend_village') { r.armR.rotation.x = -1.5; r.body.rotation.x += 0.2; } // charging, weapon levelled
+    } else if (act === 'attack' || act === 'defend_village') {
+      // wind up, thrust, recover (driven by the sim's swing timer)
+      const p = g.activity.progress, C = CFG.combat;
+      const struck = p > C.cooldownTicks, drawing = p <= C.windupTicks;
+      r.armR.rotation.x = struck ? -1.55 : drawing ? -2.5 : -1.9;
+      r.armL.rotation.x = struck ? -1.0 : -0.6;
+      r.body.rotation.x += struck ? 0.32 : drawing ? -0.12 : 0.05;
+      r.legL.rotation.x = struck ? -0.5 : 0; r.legR.rotation.x = struck ? 0.4 : 0;
+      earFlop = struck ? -0.35 : 0.1;
+    } else if (act === 'guard') {
+      // standing watch: weapon up, slowly scanning the dark
+      r.armR.rotation.x = -2.2;
+      r.head.rotation.y = Math.sin(t * 0.7 + g.id) * 0.7;
+      earFlop = -0.15 + Math.max(0, Math.sin(t * 1.9 + g.id)) ** 16 * 0.3;
+    } else if (act === 'flee') {
+      // hiding: crouched small and trembling
+      r.body.scale.set(1.04, 0.88, 1.04);
+      r.body.position.x = Math.sin(t * 50 + g.id) * 0.01;
+      r.armL.rotation.x = r.armR.rotation.x = -1.1;
+      earFlop = 0.7;
     } else if (act === 'build' || act === 'chop') {
       // hammering / chopping: big overhead swing, lean into it
       const k = t * 7 + g.id;

@@ -11,6 +11,7 @@ import { faceToward, moveAlong, planPath } from '../../steering';
 import { spawnGroundItem } from '../../groundItems';
 import { tileAt } from '../../grid';
 import { toolFor, wearTool } from '../../tools';
+import { workMul } from '../../combat';
 import { stoneWanted } from '../wants';
 import type { ItemType } from '../../../shared/types';
 import type { Goblin, Rock } from '../../state';
@@ -42,7 +43,7 @@ function workSpot(g: Goblin, rk: Rock): { x: number; y: number } {
   return { x: q4(rk.pos.x + ux * off), y: q4(rk.pos.y + uy * off) };
 }
 
-export const mineTicks = (g: Goblin): number => Math.round(M.ticksPerStone / toolFor(g, 'mine').mul);
+export const mineTicks = (g: Goblin): number => Math.round(M.ticksPerStone / (toolFor(g, 'mine').mul * workMul(g)));
 
 function give(g: Goblin, w: World, type: ItemType): void {
   if (addItem(g, { type, qty: 1 }) < 1) spawnGroundItem(w, { type, qty: 1 }, { x: q4(g.pos.x + 0.2), y: q4(g.pos.y + 0.2) });

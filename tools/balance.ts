@@ -10,6 +10,7 @@ import { express } from '../src/sim/goblin/genetics/phenotype';
 import { hueDelta } from '../src/shared/math';
 import { bestWeapon } from '../src/sim/tools';
 import { isLit } from '../src/sim/fire';
+import { ACTIONS } from '../src/sim/ai/utility';
 
 const arg = (name: string, def: number): number => {
   const i = process.argv.indexOf(`--${name}`);
@@ -18,13 +19,16 @@ const arg = (name: string, def: number): number => {
 const days = arg('days', 96);
 const seedCount = arg('seeds', 5);
 const firstSeed = arg('seed', 1);
+/** control run (P4 acceptance): nobody can craft, so no spears */
+const noCraft = process.argv.includes('--no-craft');
+if (noCraft) ACTIONS.craft.isAvailable = () => false;
 
 interface Row {
   seed: number; popMin: number; popAvg: number; popMax: number; popEnd: number; births: number;
   deaths: Record<string, number>; eaten: number; divineFood: number; starvationDays: number;
   hueDrift: number; tickMs: number; fails: string[];
   bushes0: number; bushesEnd: number; planted: number; plantedMature: number; wood: number; stone: string; armed: number; fires: string; foes: string;
-  housedAutumn: number; huts: number; weatherDeaths: number;
+  housedAutumn: number; huts: number; weatherDeaths: number; veterans: number;
 }
 
 const meanHue = (hs: number[]): number => {
@@ -41,12 +45,14 @@ function runSeed(seed: number): Row {
   const ticks = days * CFG.time.dayTicks;
   let popMin = Infinity, popMax = 0, popSum = 0, samples = 0, starvationDays = 0;
   const t0 = performance.now();
-  const foes = { spawned: 0, stolen: 0, bites: 0, fled: 0 };
+  const foes = { spawned: 0, stolen: 0, bites: 0, fled: 0, killed: 0, wounds: 0 };
   w.bus.subscribe((e) => {
     if (e.type === 'enemy_spawned') foes.spawned++;
     else if (e.type === 'enemy_stole') foes.stolen += e.qty;
-    else if (e.type === 'enemy_bit') foes.bites++;
+    else if (e.type === 'enemy_bit' && e.damage > 0) foes.bites++;
     else if (e.type === 'enemy_fled') foes.fled++;
+    else if (e.type === 'enemy_killed') foes.killed++;
+    else if (e.type === 'injured') foes.wounds++;
   });
   const autumnEnd = 3 * CFG.time.daysPerSeason * CFG.time.dayTicks;
   let housedAutumn = -1;
@@ -89,11 +95,12 @@ function runSeed(seed: number): Row {
   const weatherDeaths = (deaths.hypothermia ?? 0) + (deaths.lightning ?? 0);
   if (housedAutumn >= 0 && housedAutumn < 0.8) fails.push('housed<80%');
   if (days >= 24 && weatherDeaths >= 2) fails.push('weather deaths');
+  if (!noCraft && (deaths.combat ?? 0) > 3) fails.push('combat deaths>3');
   return {
     seed, popMin, popAvg: popSum / Math.max(1, samples), popMax, popEnd: w.s.goblins.length, births: w.s.stats.births,
     deaths, eaten: w.s.stats.eaten, divineFood: w.s.stats.divineFood, starvationDays,
     hueDrift: Math.abs(hueDelta(hue0, hue1)), tickMs, fails,
-    bushes0, bushesEnd: bushCount(), planted: w.s.plants.filter((p) => p.plantedBy !== null).length, plantedMature, wood, stone, armed, fires, foes: `${foes.spawned}/${foes.stolen}/${foes.bites}/${foes.fled}`,
+    bushes0, bushesEnd: bushCount(), planted: w.s.plants.filter((p) => p.plantedBy !== null).length, plantedMature, wood, stone, armed, fires, foes: `${foes.spawned}/${foes.stolen}/${foes.bites}/${foes.fled}/${foes.killed}/${foes.wounds}`, veterans: w.s.goblins.filter((g) => g.traits.includes('veteran')).length,
     housedAutumn, huts: w.s.buildings.filter((b) => b.buildProgress >= 1).length, weatherDeaths,
   };
 }
@@ -102,12 +109,12 @@ const rows: Row[] = [];
 for (let i = 0; i < seedCount; i++) {
   const r = runSeed(firstSeed + i);
   rows.push(r);
-  console.log(`seed ${r.seed}: pop ${r.popEnd} (min ${r.popMin}, max ${r.popMax}) deaths ${JSON.stringify(r.deaths)} eaten ${r.eaten} bushes ${r.bushes0}→${r.bushesEnd} plantedMature ${r.plantedMature} wood ${r.wood} stone/flint/sticks ${r.stone} armed ${r.armed} fires ${r.fires} gnashers/stolen/bites/fled ${r.foes} huts ${r.huts} housed@autumn ${r.housedAutumn < 0 ? '—' : Math.round(r.housedAutumn * 100) + '%'} tick ${r.tickMs.toFixed(3)}ms ${r.fails.length ? 'FAIL ' + r.fails.join(',') : 'ok'}`);
+  console.log(`seed ${r.seed}: pop ${r.popEnd} (min ${r.popMin}, max ${r.popMax}) deaths ${JSON.stringify(r.deaths)} eaten ${r.eaten} bushes ${r.bushes0}→${r.bushesEnd} plantedMature ${r.plantedMature} wood ${r.wood} stone/flint/sticks ${r.stone} armed ${r.armed} fires ${r.fires} gnashers/stolen/bites/fled/killed/wounds ${r.foes} veterans ${r.veterans} huts ${r.huts} housed@autumn ${r.housedAutumn < 0 ? '—' : Math.round(r.housedAutumn * 100) + '%'} tick ${r.tickMs.toFixed(3)}ms ${r.fails.length ? 'FAIL ' + r.fails.join(',') : 'ok'}`);
 }
 const lines = [
-  `# Balance report — ${days} days × ${seedCount} seeds`,
+  `# Balance report — ${days} days × ${seedCount} seeds${noCraft ? ' (control: no crafting)' : ''}`,
   '',
-  '| seed | pop min/avg/max/end | births | deaths | starvation deaths | food eaten | god food | starvation days | hue drift° | bushes start→end | goblin-planted mature | wood | stone/flint/sticks | armed | campfires built/lit | gnashers/stolen/bites/fled | huts | housed end of autumn | weather deaths | tick ms | result |',
+  '| seed | pop min/avg/max/end | births | deaths | starvation deaths | food eaten | god food | starvation days | hue drift° | bushes start→end | goblin-planted mature | wood | stone/flint/sticks | armed | campfires built/lit | gnashers/stolen/bites/fled/killed/wounds | huts | housed end of autumn | weather deaths | tick ms | result |',
   '|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|',
   ...rows.map((r) => `| ${r.seed} | ${r.popMin}/${r.popAvg.toFixed(1)}/${r.popMax}/${r.popEnd} | ${r.births} | ${Object.values(r.deaths).reduce((a, b) => a + b, 0)} ${JSON.stringify(r.deaths)} | ${r.deaths.starvation ?? 0} | ${r.eaten} | ${r.divineFood} | ${r.starvationDays} | ${r.hueDrift.toFixed(1)} | ${r.bushes0}→${r.bushesEnd} | ${r.plantedMature} | ${r.wood} | ${r.stone} | ${r.armed} | ${r.fires} | ${r.foes} | ${r.huts} | ${r.housedAutumn < 0 ? '—' : Math.round(r.housedAutumn * 100) + '%'} | ${r.weatherDeaths} | ${r.tickMs.toFixed(3)} | ${r.fails.length ? 'FAIL: ' + r.fails.join(', ') : 'ok'} |`),
   '',

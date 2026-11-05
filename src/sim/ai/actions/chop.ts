@@ -6,6 +6,7 @@ import { moveAlong, planPath, faceToward } from '../../steering';
 import { spawnGroundItem } from '../../groundItems';
 import { removePlant } from '../../plants';
 import { fellingTool, toolFor, wearTool } from '../../tools';
+import { workMul } from '../../combat';
 import { woodWanted } from '../wants';
 import type { Goblin, Plant } from '../../state';
 import type { World } from '../../world';
@@ -78,7 +79,7 @@ export const Chop: UtilityAction = {
     }
     if (--a.progress > 0) return 'running';
     const tool = toolFor(g, 'chop');
-    p.hp -= (P.chopHitDmg * tool.mul) / (p.kind === 'tree' ? P.treeToughness : 1);
+    p.hp -= (P.chopHitDmg * tool.mul * workMul(g)) / (p.kind === 'tree' ? P.treeToughness : 1);
     a.progress = P.chopTicksPerHit;
     if (p.hp > 0) return 'running';
     const tree = p.kind === 'tree';

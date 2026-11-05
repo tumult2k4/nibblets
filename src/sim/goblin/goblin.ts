@@ -34,13 +34,13 @@ export function createGoblin(s: WorldState, rng: Rng, o: SpawnOpts): Goblin {
     },
     mood: { value: 20, modifiers: [], emotion: 'content' },
     personality,
-    health: { hp: maxHp, maxHp, injuries: 0, disease: null, scars: 0 },
+    health: { hp: maxHp, maxHp, injuries: [], disease: null, scars: 0 },
     inventory: [],
     equipped: { hand: null, body: null, neck: null, head: null },
     activity: idleActivity(s.tick),
     goalStack: [], homeId: null, memory: [], relationships: [], skills: {}, knownRecipes: [...STARTER_RECIPES], trinkets: [],
     reputation: 0, traits: [],
-    deeds: { eaten: 0, drank: 0, harvested: 0, planted: 0, kills: 0, builds: 0, gifts: 0, timesHeld: 0 },
+    deeds: { eaten: 0, drank: 0, harvested: 0, planted: 0, kills: 0, builds: 0, gifts: 0, timesHeld: 0, fights: 0 },
     godView: {
       faith: q4(20 + personality.piety * 30), love: 30, fear: 10, angryAtGod: false, wishes: [],
       answeredPrayers: 0, ignoredPrayers: 0, lastVoiceTick: -1, petLoveToday: 0, petDay: -1,
@@ -60,6 +60,7 @@ export function goblinSpeed(g: Goblin): number {
   if (g.lifeStage === 'elder') mul *= 0.8;
   if (g.lifeStage === 'hatchling') mul *= 0.6;
   if (g.lifeStage === 'youngling') mul *= 0.9;
+  if (g.health.injuries.some((i) => i.kind === 'limp')) mul *= CFG.combat.limpMul;
   return (CFG.goblin.speed * mul) / CFG.tickHz;
 }
 

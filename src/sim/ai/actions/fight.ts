@@ -1,0 +1,144 @@
+/**
+ * §P4.5 fighting: `Attack` (an enemy in sight, above all one biting someone) and `DefendVillage` (any seen enemy inside
+ * the village, armed or brave adults only) share one engage loop: close in, wind up 0.4 s, swing, cool down. A fight
+ * that ends with the goblin standing counts toward `veteran` (5 fights: never panics). Morale (§14.2): a goblin panics
+ * when safety < 20 and bravery < 0.5, or below 30 % hp unless a veteran; defending kin overrides both.
+ */
+import { CFG } from '../../config';
+import { dist } from '../../../shared/math';
+import { moveAlong, planPath, faceToward } from '../../steering';
+import { bestWeapon } from '../../tools';
+import { isVeteran, reachOf, strike, threatsNear } from '../../combat';
+import { visionRadius } from '../considerations';
+import { isSleeping } from '../../goblin/goblin';
+import type { ActionId, Enemy, Goblin } from '../../state';
+import type { World } from '../../world';
+import type { UtilityAction } from '../action';
+
+const C = CFG.combat;
+export const DANGER: ReadonlySet<ActionId> = new Set(['flee', 'attack', 'defend_village']);
+
+const isKin = (a: Goblin, b: Goblin): boolean => !!a.parents?.includes(b.id) || !!b.parents?.includes(a.id);
+const enemyById = (w: World, id: number | null): Enemy | undefined => (id === null ? undefined : w.s.enemies.find((e) => e.id === id));
+const victimOf = (w: World, e: Enemy): Goblin | undefined => (e.mode === 'attack' && e.targetId !== null ? w.goblin(e.targetId) : undefined);
+
+/** Nearest threat this goblin can see (none while asleep). */
+export function visibleThreat(g: Goblin, w: World): Enemy | null {
+  if (isSleeping(g) || g.heldByGod || g.airborne) return null;
+  let best: Enemy | null = null, bd = visionRadius(g, w);
+  for (const e of threatsNear(w, g.pos, bd)) {
+    const d = dist(e.pos, g.pos);
+    if (d <= bd) { bd = d; best = e; }
+  }
+  return best;
+}
+
+/** An enemy in sight that is biting this goblin's parent or child. */
+export function kinAttacker(g: Goblin, w: World): Enemy | null {
+  if (isSleeping(g)) return null;
+  const vr = visionRadius(g, w);
+  for (const e of threatsNear(w, g.pos, vr)) {
+    const v = victimOf(w, e);
+    if (v && v.id !== g.id && isKin(g, v)) return e;
+  }
+  return null;
+}
+
+export function panics(g: Goblin, w: World): boolean {
+  if (kinAttacker(g, w)) return false;
+  if (g.health.hp < C.panicHp * g.health.maxHp && !isVeteran(g)) return true;
+  return g.needs.safety < C.panicSafety && g.personality.bravery < C.panicBravery && !isVeteran(g);
+}
+
+/** Who to go for: whoever bites kin, then whoever bites anyone, then the nearest. */
+function attackTarget(g: Goblin, w: World): Enemy | null {
+  if (isSleeping(g)) return null;
+  const kin = kinAttacker(g, w);
+  if (kin) return kin;
+  return threatsNear(w, g.pos, visionRadius(g, w)).find((e) => victimOf(w, e)) ?? visibleThreat(g, w);
+}
+
+/** Seen enemies inside the village, nearest first. */
+function villageIntruder(g: Goblin, w: World): Enemy | null {
+  let best: Enemy | null = null, bd: number = C.defendRange;
+  for (const e of threatsNear(w, w.s.village.center, C.villageRadius)) {
+    const d = dist(e.pos, g.pos);
+    if (e.seen && d < bd) { bd = d; best = e; }
+  }
+  return best;
+}
+
+const fighters = (w: World, e: Enemy, self: Goblin): number =>
+  w.s.goblins.filter((o) => o !== self && DANGER.has(o.activity.action) && o.activity.action !== 'flee' && o.activity.targetId === e.id).length;
+const hpFrac = (g: Goblin): number => g.health.hp / g.health.maxHp;
+
+function engageStart(g: Goblin, w: World, e: Enemy | null): boolean {
+  if (!e) return false;
+  const a = g.activity;
+  a.targetId = e.id;
+  a.target = { ...e.pos };
+  a.stage = 0;
+  a.progress = C.windupTicks;
+  return planPath(w, g, e.pos);
+}
+
+function endFight(g: Goblin): void {
+  if (g.activity.stage < 1) return;
+  g.deeds.fights++;
+  if (g.deeds.fights >= C.veteranFights && !g.traits.includes('veteran')) g.traits.push('veteran');
+}
+
+/** Close in, then wind up, swing and cool down until the enemy is dead, gone or running. */
+function engageStep(g: Goblin, w: World): 'running' | 'done' {
+  const a = g.activity;
+  const e = enemyById(w, a.targetId);
+  const over = !e || e.mode === 'flee' || e.mode === 'leave' || w.s.tick - a.startedTick > C.fleeTicks * 3;
+  if (over || dist(e.pos, g.pos) > C.defendRange) { endFight(g); return 'done'; }
+  const d = dist(e.pos, g.pos);
+  if (d > reachOf(g)) {
+    if (!a.path.length || (a.target && dist(a.target, e.pos) > 1)) {
+      a.target = { ...e.pos };
+      if (!planPath(w, g, e.pos)) { endFight(g); return 'done'; }
+    }
+    moveAlong(w, g);
+    a.progress = Math.max(a.progress, C.windupTicks);
+    return 'running';
+  }
+  g.velocity = { x: 0, y: 0 };
+  faceToward(g, e.pos);
+  if (--a.progress > 0) return 'running';
+  a.stage = 1;
+  strike(w, g, e);
+  a.progress = C.cooldownTicks + C.windupTicks;
+  return 'running';
+}
+
+export const Attack: UtilityAction = {
+  id: 'attack', tags: ['danger'], minStage: 'adult', interruptible: true,
+  isAvailable: (g, w) => !!attackTarget(g, w) && !panics(g, w),
+  score(g, w) {
+    const e = attackTarget(g, w)!;
+    const armed = !!bestWeapon(g);
+    let s = (0.2 + 0.5 * g.personality.bravery) * (armed ? 1 : 0.45) * hpFrac(g);
+    const v = victimOf(w, e);
+    if (v?.id === g.id) s += 0.4; // fight back
+    else if (v) s += 0.25; // help whoever it is biting
+    if (v && v.id !== g.id && isKin(g, v)) s += 0.5;
+    s += Math.min(0.3, 0.1 * fighters(w, e, g));
+    return Math.min(1.3, s);
+  },
+  start: (g, w) => engageStart(g, w, attackTarget(g, w)),
+  step: engageStep,
+};
+
+export const DefendVillage: UtilityAction = {
+  id: 'defend_village', tags: ['danger'], minStage: 'adult', interruptible: true,
+  isAvailable: (g, w) => (!!bestWeapon(g) || g.personality.bravery > 0.5) && !isSleeping(g) && !!villageIntruder(g, w) && !panics(g, w),
+  score(g, w) {
+    const e = villageIntruder(g, w)!;
+    const s = (0.3 + 0.45 * g.personality.bravery) * (bestWeapon(g) ? 1 : 0.55) * hpFrac(g);
+    return fighters(w, e, g) >= CFG.enemies.crowdFlee ? s * 0.3 : s;
+  },
+  start: (g, w) => engageStart(g, w, villageIntruder(g, w)),
+  step: engageStep,
+};

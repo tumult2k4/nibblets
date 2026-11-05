@@ -9,6 +9,8 @@ import { ageDays, isSleeping } from './goblin';
 import { allocId } from '../../shared/ids';
 import { coldDamage, inShade, warmthDelta } from '../temperature';
 import { weatherAt } from '../weather';
+import { spawnGroundItem } from '../groundItems';
+import { witnessDeath } from './safety';
 
 const WORK_ACTIONS = new Set(['harvest_fruit', 'pick_up', 'chop', 'build', 'deliver_material']);
 
@@ -84,6 +86,12 @@ export function killGoblin(w: World, g: Goblin, cause: DeathCause): void {
     if (b.ownerId === g.id) b.ownerId = b.occupants[0] ?? null;
   }
   for (const it of s.groundItems) if (it.reservedBy === g.id) it.reservedBy = null;
+  // everything carried or held falls where it died (§14.2)
+  const kit = [...g.inventory, ...Object.values(g.equipped).filter((x): x is NonNullable<typeof x> => !!x)];
+  kit.forEach((st, k) => spawnGroundItem(w, st, { x: q4(g.pos.x + 0.35 * Math.cos(k * 1.7)), y: q4(g.pos.y + 0.35 * Math.sin(k * 1.7)) }));
+  g.inventory = [];
+  g.equipped = { hand: null, body: null, neck: null, head: null };
+  witnessDeath(w, g.pos, g.id);
   w.emit({ type: 'goblin_died', goblinId: g.id, cause, at: g.pos });
 }
 

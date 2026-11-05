@@ -41,10 +41,19 @@ const goalText = (goal: Goal, w: World): string => goal.kind === 'build'
   ? t('goal.build', { b: t(`bld.${w.s.buildings.find((b) => b.id === goal.buildingId)?.type ?? 'hut'}`) })
   : t('goal.obtain', { n: goal.qty, item: t(`item.${goal.item}`) });
 
+/** Wounds, scars and fighting record, e.g. "limping · 1 scars · veteran · 5 fights, 2 kills". */
+function woundsLine(g: Goblin): string {
+  const parts = g.health.injuries.map((i) => t(`injury.${i.kind}`));
+  if (g.health.scars) parts.push(t('insp.scars', { n: g.health.scars }));
+  if (g.traits.includes('veteran')) parts.push(t('insp.veteran'));
+  if (g.deeds.fights) parts.push(t('insp.fights', { n: g.deeds.fights, k: g.deeds.kills }));
+  return parts.join(' · ');
+}
+
 export function statusTab(g: Goblin, w: World): HTMLElement {
   const n = g.needs;
-  const needs = (['hunger', 'thirst', 'energy', 'warmth', 'curiosity'] as const).map((k) => row(t(`need.${k}`), n[k], String(Math.round(n[k])), needColor(n[k])));
-  const stubs = (['safety', 'social', 'fun', 'comfort', 'purpose'] as const).map((k) => row(t(`need.${k}`), n[k], String(Math.round(n[k])), '#b5a98f'));
+  const needs = (['hunger', 'thirst', 'energy', 'warmth', 'safety', 'curiosity'] as const).map((k) => row(t(`need.${k}`), n[k], String(Math.round(n[k])), needColor(n[k])));
+  const stubs = (['social', 'fun', 'comfort', 'purpose'] as const).map((k) => row(t(`need.${k}`), n[k], String(Math.round(n[k])), '#b5a98f'));
   const tags = [t('insp.felt', { t: Math.round(feltTemperature(w, g)) })];
   if (isWet(w, g)) tags.push(t('insp.wet'));
   if (shelterOf(w, g)) tags.push(t('insp.sheltered'));
@@ -62,6 +71,7 @@ export function statusTab(g: Goblin, w: World): HTMLElement {
     mods.length ? el('div.sub', { text: mods.join(' · ') }) : null,
     el('h3', { text: t('insp.health') }),
     row(t('insp.hp'), (g.health.hp / g.health.maxHp) * 100, `${Math.round(g.health.hp)}/${g.health.maxHp}`, needColor((g.health.hp / g.health.maxHp) * 100)),
+    woundsLine(g) ? el('div.sub', { text: woundsLine(g) }) : null,
   );
 }
 

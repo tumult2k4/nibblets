@@ -130,5 +130,9 @@ export const DE: Record<keyof typeof EN, string> = {
   'ev.planted': '{name} hat einen Apfelbutzen gepflanzt.', 'ev.bush_grown': 'Ein von {name} gepflanzter Apfelbusch ist ausgewachsen!', 'ev.chopped': '{name} hat {n} Holz gehackt.',
   'enemy.gnasher': 'Knirscher', 'enemy.bramblebeast': 'Dornbestie', 'enemy.night_wisp': 'Nachtirrlicht',
   'ev.enemy_spotted': '{name} hat einen {enemy} herumschleichen sehen!', 'ev.enemy_stole': 'Ein {enemy} hat {n} {item} gestohlen!', 'ev.enemy_bit': 'Ein {enemy} hat {name} gebissen!',
+  'act.flee': 'Bringt sich in Sicherheit', 'act.attack': 'Kämpft', 'act.defend_village': 'Verteidigt das Dorf', 'act.guard': 'Hält Wache',
+  'cause.combat': 'im Kampf gefallen', 'cause.lightning': 'Blitzschlag', 'ev.enemy_killed': '{name} hat einen {enemy} erlegt!', 'ev.enemy_killed_none': 'Ein {enemy} wurde erlegt.',
+  'ev.injury_limp': '{name} humpelt.', 'ev.injury_bruised_arm': '{name} hat sich den Arm verletzt.', 'ev.injury_ear_notch': '{name} hat jetzt eine Kerbe im Ohr.',
+  'injury.limp': 'humpelt', 'injury.bruised_arm': 'Arm geprellt', 'insp.scars': '{n} Narben', 'insp.veteran': 'Veteran', 'insp.fights': '{n} Kämpfe, {k} erlegt',
   'qty': '×{n}', 'yes': 'Ja', 'no': 'Nein',
 };

@@ -2,6 +2,7 @@
  * Crafting (§11.1, P4.2): which hand recipe a goblin wants, where its inputs come from (its own pack first, then the
  * stockpile's spare — whatever no blueprint is waiting for), exact consumption, skill growth and the quality roll.
  */
+import { workMul } from './combat';
 import { CFG } from './config';
 import { q4 } from '../shared/math';
 import { ITEM_DEFS, itemDef } from './items';
@@ -71,7 +72,7 @@ export function chooseCraft(g: Goblin, w: World): { id: RecipeId; value: number 
 
 /** Work ticks for recipe `id`, shortened by crafting skill (+15 % speed per level). */
 export const craftTicks = (g: Goblin, id: RecipeId): number =>
-  Math.round((RECIPES[id]?.ticks ?? 120) / (1 + (g.skills.crafting ?? 0) * C.skillBonus));
+  Math.round((RECIPES[id]?.ticks ?? 120) / ((1 + (g.skills.crafting ?? 0) * C.skillBonus) * workMul(g)));
 
 /** Use up exactly the inputs and make the item: fine with 25 % from skill level 4. Null if inputs are missing. */
 export function finishCraft(w: World, g: Goblin, id: RecipeId): ItemStack | null {

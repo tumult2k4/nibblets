@@ -128,5 +128,9 @@ export const EN = {
   'ev.planted': '{name} planted an apple core.', 'ev.bush_grown': 'An apple bush {name} planted is fully grown!', 'ev.chopped': '{name} chopped {n} wood.',
   'enemy.gnasher': 'Gnasher', 'enemy.bramblebeast': 'Bramblebeast', 'enemy.night_wisp': 'Night Wisp',
   'ev.enemy_spotted': '{name} spotted a {enemy} creeping in!', 'ev.enemy_stole': 'A {enemy} made off with {n} {item}!', 'ev.enemy_bit': 'A {enemy} bit {name}!',
+  'act.flee': 'Running for safety', 'act.attack': 'Fighting', 'act.defend_village': 'Defending the village', 'act.guard': 'Keeping watch',
+  'cause.combat': 'killed in a fight', 'cause.lightning': 'lightning', 'ev.enemy_killed': '{name} killed a {enemy}!', 'ev.enemy_killed_none': 'A {enemy} was killed.',
+  'ev.injury_limp': '{name} is limping.', 'ev.injury_bruised_arm': '{name} hurt an arm.', 'ev.injury_ear_notch': '{name} got a notched ear.',
+  'injury.limp': 'limping', 'injury.bruised_arm': 'bruised arm', 'insp.scars': '{n} scars', 'insp.veteran': 'veteran', 'insp.fights': '{n} fights, {k} kills',
   'qty': '×{n}', 'yes': 'Yes', 'no': 'No',
 } as const;

@@ -1,5 +1,5 @@
 # Nibblets progress
-Current: P4.5 — combat: safety need, Flee/Attack/Guard/DefendVillage, combat resolve, injuries, scars, death drops, graves stub
+Current: P4.6 — fences, stone hut upgrade, RepairBuilding, enemy pathing around fences, campfire repel, torch scare
 ## Done
 - [x] P1.1 scaffold: Vite + strict TS, ESLint flat config with sim architecture rules, Prettier, Vitest, scripts
 - [x] P1.2 shared/: math, ids, mulberry32 Rng with fork(label), typed EventBus
@@ -40,12 +40,13 @@ Current: P4.5 — combat: safety need, Flee/Attack/Guard/DefendVillage, combat r
 - [x] P4.2 recipe table (P4 rows), starter recipes, Craft (pack + spare stock, exact consumption, skill, fine quality), Equip + rendered hand slot, save v4
 - [x] P4.3 campfire (PlanBuilding near the center, fuel from sticks/wood, TendFire evenings/cold, +14 °C warmth r5, night light r6), torch (night hand item, vision ×1.4, burns hourly), fire FX
 - [x] P4.4 Gnashers + spawn director (nightly threat budget × moon − defense, fog stragglers, far/out-of-sight spawns), Gnasher AI (sneak, steal from stockpile/ground, bite lone goblins, flee hurt/crowded/after 3 bites, leave at dawn), mesh with eye glint, save v5, notifications
+- [x] P4.5 safety need (event-driven drift + shocks), Flee / Attack / DefendVillage / Guard, danger interrupt, melee resolve (hit, damage, knockback, wear, skill), morale + veteran, injuries (limp, bruised arm, ear notch) healing ×2 at home, death drops kit + witness fear, grave markers, fight animations
 ## Next
-- [ ] P4.5 safety need, Flee/Attack/Guard/DefendVillage, combat resolve (hit, dodge, morale), injuries + scars, death drops inventory, graves stub
 - [ ] P4.6 fences, stone hut upgrade, RepairBuilding, enemy pathing around fences, campfire repel, torch scare
 - [ ] P4.7 Bramblebeast, Night Wisp, spawnReinforcements
 - [ ] P4.8 wrath powers, lethal previews, Gentle mode, danger lens
 ## Notes / known issues
+- P4 acceptance still open: the control run without crafting (`npx tsx tools/balance.ts --days 32 --seeds 5 --no-craft`) loses nobody yet (Gnashers flee from groups and from fists). Tune threat after P4.6–P4.7 so it loses ≥ 30 % while armed villages keep to 0–3 combat deaths per seed.
 - Balance (32 days × 5 seeds, after P3.8): unchanged from P3.4 — 0 deaths, 5–6 huts, 100 % housed by the end of autumn, ~0.13–0.15 ms/tick.
 - Balance (32 days × 5 seeds, after P3.4): 0 deaths, 5 huts and 100 % housed by the end of autumn on every seed, 29–55 goblin-planted mature bushes, ~0.14 ms/tick.
 - Balance (20 days × 5 seeds, after P2): population 10, 0 deaths, 25–36 goblin-planted mature bushes, apple bushes 70→~105, ~29 wood stored, ~0.12 ms/tick.

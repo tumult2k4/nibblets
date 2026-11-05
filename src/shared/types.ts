@@ -91,7 +91,9 @@ export type SimEvent = BaseEvent &
     | { type: 'weather_changed'; from: WeatherKind; to: WeatherKind }
     | { type: 'season_changed'; season: Season; year: number }
     | { type: 'day_started'; day: number }
-    | { type: 'enemy_spawned' | 'enemy_fled' | 'enemy_killed'; enemyId: ID; kind: EnemyKind }
+    | { type: 'enemy_spawned' | 'enemy_fled'; enemyId: ID; kind: EnemyKind }
+    | { type: 'enemy_killed'; enemyId: ID; kind: EnemyKind; killerId: ID | null }
+    | { type: 'injured'; goblinId: ID; injury: 'limp' | 'bruised_arm' | 'ear_notch' }
     | { type: 'enemy_spotted'; goblinId: ID; enemyId: ID }
     | { type: 'enemy_stole'; enemyId: ID; item: ItemType; qty: number }
     | { type: 'enemy_bit'; enemyId: ID; goblinId: ID; damage: number }

@@ -9,7 +9,7 @@ import type { Interp } from './interpolation';
 
 const HIDE = '#3d3448', BELLY = '#5b4d63', TOOTH = '#efe6d2', SPINE = '#b4a27e';
 
-interface Rig { root: THREE.Group; body: THREE.Group; head: THREE.Group; jaw: THREE.Mesh; legs: THREE.Mesh[]; mouth: THREE.Group; carried: string; phase: number }
+interface Rig { root: THREE.Group; body: THREE.Group; head: THREE.Group; jaw: THREE.Mesh; legs: THREE.Mesh[]; mouth: THREE.Group; carried: string; phase: number; hp: number; hurt: number }
 
 const EYE_MAT = new THREE.MeshBasicMaterial({ color: '#d7ff5a', fog: false });
 let GLOW_MAT: THREE.SpriteMaterial | null = null;
@@ -78,7 +78,7 @@ function build(): Rig {
     root.add(l);
     return l;
   });
-  return { root, body, head, jaw, legs, mouth, carried: '', phase: 0 };
+  return { root, body, head, jaw, legs, mouth, carried: '', phase: 0, hp: Infinity, hurt: 0 };
 }
 
 /** Read-only enemy views with a trot, a bite lunge and loot in the mouth. */
@@ -116,6 +116,14 @@ export class EnemyViews {
     r.body.position.y = speed > 0.1 ? Math.abs(Math.sin(ph)) * 0.05 : Math.sin(t * 2 + e.id) * 0.01;
     r.body.rotation.x = sneaking ? 0.18 : e.mode === 'flee' || e.mode === 'leave' ? -0.12 : 0;
     r.body.position.y -= sneaking ? 0.06 : 0;
+    // struck: a yelp-flinch (squash, shake, head thrown back)
+    if (e.hp < r.hp) r.hurt = 0.3;
+    r.hp = e.hp;
+    r.hurt = Math.max(0, r.hurt - dt);
+    const fl = r.hurt / 0.3;
+    r.body.scale.set(1 + fl * 0.12, 1 - fl * 0.18, 1 + fl * 0.05);
+    r.body.position.x = fl * Math.sin(t * 70) * 0.04;
+    r.head.rotation.x = -fl * 0.5;
     r.legs.forEach((l, i) => (l.rotation.x = speed > 0.1 ? Math.sin(ph + (i % 3 === 0 ? 0 : Math.PI)) * 0.7 : 0));
     // bite: lunge and snap while the windup/cooldown timer runs
     const biting = e.mode === 'attack' && e.timer > CFG.enemies.biteCooldown;

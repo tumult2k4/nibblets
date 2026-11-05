@@ -31,13 +31,15 @@ export interface Personality {
   wanderlust: number; mischief: number; piety: number;
 }
 
-export interface HealthState { hp: number; maxHp: number; injuries: number; disease: string | null; scars: number }
+/** A healing wound (§14.2): `limp` slows, `bruised_arm` slows work, until `until`. Ear notches go straight to scars. */
+export interface Injury { kind: 'limp' | 'bruised_arm'; until: number }
+export interface HealthState { hp: number; maxHp: number; injuries: Injury[]; disease: string | null; scars: number }
 
 export type ActionId =
   | 'idle' | 'wander' | 'harvest_fruit' | 'eat' | 'drink' | 'sleep_ground' | 'pick_up' | 'drop' | 'look_up' | 'struggle'
   | 'eat_core' | 'plant_seed' | 'water_plant' | 'chop' | 'store_item' | 'take_item' | 'explore'
   | 'deliver_material' | 'build' | 'claim_home' | 'sleep_home' | 'gather_for_goal' | 'seek_shelter' | 'warm_up' | 'forage'
-  | 'mine' | 'craft' | 'equip' | 'plan_building' | 'tend_fire';
+  | 'mine' | 'craft' | 'equip' | 'plan_building' | 'tend_fire' | 'flee' | 'attack' | 'defend_village' | 'guard';
 
 export interface ActivityState {
   action: ActionId;
@@ -61,7 +63,7 @@ export interface GodView {
 
 export interface MemoryEntry { kind: string; targetId?: ID; pos: Vec2; data: number; lastSeenTick: number; confidence: number }
 export interface Relation { targetId: ID; opinion: number }
-export interface DeedCounters { eaten: number; drank: number; harvested: number; planted: number; kills: number; builds: number; gifts: number; timesHeld: number }
+export interface DeedCounters { eaten: number; drank: number; harvested: number; planted: number; kills: number; builds: number; gifts: number; timesHeld: number; fights: number }
 
 /** Ballistic state of a held/thrown/dropped entity. z is absolute altitude in world units. */
 export interface Airborne {

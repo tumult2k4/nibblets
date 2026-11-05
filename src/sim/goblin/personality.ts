@@ -46,6 +46,10 @@ export function personalityWeight(p: Personality, action: string): number {
       return 1.2 - 0.6 * p.industry;
     case 'seek_shelter':
       return 1.15 - 0.3 * p.bravery;
+    case 'guard':
+      return 0.3 + 1.4 * p.bravery * p.industry;
+    case 'defend_village':
+      return 0.7 + 0.6 * p.bravery;
     default:
       return 1;
   }

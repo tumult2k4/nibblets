@@ -1,4 +1,5 @@
 import { CFG } from '../../config';
+import { visibleThreat } from './fight';
 import { q4 } from '../../../shared/math';
 import { perDay } from '../../time';
 import { needUrgency } from '../../goblin/needs';
@@ -18,7 +19,8 @@ export function sleepScore(g: Goblin, w: World): number {
 /** Lie down where you are and sleep. Stage 0 = lying down, 1 = asleep. */
 export const SleepGround: UtilityAction = {
   id: 'sleep_ground', tags: ['rest'], minStage: 'hatchling', interruptible: true,
-  isAvailable: (g) => g.needs.energy < 97,
+  // nobody lies down in the open with a predator in sight, or while too scared (P4.5)
+  isAvailable: (g, w) => g.needs.energy < 97 && g.needs.safety >= CFG.safety.scaredBelow && !(w.s.enemies.length && visibleThreat(g, w)),
   score: (g, w) => sleepScore(g, w),
   start(g) {
     g.activity.stage = 0;

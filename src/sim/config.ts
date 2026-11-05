@@ -1,7 +1,7 @@
 /** Every tunable number lives here (§21). Additions beyond §21 are logged in DECISIONS.md. */
 export const CFG = {
   tickHz: 10,
-  saveVersion: 5,
+  saveVersion: 6,
   time: { dayTicks: 3600, daysPerSeason: 8, moonCycleDays: 8, phases: { dawn: 0.05, day: 0.6, dusk: 0.7 }, startTick: 360 },
   world: {
     w: 128, h: 128, waterLevel: 0.3, sandBand: 0.03, rockLevel: 0.8, forestNoiseThreshold: 0.6,
@@ -143,9 +143,24 @@ export const CFG = {
     // P4.4 director & AI
     defenseMul: 0.3, armedDefense: 0.5, fireDefense: 1, fogChancePerHour: 0.08, spawnMinVillageDist: 28, spawnMinGoblinDist: 16,
     decideEvery: 10, sneakMul: 0.6, stealQty: 3, loneRadius: 4, crowdFlee: 3, crowdRadius: 4, sightRange: 18,
-    biteRange: 1.0, windupTicks: 4, biteCooldown: 10, maxBites: 3, despawnDist: 1.5, foodSearch: 20,
+    biteRange: 1.0, windupTicks: 4, biteCooldown: 10, maxBites: 6, despawnDist: 1.5, foodSearch: 20, biteHit: 0.75,
   },
-  combat: { fists: 5, spear: 15, stone_spear: 28, club: 20, sling: 10, injuryChance: 0.25 },
+  combat: {
+    fists: 5, spear: 15, stone_spear: 28, club: 20, sling: 10, injuryChance: 0.25,
+    // P4.5 melee (§14.2): windup 0.4 s, 60–90 % hit, dmg × (0.8 + 0.4 × size) × skill
+    windupTicks: 4, cooldownTicks: 10, reach: 1.2, hitBase: 0.7, hitPerSkill: 0.04, hitMin: 0.6, hitMax: 0.9, evadePerSkill: 0.02,
+    skillPerHit: 0.15, dmgPerSkill: 0.05, knockback: 0.35,
+    // morale (§14.2): panic when safety < 20 and bravery < 0.5, or hp < 30 % unless veteran
+    panicSafety: 20, panicBravery: 0.5, panicHp: 0.3, veteranFights: 5, sprintMul: 1.15, fleeTicks: 400, safeDist: 9,
+    // injuries: hp < 50 % after a hit, 25 %; limp −30 % speed and bruised arm −20 % work for 3 days; ear notch +1 scar
+    injuryBelow: 0.5, injuryDays: 3, limpMul: 0.7, armMul: 0.8, maxScars: 3, restHealMul: 2,
+    villageRadius: 12, defendRange: 22, guardShare: 0.2, guardTicks: 600, guardRadius: 2.6, gnasherDrops: { pelt: 1, bone: 1 },
+  },
+  /** P4.5 safety need (§7.1): event-driven, drifts toward a target set by daylight, roofs, fires, armed friends and threats */
+  safety: {
+    every: 10, day: 90, nightOutside: 55, nightInside: 85, hut: 15, fire: 20, armed: 10, armedFriend: 8, armedFriendMax: 16, friendRadius: 5,
+    threat: 35, threatNear: 25, fall: 0.3, rise: 0.05, bite: 20, witnessDeath: 30, moodMul: 0.3, scaredBelow: 25,
+  },
   social: { chat: [2, 5], giftCap: 20, sharedMeal: 3, foughtTogether: 8, saved: 25, theftDiscovered: -25, prank: -5, driftPerDay: 1, friend: 40, bestFriend: 75, rival: -40, enemy: -75, mateThreshold: 60, eggCooldownDays: 12 },
   knowledge: { discoveryBase: 0.01, teachTicks: 300, observeChance: 0.02, younglingLearnMul: 2, elderTeachMul: 1.5 },
   disease: { feverMinPop: 25, feverYearlyChance: 0.5 },

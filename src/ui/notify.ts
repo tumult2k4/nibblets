@@ -51,7 +51,14 @@ export function noteFor(e: SimEvent, w: World, names: Map<ID, string>): Note | n
       return { ...base, id: e.goblinId, text: t('ev.enemy_spotted', { name: name(e.goblinId), enemy: foe(e.enemyId) }), tier: 'notable', icon: 'fang' };
     case 'enemy_stole':
       return { ...base, text: t('ev.enemy_stole', { enemy: foe(e.enemyId), n: e.qty, item: t(`item.${e.item}`) }), tier: 'notable', icon: 'fang' };
+    case 'enemy_killed':
+      return e.killerId !== null
+        ? { ...base, id: e.killerId, text: t('ev.enemy_killed', { name: name(e.killerId), enemy: t(`enemy.${e.kind}`) }), tier: 'notable', icon: 'fang' }
+        : { ...base, text: t('ev.enemy_killed_none', { enemy: t(`enemy.${e.kind}`) }), tier: 'notable', icon: 'fang' };
+    case 'injured':
+      return { ...base, id: e.goblinId, text: t(`ev.injury_${e.injury}`, { name: name(e.goblinId) }), tier: 'info', icon: 'skull' };
     case 'enemy_bit':
+      if (!e.damage) return null;
       return { ...base, id: e.goblinId, text: t('ev.enemy_bit', { enemy: foe(e.enemyId), name: name(e.goblinId) }), tier: 'info', icon: 'fang' };
     case 'campfire_out':
       return { ...base, text: t('ev.campfire_out'), tier: 'info', icon: 'heat' };

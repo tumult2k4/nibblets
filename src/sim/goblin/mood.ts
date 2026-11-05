@@ -1,4 +1,5 @@
 import { clamp, q4 } from '../../shared/math';
+import { CFG } from '../config';
 import type { Goblin } from '../state';
 import type { World } from '../world';
 
@@ -11,7 +12,7 @@ export function updateMood(w: World): void {
     const target = moodTarget(g);
     g.mood.value = q4(clamp(g.mood.value + (target - g.mood.value) * 0.05, -100, 100));
     g.mood.emotion =
-      g.heldByGod && g.godView.fear > 50 ? 'scared'
+      (g.heldByGod && g.godView.fear > 50) || g.needs.safety < CFG.safety.scaredBelow ? 'scared'
         : g.mood.value > 45 ? 'happy'
           : g.mood.value < -40 ? 'sad'
             : g.needs.curiosity < 15 ? 'bored'
@@ -29,6 +30,8 @@ export function moodTarget(g: Goblin): number {
   // warmth only hurts: being cold is miserable, being warm is merely normal
   v += Math.min(0, n.warmth - 50) * 0.35;
   if (n.warmth < 15) v -= 15;
+  // feeling unsafe is miserable too (P4.5)
+  v += Math.min(0, n.safety - 50) * CFG.safety.moodMul;
   for (const m of g.mood.modifiers) v += m.amount;
   return clamp(v, -100, 100);
 }

@@ -18,6 +18,8 @@ import { updateEcology } from './ecology';
 import { updateFires } from './fire';
 import { updateDirector } from './enemies/director';
 import { enemiesAct, enemiesDecide } from './enemies/gnasher';
+import { updateSafety } from './goblin/safety';
+import { updateInjuries } from './combat';
 import { think, act } from './ai/utility';
 import { updateGod } from './god/godState';
 import { sampleStats } from './stats';
@@ -109,6 +111,8 @@ export class World {
     updateBodies(this); //    10
     updateMood(this); //      11
     updateSenses(this); //    11b senses + memory decay (§7.8)
+    updateSafety(this); //    11c safety need (P4.5)
+    updateInjuries(this); //  11d wounds heal
     think(this); //           12
     act(this); //             13
     updateWear(this); //      13b path wear (§P2.7)
