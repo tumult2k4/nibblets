@@ -65,6 +65,12 @@ export class WrathFx {
 
   onEvents(evs: SimEvent[]): void {
     for (const e of evs) {
+      if (e.type === 'goblin_transformed' && e.at) {
+        const p = new THREE.Mesh(ball, fade('#f4f1e8', 0.8, true));
+        p.position.set(e.at.x, this.groundAt(e.at.x, e.at.y) + 0.6, e.at.y);
+        this.burst('puff', p, 0.8, 1.6);
+        continue;
+      }
       if (e.type !== 'divine_act' || !e.at) continue;
       const { x, y } = e.at;
       const gy = this.groundAt(x, y);

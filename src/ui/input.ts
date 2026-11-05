@@ -3,6 +3,7 @@ import { HandTool } from './tools/handTool';
 import { TrayDrag } from './tools/trayDrag';
 import { BrushTool } from './tools/brushTool';
 import { CastTool } from './tools/castTool';
+import { SpawnTool } from './tools/spawnTool';
 import { actionFor } from './keys';
 
 export interface KeyHandlers { [action: string]: () => void }
@@ -16,6 +17,7 @@ export class Input {
   readonly tray: TrayDrag;
   readonly brush: BrushTool;
   readonly cast: CastTool;
+  readonly spawn: SpawnTool;
   private keysDown = new Set<string>();
   private drag: { button: number; x: number; y: number; moved: boolean } | null = null;
   private mouse = { x: 0, y: 0, inside: false };
@@ -26,6 +28,7 @@ export class Input {
     this.tray = new TrayDrag(ctx);
     this.brush = new BrushTool(ctx);
     this.cast = new CastTool(ctx);
+    this.spawn = new SpawnTool(ctx);
     canvas.addEventListener('contextmenu', (e) => e.preventDefault());
     canvas.addEventListener('pointerdown', (e) => this.down(e));
     window.addEventListener('pointermove', (e) => this.move(e));
@@ -49,13 +52,19 @@ export class Input {
     return this.ctx.store.state.armed !== null && !this.ctx.readOnly() && this.ctx.game.world.s.god.mode !== 'observer';
   }
 
+  /** Something is armed in the Sandbox drawer and may be placed. */
+  spawning(): boolean {
+    return !!this.ctx.store.state.spawn && !this.ctx.readOnly() && this.ctx.game.world.s.god.mode === 'sandbox';
+  }
+
   private get cam() {
     return this.ctx.game.renderer.camera;
   }
 
   private down(e: PointerEvent): void {
     this.canvas.focus();
-    if (e.button === 0 && this.casting()) this.cast.down(e);
+    if (e.button === 0 && this.spawning()) this.spawn.down(e);
+    else if (e.button === 0 && this.casting()) this.cast.down(e);
     else if (e.button === 0 && this.brushing()) this.brush.down(e);
     else if (e.button === 0 && !this.tray.active) this.hand.down(e);
     this.drag = { button: e.button, x: e.clientX, y: e.clientY, moved: false };
@@ -79,6 +88,10 @@ export class Input {
       else this.cam.pan(-dx * 0.1, -dy * 0.1);
       return;
     }
+    if (this.spawning()) {
+      this.spawn.move(e);
+      return;
+    }
     if (this.casting()) {
       this.cast.move(e);
       return;
@@ -96,8 +109,10 @@ export class Input {
       this.drag = null;
       return;
     }
-    if (this.drag?.button === 2 && !this.drag.moved && this.casting()) this.cast.arm(null); // RMB click disarms
-    if (this.drag?.button === 0 && this.casting()) this.cast.up();
+    if (this.drag?.button === 2 && !this.drag.moved && this.spawning()) this.spawn.disarm(); // RMB click puts it down
+    else if (this.drag?.button === 2 && !this.drag.moved && this.casting()) this.cast.arm(null); // RMB click disarms
+    if (this.drag?.button === 0 && this.spawning()) { /* placed on down */ }
+    else if (this.drag?.button === 0 && this.casting()) this.cast.up();
     else if (this.drag?.button === 0 && this.brush.painting) this.brush.up();
     else if (this.drag?.button === 0) this.hand.up(e);
     this.drag = null;
@@ -120,6 +135,7 @@ export class Input {
       e.preventDefault();
       if (this.tray.active) this.tray.cancel();
       else if (this.hand.holding) this.hand.cancel();
+      else if (this.spawn.disarm()) return;
       else if (this.cast.cancel()) return;
       else if (this.ctx.store.state.armed) this.cast.arm(null);
       else this.escape();

@@ -24,7 +24,7 @@ export class TopBar implements Component {
   private pop = el('span.stat');
   private food = el('span.stat');
   private faith = el('span.stat');
-  private mode = el('span.badge');
+  private mode = el('span.badge.clickable', { onclick: () => this.toggleSandbox() });
   private speedBtns: HTMLButtonElement[] = [];
   private alerts = el('span.alert-count.hidden');
   alertCount = 0;
@@ -43,11 +43,19 @@ export class TopBar implements Component {
     });
     const bell = el('button.btn.iconbtn', { onclick: () => { this.alertCount = 0; this.ctx.store.set({ openPanels: { ...this.ctx.store.state.openPanels, feed: true } }); this.update(); } }, icon('bell'), this.alerts);
     bell.dataset.tip = t('top.alerts');
+    this.mode.dataset.tip = tipKey(t('sbx.title'), keyLabel('sandbox'));
     this.root.append(menu, this.village, el('span.sep'), this.cal, this.weather, el('span.sep'), this.pop, this.food, this.faith, el('span.grow'), this.mode, speed, bell);
     parent.append(this.root, this.wxMenu);
     window.addEventListener('pointerdown', (e) => {
       if (!this.wxMenu.contains(e.target as Node) && !this.weather.contains(e.target as Node)) this.wxMenu.classList.add('hidden');
     });
+  }
+
+  /** The Sandbox badge opens the drawer (P5.9). */
+  private toggleSandbox(): void {
+    const st = this.ctx.store.state;
+    if (this.ctx.game.world.s.god.mode !== 'sandbox' || this.ctx.readOnly()) return;
+    this.ctx.store.set({ openPanels: { ...st.openPanels, sandbox: !st.openPanels.sandbox } });
   }
 
   /** Sandbox: pick the weather directly (logged as a command, so replays match). */

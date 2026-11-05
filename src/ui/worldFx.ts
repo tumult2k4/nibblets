@@ -12,6 +12,7 @@ import { fertilePair } from '../sim/god/powers/gifts';
 import { CATEGORY_COLOR } from './tools/castTool';
 import { t as tr } from './i18n';
 import type { ID } from '../shared/types';
+import { spawnName } from './components/sandbox/spawnTab';
 
 const lerpColor = (a: THREE.Color, b: THREE.Color, t: number) => a.clone().lerp(b, Math.max(0, Math.min(1, t)));
 const BAD = new THREE.Color('#e0503c');
@@ -98,11 +99,12 @@ export class WorldFx {
 
     // ---- hand ----
     const brushing = input.brushing();
-    const casting = input.casting();
+    const spawning = input.spawning();
+    const casting = !spawning && input.casting();
     const def = casting ? powerDef(st.armed!) : undefined;
     const catColor = new THREE.Color(def ? CATEGORY_COLOR[def.category] ?? '#ffffff' : '#ffffff');
     let pose: HandPose = 'open';
-    if (casting) pose = 'cast';
+    if (casting || spawning) pose = 'cast';
     else if (brushing) pose = 'paint';
     else if (tray.active) pose = 'cast';
     else if (hand.holding) pose = 'grab';
@@ -113,7 +115,7 @@ export class WorldFx {
     r.hand.glow.setRGB(glowK, glowK * 0.8, glowK * 0.3);
     if (casting) r.hand.glow.copy(catColor).multiplyScalar(0.35 + Math.sin(this.t * 5) * 0.1); // §18.4 step 2: glow in the category color
     r.hand.size = Math.max(0.9, Math.min(3, r.camera.dist * 0.055));
-    const ground = casting ? input.cast.ground : brushing ? input.brush.ground : tray.active ? tray.ground : hand.ground;
+    const ground = spawning ? input.spawn.ground : casting ? input.cast.ground : brushing ? input.brush.ground : tray.active ? tray.ground : hand.ground;
     const showHand = inGame && !this.app.replayMode && w.s.god.mode !== 'observer';
     const height = hand.holding ? hand.holdHeight : 1.2;
     r.hand.update(dt, showHand ? ground : null, height, r.camera.yaw, this.t, hand.holding);
@@ -194,8 +196,13 @@ export class WorldFx {
           if (pend) label = tr('cast.confirm', { n: pend.lethal.length });
         }
       }
+      if (spawning && input.spawn.ground) {
+        const sg = input.spawn.ground, spec = st.spawn!;
+        r.rings.ring(sg.x, sg.y, sg.z, spec.kind === 'building' ? 1.1 : 0.55, '#f4f1e8', 0.9 * pulse);
+        label = `${tr('sbx.place')} ${spawnName(spec)} · ${tr('sbx.placeHint')}`;
+      }
       this.skullsOver(inGame ? doomed : []);
-      this.castLabel(inGame ? label : '', input.cast.ground);
+      this.castLabel(inGame ? label : '', spawning ? input.spawn.ground : input.cast.ground);
       // terraform brush footprint
       if (brushing && input.brush.ground) {
         const bg = input.brush.ground;

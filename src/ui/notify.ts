@@ -46,6 +46,8 @@ export function noteFor(e: SimEvent, w: World, names: Map<ID, string>): Note | n
         return { ...base, id: e.targetId, text: t('ev.fertility', { a: name(e.targetId), b: m ? m.name : '?' }), tier: 'info', icon: 'egg' };
       }
       return null;
+    case 'goblin_transformed':
+      return w.goblin(e.goblinId) ? { ...base, id: e.goblinId, text: t('ev.transformed', { name: name(e.goblinId) }), tier: 'info', icon: 'sparkle' } : null;
     case 'trinket_found':
       return { ...base, id: e.goblinId, text: t('ev.trinket_found', { name: name(e.goblinId), trinket: t(`trinket.${e.trinket}`), rarity: t(`rarity.${e.rarity}`) }), tier: 'notable', icon: 'gem' };
     case 'landed':

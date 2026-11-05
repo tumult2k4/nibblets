@@ -150,7 +150,9 @@ export function hatch(w: World, egg: Egg): Goblin {
   const s = w.s;
   s.eggs.splice(s.eggs.indexOf(egg), 1);
   const parents = egg.parents.map((id) => w.goblin(id)).filter((p): p is Goblin => !!p);
-  const g = createGoblin(s, w.rng, { genome: egg.genome, pos: egg.pos, ageDays: 0, clanId: parents[0]?.clanId ?? s.clans[0]?.id ?? 0, parents: egg.parents });
+  // a sandbox egg of nobody in particular has parents [-1, -1]: it hatches a founder of its own line
+  const known = egg.parents[0] >= 0 ? egg.parents : undefined;
+  const g = createGoblin(s, w.rng, { genome: egg.genome, pos: egg.pos, ageDays: 0, clanId: parents[0]?.clanId ?? s.clans[0]?.id ?? 0, ...(known ? { parents: known } : {}) });
   g.lifeStage = 'hatchling';
   g.needs.hunger = g.needs.thirst = 80;
   g.homeId = parents.find((p) => p.homeId !== null)?.homeId ?? null;

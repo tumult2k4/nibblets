@@ -132,6 +132,7 @@ export type SimEvent = BaseEvent &
     | { type: 'food_processed'; goblinId: ID; buildingId: ID; item: ItemType; qty: number }
     | { type: 'tower_warning'; goblinId: ID; enemyId: ID; kind: EnemyKind }
     | { type: 'tool_mended'; goblinId: ID; item: ItemType }
+    | { type: 'goblin_transformed'; goblinId: ID }
     | { type: 'trait_gained'; goblinId: ID; trait: string }
     | { type: 'sickness'; goblinId: ID; disease: DiseaseId; phase: 'infected' | 'symptomatic' | 'recovered' | 'died' }
     | { type: 'trinket_found'; goblinId: ID; trinket: TrinketKind; rarity: Rarity }

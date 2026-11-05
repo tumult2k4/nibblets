@@ -1,7 +1,8 @@
 import type { TrayTab } from '../sim/items';
 import type { EntityKind } from '../render/picking';
 import type { TerraformPower } from '../sim/god/terraform';
-import type { ID } from '../shared/types';
+import type { BuildingType, EnemyKind, ID, ItemType, PlantKind, PlantStage } from '../shared/types';
+import type { Genome, LocusId } from '../sim/goblin/genetics/genome';
 import type { Lang } from './i18n';
 
 export type ToolId = 'hand' | 'gifts' | 'nature' | 'terraform' | 'wrath';
@@ -9,6 +10,16 @@ export type Lens = 'default' | 'needs' | 'faith' | 'mood' | 'genetics' | 'fertil
 export const LENSES: Lens[] = ['default', 'needs', 'faith', 'mood', 'genetics', 'fertility', 'moisture', 'paths', 'temperature', 'danger'];
 /** Lenses that recolor the terrain instead of ringing goblins. */
 export const TERRAIN_LENSES: Lens[] = ['fertility', 'moisture', 'paths', 'temperature', 'danger'];
+
+export type SandboxTab = 'spawn' | 'breed' | 'genome' | 'goblin' | 'world';
+/** What the Sandbox drawer's placement tool puts down where you click (§17.5.6). */
+export type SpawnSpec =
+  | { kind: 'item'; item: ItemType }
+  | { kind: 'plant'; plant: PlantKind; stage: PlantStage }
+  | { kind: 'building'; building: BuildingType; complete: boolean }
+  | { kind: 'enemy'; enemy: EnemyKind }
+  | { kind: 'egg' }
+  | { kind: 'goblin'; genome: Genome; ageDays: number };
 
 export interface Settings {
   shadows: 'off' | 'low' | 'high'; renderScale: number; outlines: boolean; fog: boolean;
@@ -28,7 +39,12 @@ export interface UIState {
   selectedKind: EntityKind | null;
   hoveredId: ID | null;
   activeTool: ToolId;
-  openPanels: { inspector: boolean; feed: boolean; debug: boolean; flyout: boolean; tray: boolean; village: boolean; family?: boolean };
+  openPanels: { inspector: boolean; feed: boolean; debug: boolean; flyout: boolean; tray: boolean; village: boolean; family?: boolean; sandbox?: boolean };
+  /** Sandbox drawer (P5.9): its tab, and what a click on the ground places (null: nothing armed) */
+  sandboxTab?: SandboxTab;
+  spawn?: SpawnSpec | null;
+  /** genetics lens (P5.9): color goblins by this locus (none: by skin hue) */
+  geneLocus?: LocusId | null;
   /** the family tree centers on this goblin when opened from its inspector (P5.8) */
   familyFocus?: ID | null;
   overlay: null | 'pause' | 'saves' | 'settings' | 'help' | 'wizard';
