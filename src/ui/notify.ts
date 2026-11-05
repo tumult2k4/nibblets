@@ -1,0 +1,37 @@
+import type { SimEvent, Vec2, ID } from '../shared/types';
+import type { World } from '../sim/world';
+import { t } from './i18n';
+
+export interface Note { text: string; tier: 'info' | 'notable' | 'critical'; at?: Vec2; id?: ID; tick: number; icon: string }
+
+/** Turn sim events into player-facing notifications (§18.9). Returns null for routine events. */
+export function noteFor(e: SimEvent, w: World, names: Map<ID, string>): Note | null {
+  const name = (id?: ID) => (id !== undefined ? names.get(id) ?? w.goblin(id)?.name ?? '?' : '?');
+  const base = { tick: e.tick, ...(e.at ? { at: e.at } : {}) };
+  switch (e.type) {
+    case 'goblin_died':
+      return { ...base, id: e.goblinId, text: t('ev.goblin_died', { name: name(e.goblinId), cause: t(`cause.${e.cause}`) }), tier: 'critical', icon: 'skull' };
+    case 'life_stage':
+      return { ...base, id: e.goblinId, text: t('ev.life_stage', { name: name(e.goblinId), stage: t(`stage.${e.stage}`) }), tier: 'notable', icon: 'goblin' };
+    case 'season_changed':
+      return { ...base, text: t('ev.season_changed', { season: t(`season.${e.season}`), year: e.year }), tier: 'notable', icon: 'leaf' };
+    case 'day_started':
+      return { ...base, text: t('ev.day', { day: e.day + 1 }), tier: 'info', icon: 'sun' };
+    case 'divine_act':
+      if (e.act === 'gift')
+        return { ...base, ...(e.targetId !== undefined ? { id: e.targetId } : {}), text: e.targetId !== undefined ? t('ev.gift', { name: name(e.targetId) }) : t('ev.gift_none'), tier: 'info', icon: 'gift' };
+      if (e.act === 'set_down') return { ...base, id: e.targetId, text: t('ev.set_down', { name: name(e.targetId) }), tier: 'info', icon: 'hand' };
+      if (e.act === 'grab') return { ...base, id: e.targetId, text: t('ev.grab', { name: name(e.targetId) }), tier: 'info', icon: 'hand' };
+      return null;
+    case 'landed':
+      if (e.water) return { ...base, id: e.entityId, text: t('ev.splash', { name: name(e.entityId) }), tier: 'info', icon: 'drop' };
+      if (e.damage > 0 && w.goblin(e.entityId)) return { ...base, id: e.entityId, text: t('ev.dropped', { name: name(e.entityId), dmg: Math.round(e.damage) }), tier: 'notable', icon: 'skull' };
+      return null;
+    case 'item_eaten':
+      return e.divine ? { ...base, id: e.goblinId, text: t('ev.ate_sky', { name: name(e.goblinId) }), tier: 'info', icon: 'apple' } : null;
+    case 'command_rejected':
+      return { ...base, text: t('ev.rejected', { reason: t(`reason.${e.reason}`) }), tier: 'info', icon: 'close' };
+    default:
+      return null;
+  }
+}

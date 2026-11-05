@@ -19,6 +19,9 @@ export interface WorldParams {
   mode?: GameMode;
   gentle?: boolean;
   villageName?: string;
+  /** "Reroll founders" in the wizard bumps this */
+  founderSalt?: number;
+  difficulty?: 'cozy' | 'normal' | 'harsh';
 }
 
 /** Everything needed to rebuild the world at tick 0 (used by replay). */
@@ -35,6 +38,8 @@ export function resolveParams(p: WorldParams): GenParams {
     mode: p.mode ?? 'sandbox',
     gentle: p.gentle ?? false,
     villageName: p.villageName ?? villageNameFor(seedRng),
+    founderSalt: p.founderSalt ?? 0,
+    difficulty: p.difficulty ?? 'normal',
   };
 }
 
@@ -65,7 +70,7 @@ export function createWorldState(params: WorldParams): WorldState {
   s.village.center = findVillageCenter(s);
   const clanId = allocId(s);
   s.clans.push({ id: clanId, name: p.villageName, archetype: p.archetype });
-  const frng = rng.fork('founders');
+  const frng = rng.fork(`founders${p.founderSalt || ''}`);
   const c = s.village.center;
   for (let i = 0; i < p.founders; i++) {
     let pos = c;

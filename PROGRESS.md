@@ -1,0 +1,29 @@
+# Nibblets progress
+Current: P2.1 — full plant lifecycle (Phase 1 complete)
+## Done
+- [x] P1.1 scaffold: Vite + strict TS, ESLint flat config with sim architecture rules, Prettier, Vitest, scripts
+- [x] P1.2 shared/: math, ids, mulberry32 Rng with fork(label), typed EventBus
+- [x] P1.3 sim/config.ts (full §21 + additions), time.ts (clock, phases, seasons, moon)
+- [x] P1.4 worldgen (4 presets, biomes, Poisson scatter, village site), grid, spatialHash
+- [x] P1.5 A* pathfinding (8-neighbour, wear-ready cost, per-world cache) + steering
+- [x] P1.6 genetics: genome/meiosis/mutation, phenotype + life stages, founder clans, names (+ tests)
+- [x] P1.7 goblin factory, needs (hunger/thirst/energy/curiosity active), mood stub, personality
+- [x] P1.8 utility AI + Idle/Wander/HarvestFruit/Eat/Drink/SleepGround/PickUp/Drop; apple regrowth
+- [x] P1.9 world.ts tick pipeline, commands, versioned saves + migrations, stats stub; determinism/save/architecture tests
+- [x] P1.10 renderer: sky/sun by clock, fog, orbit camera, chunked flat-shaded terrain, wave water, instanced props, interpolation
+- [x] P1.11 procedural goblin mesh + animations (walk/idle/sleep/work, ear wobble, eye glow, carried item)
+- [x] P1.12 UI shell (§18): theme, icons, i18n en+de, store, input router, top bar, toolbar, gift tray, inspector, quick ring, tooltips, toasts/feed, minimap + lenses, debug overlay
+- [x] P1.13 screens: title over live observer island, New World wizard, pause, save/load (IndexedDB, thumbnails, export/import), settings (incl. key rebinding), daily autosave, F5/F9 quick save/load
+- [x] P1.14 tools/balance.ts (population, deaths, food, tick time)
+- [x] P1.15 god hand v1: grab/hold/raise-lower/set down/drop/throw, pet, poke, flick, box select, gift tray drag-to-spawn, validation + command_rejected + commandLog, witnesses + reaction table, LookUp/Struggle
+- [x] P1.16 replay viewer ("Watch replay" from a save: rebuilds from seed, feeds the log, read-only) + replay determinism test (≥50 commands)
+## Next
+- [ ] P2.1 full plant lifecycle with hydration, fertility, season multipliers; stage meshes
+- [ ] P2.2 apple → core; EatCore, PlantSeed, WaterPlant
+- [ ] P2.3 Chop, PickUp/Store/Take, ground piles
+## Notes / known issues
+- Balance (10 days × 5 seeds): population 10 throughout, 0 deaths, ~0.03 ms/tick.
+- Commits for Phase 1 were batched into three (see DECISIONS.md); from P2 on, one commit per step.
+- God hand mesh reads as a simple blocky hand from far zoom; art polish can come with the P8 powers.
+- 60 fps not measured on real hardware here (headless browser uses software GL); tick time is well under 1 ms.
+- Vite warns the bundle is > 500 kB (three.js); code-splitting is optional.

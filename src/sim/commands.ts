@@ -22,7 +22,10 @@ export type GodCommand =
   | { type: 'sandbox'; op: SandboxOp }
   | { type: 'set_mode'; mode: 'sandbox' | 'observer' };
 
-export type Command = GodCommand;
+/** Non-god system commands (settings that change sim behaviour must be logged too). */
+export type SystemCommand = { type: 'set_gentle'; on: boolean };
+
+export type Command = GodCommand | SystemCommand;
 
 /** Quantize all numeric inputs so replays are bit-identical (§17.3 "Airborne objects"). */
 export function quantize(cmd: Command): Command {
@@ -48,6 +51,7 @@ export function validate(w: World, cmd: Command): string | null {
   const s = w.s;
   const mode = s.god.mode;
   if (cmd.type === 'set_mode') return mode === 'divine' ? 'divine_mode_locked' : null;
+  if (cmd.type === 'set_gentle') return null;
   if (mode === 'observer') return 'observer_mode';
   if (cmd.type === 'sandbox' && mode !== 'sandbox') return 'sandbox_only';
   const needGoblin = (id: ID) => (w.goblin(id) ? null : 'missing_entity');
@@ -86,6 +90,7 @@ function apply(w: World, cmd: Command): void {
     case 'god_poke': poke(w, w.goblin(cmd.goblinId)!); break;
     case 'god_flick': flick(w, w.goblin(cmd.goblinId)!, cmd.dir); break;
     case 'set_mode': s.god.mode = cmd.mode; break;
+    case 'set_gentle': s.god.gentle = cmd.on; break;
     case 'sandbox': {
       const op = cmd.op;
       if (op.op === 'set_need') w.goblin(op.goblinId)!.needs[op.need] = Math.max(0, Math.min(100, op.value));

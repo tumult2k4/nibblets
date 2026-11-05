@@ -19,12 +19,14 @@ export class GodHand {
   readonly group = new THREE.Group();
   private hand = new THREE.Group();
   private fingers: Finger[] = [];
-  private mat = new THREE.MeshLambertMaterial({ color: '#f4e6d4', flatShading: true, emissive: '#000000' });
+  private mat = new THREE.MeshLambertMaterial({ color: '#f0c79c', flatShading: true, emissive: '#000000' });
   readonly shadow: THREE.Mesh;
   private line: THREE.Line;
   pose: HandPose = 'open';
   private cur: [number, number][] = POSES.open.map((p) => [...p] as [number, number]);
   glow = new THREE.Color('#000000');
+  /** world-space size; the UI scales it with camera distance so it reads at every zoom */
+  size = 0.9;
 
   constructor() {
     const palm = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.28, 1.0), this.mat);
@@ -78,7 +80,7 @@ export class GodHand {
     const handY = ground.y + height + (holding ? 0.9 : 0) + bob;
     this.group.position.lerp(new THREE.Vector3(ground.x, handY, ground.z), 1 - Math.exp(-dt * 25));
     this.group.rotation.y = yaw + Math.PI;
-    this.group.scale.setScalar(0.9);
+    this.group.scale.setScalar(this.size);
     this.shadow.position.set(this.group.position.x, ground.y + 0.06, this.group.position.z);
     const sh = Math.max(0.35, 1.1 - height * 0.05);
     this.shadow.scale.setScalar(sh);

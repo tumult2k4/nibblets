@@ -33,7 +33,7 @@ export class Renderer {
   constructor(private canvas: HTMLCanvasElement, w: World, public settings: RenderSettings) {
     this.gl = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
     this.gl.shadowMap.enabled = settings.shadows !== 'off';
-    this.gl.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.gl.shadowMap.type = THREE.PCFShadowMap;
     this.gl.outputColorSpace = THREE.SRGBColorSpace;
     this.camera = new OrbitCam(1, () => this.world.s);
     this.sky = new SkyLights(settings.shadows !== 'off');
