@@ -65,6 +65,16 @@ export function attraction(g: Goblin, o: Goblin, w: World): number {
   return q4((op / 100) * looks * (w.clock.season === 'spring' ? F.springMul : 1));
 }
 
+/** Give up a bed: off every hut's list of residents (the next resident becomes the owner). */
+export function leaveHome(w: World, g: Goblin): void {
+  for (const b of w.s.buildings) {
+    if (!b.occupants.includes(g.id)) continue;
+    b.occupants = b.occupants.filter((id) => id !== g.id);
+    if (b.ownerId === g.id) b.ownerId = b.occupants[0] ?? null;
+  }
+  g.homeId = null;
+}
+
 /** Two goblins become mates and share one home (the one with room, the courter's first). */
 export function becomeMates(w: World, a: Goblin, b: Goblin): void {
   for (const [x, y] of [[a, b], [b, a]] as const) {
@@ -74,12 +84,8 @@ export function becomeMates(w: World, a: Goblin, b: Goblin): void {
     r.lastInteraction = w.s.tick;
   }
   const [host, guest] = roomyHome(a, w) || a.homeId === b.homeId ? [a, b] : [b, a];
-  if (host.homeId !== null && guest.homeId !== host.homeId) {
-    for (const old of w.s.buildings) {
-      if (!old.occupants.includes(guest.id)) continue;
-      old.occupants = old.occupants.filter((id) => id !== guest.id);
-      if (old.ownerId === guest.id) old.ownerId = old.occupants[0] ?? null;
-    }
+  if (host.homeId !== null && guest.homeId !== host.homeId && roomyHome(host, w)) {
+    leaveHome(w, guest);
     const home = w.s.buildings.find((x) => x.id === host.homeId)!;
     home.occupants.push(guest.id);
     guest.homeId = home.id;

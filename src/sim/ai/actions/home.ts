@@ -7,6 +7,7 @@ import { isNightNow } from '../considerations';
 import { buildingDef, findSite, isComplete, missingMaterials, placeBlueprint, workSpot } from '../../buildings';
 import { sleepScore } from './sleepGround';
 import { pushGoal } from '../planner';
+import { leaveHome, mateOf } from '../../goblin/family';
 import type { Building, Goblin } from '../../state';
 import type { World } from '../../world';
 import type { UtilityAction } from '../action';
@@ -17,12 +18,19 @@ const H = CFG.homes;
 export const homeOf = (g: Goblin, w: World): Building | undefined =>
   g.homeId === null ? undefined : w.s.buildings.find((b) => b.id === g.homeId);
 
-/** Nearest hut (finished or planned) with a free bed. */
+const freeBeds = (b: Building): number => (buildingDef(b.type)?.capacity ?? 0) - b.occupants.length;
+
+/**
+ * Nearest hut (finished or planned) with a free bed. A goblin with a mate looks for a bed by its mate first, and
+ * otherwise for a hut with room for both of them (P5 balance: couples who sleep apart never have eggs).
+ */
 function freeHome(g: Goblin, w: World): Building | null {
+  const m = mateOf(g, w), mh = m && homeOf(m, w);
+  if (mh && mh.id !== g.homeId && freeBeds(mh) > 0) return mh;
+  const need = m ? 2 : 1;
   let best: Building | null = null, bestD = Infinity;
   for (const b of w.s.buildings) {
-    const cap = buildingDef(b.type)?.capacity ?? 0;
-    if (cap <= 0 || b.occupants.length >= cap) continue;
+    if (b.id === g.homeId || freeBeds(b) < need) continue;
     const d = dist(g.pos, b.pos) * (isComplete(b) ? 1 : 1.3);
     if (d < bestD) { bestD = d; best = b; }
   }
@@ -30,7 +38,29 @@ function freeHome(g: Goblin, w: World): Building | null {
 }
 
 const openBlueprints = (w: World): number => w.s.buildings.filter((b) => !isComplete(b) && missingMaterials(b).length > 0).length;
-const homeless = (g: Goblin, w: World): boolean => !g.heldByGod && !homeOf(g, w);
+
+/**
+ * Needs a (new) home: no home at all, or a mate who lives elsewhere. Of a couple living apart, the one whose hut
+ * has no room for the other moves; if both have room, the younger id's hut is kept.
+ */
+function needsHome(g: Goblin, w: World): boolean {
+  if (g.heldByGod) return false;
+  const h = homeOf(g, w);
+  if (!h) return true;
+  const m = mateOf(g, w);
+  if (!m || m.homeId === g.homeId) return false;
+  const mh = homeOf(m, w);
+  if (freeBeds(h) <= 0) return true;
+  return !!mh && freeBeds(mh) > 0 && m.id < g.id;
+}
+
+/** Move into `b`, giving up any bed elsewhere; a mate living apart comes along if there is room. */
+function moveIn(w: World, g: Goblin, b: Building): void {
+  if (g.homeId !== b.id) leaveHome(w, g);
+  claim(w, g, b);
+  const m = mateOf(g, w);
+  if (m && m.homeId !== b.id && !m.heldByGod && freeBeds(b) > 0) { leaveHome(w, m); claim(w, m, b); }
+}
 
 /** Spot inside a hut for its n-th resident (beds side by side); children curl up in between (P5.4). */
 export function bedSpot(b: Building, g: Goblin): { x: number; y: number } {
@@ -47,12 +77,12 @@ export function claim(w: World, g: Goblin, b: Building): void {
 }
 
 /**
- * §P3.4 ClaimHome: a homeless adult moves into a hut with a free bed (built or planned); if none exists it picks a
+ * §P3.4 ClaimHome: a homeless adult (or one whose mate lives elsewhere) moves into a hut with a free bed (built or planned); if none exists it picks a
  * site and plans a new hut there. Colder weather and later seasons make it more pressing.
  */
 export const ClaimHome: UtilityAction = {
   id: 'claim_home', tags: ['work'], minStage: 'adult', interruptible: true,
-  isAvailable: (g, w) => homeless(g, w) && (!!freeHome(g, w) || openBlueprints(w) < H.maxOpenBlueprints),
+  isAvailable: (g, w) => needsHome(g, w) && (!!freeHome(g, w) || openBlueprints(w) < H.maxOpenBlueprints),
   score: (g, w) => {
     const cold = needUrgency(g.needs.warmth);
     const busy = needUrgency(Math.min(g.needs.hunger, g.needs.thirst));
@@ -77,14 +107,14 @@ export const ClaimHome: UtilityAction = {
     if (moveAlong(w, g) !== 'arrived') return 'running';
     const a = g.activity;
     let b = a.targetId !== null ? w.s.buildings.find((x) => x.id === a.targetId) : undefined;
-    if (b && b.occupants.length >= (buildingDef(b.type)?.capacity ?? 0)) return 'failed';
+    if (b && freeBeds(b) <= 0) return 'failed';
     if (!b) {
       // the site may have been taken while walking: look again from here
       const site = a.target && findSite(w, 'hut', w.s.village.center);
       if (!site) return 'failed';
       b = placeBlueprint(w, 'hut', site, g.id);
     }
-    claim(w, g, b);
+    moveIn(w, g, b);
     if (!isComplete(b)) pushGoal(g, w, { kind: 'build', buildingId: b.id });
     return 'done';
   },

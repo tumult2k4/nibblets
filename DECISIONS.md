@@ -282,3 +282,7 @@ Small choices the design doc left open, one line of rationale each.
 - **Genetics lens**: the ring shows pure skin hue by default; a locus picker colors by that locus (hue loci by the hue shown; recessives grey/gold/red for none/carrier/shows; pattern by a fixed palette; quantitative loci blue → orange from min to max). While the lens is on, goblins are drawn with adult-size differences exaggerated ×1.5 (`1 + 1.5 × (adultSize − 1)`), and the minimap dots use the same colors.
 - **Eggs are pickable** (raycast on the egg view) and inspectable, but not lifted by the hand yet: pressing on one starts a box select, like a building.
 
+
+## Phase 5 acceptance
+- **Couples share a hut.** Two of five 96-day runs stalled at two generations: young couples (both homeless, or each in a full hut) never slept under one roof, and `canLay` needs a shared finished hut. `ClaimHome` now also runs for a goblin whose mate lives elsewhere: the one whose hut has no room for the other moves (if both have room, the lower id's hut is kept), a goblin with a mate looks for a bed by its mate first and otherwise only at huts with two free beds (or plans a new one), and moving in brings the mate along. `becomeMates` no longer squeezes the guest into a full hut.
+- **Balance report** gains the number of generations (fails below 3 in runs of 96 days or more, controls excepted) and the population's average skin hue at the start and end (circular mean) with its drift.
