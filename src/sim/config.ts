@@ -32,6 +32,11 @@ export const CFG = {
     appleRegrowDays: 0.5, maxApples: 5, wood: { young: 1, mature: 3, old: 2, tree: 8 },
     seasonMul: { spring: 1.3, summer: 1.0, autumn: 0.6, winter: 0 }, stumpRegrowChance: 0.3,
     updateEvery: 10,
+    // P2 additions
+    treeStageMul: 3, berryRegrowDays: 0.3, maxBerries: 6, oldMaxApples: 3, oldSeedChancePerDay: 0.15,
+    fertilityDraw: 0.15, fertilityRegenPerDay: 0.02, stumpRegrowDays: 4, deadWood: 2,
+    hydrationFollow: 1.5, hydrationOfMoisture: 0.8, waterHydration: 0.5, seedSiteVillageRadius: 20,
+    flowerSpreadChancePerDay: 0.02, berryAccidentalSeed: 0.05,
   },
   items: { decayEvery: 50, groundDecayDays: { apple: 6, apple_core: 4, berry: 3 } as Record<string, number> },
   weather: { transitionTicks: 900, rainWarmthDrainPerHour: 6, lightningPerStormHour: 1, stormBuildingDmgPerHour: 4 },

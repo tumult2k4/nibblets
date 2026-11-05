@@ -4,7 +4,7 @@ import type { Plant } from '../sim/state';
 import { CFG } from '../sim/config';
 import { heightAt } from '../sim/grid';
 import { flatMat } from './lowpoly';
-import { appleGeo, berryBushGeo, bushGeo, flowerGeo, grassGeo, itemGeo, rockGeo, treeGeo } from './meshFactory';
+import { appleGeo, berryBushGeo, bushGeo, flowerGeo, grassGeo, itemGeo, rockGeo, saplingGeo, seedMoundGeo, sproutGeo, stumpGeo, treeGeo } from './meshFactory';
 import { PROP_COLORS } from './palette';
 import type { Interp } from './interpolation';
 
@@ -21,6 +21,35 @@ const hash = (n: number): number => {
   return ((h >>> 0) % 10000) / 10000;
 };
 
+type GeoKey = 'seed' | 'sprout' | 'sapling' | 'stump' | 'full';
+const geoKey = (p: Plant): GeoKey =>
+  p.stage === 'seed' || p.stage === 'sprout' || p.stage === 'sapling' || p.stage === 'stump' ? p.stage : 'full';
+const GEOS = new Map<string, THREE.BufferGeometry>();
+function geoFor(kind: Plant['kind'], k: GeoKey): THREE.BufferGeometry {
+  const key = k === 'full' ? kind : k;
+  let g = GEOS.get(key);
+  if (!g) {
+    g = k === 'seed' ? seedMoundGeo() : k === 'sprout' ? sproutGeo() : k === 'sapling' ? saplingGeo() : k === 'stump' ? stumpGeo()
+      : kind === 'apple_bush' ? bushGeo() : kind === 'berry_bush' ? berryBushGeo() : kind === 'tree' ? treeGeo() : flowerGeo();
+    GEOS.set(key, g);
+  }
+  return g;
+}
+/** Per-instance size: young plants are smaller, trees/flowers vary more. */
+function plantScale(p: Plant): number {
+  const r = hash(p.id);
+  const base = p.kind === 'tree' ? 0.8 + r * 0.6 : p.kind === 'flower' ? 0.8 + r * 0.5 : 0.85 + r * 0.3;
+  if (p.stage === 'young') return base * (p.kind === 'tree' ? 0.4 : 0.6) * (1 + p.growth * 0.4);
+  if (p.stage === 'sapling' && p.kind === 'tree') return 1.3;
+  return base;
+}
+const STAGE_IDX: Record<Plant['stage'], number> = { seed: 0, sprout: 1, sapling: 2, young: 3, mature: 4, old: 5, dead: 6, stump: 7 };
+function plantsSig(ps: readonly Plant[]): string {
+  let h = 2166136261;
+  for (const p of ps) h = Math.imul(h ^ (p.id * 8 + STAGE_IDX[p.stage]), 16777619);
+  return `${ps.length}:${h >>> 0}`;
+}
+
 /** Instanced static props (bushes, trees, rocks, flowers, grass), live apples, and ground items. */
 export class Props {
   readonly group = new THREE.Group();
@@ -29,11 +58,12 @@ export class Props {
   private plantMeshes: THREE.InstancedMesh[] = [];
   private items = new Map<number, THREE.Mesh>();
   private plantsSig = '';
+  private sigTimer = 0;
   /** plant id → [mesh, instance index] for picking */
   readonly plantIndex = new Map<THREE.InstancedMesh, Plant[]>();
 
   constructor(private w: World) {
-    this.apples = new THREE.InstancedMesh(appleGeo(), flatMat, CFG.world.appleBushes * CFG.plants.maxApples * 3 + 50);
+    this.apples = new THREE.InstancedMesh(appleGeo(), flatMat, 4000);
     this.apples.castShadow = false;
     this.group.add(this.apples);
     this.buildStatic();
@@ -48,23 +78,27 @@ export class Props {
     this.plantMeshes = [];
     this.plantIndex.clear();
     const s = this.w.s;
-    const kinds: [Plant['kind'], THREE.BufferGeometry, boolean][] = [
-      ['apple_bush', bushGeo(), true], ['berry_bush', berryBushGeo(), true], ['tree', treeGeo(), true], ['flower', flowerGeo(), false],
-    ];
-    for (const [kind, geo, shadow] of kinds) {
-      const list = s.plants.filter((p) => p.kind === kind);
-      const mesh = new THREE.InstancedMesh(geo, flatMat, Math.max(1, list.length));
-      mesh.count = list.length;
-      mesh.castShadow = shadow;
+    const groups = new Map<string, Plant[]>();
+    for (const p of s.plants) {
+      const k = `${p.kind}:${geoKey(p)}`;
+      let arr = groups.get(k);
+      if (!arr) groups.set(k, (arr = []));
+      arr.push(p);
+    }
+    const col = new THREE.Color();
+    for (const [key, list] of [...groups].sort(([a], [b]) => (a < b ? -1 : 1))) {
+      const [kind, gk] = key.split(':') as [Plant['kind'], GeoKey];
+      const mesh = new THREE.InstancedMesh(geoFor(kind, gk), flatMat, list.length);
+      mesh.castShadow = gk === 'full' && kind !== 'flower';
       mesh.receiveShadow = true;
-      const col = new THREE.Color();
       list.forEach((p, i) => {
         const r = hash(p.id);
-        const size = kind === 'tree' ? 0.8 + r * 0.6 : kind === 'flower' ? 0.8 + r * 0.5 : 0.85 + r * 0.3;
+        const size = plantScale(p);
         q.setFromAxisAngle(up, r * Math.PI * 2);
         m4.compose(v.set(p.pos.x, this.ground(p.pos.x, p.pos.y), p.pos.y), q, sc.set(size, size, size));
         mesh.setMatrixAt(i, m4);
         if (kind === 'flower') mesh.setColorAt(i, col.set(PROP_COLORS.flower[p.id % 4]!));
+        else if (p.stage === 'old') mesh.setColorAt(i, col.setRGB(0.85, 0.78, 0.62));
         else mesh.setColorAt(i, col.setScalar(0.9 + hash(p.id + 7) * 0.2));
       });
       mesh.name = kind;
@@ -96,13 +130,16 @@ export class Props {
     grass.count = gi;
     this.group.add(grass);
     this.plantMeshes.push(grass);
-    this.plantsSig = `${s.plants.length}:${s.plants[0]?.id ?? 0}:${s.plants[s.plants.length - 1]?.id ?? 0}`;
+    this.plantsSig = plantsSig(s.plants);
   }
 
   update(interp: Interp, alpha: number): void {
     const s = this.w.s;
-    const sig = `${s.plants.length}:${s.plants[0]?.id ?? 0}:${s.plants[s.plants.length - 1]?.id ?? 0}`;
-    if (sig !== this.plantsSig) this.buildStatic();
+    this.sigTimer -= 1;
+    if (this.sigTimer <= 0) {
+      this.sigTimer = 15;
+      if (plantsSig(s.plants) !== this.plantsSig) this.buildStatic();
+    }
     this.updateApples();
     this.updateItems(interp, alpha);
   }
@@ -115,8 +152,8 @@ export class Props {
     this.appleSig = sig;
     let i = 0;
     for (const p of s.plants) {
-      if (p.kind !== 'apple_bush') continue;
-      const size = 0.85 + hash(p.id) * 0.3;
+      if (p.kind !== 'apple_bush' || !p.fruit) continue;
+      const size = plantScale(p);
       const base = this.ground(p.pos.x, p.pos.y);
       for (let k = 0; k < p.fruit && i < this.apples.instanceMatrix.count; k++) {
         const a = hash(p.id * 13 + k) * Math.PI * 2;

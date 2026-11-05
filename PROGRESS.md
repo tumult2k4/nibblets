@@ -1,5 +1,5 @@
 # Nibblets progress
-Current: P2.1 — full plant lifecycle (Phase 1 complete)
+Current: P2.2 — apple cores, PlantSeed, WaterPlant
 ## Done
 - [x] P1.1 scaffold: Vite + strict TS, ESLint flat config with sim architecture rules, Prettier, Vitest, scripts
 - [x] P1.2 shared/: math, ids, mulberry32 Rng with fork(label), typed EventBus
@@ -17,8 +17,8 @@ Current: P2.1 — full plant lifecycle (Phase 1 complete)
 - [x] P1.14 tools/balance.ts (population, deaths, food, tick time)
 - [x] P1.15 god hand v1: grab/hold/raise-lower/set down/drop/throw, pet, poke, flick, box select, gift tray drag-to-spawn, validation + command_rejected + commandLog, witnesses + reaction table, LookUp/Struggle
 - [x] P1.16 replay viewer ("Watch replay" from a save: rebuilds from seed, feeds the log, read-only) + replay determinism test (≥50 commands)
+- [x] P2.1 full plant lifecycle (hydration, fertility draw/regen, seasons, old age, stumps coppice), stage meshes
 ## Next
-- [ ] P2.1 full plant lifecycle with hydration, fertility, season multipliers; stage meshes
 - [ ] P2.2 apple → core; EatCore, PlantSeed, WaterPlant
 - [ ] P2.3 Chop, PickUp/Store/Take, ground piles
 ## Notes / known issues

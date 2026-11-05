@@ -69,6 +69,8 @@ export type SimEvent = BaseEvent &
     | { type: 'harvested'; goblinId: ID; plantId: ID; item: ItemType }
     | { type: 'core_planted'; goblinId: ID; plantId: ID }
     | { type: 'plant_stage'; plantId: ID; stage: PlantStage }
+    | { type: 'plant_born'; plantId: ID; kind: PlantKind; plantedBy: ID | null; at: Vec2 }
+    | { type: 'plant_died'; plantId: ID; kind: PlantKind; at: Vec2 }
     | { type: 'plant_chopped'; goblinId: ID; plantId: ID; wood: number }
     | { type: 'rock_mined'; goblinId: ID; rockId: ID }
     | { type: 'item_crafted'; goblinId: ID; item: ItemType }

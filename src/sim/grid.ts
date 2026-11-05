@@ -5,7 +5,10 @@ export const tileIndex = (s: WorldState, x: number, y: number): number => y * s.
 export const inBounds = (s: WorldState, x: number, y: number): boolean =>
   x >= 0 && y >= 0 && x < s.size.w && y < s.size.h;
 
+/** Tile containing (x, y); fractional coordinates are floored. */
 export function tileAt(s: WorldState, x: number, y: number): Tile | undefined {
+  x = Math.floor(x);
+  y = Math.floor(y);
   if (!inBounds(s, x, y)) return undefined;
   return s.tiles[tileIndex(s, x, y)];
 }

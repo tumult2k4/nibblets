@@ -77,3 +77,33 @@ export function itemGeo(t: ItemType): THREE.BufferGeometry {
   ITEM_GEOS.set(t, g);
   return g;
 }
+
+/** Growth-stage geometries (§8.1): seed mound, sprout, sapling, stump. Young/mature/old reuse the full mesh scaled. */
+export function seedMoundGeo(): THREE.BufferGeometry {
+  return merge([
+    paint(new THREE.SphereGeometry(0.22, 6, 3, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 0.45, 1), '#7a5a3a', 0.05, 3),
+    paint(new THREE.OctahedronGeometry(0.04).translate(0, 0.1, 0), '#d8c58a'),
+  ]);
+}
+
+export function sproutGeo(): THREE.BufferGeometry {
+  return merge([
+    paint(new THREE.CylinderGeometry(0.015, 0.02, 0.18, 3).translate(0, 0.09, 0), '#5f9a3a'),
+    paint(new THREE.OctahedronGeometry(0.07).scale(1.4, 0.3, 0.7).translate(0.07, 0.18, 0), '#7cc24e'),
+    paint(new THREE.OctahedronGeometry(0.07).scale(1.4, 0.3, 0.7).translate(-0.07, 0.17, 0), '#6cb043'),
+  ]);
+}
+
+export function saplingGeo(): THREE.BufferGeometry {
+  return merge([
+    paint(new THREE.CylinderGeometry(0.025, 0.035, 0.45, 4).translate(0, 0.22, 0), P.trunk),
+    paint(wobble(new THREE.IcosahedronGeometry(0.2, 0).translate(0, 0.5, 0), 0.06, 41), P.bush, 0.05, 3),
+  ]);
+}
+
+export function stumpGeo(): THREE.BufferGeometry {
+  return merge([
+    paint(new THREE.CylinderGeometry(0.14, 0.18, 0.18, 6).translate(0, 0.09, 0), P.trunk, 0.04, 2),
+    paint(new THREE.CylinderGeometry(0.13, 0.13, 0.01, 6).translate(0, 0.185, 0), '#d9b98a'),
+  ]);
+}

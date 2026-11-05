@@ -92,9 +92,10 @@ export function poissonScatter(
 }
 
 export function makePlant(s: WorldState, kind: PlantKind, pos: Vec2, stage: Plant['stage'], fruit = 0): Plant {
+  const id = allocId(s);
   return {
-    id: allocId(s), kind, pos, stage, growth: 0, fruit, fruitProgress: 0, hydration: 0.6, hp: 100,
-    plantedBy: null, age: stage === 'mature' ? 20 : 0, blight: 0,
+    id, kind, pos, stage, growth: 0, fruit, fruitProgress: 0, hydration: 0.6, hp: 100,
+    plantedBy: null, age: stage === 'mature' ? 8 + ((id * 7919) % 48) : 0, blight: 0,
   };
 }
 

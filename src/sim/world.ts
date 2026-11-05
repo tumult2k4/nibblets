@@ -6,7 +6,7 @@ import { clockAt, type ClockState } from './time';
 import type { Goblin, GroundItem, Plant, WorldState } from './state';
 import { SpatialHash } from './spatialHash';
 import { applyCommands, type Command } from './commands';
-import { updatePlants } from './plants';
+import { updatePlants, updateTiles } from './plants';
 import { updateGroundItems } from './groundItems';
 import { updateBodies } from './goblin/needs';
 import { updateMood } from './goblin/mood';
@@ -80,7 +80,8 @@ export class World {
     if (this.clock.day !== prev.day) this.emit({ type: 'day_started', day: this.clock.day });
     if (this.clock.season !== prev.season)
       this.emit({ type: 'season_changed', season: this.clock.season, year: this.clock.year });
-    //                        2 weather (P3), 3 tiles (P2/P3)
+    //                        2 weather (P3)
+    updateTiles(this); //     3
     updatePlants(this); //    4
     //                        5 ecology (P2+), 6 fire (P6)
     updateGroundItems(this); // 7 (+ airborne items)
