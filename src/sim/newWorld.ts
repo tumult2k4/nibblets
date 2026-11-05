@@ -11,6 +11,7 @@ import { newGodState, type GameMode } from './god/godState';
 import { isWalkable, tileAt } from './grid';
 import type { Vec2 } from '../shared/types';
 import { World } from './world';
+import { registerLineage } from './goblin/family';
 
 export interface WorldParams {
   seed: number;
@@ -59,7 +60,7 @@ export function createWorldState(params: WorldParams): WorldState {
     size: { w, h }, preset: p.preset, terrainVersion: 0,
     tiles: generateTiles(p.seed, w, h, p.preset),
     goblins: [], eggs: [], plants: [], rocks: [], grass: [], mushrooms: [], wildlife: [], groundItems: [],
-    buildings: [], fires: [], enemies: [], threat: { night: -1, spawnAt: [], alarms: 0, marks: [] }, graves: [], places: [],
+    buildings: [], fires: [], enemies: [], threat: { night: -1, spawnAt: [], alarms: 0, marks: [] }, graves: [], lineage: {}, places: [],
     clans: [], village: { name: p.villageName, center: { x: w / 2, y: h / 2 }, chiefId: null, stockpile: [], stockpilePos: { x: w / 2, y: h / 2 }, fenceRing: 0 },
     god: newGodState(p.mode, p.gentle), commandLog: [],
     weather: { kind: 'clear', nextChangeTick: CFG.weather.transitionTicks, temperature: 14, windDir: 0, upcoming: 'clear', cells: [] },
@@ -88,6 +89,7 @@ export function createWorldState(params: WorldParams): WorldState {
     s.goblins.push(createGoblin(s, frng, { genome, pos, ageDays: age, clanId }));
   }
   seedClanRelations(frng, s.goblins);
+  for (const g of s.goblins) registerLineage(s, g);
   s.rngState = rng.fork('sim').state;
   return s;
 }

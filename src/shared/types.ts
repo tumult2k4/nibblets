@@ -114,11 +114,12 @@ export type SimEvent = BaseEvent &
     | { type: 'chat'; aId: ID; bId: ID; topic: ChatTopic }
     | { type: 'chat_line'; goblinId: ID; topic: ChatTopic }
     | { type: 'skill_up'; goblinId: ID; skill: SkillId; level: number }
+    | { type: 'courted'; aId: ID; bId: ID; success: boolean }
     | { type: 'bond_formed'; aId: ID; bId: ID; kind: 'friend' | 'best_friend' | 'rival' | 'enemy' | 'mate' }
     | { type: 'comforted'; goblinId: ID; byId: ID }
     | { type: 'egg_laid'; eggId: ID; parents: [ID, ID] }
     | { type: 'egg_hatched'; eggId: ID; goblinId: ID }
-    | { type: 'egg_lost'; eggId: ID; cause: 'cold' | 'eaten' | 'neglect' | 'fall' }
+    | { type: 'egg_lost'; eggId: ID; parents: [ID, ID]; cause: 'cold' | 'eaten' | 'neglect' | 'fall' }
     | { type: 'life_stage'; goblinId: ID; stage: LifeStage }
     | { type: 'recipe_discovered' | 'recipe_learned' | 'recipe_lost'; goblinId?: ID; recipe: RecipeId; via?: 'teach' | 'book' | 'discovery' }
     | { type: 'sickness'; goblinId: ID; disease: DiseaseId; phase: 'infected' | 'symptomatic' | 'recovered' | 'died' }

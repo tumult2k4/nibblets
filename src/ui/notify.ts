@@ -16,6 +16,7 @@ export function noteFor(e: SimEvent, w: World, names: Map<ID, string>): Note | n
   const name = (id?: ID) => (id !== undefined ? names.get(id) ?? w.goblin(id)?.name ?? '?' : '?');
   const foe = (id: ID) => t(`enemy.${w.s.enemies.find((x) => x.id === id)?.kind ?? 'gnasher'}`);
   const base = { tick: e.tick, ...(e.at ? { at: e.at } : {}) };
+  const parentsOf = (id: ID) => { const p = w.goblin(id)?.parents; return { a: name(p?.[0]), b: name(p?.[1]) }; };
   switch (e.type) {
     case 'goblin_died':
       return { ...base, id: e.goblinId, text: t('ev.goblin_died', { name: name(e.goblinId), cause: t(`cause.${e.cause}`) }), tier: 'critical', icon: 'skull' };
@@ -97,9 +98,16 @@ export function noteFor(e: SimEvent, w: World, names: Map<ID, string>): Note | n
       const pair = { a: name(e.aId), b: name(e.bId) };
       if (e.kind === 'friend' && (back === 'friend' || back === 'best_friend')) return { ...base, id: e.aId, text: t('ev.friends', pair), tier: 'info', icon: 'heart' };
       if (e.kind === 'best_friend' && back === 'best_friend') return { ...base, id: e.aId, text: t('ev.best_friends', pair), tier: 'notable', icon: 'heart' };
+      if (e.kind === 'mate') return { ...base, id: e.aId, text: t('ev.mates', pair), tier: 'notable', icon: 'heart' };
       if (e.kind === 'rival' || e.kind === 'enemy') return { ...base, id: e.aId, text: t(`ev.${e.kind}`, pair), tier: e.kind === 'enemy' ? 'notable' : 'info', icon: 'bolt' };
       return null;
     }
+    case 'egg_laid':
+      return { ...base, id: e.parents[0], text: t('ev.egg_laid', { a: name(e.parents[0]), b: name(e.parents[1]) }), tier: 'notable', icon: 'egg' };
+    case 'egg_hatched':
+      return { ...base, id: e.goblinId, text: t('ev.egg_hatched', { name: name(e.goblinId), ...parentsOf(e.goblinId) }), tier: 'notable', icon: 'egg' };
+    case 'egg_lost':
+      return { ...base, text: t(`ev.egg_lost_${e.cause}`, { a: name(e.parents[0]), b: name(e.parents[1]) }), tier: 'critical', icon: 'egg' };
     case 'skill_up':
       if (!CFG.skills.notify.includes(e.level)) return null;
       return { ...base, id: e.goblinId, text: t(e.level >= 10 ? 'ev.skill_master' : 'ev.skill_up', { name: name(e.goblinId), skill: t(`skill.${e.skill}`), n: e.level }), tier: e.level >= 10 ? 'notable' : 'info', icon: 'star' };

@@ -10,7 +10,7 @@ import { isFood } from '../items';
 import { stockFood, withdraw } from '../stockpile';
 import { biteChance, hurtGoblin } from '../combat';
 import { weatherAt } from '../weather';
-import type { Enemy, Goblin, GroundItem } from '../state';
+import type { Egg, Enemy, Goblin, GroundItem } from '../state';
 import type { Vec2 } from '../../shared/types';
 import { litFireNear, torchLit } from '../fire';
 import { bestWeapon } from '../tools';
@@ -19,6 +19,7 @@ import type { World } from '../world';
 import { atHome, awake, exposed, moveEnemy, running, setMode, setPath, spotted } from './common';
 import { markDanger } from '../danger';
 import { shelterOf } from '../temperature';
+import { eggHut, guarded, loseEgg } from '../eggs';
 
 const E = CFG.enemies;
 const G = E.gnasher;
@@ -81,6 +82,19 @@ function nearestLone(w: World, e: Enemy): Goblin | null {
   }
   return best;
 }
+/** An egg left unguarded where it can get at it (outdoors or in a wattle hut, not by a fire). */
+function nearestEgg(w: World, e: Enemy): Egg | null {
+  let best: Egg | null = null, bd: number = E.sightRange;
+  for (const egg of w.s.eggs) {
+    const d = dist(egg.pos, e.pos);
+    if (d >= bd || egg.airborne || guarded(w, egg) || scareAt(w, egg.pos)) continue;
+    const walls = eggHut(w, egg.pos);
+    if (walls && (walls.type !== 'hut' || !E.hutBreakIn)) continue;
+    bd = d;
+    best = egg;
+  }
+  return best;
+}
 function nearestFood(w: World, e: Enemy): GroundItem | null {
   return w.itemHash.nearest(e.pos, E.foodSearch, (it) => !it.airborne && isFood(it.stack.type) && it.stack.type !== 'apple_core' && !scareAt(w, it.pos));
 }
@@ -97,6 +111,8 @@ export function gnasherDecide(w: World, e: Enemy): void {
   const lone = nearestLone(w, e);
   const keep = (mode: Enemy['mode'], id: number) => e.mode === mode && e.targetId === id;
   if (lone && dist(lone.pos, e.pos) < 8 && setMode(w, e, 'attack', lone.pos, lone.id)) return;
+  const egg = nearestEgg(w, e);
+  if (egg && (keep('steal', egg.id) || setMode(w, e, 'steal', egg.pos, egg.id))) return;
   const sp = w.s.village.stockpilePos;
   if (stockFood(w.s) && !scareAt(w, sp) && (keep('steal', -1) || setMode(w, e, 'steal', sp, -1))) return;
   const food = nearestFood(w, e);
@@ -179,6 +195,11 @@ function steal(w: World, e: Enemy): void {
     e.carrying = { type, qty: n };
     markDanger(w, e.pos, 0.7);
     w.emit({ type: 'enemy_stole', enemyId: e.id, item: type, qty: n, at: e.pos });
+    return;
+  }
+  const egg = s.eggs.find((x) => x.id === e.targetId);
+  if (egg) { // §13.3: an unguarded egg is a meal
+    if (!egg.airborne && !guarded(w, egg) && dist(egg.pos, e.pos) < 1.2) { loseEgg(w, egg, 'eaten'); markDanger(w, e.pos, 1); }
     return;
   }
   const it = s.groundItems.find((x) => x.id === e.targetId);

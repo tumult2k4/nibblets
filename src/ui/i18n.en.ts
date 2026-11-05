@@ -157,5 +157,10 @@ export const EN = {
   'skill.building': 'Building', 'skill.mining': 'Mining', 'skill.crafting': 'Crafting', 'skill.combat': 'Combat', 'skill.farming': 'Farming',
   'skill.cooking': 'Cooking', 'skill.teaching': 'Teaching', 'ev.skill_up': '{name} has become skilled at {skill} (level {n}).',
   'ev.skill_master': '{name} is now a master of {skill}!',
+  'act.court': 'Courting', 'act.lay_egg': 'Laying an egg', 'act.incubate_egg': 'Keeping an egg warm', 'act.feed_child': 'Feeding a little one',
+  'act.follow_parent': 'Toddling after a parent', 'ev.mates': '{a} and {b} are mates now!', 'ev.egg_laid': '{a} and {b} have an egg!',
+  'ev.egg_hatched': '{name} has hatched! A child of {a} and {b}.', 'ev.egg_lost_cold': 'The egg of {a} and {b} got too cold and was lost.',
+  'ev.egg_lost_eaten': 'A Gnasher ate the egg of {a} and {b}!', 'ev.egg_lost_neglect': 'The egg of {a} and {b} was lost.',
+  'ev.egg_lost_fall': 'The egg of {a} and {b} broke in a fall.',
   'qty': '×{n}', 'yes': 'Yes', 'no': 'No',
 } as const;

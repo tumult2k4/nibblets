@@ -40,7 +40,7 @@ export type ActionId =
   | 'eat_core' | 'plant_seed' | 'water_plant' | 'chop' | 'store_item' | 'take_item' | 'explore'
   | 'deliver_material' | 'build' | 'claim_home' | 'sleep_home' | 'gather_for_goal' | 'seek_shelter' | 'warm_up' | 'forage'
   | 'mine' | 'craft' | 'equip' | 'plan_building' | 'tend_fire' | 'flee' | 'attack' | 'defend_village' | 'guard' | 'repair_building'
-  | 'follow_wisp' | 'scatter' | 'chat' | 'comfort' | 'gift';
+  | 'follow_wisp' | 'scatter' | 'chat' | 'comfort' | 'gift' | 'court' | 'lay_egg' | 'incubate_egg' | 'feed_child' | 'follow_parent';
 
 export interface ActivityState {
   action: ActionId;
@@ -70,7 +70,13 @@ export interface GodView {
 export interface MemoryEntry { kind: string; targetId?: ID; pos: Vec2; data: number; lastSeenTick: number; confidence: number }
 export type RelationBond = 'none' | 'friend' | 'best_friend' | 'rival' | 'enemy' | 'mate' | 'parent' | 'child' | 'sibling';
 /** §13.1: how one goblin sees another (one-sided). */
-export interface Relation { targetId: ID; opinion: number; familiarity: number; bond: RelationBond; lastInteraction: number }
+export interface Relation {
+  targetId: ID; opinion: number; familiarity: number; bond: RelationBond; lastInteraction: number;
+  /** courtship (P5.3): welcome courtships in a row, and when last tried */
+  court?: number; courtTick?: number;
+}
+/** §13.4 lineage book: everyone who ever lived, for kinship and the family tree (P5.3) */
+export interface LineageEntry { parents: [ID, ID] | null; name: string; hue: number; born: number; died: number | null }
 export interface DeedCounters { eaten: number; drank: number; harvested: number; planted: number; kills: number; builds: number; gifts: number; timesHeld: number; fights: number }
 
 /** Ballistic state of a held/thrown/dropped entity. z is absolute altitude in world units. */
@@ -100,6 +106,8 @@ export interface Goblin {
   airborne: Airborne | null;
   lifespanDays: number;
   wetUntil: number;
+  /** when this goblin last had an egg with its mate (P5.3 cooldown) */
+  lastEggTick: number;
 }
 
 export interface Plant {
@@ -131,7 +139,11 @@ export interface Rock { id: ID; pos: Vec2; size: 1 | 2 | 3; stoneLeft: number; f
 export interface GrassPatch { id: ID; pos: Vec2; density: number }
 export interface Mushroom { id: ID; pos: Vec2; kind: 'brown' | 'glowcap' | 'redcap'; age: number }
 export interface GroundItem { id: ID; pos: Vec2; stack: ItemStack; droppedTick: number; airborne: Airborne | null; reservedBy: ID | null }
-export interface Egg { id: ID; pos: Vec2; genome: Genome; parents: [ID, ID]; laidTick: number; warmth: number; airborne: Airborne | null }
+/** An egg (§13.3): `warmth` is its current warmth 0..1, `incubation` warm ticks minus cold ticks (hatch at 2 days). */
+export interface Egg {
+  id: ID; pos: Vec2; genome: Genome; parents: [ID, ID]; laidTick: number; warmth: number; incubation: number; airborne: Airborne | null;
+  twinOf?: ID;
+}
 export interface Building {
   id: ID; type: BuildingType; pos: Vec2; rotation: 0 | 1 | 2 | 3; footprint: { w: number; h: number };
   buildProgress: number; hp: number; maxHp: number; ownerId: ID | null; storage: ItemStack[]; occupants: ID[];
@@ -167,6 +179,7 @@ export interface WorldState {
    * danger marks (sightings, bites, thefts, smashes, deaths) for the danger lens (P4.8) */
   threat: { night: number; spawnAt: number[]; alarms: number; marks: DangerMark[] };
   graves: { id: ID; goblinId: ID; name: string; pos: Vec2; tick: number; cause: string }[];
+  lineage: Record<number, LineageEntry>;
   places: unknown[]; clans: Clan[]; village: VillageState; god: GodState;
   commandLog: LoggedCommand[]; weather: WeatherState; stats: StatsSeries; llm: LlmAnnotations;
   /** creation parameters (replay rebuilds tick 0 from these) */

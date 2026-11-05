@@ -82,6 +82,8 @@ export function killGoblin(w: World, g: Goblin, cause: DeathCause): void {
   if (i < 0) return;
   s.goblins.splice(i, 1);
   s.graves.push({ id: allocId(s), goblinId: g.id, name: g.name, pos: { ...g.pos }, tick: s.tick, cause });
+  const line = s.lineage[g.id];
+  if (line) line.died = s.tick;
   s.stats.deaths[cause] = (s.stats.deaths[cause] ?? 0) + 1;
   if (s.god.held?.id === g.id) s.god.held = null;
   for (const b of s.buildings) {

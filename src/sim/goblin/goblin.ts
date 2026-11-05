@@ -45,7 +45,7 @@ export function createGoblin(s: WorldState, rng: Rng, o: SpawnOpts): Goblin {
       faith: q4(20 + personality.piety * 30), love: 30, fear: 10, angryAtGod: false, angryUntil: 0, wishes: [],
       answeredPrayers: 0, ignoredPrayers: 0, lastVoiceTick: -1, petLoveToday: 0, petDay: -1,
     },
-    role: 'none', heldByGod: false, lastDecisionTick: -1, airborne: null, lifespanDays, wetUntil: -1,
+    role: 'none', heldByGod: false, lastDecisionTick: -1, airborne: null, lifespanDays, wetUntil: -1, lastEggTick: -1e9,
   };
 }
 

@@ -185,6 +185,22 @@ export class GoblinViews {
       const talking = Math.sin(t * (Math.PI / 2.5) + (g.activity.stage === 2 ? Math.PI : 0)) > 0;
       if (talking) { r.armR.rotation.x = -1.3 + Math.sin(k) * 0.5; r.armL.rotation.x = -0.5 - Math.sin(k * 0.7) * 0.3; r.head.rotation.x = Math.sin(k * 1.4) * 0.06; }
       else { r.head.rotation.z = 0.18; r.head.rotation.x = Math.max(0, Math.sin(t * 2.2 + g.id)) ** 6 * 0.25; earFlop = -0.15; }
+    } else if (act === 'court' && g.activity.stage === 1) {
+      // a courtship dance: hopping round in a little circle, arms up
+      const k = t * 6 + g.id;
+      r.body.position.y = 0.12 + Math.abs(Math.sin(k)) * 0.09;
+      r.body.rotation.y = Math.sin(t * 2.2 + g.id) * 0.9;
+      r.armL.rotation.x = r.armR.rotation.x = -2.5 + Math.sin(k) * 0.3;
+      r.legL.rotation.x = Math.sin(k) * 0.5; r.legR.rotation.x = -Math.sin(k) * 0.5;
+      earFlop = -0.3 + Math.sin(k) * 0.2;
+    } else if ((act === 'incubate_egg' || act === 'lay_egg') && g.activity.stage === 1) {
+      // nesting: squatting low over the egg, fluffed up and content
+      r.body.position.y = 0.05;
+      r.body.scale.set(1.08, 0.86, 1.08);
+      r.legL.rotation.x = r.legR.rotation.x = -1.2;
+      r.armL.rotation.z = -0.6; r.armR.rotation.z = 0.6;
+      r.head.rotation.z = Math.sin(t * 0.8 + g.id) * 0.1;
+      earFlop = 0.2;
     } else if (act === 'comfort' && g.activity.stage === 1) {
       // a hug: arms wrapped forward, leaning in, swaying a little
       r.armL.rotation.x = r.armR.rotation.x = -1.35;

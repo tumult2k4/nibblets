@@ -1,7 +1,7 @@
 /** Every tunable number lives here (§21). Additions beyond §21 are logged in DECISIONS.md. */
 export const CFG = {
   tickHz: 10,
-  saveVersion: 10,
+  saveVersion: 11,
   time: { dayTicks: 3600, daysPerSeason: 8, moonCycleDays: 8, phases: { dawn: 0.05, day: 0.6, dusk: 0.7 }, startTick: 360 },
   world: {
     w: 128, h: 128, waterLevel: 0.3, sandBand: 0.03, rockLevel: 0.8, forestNoiseThreshold: 0.6,
@@ -202,6 +202,16 @@ export const CFG = {
     companyRadius: 3, companyPerDay: 20, chatRange: 10, chatLines: [4, 6] as [number, number], lineTicks: 25, chatSocial: 25, topicMatch: 2,
     gossipShare: 3, gossipConfidence: 0.8, personSway: 0.2, comfortMood: 10, comfortOpinion: 10, comfortSocial: 15, comfortRange: 14,
     sadBelow: -30, giftRange: 15, giftSocial: 10, mealSocial: 6, mealRange: 3, fightBondRange: 8, moodMul: 0.2,
+  },
+  /** P5.3 courtship, eggs, incubation and childhood (§13.3) */
+  family: {
+    courtRange: 24, courtCooldown: 300, danceTicks: 60, courtSuccesses: 3, courtScore: [0.1, 0.5] as [number, number],
+    welcome: 0.35, giftWelcome: 0.2, courtOpinion: 4, springMul: 1.5, hueNear: 60, hueFar: 120, looksMul: 1.25,
+    familyOpinion: 40, familyFamiliarity: 60,
+    eggHunger: 60, eggChancePerDay: 0.35, twinChance: 0.05, layTicks: 60, layScore: 0.5, eggMood: 8,
+    incubateDays: 2, lostColdDays: 1, coldRate: 1, bodyRange: 1.8, nestOffset: 1.25, nestShelter: 1.45, coldAir: 5, airSpan: 25, airMax: 0.6,
+    shelterWarmth: 0.3, fireWarmth: 0.3, fireRange: 4, incubateRange: 30, sitTicks: 600, sitScore: [0.35, 0.45] as [number, number],
+    feedBelow: 55, feedScore: [0.25, 0.9] as [number, number], followDist: 4, followScore: 0.2,
   },
   /** P5.2 skills: XP per skill; a level is read off the cumulative thresholds (fractional in between) */
   skills: {

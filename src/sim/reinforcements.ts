@@ -10,6 +10,7 @@ import { seedClanRelations } from './goblin/social';
 import { CLAN_ARCHETYPES, founderGenome, type ClanArchetype } from './goblin/genetics/founders';
 import type { Vec2 } from '../shared/types';
 import type { World } from './world';
+import { registerLineage } from './goblin/family';
 
 const R = CFG.reinforcements;
 const DAY = CFG.time.dayTicks;
@@ -39,6 +40,7 @@ export function updateReinforcements(w: World): void {
     const age = w.rng.range(CFG.goblin.startAgeDays[0], CFG.goblin.startAgeDays[1]);
     const g = createGoblin(s, w.rng, { genome: founderGenome(w.rng, arch), pos, ageDays: age, clanId: clan?.id ?? 0 });
     s.goblins.push(g);
+    registerLineage(s, g);
     ids.push(g.id);
   }
   seedClanRelations(w.rng, s.goblins.filter((g) => ids.includes(g.id)));

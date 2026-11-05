@@ -27,6 +27,7 @@ import { think, act } from './ai/utility';
 import { updateGod } from './god/godState';
 import { sampleStats } from './stats';
 import { findPath } from './pathfinding';
+import { updateEggs } from './eggs';
 
 /**
  * The live world: plain-data state plus derived, rebuildable caches (rng object, spatial hashes,
@@ -128,6 +129,7 @@ export class World {
     updateDirector(this); //  9 spawn director
     enemiesDecide(this); //   9 enemies.senseAndDecide
     updateBodies(this); //    10
+    updateEggs(this); //      10b eggs warm, hatch or chill (P5.3)
     updateMood(this); //      11
     updateSenses(this); //    11b senses + memory decay (§7.8)
     updateSafety(this); //    11c safety need (P4.5)

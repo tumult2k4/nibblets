@@ -10,6 +10,7 @@ import { WrathFx } from './wrathFx';
 import { FireFx } from './fireView';
 import { EnemyViews } from './enemyView';
 import { GraveViews } from './graveView';
+import { EggViews } from './eggView';
 import { GoblinViews } from './goblinView';
 import { Emotes } from './emotes';
 import type { TerrainLens } from './terrainMesh';
@@ -47,6 +48,7 @@ export class Renderer {
   fires!: FireFx;
   enemies!: EnemyViews;
   graves!: GraveViews;
+  eggs!: EggViews;
   wrathFx!: WrathFx;
   readonly weatherFx = new WeatherFx();
   interp!: Interp;
@@ -89,11 +91,12 @@ export class Renderer {
     this.fires = new FireFx(w);
     this.enemies = new EnemyViews(w);
     this.graves = new GraveViews(w);
+    this.eggs = new EggViews(w);
     this.wrathFx = new WrathFx(w, this.weatherFx, (id) => this.goblinWorldPos(id));
     this.wrathFx.reduced = this.weatherFx.reduced;
     this.goblins.outlines = this.settings.outlines;
     this.interp = new Interp(w);
-    this.worldGroup.add(this.terrain.group, this.water.mesh, this.props.group, this.buildings.group, this.mushrooms.group, this.goblins.group, this.weatherFx.group, this.fires.group, this.enemies.group, this.graves.group, this.wrathFx.group);
+    this.worldGroup.add(this.terrain.group, this.water.mesh, this.props.group, this.buildings.group, this.mushrooms.group, this.goblins.group, this.weatherFx.group, this.fires.group, this.enemies.group, this.graves.group, this.eggs.group, this.wrathFx.group);
     const c = w.s.village.center;
     this.camera.setTarget(c.x, c.y, true);
   }
@@ -202,6 +205,7 @@ export class Renderer {
     this.goblins.update(this.interp, alpha, this.time, this.sky.night, dt);
     this.enemies.update(this.interp, alpha, this.time, dt);
     this.graves.update();
+    this.eggs.update(dt, this.wrathFx.reduced);
     this.wrathFx.update(dt, alpha);
     this.ambientEmotes(dt);
     this.emotes.update(dt, (id) => this.goblins.headPos(id), this.camera.dist);
@@ -218,6 +222,7 @@ export class Renderer {
     for (const e of evs) {
       if (e.type === 'emote') this.emotes.show(e.goblinId, e.emote);
       else if (e.type === 'chat_line') this.emotes.showTopic(e.goblinId, e.topic);
+      else if (e.type === 'egg_hatched') this.emotes.show(e.goblinId, 'exclaim');
       else if (e.type === 'divine_act' && e.act === 'pet' && e.targetId !== undefined) this.emotes.show(e.targetId, 'heart');
     }
   }

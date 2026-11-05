@@ -159,5 +159,10 @@ export const DE: Record<keyof typeof EN, string> = {
   'skill.building': 'Bauen', 'skill.mining': 'Steinbruch', 'skill.crafting': 'Handwerk', 'skill.combat': 'Kampf', 'skill.farming': 'Gärtnern',
   'skill.cooking': 'Kochen', 'skill.teaching': 'Lehren', 'ev.skill_up': '{name} ist jetzt geübt in {skill} (Stufe {n}).',
   'ev.skill_master': '{name} ist jetzt Meister in {skill}!',
+  'act.court': 'Wirbt um jemanden', 'act.lay_egg': 'Legt ein Ei', 'act.incubate_egg': 'Wärmt ein Ei', 'act.feed_child': 'Füttert ein Kleines',
+  'act.follow_parent': 'Tapst einem Elternteil hinterher', 'ev.mates': '{a} und {b} sind jetzt ein Paar!', 'ev.egg_laid': '{a} und {b} haben ein Ei!',
+  'ev.egg_hatched': '{name} ist geschlüpft! Ein Kind von {a} und {b}.', 'ev.egg_lost_cold': 'Das Ei von {a} und {b} ist erfroren.',
+  'ev.egg_lost_eaten': 'Ein Gnasher hat das Ei von {a} und {b} gefressen!', 'ev.egg_lost_neglect': 'Das Ei von {a} und {b} ist verloren.',
+  'ev.egg_lost_fall': 'Das Ei von {a} und {b} ist bei einem Sturz zerbrochen.',
   'qty': '×{n}', 'yes': 'Ja', 'no': 'Nein',
 };

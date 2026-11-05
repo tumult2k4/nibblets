@@ -2,10 +2,12 @@
 import { fnv1a } from '../shared/rng';
 import { CFG } from './config';
 import { STARTER_RECIPES } from './recipes';
-import type { LoggedCommand, Tile, WorldState } from './state';
+import type { Goblin, LineageEntry, LoggedCommand, Tile, WorldState } from './state';
 import { World } from './world';
 import type { Biome } from '../shared/types';
 import { xpFor } from './goblin/skills';
+import { express } from './goblin/genetics/phenotype';
+import { q4 } from '../shared/math';
 
 const BIOMES: Biome[] = ['meadow', 'forest', 'sand', 'rock', 'water', 'marsh', 'snow'];
 
@@ -97,6 +99,19 @@ export const MIGRATIONS: Record<number, Migration> = {
   9: (raw) => {
     for (const g of raw.goblins as { skills: Record<string, number> }[])
       for (const k of Object.keys(g.skills)) g.skills[k] = xpFor(g.skills[k]!);
+    return raw;
+  },
+  // v10 → v11 (P5.3): a lineage book (the living, and the dead from their graves), egg incubation, egg cooldowns
+  10: (raw) => {
+    const lineage: Record<number, LineageEntry> = {};
+    for (const gr of raw.graves as { goblinId: number; name: string; tick: number }[])
+      lineage[gr.goblinId] = { parents: null, name: gr.name, hue: 0, born: 0, died: gr.tick };
+    for (const g of raw.goblins as (Goblin & Record<string, unknown>)[]) {
+      lineage[g.id] = { parents: g.parents, name: g.name, hue: q4(express(g.genome, 'skinHue')), born: g.bornTick, died: null };
+      g.lastEggTick = -1e9;
+    }
+    raw.lineage = lineage;
+    for (const e of raw.eggs as Record<string, unknown>[]) e.incubation ??= 0;
     return raw;
   },
 };
