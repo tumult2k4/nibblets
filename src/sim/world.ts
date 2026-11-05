@@ -106,6 +106,18 @@ export class World {
     return events;
   }
 
+  /**
+   * Apply queued commands without advancing time (used while paused). Replay-equivalent: the log
+   * records the same tick, and replay applies those commands at the start of that tick's step.
+   */
+  applyNow(): SimEvent[] {
+    applyCommands(this);
+    this.goblinHash.rebuild(this.s.goblins);
+    this.itemHash.rebuild(this.s.groundItems);
+    this.s.rngState = this.rng.state;
+    return this.bus.flush();
+  }
+
   run(n: number): void {
     for (let i = 0; i < n; i++) this.step();
   }

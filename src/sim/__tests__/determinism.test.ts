@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { CFG } from '../config';
 import { createWorld } from '../newWorld';
 import { loadWorld, serialize, stateHash } from '../save';
 
@@ -8,7 +9,7 @@ describe('determinism (§3.2, permanent from P1)', () => {
     const b = createWorld({ seed: 1234 });
     a.run(5000);
     b.run(5000);
-    expect(a.s.tick).toBe(5000);
+    expect(a.s.tick).toBe(5000 + CFG.time.startTick);
     expect(stateHash(a.s)).toBe(stateHash(b.s));
     // and something actually happened
     expect(a.s.stats.eaten + a.s.goblins.reduce((n, g) => n + g.deeds.drank, 0)).toBeGreaterThan(5);

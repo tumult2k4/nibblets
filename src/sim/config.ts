@@ -2,7 +2,7 @@
 export const CFG = {
   tickHz: 10,
   saveVersion: 1,
-  time: { dayTicks: 3600, daysPerSeason: 8, moonCycleDays: 8, phases: { dawn: 0.05, day: 0.6, dusk: 0.7 } },
+  time: { dayTicks: 3600, daysPerSeason: 8, moonCycleDays: 8, phases: { dawn: 0.05, day: 0.6, dusk: 0.7 }, startTick: 360 },
   world: {
     w: 128, h: 128, waterLevel: 0.3, sandBand: 0.03, rockLevel: 0.8, forestNoiseThreshold: 0.6,
     marshMoisture: 0.75, appleBushes: 70, berryBushes: 40, trees: 140, rocks: 90, grassPatches: 160,

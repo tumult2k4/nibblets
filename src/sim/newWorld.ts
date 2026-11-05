@@ -4,7 +4,7 @@ import { q4 } from '../shared/math';
 import { CFG } from './config';
 import type { WorldState } from './state';
 import { findVillageCenter, generateTiles, scatterResources, type TerrainPreset } from './worldgen';
-import { founderGenome, type ClanArchetype, CLAN_ARCHETYPES } from './goblin/genetics/founders';
+import { founderGenome, type ClanArchetype } from './goblin/genetics/founders';
 import { createGoblin } from './goblin/goblin';
 import { newGodState, type GameMode } from './god/godState';
 import { isWalkable } from './grid';
@@ -30,7 +30,7 @@ export function resolveParams(p: WorldParams): GenParams {
     seed: p.seed >>> 0,
     size: p.size ?? CFG.world.w,
     preset: p.preset ?? 'island',
-    archetype: p.archetype ?? (CLAN_ARCHETYPES[seedRng.int(0, CLAN_ARCHETYPES.length - 1)] as ClanArchetype),
+    archetype: p.archetype ?? 'mixed',
     founders: p.founders ?? CFG.goblin.founders,
     mode: p.mode ?? 'sandbox',
     gentle: p.gentle ?? false,
@@ -48,7 +48,7 @@ export function createWorldState(params: WorldParams): WorldState {
   const p = resolveParams(params);
   const w = p.size, h = p.size;
   const s: WorldState = {
-    version: CFG.saveVersion, seed: p.seed, tick: 0, nextId: 1, rngState: 0,
+    version: CFG.saveVersion, seed: p.seed, tick: CFG.time.startTick, nextId: 1, rngState: 0,
     size: { w, h }, preset: p.preset, terrainVersion: 0,
     tiles: generateTiles(p.seed, w, h, p.preset),
     goblins: [], eggs: [], plants: [], rocks: [], grass: [], mushrooms: [], wildlife: [], groundItems: [],

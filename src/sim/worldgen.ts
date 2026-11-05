@@ -138,7 +138,16 @@ export function findVillageCenter(s: WorldState): Vec2 {
           if (inBounds(s, wx, wy) && s.tiles[tileIndex(s, wx, wy)]!.biome === 'water') { water = r; break; }
         }
       const dc = Math.hypot(x - s.size.w / 2, y - s.size.h / 2);
-      const score = (water >= 4 && water <= 12 ? 30 : water < 4 ? 10 : 0) - dc * 0.5;
+      let meadow = 0, rock = 0, n = 0;
+      for (let dy = -6; dy <= 6; dy += 2)
+        for (let dx = -6; dx <= 6; dx += 2) {
+          if (!inBounds(s, x + dx, y + dy)) continue;
+          const b = s.tiles[tileIndex(s, x + dx, y + dy)]!.biome;
+          n++;
+          if (b === 'meadow') meadow++;
+          if (b === 'rock') rock++;
+        }
+      const score = (water >= 4 && water <= 12 ? 30 : water < 4 ? 10 : 0) - dc * 0.5 + (meadow / Math.max(1, n)) * 30 - rock * 4;
       if (score > bestScore) { bestScore = score; best = { x: x + 0.5, y: y + 0.5 }; }
     }
   return best;
