@@ -2,7 +2,8 @@
  * §P4.5 `Flee` and `Guard`. Fleeing sprints (×1.15) for a roof (home first, then any hut), else a lit fire, else simply
  * away from the threat, then hides until nothing threatening is within 9 tiles. Children always run; adults run when
  * they panic (see fight.ts) or, unarmed and timid, when safety sinks. `Guard`: armed adults stand watch at night by the
- * fire or the stockpile (about one in five adults), facing out; an enemy in sight turns them to `Attack`.
+ * fire or the stockpile (about one in five adults), facing out; an enemy in sight turns them to `Attack`. P5.7: one
+ * more keeps watch up each watchtower (no weapon needed), and children run home when the tower warns.
  */
 import { CFG } from '../../config';
 import { dist, q4 } from '../../../shared/math';
@@ -17,6 +18,7 @@ import { knowsFact } from '../../knowledge';
 import { daylight } from '../../time';
 import { threatsNear } from '../../combat';
 import { bedSpot, homeOf } from './home';
+import { freeTower, warned } from '../../watch';
 import { guestSpot } from './shelter';
 import { DANGER, kinAttacker, panics, visibleThreat } from './fight';
 import type { Building, Goblin } from '../../state';
@@ -54,9 +56,12 @@ function refuge(g: Goblin, w: World, from: Vec2): Vec2 | null {
   return null;
 }
 
+/** After a warning from the tower (P5.7), children out in the open run for home. */
+const warnedOut = (g: Goblin, w: World): boolean => child(g) && warned(w) && !!w.s.threat.warnAt && !shelterOf(w, g);
+
 export const Flee: UtilityAction = {
   id: 'flee', tags: ['danger'], minStage: 'hatchling', interruptible: (g) => g.activity.stage === 1,
-  isAvailable: (g, w) => !!visibleThreat(g, w) && !kinAttacker(g, w),
+  isAvailable: (g, w) => (!!visibleThreat(g, w) && !kinAttacker(g, w)) || warnedOut(g, w),
   score(g, w) {
     if (child(g) || panics(g, w)) return 1.1;
     const fear = 1 - g.needs.safety / 100;
@@ -64,11 +69,12 @@ export const Flee: UtilityAction = {
   },
   start(g, w) {
     const e = visibleThreat(g, w);
-    if (!e) return false;
-    const spot = refuge(g, w, e.pos);
+    const from = e?.pos ?? (warnedOut(g, w) ? w.s.threat.warnAt : undefined);
+    if (!from) return false;
+    const spot = refuge(g, w, from);
     if (!spot) return false;
     g.activity.target = spot;
-    g.activity.targetId = e.id;
+    g.activity.targetId = e?.id ?? null;
     g.activity.stage = 0;
     w.emit({ type: 'emote', goblinId: g.id, emote: 'sweat' });
     return planPath(w, g, spot);
@@ -93,25 +99,30 @@ export const Flee: UtilityAction = {
   },
 };
 
-/** The watch post: around the lit fire (else the stockpile), spread by id. */
+/** The watch post: up a free watchtower (P5.7), else around the lit fire (else the stockpile), spread by id. */
 function post(g: Goblin, w: World): Vec2 {
+  const tower = freeTower(g, w);
+  g.activity.targetId = tower?.id ?? null;
+  if (tower) return { ...tower.pos };
   const fire = campfires(w).find(isLit);
   const c = fire?.pos ?? w.s.village.stockpilePos;
   const ang = g.id * 2.39996;
   return { x: q4(c.x + Math.cos(ang) * C.guardRadius), y: q4(c.y + Math.sin(ang) * C.guardRadius) };
 }
 const evening = (w: World): boolean => daylight(w.clock) < 0.5 || w.clock.dayFrac > 0.62;
+/** Room for one more on watch: about one adult in five, plus whoever keeps the tower. */
 function guardSlots(g: Goblin, w: World): boolean {
   const adults = w.s.goblins.filter((o) => o.lifeStage === 'adult').length;
   const on = w.s.goblins.filter((o) => o !== g && o.activity.action === 'guard' && o.activity.status === 'running').length;
-  return on < Math.max(1, Math.round(adults * C.guardShare));
+  return on < Math.max(1, Math.round(adults * C.guardShare)) || !!freeTower(g, w);
 }
 
 export const Guard: UtilityAction = {
   id: 'guard', tags: ['danger'], minStage: 'adult', interruptible: true,
-  isAvailable: (g, w) => evening(w) && !!bestWeapon(g) && g.needs.energy > 35 && g.needs.hunger > 30 && g.needs.thirst > 30
+  // a lookout up the tower needs sharp eyes, not a spear
+  isAvailable: (g, w) => evening(w) && (!!bestWeapon(g) || !!freeTower(g, w)) && g.needs.energy > 35 && g.needs.hunger > 30 && g.needs.thirst > 30
     && (g.activity.action === 'guard' || guardSlots(g, w)),
-  score: (_g, w) => 0.22 + (w.s.enemies.some((e) => e.seen) ? 0.25 : 0),
+  score: (g, w) => 0.22 + (w.s.enemies.some((e) => e.seen) ? 0.25 : 0) + (freeTower(g, w) ? 0.08 : 0),
   start(g, w) {
     g.activity.target = post(g, w);
     g.activity.stage = 0;

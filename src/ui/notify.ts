@@ -5,6 +5,7 @@ import { ITEM_ICON } from './icons';
 import { CFG } from '../sim/config';
 import { fenceSites } from '../sim/fences';
 import { FACTS } from '../sim/knowledge';
+import { towerOf } from '../sim/watch';
 
 const isFact = (id: string): boolean => (FACTS as readonly string[]).includes(id);
 /** A recipe's or a fact's display name. */
@@ -61,6 +62,7 @@ export function noteFor(e: SimEvent, w: World, names: Map<ID, string>): Note | n
     case 'tool_broken':
       return { ...base, id: e.goblinId, text: t('ev.tool_broken', { name: name(e.goblinId), item: t(`item.${e.item}`) }), tier: 'info', icon: ITEM_ICON[e.item] ?? 'gift' };
     case 'enemy_spotted':
+      if (w.goblin(e.goblinId) && towerOf(w.goblin(e.goblinId)!, w)) return null; // the tower's warning says it
       if (w.s.enemies.find((x) => x.id === e.enemyId)?.kind === 'bramblebeast')
         return { ...base, id: e.goblinId, text: t('ev.beast_spotted', { name: name(e.goblinId) }), tier: 'critical', icon: 'fang' };
       return { ...base, id: e.goblinId, text: t('ev.enemy_spotted', { name: name(e.goblinId), enemy: foe(e.enemyId) }), tier: 'notable', icon: 'fang' };
@@ -92,7 +94,9 @@ export function noteFor(e: SimEvent, w: World, names: Map<ID, string>): Note | n
       if (e.kind === 'campfire') return { ...base, text: t('ev.campfire_lit'), tier: 'notable', icon: 'heat' };
       if (e.kind === 'stone_hut') return { ...base, text: t('ev.stone_hut_built'), tier: 'notable', icon: 'hill' };
       if (e.kind === 'fence') return fenceJustClosed(w) ? { ...base, text: t('ev.fence_closed'), tier: 'notable', icon: 'hill' } : null;
-      if (e.kind === 'grinding_stone' || e.kind === 'drying_rack' || e.kind === 'storage_pit') return { ...base, text: t('ev.preserve_built', { building: t(`bld.${e.kind}`) }), tier: 'notable', icon: 'bowl' };
+      if (e.kind === 'gate') return { ...base, text: t('ev.gate_built'), tier: 'notable', icon: 'hill' };
+      if (e.kind === 'grinding_stone' || e.kind === 'drying_rack' || e.kind === 'storage_pit' || e.kind === 'workbench' || e.kind === 'watchtower')
+        return { ...base, text: t('ev.preserve_built', { building: t(`bld.${e.kind}`) }), tier: 'notable', icon: e.kind === 'workbench' ? 'gear' : e.kind === 'watchtower' ? 'eye' : 'bowl' };
       return e.kind === 'hut' ? { ...base, text: t('ev.hut_built'), tier: 'notable', icon: 'hill' } : null;
     case 'building_destroyed':
       if (e.cause === 'bramblebeast')
@@ -120,6 +124,12 @@ export function noteFor(e: SimEvent, w: World, names: Map<ID, string>): Note | n
       return { ...base, id: e.goblinId, text: t(isFact(e.recipe) ? 'ev.toldFact' : 'ev.taught', { name: name(e.byId), pupil: name(e.goblinId!), what: know(e.recipe) }), tier: 'info', icon: 'star' };
     case 'recipe_lost':
       return { ...base, text: t('ev.recipe_lost', { name: name(e.goblinId!), what: know(e.recipe) }), tier: 'critical', icon: 'skull' };
+    case 'tower_warning':
+      return { ...base, id: e.goblinId, text: t('ev.tower_warning', { name: name(e.goblinId), enemy: t(`enemy.${e.kind}`) }), tier: 'critical', icon: 'eye' };
+    case 'trait_gained':
+      // twins and orphans have their own news when it happens
+      return e.trait === 'twin' || e.trait === 'orphan' ? null
+        : { ...base, id: e.goblinId, text: t('ev.trait_gained', { name: name(e.goblinId), trait: t(`atrait.${e.trait}`) }), tier: 'notable', icon: 'star' };
     case 'food_spoiled': {
       if (e.qty < 5) return null;
       const list = Object.entries(e.items).sort((a, b) => (b[1] ?? 0) - (a[1] ?? 0)).slice(0, 3).map(([k, n]) => `${n} ${t(`item.${k}`)}`).join(', ');

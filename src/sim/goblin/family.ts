@@ -13,7 +13,9 @@ import { meiosis } from './genetics/genome';
 import { express } from './genetics/phenotype';
 import { createGoblin } from './goblin';
 import { isKin, opinionOf, relate, relationOf } from './social';
+import { bondTwins, grantTrait, twinOf } from './traits';
 import { buildingDef, isComplete } from '../buildings';
+import { foodStores } from '../spoilage';
 
 const F = CFG.family;
 const DAY = CFG.time.dayTicks;
@@ -86,6 +88,10 @@ export function becomeMates(w: World, a: Goblin, b: Goblin): void {
 
 /** Today's deterministic fertility roll for a pair (no RNG drawn, so scoring stays side-effect free). */
 export function fertileToday(g: Goblin, mate: Goblin, w: World): boolean {
+  // lean times (P5.7 balance): with winter coming or here, pairs wait until the stores could carry another mouth
+  const c = w.clock;
+  const need = c.season === 'autumn' ? F.leanStoreDays : c.season === 'winter' ? CFG.time.daysPerSeason - c.seasonDay + F.leanMargin : 0;
+  if (need > 0 && foodStores(w.s).days < need) return false;
   const day = Math.floor(w.s.tick / DAY);
   const pop = w.s.goblins.length + w.s.eggs.length;
   const chance = F.eggChancePerDay * Math.max(0, 1 - pop / CFG.goblin.softCap) * (w.clock.season === 'spring' ? F.springMul : 1);
@@ -141,11 +147,15 @@ export function hatch(w: World, egg: Egg): Goblin {
   g.lifeStage = 'hatchling';
   g.needs.hunger = g.needs.thirst = 80;
   g.homeId = parents.find((p) => p.homeId !== null)?.homeId ?? null;
-  if (egg.twinOf !== undefined) g.traits.push('twin');
   s.goblins.push(g);
   w.goblinHash.insert(g);
   for (const p of parents) { kinBond(w, g, p, 'parent'); kinBond(w, p, g, 'child'); }
   for (const o of s.goblins) if (o !== g && o.parents && shares(o.parents, egg.parents)) { kinBond(w, g, o, 'sibling'); kinBond(w, o, g, 'sibling'); }
+  if (egg.twinOf !== undefined) {
+    grantTrait(w, g, 'twin');
+    const twin = twinOf(g, w);
+    if (twin) bondTwins(g, twin);
+  }
   registerLineage(s, g);
   if (!parents.length) adoptIfOrphan(w, g);
   s.stats.births += 1;
@@ -187,7 +197,7 @@ export function adoptIfOrphan(w: World, c: Goblin): void {
   kinBond(w, c, a, 'parent');
   kinBond(w, a, c, 'child');
   if (a.homeId !== null) c.homeId = a.homeId;
-  if (!c.traits.includes('orphan')) c.traits.push('orphan');
+  grantTrait(w, c, 'orphan');
   w.emit({ type: 'adopted', goblinId: c.id, parentId: a.id, at: { ...c.pos } });
 }
 

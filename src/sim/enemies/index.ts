@@ -7,7 +7,8 @@ import { dist } from '../../shared/math';
 import { visionRadius } from '../ai/considerations';
 import type { Enemy } from '../state';
 import type { World } from '../world';
-import { awake, spotted } from './common';
+import { awake, harmless, spotted } from './common';
+import { towerSight, towerWarning, watchtowers } from '../watch';
 import { gnasherAct, gnasherDecide } from './gnasher';
 import { bramblebeastAct, bramblebeastDecide, maybeBramblebeast } from './bramblebeast';
 import { maybeWisps, wispAct, wispDecide } from './wisp';
@@ -22,10 +23,16 @@ const BRAIN: Record<Enemy['kind'], { decide(w: World, e: Enemy): void; act(w: Wo
 export function enemiesDecide(w: World): void {
   maybeBramblebeast(w);
   maybeWisps(w);
+  const lookout = watchtowers(w.s).length > 0;
   for (const e of w.s.enemies) {
     if (!e.seen) {
-      const spotter = w.s.goblins.find((g) => awake(g) && dist(g.pos, e.pos) <= visionRadius(g, w));
-      if (spotter) spotted(w, e, spotter);
+      // a lookout up a tower sees three times as far (P5.7) and raises the alarm early
+      const sees = (g: (typeof w.s.goblins)[number]) => awake(g) && dist(g.pos, e.pos) <= visionRadius(g, w) * (lookout ? towerSight(g, w) : 1);
+      const spotter = (lookout ? w.s.goblins.find((g) => towerSight(g, w) > 1 && sees(g)) : undefined) ?? w.s.goblins.find(sees);
+      if (spotter) {
+        spotted(w, e, spotter);
+        if (lookout && !harmless(e)) towerWarning(w, e, spotter);
+      }
     }
     if (w.s.tick >= e.nextDecide) {
       e.nextDecide = w.s.tick + CFG.enemies.decideEvery;

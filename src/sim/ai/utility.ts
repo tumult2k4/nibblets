@@ -4,6 +4,7 @@ import type { World } from '../world';
 import type { UtilityAction } from './action';
 import { stageAtLeast } from './action';
 import { personalityWeight } from '../goblin/personality';
+import { traitMul } from '../goblin/traits';
 import { Idle } from './actions/idle';
 import { Wander } from './actions/wander';
 import { Eat, EatCore } from './actions/eat';
@@ -84,7 +85,7 @@ export function scoreActions(g: Goblin, w: World, noise = true, planned: ActionI
     const fo = planned === a.id ? CFG.planner.focus : 1;
     if (fo > 1) base = Math.max(base, CFG.planner.floor);
     if (base <= 0) continue;
-    const pw = personalityWeight(g.personality, a.id) * stageMul(g, a); // personality and life stage
+    const pw = personalityWeight(g.personality, a.id) * stageMul(g, a) * traitMul(g, a.id); // personality, life stage, traits
     const mm = moodMul(g, a);
     const sk = skillFocus(g, a.id);
     const hy = g.activity.action === a.id && g.activity.status === 'running' ? CFG.goblin.hysteresis : 1;
@@ -150,7 +151,13 @@ export function think(w: World): void {
       w.emit({ type: 'emote', goblinId: g.id, emote: 'sweat' });
       continue;
     }
-    startAction(g, w, best);
+    // a choice that can't start (no site, no way there) falls through to the next best rather than idling
+    let started = false;
+    for (const r of rows.slice(0, 3)) {
+      if (r.id === 'idle') break;
+      if ((started = startAction(g, w, r.id))) break;
+    }
+    if (!started) startAction(g, w, 'idle');
   }
 }
 

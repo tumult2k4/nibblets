@@ -80,6 +80,10 @@ export const CFG = {
       grinding_stone: { cost: { stone: 3 } as Record<string, number>, footprint: 1, hp: 80, capacity: 0, storage: 0, labor: 3 },
       drying_rack: { cost: { wood: 3, rope: 2 } as Record<string, number>, footprint: 1, hp: 30, capacity: 0, storage: 12, labor: 3 },
       storage_pit: { cost: { stone: 2 } as Record<string, number>, footprint: 1, hp: 120, capacity: 0, storage: 160, labor: 1.2 },
+      // P5.7 workbench, watchtower and gate (§11.1)
+      workbench: { cost: { wood: 4, stone: 2 } as Record<string, number>, footprint: 1, hp: 60, capacity: 0, storage: 0, labor: 2 },
+      watchtower: { cost: { wood: 8, rope: 2 } as Record<string, number>, footprint: 1, hp: 70, capacity: 0, storage: 0, labor: 1.2 },
+      gate: { cost: { wood: 2, rope: 1 } as Record<string, number>, footprint: 1, hp: 50, capacity: 0, storage: 0, labor: 4 },
     } as Record<string, { cost: Record<string, number>; footprint: number; hp: number; capacity: number; storage: number; labor?: number }>,
     buildRate: 0.002, skillBonus: 0.15, friendBonus: 1.3, workChunk: 300,
     siteRadius: 14, maxSlope: 0.06, waterPref: [4, 10] as [number, number], hutSpacing: [3.6, 7] as [number, number],
@@ -209,7 +213,7 @@ export const CFG = {
     courtRange: 24, courtCooldown: 300, danceTicks: 60, courtSuccesses: 3, courtScore: [0.1, 0.5] as [number, number],
     welcome: 0.35, giftWelcome: 0.2, courtOpinion: 4, springMul: 1.5, hueNear: 60, hueFar: 120, looksMul: 1.25,
     familyOpinion: 40, familyFamiliarity: 60,
-    eggHunger: 60, eggChancePerDay: 0.35, twinChance: 0.05, layTicks: 60, layScore: 0.5, eggMood: 8,
+    eggHunger: 60, eggChancePerDay: 0.35, twinChance: 0.05, /** lean times: in autumn no eggs below this many days of stored food; in winter, below the days left + `leanMargin` */ leanStoreDays: 6, leanMargin: 3, layTicks: 60, layScore: 0.5, eggMood: 8,
     incubateDays: 2, lostColdDays: 1, coldRate: 1, bodyRange: 1.8, nestOffset: 1.25, nestShelter: 1.45, coldAir: 5, airSpan: 25, airMax: 0.6,
     shelterWarmth: 0.3, fireWarmth: 0.3, fireRange: 4, incubateRange: 30, sitTicks: 600, sitScore: [0.35, 0.45] as [number, number],
     feedBelow: 55, feedScore: [0.25, 0.9] as [number, number], followDist: 4, followScore: 0.2,
@@ -261,8 +265,17 @@ export const CFG = {
     freshPerGoblin: 2, processScore: [0.14, 0.35] as [number, number], autumnMul: 1.5,
     /** goblins pick for the stores until they hold this many days of food (winter is the reason) */
     stockUpDays: { spring: 1.5, summer: 4, autumn: 12, winter: 0 } as Record<string, number>,
-    stockUpScore: { spring: 0.15, summer: 0.3, autumn: 0.55, winter: 0 } as Record<string, number>, chainRadius: 8,
+    stockUpScore: { spring: 0.15, summer: 0.3, autumn: 0.65, winter: 0 } as Record<string, number>, chainRadius: 8,
     perRack: 6, perPit: 8, rotIdeaPer: 0.2, rotIdeaMax: 4,
+  },
+  /** P5.7 workbench (§11.1, §11.3): crafting there is half again as fast; worn tools are mended with half the inputs */
+  workbench: { speedMul: 1.5, range: 18, mendBelow: 0.5, mendWant: 0.32, radius: 9 },
+  /** P5.7 watchtower and gates (§11.1, §7.8): a guard up the tower sees three times as far and warns the village */
+  watch: { visionMul: 3, warnTicks: 900, platform: 1.55, maxGates: 2, gateSpacing: 6, gatePosts: 8, climbSpeed: 0.3 },
+  /** P5.7 acquired traits (§7.7) */
+  traits: {
+    max: 3, checkEvery: 150, greenThumbPlanted: 25, greenThumbGrowth: 1.5, scarredScars: 2, twinEcho: 0.4, twinEchoMin: 4,
+    orphanBravery: 0.1, orphanSociability: -0.1, scarredCrowd: 1.5, scarredShun: 2, twinOpinion: 25, veteranWatch: 1.3, greenThumbWork: 1.3,
   },
   disease: { feverMinPop: 25, feverYearlyChance: 0.5 },
   llm: { diariesPerDay: 3, dialoguesPerDay: 4, barksPerDay: 6, tokensPerDay: 12000, rpm: 10, concurrency: 2, timeoutMs: 20000 },

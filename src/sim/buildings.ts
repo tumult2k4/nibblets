@@ -174,7 +174,7 @@ export function completeBuilding(w: World, b: Building, finisher: ID | null): vo
   b.buildProgress = 1;
   b.storage = []; // construction materials are used up; the storage now belongs to the building
   if (b.type === 'campfire') b.fuel = CFG.fire.startFuel; // lit with its kindling
-  if (b.type === 'fence') w.s.terrainVersion += 1; // enemy paths change
+  if (b.type === 'fence' || b.type === 'gate') w.s.terrainVersion += 1; // enemy (and, for a gate, goblin) paths change
   for (const k of Object.keys(b.data ?? {})) {
     if (!k.startsWith('w')) continue;
     const g = w.goblin(Number(k.slice(1)));
@@ -222,12 +222,18 @@ export function workSpot(s: WorldState, b: Building, g: Goblin): Vec2 {
   return { x: b.pos.x, y: b.pos.y + r };
 }
 
-/** Tear a building down (storm, later fire and raids): frees the footprint, unhouses residents, spills storage. */
-export function destroyBuilding(w: World, b: Building, cause: string): void {
+/** Take a building off the map and free its footprint (no news: a fence post making way for a gate). */
+export function removeBuilding(w: World, b: Building): boolean {
   const i = w.s.buildings.indexOf(b);
-  if (i < 0) return;
+  if (i < 0) return false;
   w.s.buildings.splice(i, 1);
   markFootprint(w, b, null);
+  return true;
+}
+
+/** Tear a building down (storm, later fire and raids): frees the footprint, unhouses residents, spills storage. */
+export function destroyBuilding(w: World, b: Building, cause: string): void {
+  if (!removeBuilding(w, b)) return;
   for (const g of w.s.goblins) if (g.homeId === b.id) g.homeId = null;
   for (const st of b.storage) spawnGroundItem(w, { ...st }, { x: q4(b.pos.x + w.rng.range(-0.7, 0.7)), y: q4(b.pos.y + w.rng.range(-0.7, 0.7)) });
   w.emit({ type: 'building_destroyed', buildingId: b.id, kind: b.type, cause, at: b.pos });

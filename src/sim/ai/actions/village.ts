@@ -1,7 +1,8 @@
 /**
  * Communal work (§10.1, P4.3/P4.6): PlanBuilding marks out what the village lacks (a campfire near the center once
  * someone has a roof; fence posts around the core once Gnashers have been seen; P5.6: a grinding stone, a drying rack
- * per six goblins and a storage pit per eight, once someone knows how) or, for a goblin who knows how and has the
+ * per six goblins and a storage pit per eight; P5.7: a workbench, then gates in the fence and a watchtower inside
+ * it — each once someone knows how) or, for a goblin who knows how and has the
  * stone, starts turning its hut into a stone hut. TendFire keeps the campfires fed from the pack or spare stock.
  */
 import { CFG } from '../../config';
@@ -14,6 +15,7 @@ import { buildingDef, findCommunalSite, isComplete, placeBlueprint, startUpgrade
 import { fenceSites, ringRadius, wantsFence } from '../../fences';
 import { knows } from '../../recipes';
 import { knowsFact } from '../../knowledge';
+import { gateSite, placeGate, towerSite, wantsGate, wantsTower } from '../../watch';
 import { homeOf } from './home';
 import { spareStock } from '../../crafting';
 import { FUELS, addFuel, campfires, needsFuel, type FuelItem } from '../../fire';
@@ -31,9 +33,9 @@ const othersDoing = (g: Goblin, w: World, id: string, targetId?: number): boolea
   w.s.goblins.some((o) => o.id !== g.id && o.activity.action === id && o.activity.status === 'running' && (targetId === undefined || o.activity.targetId === targetId));
 
 const PR = CFG.preserve;
-const PRESERVES = ['grinding_stone', 'drying_rack', 'storage_pit'] as const;
-/** Preservation buildings sit a little further out than the fire. */
-const PRESERVE_RADIUS = 9;
+/** Stations the village keeps (P5.6 preservation, P5.7 workbench); they sit a little further out than the fire. */
+const STATIONS = ['grinding_stone', 'drying_rack', 'storage_pit', 'workbench'] as const;
+const STATION_RADIUS = CFG.workbench.radius;
 
 let needCache = { tick: -1, w: null as World | null, out: [] as BuildingType[] };
 /** What the village lacks, most pressing first (cached per tick). */
@@ -45,14 +47,26 @@ export function villageNeeds(w: World): BuildingType[] {
   const fire = campfires(w).length > 0;
   if (!fire && roofed) out.push('campfire');
   if (wantsFence(w)) out.push('fence');
+  if (wantsGate(w)) out.push('gate');
+  if (wantsTower(w)) out.push('watchtower');
   if (!roofed || !fire) return out;
   const pop = w.s.goblins.length;
-  const want = { grinding_stone: 1, drying_rack: Math.ceil(pop / PR.perRack), storage_pit: Math.ceil(pop / PR.perPit) };
-  for (const t of PRESERVES) {
+  const want = { grinding_stone: 1, drying_rack: Math.ceil(pop / PR.perRack), storage_pit: Math.ceil(pop / PR.perPit), workbench: 1 };
+  for (const t of STATIONS) {
     const mine = w.s.buildings.filter((b) => b.type === t);
-    if (mine.length < want[t] && !mine.some((b) => !isComplete(b))) out.push(t);
+    if (mine.length < want[t] && !mine.some((b) => !isComplete(b)) && hasSite(w, t)) out.push(t);
   }
   return out;
+}
+
+let siteCache = { ver: -1, w: null as World | null, ok: new Map<BuildingType, boolean>() };
+/** Is there room for one more `type` near the center? (Cached until the map changes: a need with no site would
+ * leave the planner standing idle all day.) */
+function hasSite(w: World, type: BuildingType): boolean {
+  if (siteCache.ver !== w.s.terrainVersion || siteCache.w !== w) siteCache = { ver: w.s.terrainVersion, w, ok: new Map() };
+  let ok = siteCache.ok.get(type);
+  if (ok === undefined) siteCache.ok.set(type, (ok = !!siteFor(w, type)));
+  return ok;
 }
 
 /** The communal building the village lacks most (that `g` knows how to make, if given). */
@@ -69,8 +83,13 @@ export function upgradeJob(g: Goblin, w: World): Building | null {
   return Object.entries(cost).every(([t, n]) => spareStock(w, t as ItemType) >= n) ? home : null;
 }
 
-const siteFor = (w: World, type: BuildingType): Vec2 | null =>
-  type === 'fence' ? fenceSites(w, 1)[0] ?? null : findCommunalSite(w, type, (PRESERVES as readonly string[]).includes(type) ? PRESERVE_RADIUS : undefined);
+function siteFor(w: World, type: BuildingType): Vec2 | null {
+  if (type === 'fence') return fenceSites(w, 1)[0] ?? null;
+  if (type === 'gate') return gateSite(w);
+  if (type === 'watchtower') return towerSite(w);
+  return findCommunalSite(w, type, (STATIONS as readonly string[]).includes(type) ? STATION_RADIUS : undefined);
+}
+const onRing = (t: BuildingType | null): boolean => t === 'fence' || t === 'gate';
 
 export const PlanBuilding: UtilityAction = {
   id: 'plan_building', tags: ['work'], minStage: 'adult', interruptible: true,
@@ -89,7 +108,7 @@ export const PlanBuilding: UtilityAction = {
     const site = type && siteFor(w, type);
     if (!site) return false;
     g.activity.target = site;
-    return planPath(w, g, type === 'fence' ? site : { x: site.x + 0.9, y: site.y + 0.3 });
+    return planPath(w, g, onRing(type) ? site : { x: site.x + 0.9, y: site.y + 0.3 });
   },
   step(g, w) {
     if (moveAlong(w, g) !== 'arrived') return 'running';
@@ -111,7 +130,8 @@ export const PlanBuilding: UtilityAction = {
     }
     const site = siteFor(w, type);
     if (!site) return 'failed';
-    placeBlueprint(w, type, site, null);
+    if (type === 'gate') placeGate(w, site);
+    else placeBlueprint(w, type, site, null);
     return 'done';
   },
 };

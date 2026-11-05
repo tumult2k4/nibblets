@@ -19,7 +19,9 @@ export const HarvestFruit: UtilityAction = {
     if (!p) return 0;
     const carrying = foodStack(g) ? 0.35 : 1;
     const hungry = carrying * (0.05 + 1.05 * needUrgency(g.needs.hunger));
-    return Math.max(hungry, stockUpUrge(w)) * distanceFalloff(dist(g.pos, p.pos), 40) * (p.remembered ? 0.9 : 1);
+    // a trip for the stores strips several bushes, so it is worth a longer walk than a snack
+    const d = dist(g.pos, p.pos);
+    return Math.max(hungry * distanceFalloff(d, 40), stockUpUrge(w) * distanceFalloff(d, 80)) * (p.remembered ? 0.9 : 1);
   },
   start(g, w) {
     const p = findFruitPlant(g, w);

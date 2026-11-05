@@ -3,7 +3,7 @@
  * core with 1-wood fence posts. The ring radius is fixed when fencing starts (the farthest hut, fire or stockpile + 2,
  * 4–10 tiles) and kept in `village.fenceRing`; posts go up a few at a time, next to the ones already standing.
  * Finished fences block enemies outright (their pathfinding and steps); goblins climb over, slowly (a fence tile costs
- * ×4 like any footprint), until gates arrive in P5.7.
+ * ×4 like any footprint), or walk through a gate (P5.7, watch.ts), which keeps enemies out like a post.
  */
 import { CFG } from './config';
 import { clamp, dist } from '../shared/math';
@@ -17,11 +17,11 @@ const F = CFG.fences;
 
 export const isFence = (b: Building): boolean => b.type === 'fence';
 
-/** Tiles holding a finished fence (enemy-impassable). */
+/** Tiles holding a finished fence or gate (enemy-impassable). */
 export function fenceMask(s: WorldState): Uint8Array {
   const m = new Uint8Array(s.size.w * s.size.h);
   for (const b of s.buildings) {
-    if (!isFence(b) || !isComplete(b)) continue;
+    if ((!isFence(b) && b.type !== 'gate') || !isComplete(b)) continue;
     const x = Math.floor(b.pos.x), y = Math.floor(b.pos.y);
     if (x >= 0 && y >= 0 && x < s.size.w && y < s.size.h) m[y * s.size.w + x] = 1;
   }

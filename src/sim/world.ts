@@ -30,6 +30,7 @@ import { updateEggs } from './eggs';
 import { updateKnowledge } from './knowledge';
 import { updateSpoilage } from './spoilage';
 import { updateRacks } from './preserve';
+import { updateTraits } from './goblin/traits';
 
 /**
  * The live world: plain-data state plus derived, rebuildable caches (rng object, spatial hashes,
@@ -144,6 +145,7 @@ export class World {
     enemiesAct(this); //      14 enemies.act
     updateSocial(this); //    16 social (P5.1); 15 combat runs inside act
     updateKnowledge(this); // 17 culture: discovery (P5.5); 18 village, 19 clans
+    updateTraits(this); //    17b acquired traits (P5.7)
     if (s.tick % CFG.stats.sampleEvery === 0) sampleStats(this); // 20
     s.rngState = this.rng.state;
     const events = this.bus.flush(); // 21

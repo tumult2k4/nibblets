@@ -42,13 +42,20 @@ const goalText = (goal: Goal, w: World): string => goal.kind === 'build'
   ? t('goal.build', { b: t(`bld.${w.s.buildings.find((b) => b.id === goal.buildingId)?.type ?? 'hut'}`) })
   : t('goal.obtain', { n: goal.qty, item: t(`item.${goal.item}`) });
 
-/** Wounds, scars, life-history traits and fighting record, e.g. "limping · 1 scars · veteran · 5 fights, 2 kills". */
+/** Wounds, scars and fighting record, e.g. "limping · 1 scars · 5 fights, 2 kills". */
 function woundsLine(g: Goblin): string {
   const parts = g.health.injuries.map((i) => t(`injury.${i.kind}`));
   if (g.health.scars) parts.push(t('insp.scars', { n: g.health.scars }));
-  for (const tr of ['veteran', 'twin', 'orphan'] as const) if (g.traits.includes(tr)) parts.push(t(`insp.${tr}`));
   if (g.deeds.fights) parts.push(t('insp.fights', { n: g.deeds.fights, k: g.deeds.kills }));
   return parts.join(' · ');
+}
+
+const TRAIT_ICON: Record<string, string> = { veteran: 'spear', scarred: 'fang', green_thumb: 'leaf', orphan: 'heart', twin: 'egg', grudge_holder: 'curse' };
+/** Acquired traits (§7.7, P5.7) as icon chips; hover for what each does. */
+function traitChips(g: Goblin): HTMLElement | null {
+  if (!g.traits.length) return null;
+  return el('div.trait-chips', {}, ...g.traits.map((tr) =>
+    el('span.trait-chip', { 'data-tip': t(`atrait.${tr}.d`) }, icon(TRAIT_ICON[tr] ?? 'star'), el('span', { text: t(`atrait.${tr}`) }))));
 }
 
 export function statusTab(g: Goblin, w: World): HTMLElement {
@@ -76,6 +83,7 @@ export function statusTab(g: Goblin, w: World): HTMLElement {
     el('h3', { text: t('insp.health') }),
     row(t('insp.hp'), (g.health.hp / g.health.maxHp) * 100, `${Math.round(g.health.hp)}/${g.health.maxHp}`, needColor((g.health.hp / g.health.maxHp) * 100)),
     woundsLine(g) ? el('div.sub', { text: woundsLine(g) }) : null,
+    g.traits.length ? el('h3', { text: t('insp.lifeTraits') }) : null, traitChips(g),
   );
 }
 

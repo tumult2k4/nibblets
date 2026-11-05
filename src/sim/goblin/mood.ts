@@ -2,6 +2,7 @@ import { clamp, q4 } from '../../shared/math';
 import { CFG } from '../config';
 import type { Goblin } from '../state';
 import type { World } from '../world';
+import { twinOf } from './traits';
 
 /** Mood stub (P1): need-driven value + timed modifiers, smoothed. The full system is P8.1. */
 export function updateMood(w: World): void {
@@ -52,4 +53,9 @@ export function addMood(w: World, g: Goblin, id: string, amount: number, ticks: 
     existing.expiresTick = Math.max(existing.expiresTick, w.s.tick + ticks);
   } else g.mood.modifiers.push({ id, amount: q4(amount), expiresTick: w.s.tick + ticks });
   g.mood.value = q4(clamp(g.mood.value + amount * 0.5, -100, 100));
+  // twins feel each other's joys and sorrows (P5.7)
+  if (Math.abs(amount) >= CFG.traits.twinEchoMin && !id.startsWith('twin_') && g.traits.includes('twin')) {
+    const t = twinOf(g, w);
+    if (t) addMood(w, t, amount > 0 ? 'twin_joy' : 'twin_woe', amount * CFG.traits.twinEcho, ticks);
+  }
 }

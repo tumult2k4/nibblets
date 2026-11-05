@@ -7,6 +7,17 @@ const SQRT2 = Math.SQRT2;
 const MAX_EXPANSIONS = 9000;
 const CACHE_MAX = 600;
 
+let gateCache = { s: null as WorldState | null, ver: -1, tiles: new Set<number>() };
+/** Tiles holding a finished gate (P5.7): a way through the fence at walking pace. */
+export function gateTiles(s: WorldState): Set<number> {
+  if (gateCache.s !== s || gateCache.ver !== s.terrainVersion) {
+    const tiles = new Set<number>();
+    for (const b of s.buildings) if (b.type === 'gate' && b.buildProgress >= 1) tiles.add(tileIndex(s, Math.floor(b.pos.x), Math.floor(b.pos.y)));
+    gateCache = { s, ver: s.terrainVersion, tiles };
+  }
+  return gateCache.tiles;
+}
+
 /** Movement cost multiplier of a tile: wear>0.5 trails, marsh, forest, building footprints (changes bump terrainVersion). */
 export function tileCost(s: WorldState, i: number): number {
   const t = s.tiles[i]!;
@@ -14,7 +25,8 @@ export function tileCost(s: WorldState, i: number): number {
   if (t.wear > 0.5) c *= 0.8;
   if (t.biome === 'marsh') c *= 1.4;
   if (t.biome === 'forest') c *= 1.1;
-  if (t.occupiedBy !== null) c *= CFG.buildings.occupiedCost; // walk around buildings unless heading inside
+  // walk around buildings unless heading inside; climb a fence only where there is no gate
+  if (t.occupiedBy !== null && !gateTiles(s).has(i)) c *= CFG.buildings.occupiedCost;
   return c;
 }
 

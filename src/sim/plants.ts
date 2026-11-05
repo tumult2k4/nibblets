@@ -25,6 +25,10 @@ export const maxFruit = (p: Plant): number =>
       : p.kind === 'flower' && p.stage === 'mature' ? 1 : 0; // a flower's one bloom, picked for crowns (P5.6)
 
 /** Can a new plant take root here? Fertile, dry land, not adjacent to another plant (§P2.2). */
+/** What a goblin with the `green_thumb` trait planted grows half again as fast (P5.7). */
+const greenThumb = (w: World, by: number | null): number =>
+  by !== null && w.goblin(by)?.traits.includes('green_thumb') ? CFG.traits.greenThumbGrowth : 1;
+
 export function siteOk(w: World, pos: Vec2, minGap = 1.2, ignoreId?: ID): boolean {
   const t = tileAt(w.s, pos.x, pos.y);
   if (!t || !t.walkable || t.biome === 'water' || t.biome === 'rock' || t.biome === 'sand' || t.occupiedBy !== null) return false;
@@ -104,7 +108,7 @@ export function updatePlants(w: World): void {
       if (!isGrowing(p)) continue;
     }
     p.age = q4(p.age + dtDays);
-    const rate = hydrationCurve(p.hydration) * fertilityMul(t.fertility) * season;
+    const rate = hydrationCurve(p.hydration) * fertilityMul(t.fertility) * season * greenThumb(w, p.plantedBy);
     if (isGrowing(p)) {
       const days = P.stageDays[p.stage as keyof typeof P.stageDays] * (p.kind === 'tree' ? P.treeStageMul : 1);
       p.growth = q4(p.growth + (dtDays / days) * rate);

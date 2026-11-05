@@ -14,6 +14,7 @@ import { visionRadius } from '../considerations';
 import { harmless, running } from '../../enemies/common';
 import { isSleeping } from '../../goblin/goblin';
 import { isKin } from '../../goblin/social';
+import { grantTrait } from '../../goblin/traits';
 import type { ActionId, Enemy, Goblin } from '../../state';
 import type { World } from '../../world';
 import type { UtilityAction } from '../action';
@@ -115,10 +116,10 @@ function engageStart(g: Goblin, w: World, e: Enemy | null): boolean {
   return planPath(w, g, e.pos);
 }
 
-function endFight(g: Goblin): void {
+function endFight(g: Goblin, w: World): void {
   if (g.activity.stage < 1) return;
   g.deeds.fights++;
-  if (g.deeds.fights >= C.veteranFights && !g.traits.includes('veteran')) g.traits.push('veteran');
+  if (g.deeds.fights >= C.veteranFights) grantTrait(w, g, 'veteran');
 }
 
 /** Close in, then wind up, swing and cool down until the enemy is dead, gone or running. */
@@ -126,12 +127,12 @@ function engageStep(g: Goblin, w: World): 'running' | 'done' {
   const a = g.activity;
   const e = enemyById(w, a.targetId);
   const over = !e || e.mode === 'flee' || e.mode === 'leave' || w.s.tick - a.startedTick > C.fleeTicks * 3;
-  if (over || dist(e.pos, g.pos) > C.defendRange) { endFight(g); return 'done'; }
+  if (over || dist(e.pos, g.pos) > C.defendRange) { endFight(g, w); return 'done'; }
   const d = dist(e.pos, g.pos);
   if (d > reachOf(g)) {
     if (!a.path.length || (a.target && dist(a.target, e.pos) > 1)) {
       a.target = { ...e.pos };
-      if (!planPath(w, g, e.pos)) { endFight(g); return 'done'; }
+      if (!planPath(w, g, e.pos)) { endFight(g, w); return 'done'; }
     }
     moveAlong(w, g);
     a.progress = Math.max(a.progress, C.windupTicks);

@@ -98,6 +98,8 @@ const inspiration = (g: Goblin): number => (g.mood.modifiers.some((m) => m.id ==
 export function discoveryChance(g: Goblin, w: World, id: RecipeId): number {
   // the `--no-preserve` balance control: nobody ever thinks of putting food by
   if (!CFG.preserve.enabled && PRESERVE_IDS.has(id)) return 0;
+  const after = RECIPES[id]?.after;
+  if (after && !w.s.buildings.some((b) => b.type === after && b.buildProgress >= 1)) return 0;
   const near = inputsNear(g, w, id);
   if (near < K.minNear) return 0;
   const skill = skillLevel(g, RECIPES[id]?.skill ?? 'crafting');

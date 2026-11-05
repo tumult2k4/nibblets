@@ -7,6 +7,7 @@ import { buildingDef, missingMaterials } from '../../../sim/buildings';
 import { bar } from './goblinInspector';
 import { CFG } from '../../../sim/config';
 import { dryProgress, isDrying, rackDried, rackLoad } from '../../../sim/preserve';
+import { towerOf } from '../../../sim/watch';
 
 const row = (label: string, ...rest: (HTMLElement | string)[]) => el('div.row', {}, el('span.lbl', { text: label }), ...rest);
 
@@ -35,5 +36,7 @@ export function buildingBody(b: Building, w: World): HTMLElement {
     b.buildProgress >= 1 && def?.storage && b.type !== 'storage_pit' ? row(t('insp.storage'), el('span', { text: `${stored} (${b.storage.reduce((n, s) => n + s.qty, 0)}/${def.storage})` })) : null,
     b.type === 'drying_rack' && isDrying(b) ? row(t('insp.rack', { n: rackLoad(b) }), bar(dryProgress(b) * 100, 'var(--gold)'), el('span.val', { text: `${Math.round(dryProgress(b) * 100)}%` })) : null,
     b.type === 'drying_rack' && rackDried(b) > 0 ? el('div.sub', { text: t('insp.rackDone', { n: rackDried(b) }) }) : null,
+    b.type === 'watchtower' && b.buildProgress >= 1
+      ? row(t('insp.lookout'), el('span', { text: w.s.goblins.find((g) => towerOf(g, w)?.id === b.id)?.name ?? t('insp.nobody') })) : null,
   );
 }

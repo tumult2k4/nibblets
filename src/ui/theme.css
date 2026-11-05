@@ -30,6 +30,9 @@ button { font-family: var(--font); font-size: 1em; color: var(--ink); cursor: po
 .topbar .sep { width: 2px; align-self: stretch; background: var(--bark); opacity: .3; }
 .topbar .stat { display: inline-flex; gap: 4px; align-items: center; white-space: nowrap; }
 .topbar .grow { flex: 1; }
+.trait-chips { display: flex; flex-wrap: wrap; gap: 4px; margin: 2px 0 4px; }
+.trait-chip { display: inline-flex; align-items: center; gap: .3em; background: #f3e6c8; border: 2px solid var(--bark); border-radius: 999px; padding: 1px .6em 1px .3em; font-size: .9em; }
+.trait-chip .icon { width: 18px; height: 18px; }
 .badge { background: var(--gold); border: 2px solid var(--bark); border-radius: 999px; padding: 0 .6em; font-weight: 600; }
 .speed { display: inline-flex; gap: 4px; }
 .speed .btn { padding: .15em .5em; min-width: 2.4em; }

@@ -1,6 +1,6 @@
 /**
  * Recipe table (§11.1), content as config. `none` recipes are crafted by hand (Craft); `site` recipes become
- * building blueprints (hut P3, campfire P4.3, fence P4.6); `upgrade` turns a building into another (stone hut P4.6).
+ * building blueprints (hut P3, campfire P4.3, fence P4.6, P5.6–P5.7 stations); `upgrade` turns a building into another (stone hut P4.6).
  * Later phases append their rows. Recipes start unknown unless `known` (knowledge spreads in P5.5).
  */
 import type { BuildingType, ItemType, RecipeId, SkillId } from '../shared/types';
@@ -20,6 +20,8 @@ export interface RecipeDef {
   skill?: SkillId;
   /** discovery (P5.5/P5.6): what else must be within reach for the idea to come (apples for the drying rack) */
   near?: ItemType[];
+  /** discovery (P5.7): the idea only comes once one of these stands (a gate needs a fence to be a gate in) */
+  after?: BuildingType;
 }
 
 export const RECIPES: Record<RecipeId, RecipeDef> = {
@@ -44,6 +46,10 @@ export const RECIPES: Record<RecipeId, RecipeDef> = {
   grinding_stone: { inputs: { stone: 3 }, station: 'site', building: 'grinding_stone', known: false, phase: 5, near: ['apple'], skill: 'building' },
   drying_rack: { inputs: { wood: 3, rope: 2 }, station: 'site', building: 'drying_rack', known: false, phase: 5, near: ['apple'], skill: 'building' },
   storage_pit: { inputs: { stone: 2 }, station: 'site', building: 'storage_pit', known: false, phase: 5, near: ['apple'], skill: 'building' },
+  // P5.7: a bench to work at, and the village's defences grow a gate and a lookout once there is a fence
+  workbench: { inputs: { wood: 4, stone: 2 }, station: 'site', building: 'workbench', known: false, phase: 5, near: ['stick'], skill: 'building' },
+  gate: { inputs: { wood: 2, rope: 1 }, station: 'site', building: 'gate', known: false, phase: 5, after: 'fence', skill: 'building' },
+  watchtower: { inputs: { wood: 8, rope: 2 }, station: 'site', building: 'watchtower', known: false, phase: 5, after: 'fence', skill: 'building' },
 };
 
 export const recipeDef = (id: RecipeId): RecipeDef | undefined => RECIPES[id];

@@ -21,6 +21,7 @@ import { markDanger } from '../danger';
 import { shelterOf } from '../temperature';
 import { eggHut, guarded, loseEgg } from '../eggs';
 import { witnessFact } from '../knowledge';
+import { hasTrait } from '../goblin/traits';
 
 const E = CFG.enemies;
 const G = E.gnasher;
@@ -51,7 +52,7 @@ export function crowdAround(w: World, e: Enemy): number {
   let n = 0;
   for (const o of w.goblinHash.query(e.pos, E.crowdRadius)) {
     if (!awake(o) || o.lifeStage !== 'adult' || dist(o.pos, e.pos) > E.crowdRadius) continue;
-    n += bestWeapon(o) || torchLit(o, w) ? 1 : E.unarmedCrowd;
+    n += (bestWeapon(o) || torchLit(o, w) ? 1 : E.unarmedCrowd) * (hasTrait(o, 'scarred') ? CFG.traits.scarredCrowd : 1);
   }
   return n;
 }
@@ -79,7 +80,7 @@ function retreat(w: World, e: Enemy, from: Vec2): void {
 function nearestLone(w: World, e: Enemy): Goblin | null {
   let best: Goblin | null = null, bd: number = E.sightRange;
   for (const g of w.goblinHash.query(e.pos, E.sightRange)) {
-    const d = dist(g.pos, e.pos);
+    const d = dist(g.pos, e.pos) * (hasTrait(g, 'scarred') ? CFG.traits.scarredShun : 1); // a scarred face puts it off
     if (d < bd && isLone(w, g) && !scareAt(w, g.pos)) { bd = d; best = g; }
   }
   return best;

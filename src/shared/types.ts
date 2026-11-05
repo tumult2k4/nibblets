@@ -130,6 +130,9 @@ export type SimEvent = BaseEvent &
     | { type: 'poisoned'; goblinId: ID; item: ItemType }
     | { type: 'food_spoiled'; qty: number; items: Partial<Record<ItemType, number>> }
     | { type: 'food_processed'; goblinId: ID; buildingId: ID; item: ItemType; qty: number }
+    | { type: 'tower_warning'; goblinId: ID; enemyId: ID; kind: EnemyKind }
+    | { type: 'tool_mended'; goblinId: ID; item: ItemType }
+    | { type: 'trait_gained'; goblinId: ID; trait: string }
     | { type: 'sickness'; goblinId: ID; disease: DiseaseId; phase: 'infected' | 'symptomatic' | 'recovered' | 'died' }
     | { type: 'trinket_found'; goblinId: ID; trinket: TrinketKind; rarity: Rarity }
     | { type: 'mood_break'; goblinId: ID; kind: MoodBreakKind }

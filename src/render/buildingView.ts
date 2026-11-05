@@ -7,6 +7,7 @@ import { flatMat, flatMatDouble, merge, paint, wobble } from './lowpoly';
 import { pile } from './piles';
 import { campfireGeo } from './fireView';
 import { dryingRackGeo, grindingStoneGeo, rackItems, storagePitGeo } from './fiberMeshes';
+import { gateGeo, watchtowerGeo, workbenchGeo } from './stationMeshes';
 
 const HS = CFG.world.heightScale;
 const WOOD = '#9a6b3f', THATCH = '#d4a94e', DARK = '#4a3420';
@@ -73,13 +74,19 @@ function fenceGeo(mask: number): THREE.BufferGeometry {
   return geo;
 }
 const DIRS: [number, number][] = [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1]];
+function gateGeoCached(mask: number): THREE.BufferGeometry {
+  let g = GEOS.get(`gate:${mask}`);
+  if (!g) GEOS.set(`gate:${mask}`, (g = gateGeo(mask)));
+  return g;
+}
 
 const GHOST_MAT = new THREE.MeshLambertMaterial({ color: '#9ec5e8', transparent: true, opacity: 0.32, depthWrite: false, flatShading: true });
 const MAKERS: Partial<Record<Building['type'], () => THREE.BufferGeometry>> = {
   campfire: campfireGeo, stone_hut: stoneHutGeo, fence: () => fenceGeo(0),
   grinding_stone: grindingStoneGeo, drying_rack: dryingRackGeo, storage_pit: storagePitGeo,
+  workbench: workbenchGeo, watchtower: watchtowerGeo, gate: () => gateGeo(1),
 };
-/** Finished-building geometry by type (huts P3.3, campfire P4.3, preservation P5.6). */
+/** Finished-building geometry by type (huts P3.3, campfire P4.3, preservation P5.6, P5.7 stations). */
 function geoOf(type: Building['type']): THREE.BufferGeometry {
   let g = GEOS.get(type);
   if (!g) GEOS.set(type, (g = (MAKERS[type] ?? hutGeo)()));
@@ -111,10 +118,11 @@ export class BuildingViews {
 
   update(): void {
     const seen = new Set<number>();
-    const posts = new Set(this.w.s.buildings.filter((b) => b.type === 'fence' && b.buildProgress >= 1).map((b) => `${Math.floor(b.pos.x)},${Math.floor(b.pos.y)}`));
+    const ringed = (b: Building) => (b.type === 'fence' || b.type === 'gate') && b.buildProgress >= 1;
+    const posts = new Set(this.w.s.buildings.filter(ringed).map((b) => `${Math.floor(b.pos.x)},${Math.floor(b.pos.y)}`));
     for (const b of this.w.s.buildings) {
       seen.add(b.id);
-      const mask = b.type === 'fence' && b.buildProgress >= 1 ? this.fenceMask(b, posts) : 0;
+      const mask = ringed(b) ? this.fenceMask(b, posts) : 0;
       const sig = sigOf(b, mask);
       const v = this.views.get(b.id);
       if (v && v.sig === sig) continue;
@@ -149,13 +157,13 @@ export class BuildingViews {
   private build(b: Building, fenceMask: number): THREE.Group {
     const g = new THREE.Group();
     g.position.set(b.pos.x, heightAt(this.w.s, b.pos) * HS, b.pos.y);
-    const fence = b.type === 'fence';
-    g.rotation.y = fence ? 0 : (b.rotation * Math.PI) / 2 + ((b.id * 0.37) % 0.6) - 0.3; // rails line up with the grid
+    const fence = b.type === 'fence', ring = fence || b.type === 'gate';
+    g.rotation.y = ring ? 0 : (b.rotation * Math.PI) / 2 + ((b.id * 0.37) % 0.6) - 0.3; // rails line up with the grid
     g.userData = { buildingId: b.id };
     const geo = geoOf(b.type);
     const hut = b.type === 'hut' || b.type === 'stone_hut';
     if (b.buildProgress >= 1) {
-      const m = new THREE.Mesh(fence ? fenceGeo(fenceMask) : geo, flatMat);
+      const m = new THREE.Mesh(fence ? fenceGeo(fenceMask) : b.type === 'gate' ? gateGeoCached(fenceMask) : geo, flatMat);
       m.castShadow = m.receiveShadow = true;
       g.add(m);
       if (b.type === 'drying_rack') { // the batch hangs on the rails

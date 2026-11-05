@@ -6,6 +6,15 @@ import type { World } from './world';
 import { goblinSpeed } from './goblin/goblin';
 import { groundSpeedMul } from './weather';
 import type { Vec2 } from '../shared/types';
+import { gateTiles } from './pathfinding';
+
+/** On a fence post, not a gate: goblins climb over, slowly (P5.7). */
+export function climbing(w: World, p: Vec2): boolean {
+  const x = Math.floor(p.x), y = Math.floor(p.y);
+  if (x < 0 || y < 0 || x >= w.s.size.w || y >= w.s.size.h) return false;
+  const i = y * w.s.size.w + x;
+  return w.enemyBlocked()[i] === 1 && !gateTiles(w.s).has(i);
+}
 
 /** Plan a path for the goblin's current activity to `to`. Returns false if unreachable. */
 export function planPath(w: World, g: Goblin, to: Vec2): boolean {
@@ -29,7 +38,7 @@ export function moveAlong(w: World, g: Goblin, speedMul = 1): 'arrived' | 'movin
     g.velocity = { x: 0, y: 0 };
     return 'arrived';
   }
-  const speed = goblinSpeed(g) * speedMul * groundSpeedMul(w, g.pos);
+  const speed = goblinSpeed(g) * speedMul * groundSpeedMul(w, g.pos) * (climbing(w, g.pos) ? CFG.watch.climbSpeed : 1);
   const dx = wp.x - g.pos.x;
   const dy = wp.y - g.pos.y;
   const d = Math.hypot(dx, dy);

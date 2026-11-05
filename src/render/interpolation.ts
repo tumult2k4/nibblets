@@ -1,6 +1,9 @@
 import type { World } from '../sim/world';
 import { heightAt } from '../sim/grid';
 import { CFG } from '../sim/config';
+import { elevation } from '../sim/watch';
+import { climbing } from '../sim/steering';
+import type { Goblin } from '../sim/state';
 
 export interface P3 { x: number; y: number; z: number; facing: number }
 
@@ -21,13 +24,18 @@ export class Interp {
     return heightAt(this.w.s, { x, y }) * CFG.world.heightScale;
   }
 
+  /** Up a watchtower, or halfway over a fence (P5.7). */
+  private lift(g: Goblin): number {
+    return elevation(g, this.w) + (climbing(this.w, g.pos) ? 0.25 : 0);
+  }
+
   /** Call after each sim tick. */
   capture(): void {
     this.prev = this.cur;
     const cur = new Map<number, P3>();
     const s = this.w.s;
     for (const g of s.goblins)
-      cur.set(g.id, { x: g.pos.x, y: g.pos.y, z: g.airborne ? g.airborne.z : this.alt(g.pos.x, g.pos.y), facing: g.facing });
+      cur.set(g.id, { x: g.pos.x, y: g.pos.y, z: g.airborne ? g.airborne.z : this.alt(g.pos.x, g.pos.y) + this.lift(g), facing: g.facing });
     for (const e of s.enemies) cur.set(e.id, { x: e.pos.x, y: e.pos.y, z: this.alt(e.pos.x, e.pos.y), facing: e.facing });
     for (const it of s.groundItems)
       cur.set(it.id, { x: it.pos.x, y: it.pos.y, z: it.airborne ? it.airborne.z : this.alt(it.pos.x, it.pos.y), facing: 0 });

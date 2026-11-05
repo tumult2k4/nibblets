@@ -188,7 +188,7 @@ export interface WorldState {
   wildlife: unknown[]; groundItems: GroundItem[]; buildings: Building[]; fires: unknown[]; enemies: Enemy[];
   /** spawn director: last budgeted night, queued spawn ticks, enemies spotted so far (drives fencing), and recent
    * danger marks (sightings, bites, thefts, smashes, deaths) for the danger lens (P4.8) */
-  threat: { night: number; spawnAt: number[]; alarms: number; marks: DangerMark[] };
+  threat: { night: number; spawnAt: number[]; alarms: number; marks: DangerMark[]; /** P5.7 tower warning: until when, and where the threat was seen */ warnUntil?: number; warnAt?: Vec2 };
   graves: { id: ID; goblinId: ID; name: string; pos: Vec2; tick: number; cause: string }[];
   lineage: Record<number, LineageEntry>;
   places: unknown[]; clans: Clan[]; village: VillageState; god: GodState;
