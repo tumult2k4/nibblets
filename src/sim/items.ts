@@ -19,6 +19,7 @@ export const ITEM_DEFS: Partial<Record<ItemType, ItemDef>> = {
   apple_mash: { stack: 10, weight: 1, nutrition: F.apple_mash, decayDays: 3, value: 3, tray: 'food' },
   berry: { stack: 20, weight: 0.3, nutrition: F.berry, decayDays: 3, value: 1, tray: 'food' },
   mushroom: { stack: 10, weight: 0.5, nutrition: F.mushroom, decayDays: 4, value: 1, tray: 'food' },
+  glowcap: { stack: 10, weight: 0.3, nutrition: F.glowcap, decayDays: 6, value: 2 },
   fish: { stack: 5, weight: 1, nutrition: F.fish, decayDays: 2, value: 3, tray: 'food' },
   stew: { stack: 3, weight: 1.5, nutrition: F.stew, decayDays: 2, value: 6, tray: 'food' },
   wood: { stack: 10, weight: 2, value: 3, burnable: true, tray: 'materials' },

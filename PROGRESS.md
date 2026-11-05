@@ -1,5 +1,5 @@
 # Nibblets progress
-Current: P3.6 — SeekShelter, WarmUp, storm damage + repair, Forage mushrooms
+Current: P3.7 — weather FX (rain/snow particles, storm sky + lightning flash, fog density, wet terrain tint, hut window light)
 ## Done
 - [x] P1.1 scaffold: Vite + strict TS, ESLint flat config with sim architecture rules, Prettier, Vitest, scripts
 - [x] P1.2 shared/: math, ids, mulberry32 Rng with fork(label), typed EventBus
@@ -30,7 +30,7 @@ Current: P3.6 — SeekShelter, WarmUp, storm damage + repair, Forage mushrooms
 - [x] P3.4 huts: ClaimHome (free bed in a built/planned hut, else plan a new one; ≤ 2 unsupplied blueprints), capacity 2, home pantry (storage 6) for surplus food, SleepHome (2× restore, sheltered +8 °C), chop also feeds blueprints, bed freed on death; building picking + inspector, housed count, feed notes
 - [x] P3.5 planner goal stack: pure `resolve` (build → deliver/labor/obtain; obtain → stockpile via GatherForGoal, loose items, chop, explore), max depth 4, ×1.5 focus with a 0.25 floor, abandon after 300 ticks of urgent pre-emption, ClaimHome pushes build goals; goal line in the inspector, focus column in the debug overlay
 ## Next
-- [ ] P3.6 SeekShelter, WarmUp; storm building damage + repair need flag; Forage mushrooms
+- [x] P3.6 SeekShelter (home → any hut within 25 → tree shade in heatwaves; waits it out; storm/blizzard interrupt), WarmUp (roof → huddle partner, friends first → sunshine), huddling +2 °C per goblin (max +4), heatwave shade spares the extra thirst; storms batter huts below 50 % hp, repair flag below 70 %, destroyBuilding; mushrooms (worldgen scatter, forest/marsh sprouting ×season, mostly in rain, rot after 4 days), Forage (brown/glowcap, redcap ignored), mushroom memory; instanced mushroom meshes with night-glowing glowcaps; shelter/huddle/forage poses, inspector tags
 ## Notes / known issues
 - Balance (32 days × 5 seeds, after P3.4): 0 deaths, 5 huts and 100 % housed by the end of autumn on every seed, 29–55 goblin-planted mature bushes, ~0.14 ms/tick.
 - Balance (20 days × 5 seeds, after P2): population 10, 0 deaths, 25–36 goblin-planted mature bushes, apple bushes 70→~105, ~29 wood stored, ~0.12 ms/tick.

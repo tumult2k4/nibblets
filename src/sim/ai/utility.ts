@@ -13,6 +13,8 @@ import { Chop } from './actions/chop';
 import { Build, DeliverMaterial } from './actions/build';
 import { ClaimHome, SleepHome } from './actions/home';
 import { GatherForGoal } from './actions/gatherForGoal';
+import { SeekShelter, WarmUp, stormCaught } from './actions/shelter';
+import { Forage } from './actions/forage';
 import { findChopTarget } from './actions/chop';
 import { planFor } from './planner';
 import { Explore } from './actions/explore';
@@ -31,6 +33,7 @@ export const ACTIONS: Record<ActionId, UtilityAction> = {
   eat_core: EatCore, plant_seed: PlantSeed, water_plant: WaterPlant,
   chop: Chop, store_item: StoreItem, take_item: TakeItem, explore: Explore, deliver_material: DeliverMaterial, build: Build,
   claim_home: ClaimHome, sleep_home: SleepHome, gather_for_goal: GatherForGoal,
+  seek_shelter: SeekShelter, warm_up: WarmUp, forage: Forage,
 };
 const CHOOSABLE = (Object.values(ACTIONS) as UtilityAction[]).filter((a) => !a.forced);
 
@@ -97,7 +100,8 @@ export function think(w: World): void {
     if (g.heldByGod || g.airborne) continue;
     const cur = ACTIONS[g.activity.action];
     const finished = g.activity.status !== 'running';
-    const due = s.tick % iv === g.id % iv;
+    // §7.2 interrupts: a storm caught outdoors re-decides at once (rate-limited to every 10 ticks)
+    const due = s.tick % iv === g.id % iv || (s.tick - g.lastDecisionTick >= 10 && stormCaught(g, w));
     if (!finished && (!due || !cur.interruptible)) continue;
     const rows = scoreActions(g, w, true, planFor(g, w, (gg, ww) => !!findChopTarget(gg, ww)));
     g.lastDecisionTick = s.tick;

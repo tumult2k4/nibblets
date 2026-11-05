@@ -11,6 +11,8 @@ export const EN = {
   'weather.snow': 'Snow', 'weather.blizzard': 'Blizzard', 'weather.heatwave': 'Heatwave', 'weather.forecast': 'Forecast: {w} for the next hours',
   'weather.forecast2': 'Now: {now}, {t}°C · next ~{h} h: {next}', 'weather.setHint': 'click to set the weather',
   'ev.hut_planned': '{name} is planning a hut.', 'ev.hut_built': 'A new hut is finished!', 'ev.home_claimed': '{name} moved into a hut.',
+  'act.seek_shelter': 'Taking shelter', 'act.warm_up': 'Warming up', 'act.forage': 'Foraging mushrooms', 'item.glowcap': 'Glowcap',
+  'ev.hut_lost': 'The storm brought down a hut!', 'insp.repair': 'needs repair', 'insp.huddle': 'huddling',
   'insp.building': 'Building', 'insp.progress': 'Progress', 'insp.hpLbl': 'Condition', 'insp.owner': 'Owner', 'insp.residents': 'Residents',
   'insp.storage': 'Storage', 'insp.needsMat': 'Waiting for', 'insp.nobody': 'nobody', 'insp.storeEmpty': 'empty', 'insp.blueprint': 'planned', 'insp.done': 'finished',
   'insp.homeless': 'homeless', 'insp.goal': 'Goal', 'goal.build': 'build a {b}', 'goal.obtain': 'get {n} {item}', 'act.gather_for_goal': 'Fetching materials', 'ev.goal_abandoned': '{name} gave up on a plan.', 'bld.hut': 'Hut', 'top.housed': 'Housed {n}/{m}',

@@ -12,7 +12,7 @@ const row = (label: string, ...rest: (HTMLElement | string)[]) => el('div.row', 
 export function buildingHead(b: Building, onClose: () => void): HTMLElement {
   return el('div.insp-head', {}, icon('hill', 'portrait'),
     el('div', {}, el('h2', { text: t(`bld.${b.type}`) }),
-      el('div.sub', { text: `${t('insp.building')} · ${b.buildProgress >= 1 ? t('insp.done') : t('insp.blueprint')}` }),
+      el('div.sub', { text: `${t('insp.building')} · ${b.buildProgress >= 1 ? t('insp.done') : t('insp.blueprint')}${b.data?.repair ? ` · ${t('insp.repair')}` : ''}` }),
       el('button.btn', { onclick: onClose }, icon('close'))));
 }
 

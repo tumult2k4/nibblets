@@ -82,7 +82,7 @@ describe('other plants (§8.2, P2.5)', () => {
     expect(b.fruit).toBe(CFG.plants.maxBerries);
     const g = spawnGoblin(w);
     const before = w.s.plants.filter((p) => p.kind === 'berry_bush').length;
-    for (let i = 0; i < 80; i++) {
+    for (let i = 0; i < 160; i++) { // 5% per berry: 160 tries keep the odds of zero seeds negligible
       g.inventory = [{ type: 'berry', qty: 1 }];
       g.needs.hunger = 30;
       runTicks(w, HOUR / 2, () => g.inventory.length === 0);

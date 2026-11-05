@@ -13,6 +13,8 @@ export const DE: Record<keyof typeof EN, string> = {
   'weather.snow': 'Schnee', 'weather.blizzard': 'Schneesturm', 'weather.heatwave': 'Hitzewelle', 'weather.forecast': 'Vorhersage: {w} in den nächsten Stunden',
   'weather.forecast2': 'Jetzt: {now}, {t}°C · in ~{h} Std.: {next}', 'weather.setHint': 'klicken, um das Wetter zu setzen',
   'ev.hut_planned': '{name} plant eine Hütte.', 'ev.hut_built': 'Eine neue Hütte ist fertig!', 'ev.home_claimed': '{name} ist in eine Hütte gezogen.',
+  'act.seek_shelter': 'Sucht Schutz', 'act.warm_up': 'Wärmt sich auf', 'act.forage': 'Sammelt Pilze', 'item.glowcap': 'Leuchtkappe',
+  'ev.hut_lost': 'Der Sturm hat eine Hütte zerstört!', 'insp.repair': 'reparaturbedürftig', 'insp.huddle': 'kuschelt',
   'insp.building': 'Gebäude', 'insp.progress': 'Fortschritt', 'insp.hpLbl': 'Zustand', 'insp.owner': 'Besitzer', 'insp.residents': 'Bewohner',
   'insp.storage': 'Vorrat', 'insp.needsMat': 'Wartet auf', 'insp.nobody': 'niemand', 'insp.storeEmpty': 'leer', 'insp.blueprint': 'geplant', 'insp.done': 'fertig',
   'insp.homeless': 'obdachlos', 'insp.goal': 'Ziel', 'goal.build': '{b} bauen', 'goal.obtain': '{n} {item} besorgen', 'act.gather_for_goal': 'Holt Material', 'ev.goal_abandoned': '{name} hat einen Plan aufgegeben.', 'bld.hut': 'Hütte', 'top.housed': 'Behaust {n}/{m}',

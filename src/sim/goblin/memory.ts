@@ -7,7 +7,7 @@ import { shoreTiles } from '../ai/targets';
 import { visionRadius } from '../ai/considerations';
 
 const M = CFG.memory;
-type Kind = 'fruit_plant' | 'water' | 'rock' | 'stockpile' | 'place';
+type Kind = 'fruit_plant' | 'water' | 'rock' | 'stockpile' | 'place' | 'mushroom';
 
 /** Add or refresh a memory (§7.8). Same target id, or same kind within `mergeDist` for untargeted ones. */
 export function remember(g: Goblin, w: World, kind: Kind, pos: Vec2, data = 0, targetId?: ID): void {
@@ -34,7 +34,7 @@ export function forget(g: Goblin, kind: string, targetId: ID): void {
 
 export const memoriesOf = (g: Goblin, kind: Kind): MemoryEntry[] => g.memory.filter((m) => m.kind === kind);
 
-/** Look around: remember fruit plants, water, rocks and the stockpile within vision. */
+/** Look around: remember fruit plants, mushrooms, water, rocks and the stockpile within vision. */
 export function sense(g: Goblin, w: World, radius?: number): void {
   const r = radius ?? visionRadius(g, w);
   for (const p of w.plantHash.query(g.pos, r)) {
@@ -53,6 +53,10 @@ export function sense(g: Goblin, w: World, radius?: number): void {
     if (d < bd) { bd = d; best = t; }
   }
   if (best) remember(g, w, 'water', best);
+  // edible mushrooms in view are remembered; vanished ones forgotten (redcap danger is learned in P5)
+  for (const m of w.s.mushrooms)
+    if (m.kind !== 'redcap' && Math.hypot(m.pos.x - g.pos.x, m.pos.y - g.pos.y) < r) remember(g, w, 'mushroom', m.pos, 0, m.id);
+  g.memory = g.memory.filter((m) => !(m.kind === 'mushroom' && Math.hypot(m.pos.x - g.pos.x, m.pos.y - g.pos.y) < r * 0.8 && !w.s.mushrooms.some((x) => x.id === m.targetId)));
   for (const rk of w.s.rocks) if (Math.hypot(rk.pos.x - g.pos.x, rk.pos.y - g.pos.y) < r) remember(g, w, 'rock', rk.pos, rk.stoneLeft, rk.id);
   const sp = w.s.village.stockpilePos;
   if (Math.hypot(sp.x - g.pos.x, sp.y - g.pos.y) < r) remember(g, w, 'stockpile', sp);

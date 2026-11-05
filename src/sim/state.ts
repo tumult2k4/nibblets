@@ -36,7 +36,7 @@ export interface HealthState { hp: number; maxHp: number; injuries: number; dise
 export type ActionId =
   | 'idle' | 'wander' | 'harvest_fruit' | 'eat' | 'drink' | 'sleep_ground' | 'pick_up' | 'drop' | 'look_up' | 'struggle'
   | 'eat_core' | 'plant_seed' | 'water_plant' | 'chop' | 'store_item' | 'take_item' | 'explore'
-  | 'deliver_material' | 'build' | 'claim_home' | 'sleep_home' | 'gather_for_goal';
+  | 'deliver_material' | 'build' | 'claim_home' | 'sleep_home' | 'gather_for_goal' | 'seek_shelter' | 'warm_up' | 'forage';
 
 export interface ActivityState {
   action: ActionId;

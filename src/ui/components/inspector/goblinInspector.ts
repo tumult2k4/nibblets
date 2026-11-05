@@ -13,7 +13,7 @@ import { slotCount } from '../../../sim/inventory';
 import { icon, ITEM_ICON } from '../../icons';
 import { portraits } from '../../../render/portraits';
 import { CFG } from '../../../sim/config';
-import { feltTemperature, isWet, shelterOf } from '../../../sim/temperature';
+import { feltTemperature, isWet, shelterOf, huddleBonus } from '../../../sim/temperature';
 
 export const bar = (v: number, color = 'var(--moss)'): HTMLElement => el('div.bar', {}, el('i', { style: `width:${Math.max(0, Math.min(100, v))}%;background:${color}` }));
 const row = (label: string, v: number, shown: string, color?: string) =>
@@ -46,6 +46,7 @@ export function statusTab(g: Goblin, w: World): HTMLElement {
   const tags = [t('insp.felt', { t: Math.round(feltTemperature(w, g)) })];
   if (isWet(w, g)) tags.push(t('insp.wet'));
   if (shelterOf(w, g)) tags.push(t('insp.sheltered'));
+  if (huddleBonus(w, g) > 0) tags.push(t('insp.huddle'));
   const home = g.homeId !== null ? w.s.buildings.find((b) => b.id === g.homeId) : undefined;
   tags.push(home ? `${t('bld.hut')} ${home.buildProgress >= 1 ? '' : `(${t('insp.blueprint')})`}`.trim() : t('insp.homeless'));
   const mood = g.mood.value;

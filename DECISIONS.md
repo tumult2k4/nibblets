@@ -72,3 +72,14 @@ Small choices the design doc left open, one line of rationale each.
 - **The planned step gets ×1.5 focus and a 0.25 score floor** so cheap steps such as Explore still happen while needs are calm; urgent needs still win and, after 300 ticks of urgency > 0.85, the whole stack is abandoned (`goal_abandoned`).
 - **Pre-emption time lives on the root goal entry** (saved state), not in a module map, so saves and replays stay bit-identical.
 - **DeliverMaterial handles stockpile pickup itself**, so the planner only pushes `obtain` when the stockpile is empty. Partial loads are delivered as they come.
+
+## P3.6 shelter, warmth, storms, mushrooms
+- **SeekShelter is a normal action plus a storm interrupt**: rain/snow/heatwave are scored (0.45/0.3/0.25, damped by hunger/thirst), storm and blizzard re-decide at once (rate-limited to every 10 ticks per goblin). Once sheltering it stays available so the goblin waits instead of wandering back out; it ends when the weather clears or after 900 ticks.
+- **Guests are welcome**: any finished hut within 25 tiles shelters anyone (no capacity for guests); only beds are limited.
+- **Heatwave shade** = under a roof or within 1.2 of a mature tree; shaded goblins skip the ×1.8 heatwave thirst. No overheating mechanic yet.
+- **WarmUp picks the cheapest of roof (distance), huddle (distance ×0.6 for friends, +8) and sunshine (daylight, clear/heatwave)**. Huddle partners must be standing still; if they walk off the action fails and re-plans.
+- **Huddling is positional**: +2 °C felt per goblin within 1.1 (max +4), so hut-mates sleeping side by side warm each other too.
+- **Storm damage follows §9.1 literally**: only buildings already below 50 % hp take 4 hp/h in storms; stone huts are storm-proof. Since nothing else wears huts down until P4 (raids) and P6 (fire), storms are harmless to healthy huts for now. The `repair` flag (hp < 70 %) waits for RepairBuilding (P4.6). Natural lightning is deferred to P6.2 with fire.
+- **Mushrooms**: 25 at worldgen, then every 300 ticks up to 6 × season (autumn ×2, winter 0) random tries on forest/marsh tiles; dry weather only keeps 30 % of tries. They rot after 4 days; cap 70. Redcaps are never foraged (or remembered) until P5 knowledge brings the danger.
+- **Test worlds clear worldgen mushrooms** like other scatter; an rng-luck test (berry accidental seeding) was given more trials after the new rng consumer shifted its stream.
+

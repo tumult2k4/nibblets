@@ -45,7 +45,7 @@ export const CFG = {
   },
   memory: {
     capacity: 60, forgetBelow: 0.1, senseEvery: 20, initialRadius: 24, mergeDist: 3,
-    decayPerDay: { fruit_plant: 0.25, enemy_sighting: 0.5, building: 0.02, stockpile: 0.02, water: 0.02, rock: 0.02, default: 0.1 } as Record<string, number>,
+    decayPerDay: { fruit_plant: 0.25, mushroom: 0.4, enemy_sighting: 0.5, building: 0.02, stockpile: 0.02, water: 0.02, rock: 0.02, default: 0.1 } as Record<string, number>,
     exploreMin: 12, exploreMax: 28, exploreCuriosityMul: 1.6,
   },
   terraform: {
@@ -80,6 +80,19 @@ export const CFG = {
   },
   /** P3.5 planner goal stack (§7.4) */
   planner: { focus: 1.5, floor: 0.25, maxDepth: 4, abandonUrgency: 0.85, abandonTicks: 300, groundSearch: 20 },
+  /** P3.6 shelter, warming up, storms, mushrooms */
+  shelter: {
+    seekScore: { rain: 0.45, storm: 0.75, snow: 0.3, blizzard: 0.9, heatwave: 0.25 } as Record<string, number>,
+    guestRadius: 25, shadeRadius: 12, maxWaitTicks: 900, warmUpBelow: 45, warmUpDoneAt: 70, warmUpMaxTicks: 600,
+    huddleRadius: 1.1, huddlePerGoblin: 2, huddleMax: 4,
+  },
+  /** §9.1 storms batter weakened buildings; RepairBuilding (P4.6) acts on the repair flag, lightning arrives with fire (P6.2) */
+  storms: { stormProof: ['stone_hut'] as string[], weakBelow: 0.5, dmgPerHour: 4, repairBelow: 0.7 },
+  mushrooms: {
+    every: 300, lifeDays: 4, cap: 70, initial: 25, spawnTries: 6, minGap: 1.5,
+    seasonMul: { spring: 1, summer: 0.6, autumn: 2, winter: 0 },
+    kinds: { brown: 0.7, glowcap: 0.15, redcap: 0.15 } as Record<string, number>, forageTicks: 20, dryChance: 0.3,
+  },
   /** P3.4 homes */
   homes: {
     maxOpenBlueprints: 2, claimBase: 0.22, claimSeason: { spring: 0, summer: 0.05, autumn: 0.15, winter: 0.25 }, homeSleepPref: 1.15,

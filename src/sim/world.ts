@@ -13,6 +13,8 @@ import { updateMood } from './goblin/mood';
 import { updateSenses } from './goblin/memory';
 import { updateWear } from './god/terraform';
 import { updateWeather } from './weather';
+import { updateStorms } from './storms';
+import { updateEcology } from './ecology';
 import { think, act } from './ai/utility';
 import { updateGod } from './god/godState';
 import { sampleStats } from './stats';
@@ -84,9 +86,10 @@ export class World {
     if (this.clock.season !== prev.season)
       this.emit({ type: 'season_changed', season: this.clock.season, year: this.clock.year });
     updateWeather(this); //   2 weather + temperature + wetness
+    updateStorms(this); //    2b storm damage to weakened buildings
     updateTiles(this); //     3
     updatePlants(this); //    4
-    //                        5 ecology (P2+), 6 fire (P6)
+    updateEcology(this); //   5 ecology: mushrooms (wildlife P7); 6 fire (P6)
     updateGroundItems(this); // 7 (+ airborne items)
     //                        8 eggs (P5)
     updateGod(this); //       8b

@@ -6,6 +6,7 @@ import { CFG } from './config';
 import type { Tile, WorldState, Plant } from './state';
 import { inBounds, tileAt, tileIndex } from './grid';
 import { allocId } from '../shared/ids';
+import { pickMushroomKind, spawnMushroom } from './ecology';
 
 export type TerrainPreset = 'island' | 'valley' | 'archipelago' | 'riverlands';
 export const TERRAIN_PRESETS: readonly TerrainPreset[] = ['island', 'valley', 'archipelago', 'riverlands'];
@@ -121,6 +122,8 @@ export function scatterResources(s: WorldState, rng: Rng): void {
   }
   for (const p of poissonScatter(s, rng, C.grassPatches, 1.5, biomeIs('meadow'), []))
     s.grass.push({ id: allocId(s), pos: p, density: q4(rng.range(0.4, 1)) });
+  for (const p of poissonScatter(s, rng, CFG.mushrooms.initial, CFG.mushrooms.minGap, biomeIs('forest', 'marsh'), taken))
+    spawnMushroom(s, p, pickMushroomKind(rng), rng.range(0, CFG.mushrooms.lifeDays * 0.6));
 }
 
 /** Pick a village center: walkable meadow tile with water within 4–12 tiles, close to the map center. */

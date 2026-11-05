@@ -7,7 +7,7 @@ import type { World } from '../world';
 import { express, lifeStageForAge } from './genetics/phenotype';
 import { ageDays, isSleeping } from './goblin';
 import { allocId } from '../../shared/ids';
-import { coldDamage, warmthDelta } from '../temperature';
+import { coldDamage, inShade, warmthDelta } from '../temperature';
 import { weatherAt } from '../weather';
 
 const WORK_ACTIONS = new Set(['harvest_fruit', 'pick_up', 'chop', 'build', 'deliver_material']);
@@ -40,7 +40,7 @@ export function updateBodies(w: World): void {
   const s = w.s;
   const dead: { g: Goblin; cause: DeathCause }[] = [];
   for (const g of s.goblins) {
-    const heat = weatherAt(w, g.pos) === 'heatwave';
+    const heat = weatherAt(w, g.pos) === 'heatwave' && !inShade(w, g);
     for (const n of ACTIVE) g.needs[n] = q4(clamp(g.needs[n] - needDecay(g, n, w.clock.season, heat), 0, 100));
     const warm0 = g.needs.warmth;
     g.needs.warmth = q4(clamp(warm0 + warmthDelta(w, g), 0, 100));

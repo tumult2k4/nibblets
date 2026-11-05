@@ -9,6 +9,7 @@ import { addMood } from './goblin/mood';
 import { RAINY, weatherAt } from './weather';
 
 const T = CFG.temperature;
+const SH = CFG.shelter;
 
 /** Seasonal base, blended from the previous season over the first day of a new one. */
 export function seasonBase(c: ClockState): number {
@@ -43,10 +44,27 @@ export function shelterOf(w: World, g: Goblin): Building | null {
 
 export const isWet = (w: World, g: Goblin): boolean => g.wetUntil > w.s.tick;
 
-/** Felt temperature: air + shelter (+ fire P4, clothing P5) − wet penalty. */
+/** §P3.6 huddling: +2 °C per goblin pressed close (max +4). */
+export function huddleBonus(w: World, g: Goblin): number {
+  if (g.airborne) return 0;
+  let n = 0;
+  for (const o of w.goblinHash.query(g.pos, SH.huddleRadius))
+    if (o.id !== g.id && !o.airborne && Math.hypot(o.pos.x - g.pos.x, o.pos.y - g.pos.y) <= SH.huddleRadius) n++;
+  return Math.min(SH.huddleMax, n * SH.huddlePerGoblin);
+}
+
+/** In shade from the heatwave sun: under a roof or a tree crown. */
+export function inShade(w: World, g: Goblin): boolean {
+  if (shelterOf(w, g)) return true;
+  for (const p of w.plantHash.query(g.pos, 1.5))
+    if (p.kind === 'tree' && (p.stage === 'mature' || p.stage === 'old') && Math.hypot(p.pos.x - g.pos.x, p.pos.y - g.pos.y) < 1.2) return true;
+  return false;
+}
+
+/** Felt temperature: air + shelter + huddle (+ fire P4, clothing P5) − wet penalty. */
 export function feltTemperature(w: World, g: Goblin): number {
   const home = shelterOf(w, g);
-  return airAt(w, g.pos) + (home ? T.shelter[home.type]! : 0) - (isWet(w, g) ? T.wetPenalty : 0);
+  return airAt(w, g.pos) + (home ? T.shelter[home.type]! : 0) + huddleBonus(w, g) - (isWet(w, g) ? T.wetPenalty : 0);
 }
 
 /** Lowest comfortable felt temperature for this goblin (cold-tolerant goblins shrug off more). */

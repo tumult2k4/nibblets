@@ -4,6 +4,7 @@ import type { ID } from '../shared/types';
 import { TerrainMesh, makeWater } from './terrainMesh';
 import { SkyLights } from './sky';
 import { Props } from './props';
+import { MushroomViews } from './mushroomView';
 import { GoblinViews } from './goblinView';
 import { Emotes } from './emotes';
 import type { TerrainLens } from './terrainMesh';
@@ -33,6 +34,7 @@ export class Renderer {
   props!: Props;
   goblins!: GoblinViews;
   buildings!: BuildingViews;
+  mushrooms!: MushroomViews;
   interp!: Interp;
   sky: SkyLights;
   private water!: ReturnType<typeof makeWater>;
@@ -67,9 +69,10 @@ export class Renderer {
     this.props = new Props(w);
     this.goblins = new GoblinViews(w);
     this.buildings = new BuildingViews(w);
+    this.mushrooms = new MushroomViews(w);
     this.goblins.outlines = this.settings.outlines;
     this.interp = new Interp(w);
-    this.worldGroup.add(this.terrain.group, this.water.mesh, this.props.group, this.buildings.group, this.goblins.group);
+    this.worldGroup.add(this.terrain.group, this.water.mesh, this.props.group, this.buildings.group, this.mushrooms.group, this.goblins.group);
     const c = w.s.village.center;
     this.camera.setTarget(c.x, c.y, true);
   }
@@ -148,6 +151,7 @@ export class Renderer {
       if (shaped) {
         this.props.buildStatic();
         this.buildings.reseat();
+        this.mushrooms.update(this.sky.night, true);
       }
     }
     const season = seasonLook(w.clock);
@@ -155,6 +159,7 @@ export class Renderer {
     this.props.setLook(season.look, season.sig);
     this.props.update(this.interp, alpha);
     this.buildings.update();
+    this.mushrooms.update(this.sky.night);
     this.goblins.update(this.interp, alpha, this.time, this.sky.night, dt);
     this.ambientEmotes(dt);
     this.emotes.update(dt, (id) => this.goblins.headPos(id), this.camera.dist);

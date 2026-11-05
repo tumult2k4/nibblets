@@ -24,6 +24,7 @@ export function personalityWeight(p: Personality, action: string): number {
   switch (action) {
     case 'eat':
     case 'harvest_fruit':
+    case 'forage':
       return 0.85 + 0.3 * p.gluttony;
     case 'wander':
       return 0.6 + 0.8 * p.wanderlust;
@@ -39,6 +40,8 @@ export function personalityWeight(p: Personality, action: string): number {
       return 0.5 + 1.0 * p.wanderlust;
     case 'idle':
       return 1.2 - 0.6 * p.industry;
+    case 'seek_shelter':
+      return 1.15 - 0.3 * p.bravery;
     default:
       return 1;
   }

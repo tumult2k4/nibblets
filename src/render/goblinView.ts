@@ -94,6 +94,8 @@ export class GoblinViews {
     r.body.position.y = 0.12;
     r.head.rotation.set(0, 0, 0);
     r.armL.rotation.x = 0; r.armR.rotation.x = 0;
+    r.armL.rotation.z = -0.25; r.armR.rotation.z = 0.25;
+    r.body.position.x = 0;
     r.legL.rotation.x = 0; r.legR.rotation.x = 0;
     r.body.scale.set(1, 1, 1);
     const earBaseL = r.earL.userData.baseZ as number, earBaseR = r.earR.userData.baseZ as number;
@@ -120,6 +122,7 @@ export class GoblinViews {
       r.armL.rotation.x = -Math.sin(ph) * 0.5; r.armR.rotation.x = Math.sin(ph) * 0.5;
       earFlop = Math.sin(ph - 0.8) * 0.25; // secondary motion with phase lag
       if (baby) r.body.rotation.z = Math.sin(ph * 0.5) * 0.12; // babies wobble
+      if (act === 'seek_shelter') { r.armL.rotation.x = -2.7; r.armR.rotation.x = -2.7; } // hands over the head, hurrying in
     } else if (act === 'build' || act === 'chop') {
       // hammering / chopping: big overhead swing, lean into it
       const k = t * 7 + g.id;
@@ -127,7 +130,13 @@ export class GoblinViews {
       r.armR.rotation.x = -1.9 + hit * 1.1; r.armL.rotation.x = -1.2 + hit * 0.5;
       r.body.rotation.x = 0.15 + Math.max(0, -hit) * 0.15;
       earFlop = Math.max(0, -hit) * 0.3;
-    } else if (act === 'harvest_fruit' || act === 'pick_up' || act === 'drink' || act === 'eat') {
+    } else if (act === 'warm_up' || (act === 'seek_shelter' && g.needs.warmth < 40)) {
+      // arms hugged tight, shivering when properly cold
+      r.armL.rotation.x = -0.9; r.armR.rotation.x = -0.9;
+      r.armL.rotation.z = 0.5; r.armR.rotation.z = -0.5;
+      if (g.needs.warmth < 35) r.body.position.x = Math.sin(t * 55 + g.id) * 0.008;
+      earFlop = 0.25;
+    } else if (act === 'harvest_fruit' || act === 'pick_up' || act === 'drink' || act === 'eat' || act === 'forage') {
       const k = t * 9 + g.id;
       if (act === 'drink') { r.body.rotation.x = 0.6; r.head.rotation.x = 0.4; }
       else if (act === 'eat') { r.armR.rotation.x = -1.6 + Math.sin(k) * 0.3; r.head.rotation.x = Math.sin(k) * 0.08; }

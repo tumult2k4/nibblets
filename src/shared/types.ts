@@ -71,6 +71,7 @@ export type SimEvent = BaseEvent &
     | { type: 'item_taken'; goblinId: ID; item: ItemType; qty: number }
     | { type: 'fell_asleep' | 'woke_up'; goblinId: ID }
     | { type: 'harvested'; goblinId: ID; plantId: ID; item: ItemType }
+    | { type: 'foraged'; goblinId: ID; item: ItemType }
     | { type: 'core_planted'; goblinId: ID; plantId: ID }
     | { type: 'plant_stage'; plantId: ID; stage: PlantStage }
     | { type: 'plant_born'; plantId: ID; kind: PlantKind; plantedBy: ID | null; at: Vec2 }
@@ -79,7 +80,7 @@ export type SimEvent = BaseEvent &
     | { type: 'plant_chopped'; goblinId: ID; plantId: ID; wood: number }
     | { type: 'rock_mined'; goblinId: ID; rockId: ID }
     | { type: 'item_crafted'; goblinId: ID; item: ItemType }
-    | { type: 'building_placed' | 'building_completed' | 'building_destroyed'; buildingId: ID; kind: BuildingType; goblinId?: ID }
+    | { type: 'building_placed' | 'building_completed' | 'building_destroyed'; buildingId: ID; kind: BuildingType; goblinId?: ID; cause?: string }
     | { type: 'weather_changed'; from: WeatherKind; to: WeatherKind }
     | { type: 'season_changed'; season: Season; year: number }
     | { type: 'day_started'; day: number }

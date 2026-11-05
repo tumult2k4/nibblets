@@ -8,6 +8,7 @@ import type { Building, Goblin, WorldState } from './state';
 import type { World } from './world';
 import { tileAt } from './grid';
 import { countItem } from './inventory';
+import { spawnGroundItem } from './groundItems';
 
 const B = CFG.buildings;
 
@@ -173,4 +174,15 @@ export function workSpot(s: WorldState, b: Building, g: Goblin): Vec2 {
     if (t?.walkable && t.occupiedBy === null) return p;
   }
   return { x: b.pos.x, y: b.pos.y + r };
+}
+
+/** Tear a building down (storm, later fire and raids): frees the footprint, unhouses residents, spills storage. */
+export function destroyBuilding(w: World, b: Building, cause: string): void {
+  const i = w.s.buildings.indexOf(b);
+  if (i < 0) return;
+  w.s.buildings.splice(i, 1);
+  markFootprint(w, b, null);
+  for (const g of w.s.goblins) if (g.homeId === b.id) g.homeId = null;
+  for (const st of b.storage) spawnGroundItem(w, { ...st }, { x: q4(b.pos.x + w.rng.range(-0.7, 0.7)), y: q4(b.pos.y + w.rng.range(-0.7, 0.7)) });
+  w.emit({ type: 'building_destroyed', buildingId: b.id, kind: b.type, cause, at: b.pos });
 }
