@@ -104,7 +104,9 @@ function suits(t: ChatTopic, g: Goblin, o: Goblin, w: World): boolean {
 function conclude(g: Goblin, o: Goblin, w: World, t: ChatTopic): void {
   const base = w.rng.int(S.chat[0], S.chat[1]);
   const match = suits(t, g, o, w);
-  mutual(w, g, o, base, t === 'complaint' && !match ? 1 : base + (match ? S.topicMatch : 0));
+  // elders are listened to: their words count for more (§4.4)
+  const respect = g.lifeStage === 'elder' ? CFG.life.elderRespect : 1;
+  mutual(w, g, o, base, q4((t === 'complaint' && !match ? 1 : base + (match ? S.topicMatch : 0)) * respect));
   addSocial(g, S.chatSocial);
   addSocial(o, S.chatSocial);
   if (t === 'gossip' || t === 'a_place') {

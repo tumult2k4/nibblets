@@ -192,9 +192,6 @@ export const CFG = {
     every: 10, day: 90, nightOutside: 55, nightInside: 85, hut: 15, fire: 20, armed: 10, armedFriend: 8, armedFriendMax: 16, friendRadius: 5,
     threat: 35, threatNear: 25, fall: 0.3, rise: 0.05, bite: 20, witnessDeath: 30, moodMul: 0.3, scaredBelow: 25,
   },
-  /** P4.7 stand-in for migration until P5: founder-like newcomers walk in every 8 days while the village is small */
-  spawnReinforcements: true as boolean,
-  reinforcements: { everyDays: 8, below: 6, count: 2, atFrac: 0.3, edgeDist: 14 },
   social: {
     chat: [2, 5], giftCap: 20, sharedMeal: 3, foughtTogether: 8, saved: 25, theftDiscovered: -25, prank: -5, driftPerDay: 1, friend: 40, bestFriend: 75, rival: -40, enemy: -75, mateThreshold: 60, eggCooldownDays: 12,
     // P5.1 relationships & conversations
@@ -212,6 +209,15 @@ export const CFG = {
     incubateDays: 2, lostColdDays: 1, coldRate: 1, bodyRange: 1.8, nestOffset: 1.25, nestShelter: 1.45, coldAir: 5, airSpan: 25, airMax: 0.6,
     shelterWarmth: 0.3, fireWarmth: 0.3, fireRange: 4, incubateRange: 30, sitTicks: 600, sitScore: [0.35, 0.45] as [number, number],
     feedBelow: 55, feedScore: [0.25, 0.9] as [number, number], followDist: 4, followScore: 0.2,
+  },
+  /** P5.4 life stages: younglings play and learn, hatchlings nap, elders slow down, parents fight for their young */
+  life: {
+    funYoungMul: 2, hatchlingEnergyMul: 3, youngExplore: [5, 12] as [number, number],
+    playRange: 16, playEnergy: 30, playTicks: 420, playFun: 0.2, soloFunMul: 0.6, playScore: [0.06, 0.9] as [number, number],
+    catchDist: 0.7, playRadius: 6, chaserMul: 1.15, runnerMul: 1, freezeTicks: 15, playOpinion: 2, playSocial: 4,
+    hideRange: 10, hideTicks: [60, 140] as [number, number],
+    learnRange: 14, learnDist: 1.7, learnTicks: 600, learnXp: 0.25, learnScore: [0.12, 0.25, 0.3] as [number, number, number], learnCuriosity: 0.05,
+    elderWork: 0.6, elderSocial: 1.3, elderRespect: 1.3, parentBravery: 1.5, kidsPerHome: 4,
   },
   /** P5.2 skills: XP per skill; a level is read off the cumulative thresholds (fractional in between) */
   skills: {

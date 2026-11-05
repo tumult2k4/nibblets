@@ -16,7 +16,7 @@ export function updateMood(w: World): void {
         : g.mood.value > 45 ? 'happy'
           : g.mood.value < -40 ? 'sad'
             : g.needs.social < 15 ? 'lonely'
-            : g.needs.curiosity < 15 ? 'bored'
+            : g.needs.curiosity < 15 || (g.lifeStage === 'youngling' && g.needs.fun < 15) ? 'bored'
               : 'content';
   }
 }
@@ -34,6 +34,11 @@ export function moodTarget(g: Goblin): number {
   // company (P5.1): loneliness weighs, good company lifts a little
   v += (n.social - 50) * CFG.social.moodMul;
   if (n.social < 15) v -= 10;
+  // children need to play (P5.4)
+  if (g.lifeStage === 'youngling') {
+    v += (n.fun - 50) * CFG.social.moodMul;
+    if (n.fun < 15) v -= 10;
+  }
   // feeling unsafe is miserable too (P4.5)
   v += Math.min(0, n.safety - 50) * CFG.safety.moodMul;
   for (const m of g.mood.modifiers) v += m.amount;

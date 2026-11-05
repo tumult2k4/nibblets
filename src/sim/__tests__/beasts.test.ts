@@ -36,7 +36,7 @@ const spearman = (w: World, x: number, y: number, weapon: 'stone_spear' | 'spear
   return g;
 };
 
-describe('Bramblebeast, Night Wisp and newcomers (P4.7)', () => {
+describe('Bramblebeast and Night Wisp (P4.7)', () => {
   it('a Bramblebeast tramples through a fence line and a hut in its way, then leaves by the far side', () => {
     const w = makeWorld({ pond: false });
     at(w, 5, 0.3);
@@ -168,45 +168,6 @@ describe('Bramblebeast, Night Wisp and newcomers (P4.7)', () => {
     expect(w.s.enemies.includes(e)).toBe(false);
     expect(evs.some((x) => x.type === 'wisp' && x.phase === 'dispersed' && x.goblinId === g.id)).toBe(true);
     expect(g.activity.action).not.toBe('follow_wisp');
-  });
-
-  it('every 8th morning a small village gets two founder-like newcomers (while the flag is on)', () => {
-    const w = makeWorld({ goblins: 3 });
-    at(w, 8, 0.3);
-    w.s.tick -= 1;
-    const evs = events(w);
-    w.step();
-    expect(w.s.goblins).toHaveLength(5);
-    const ev = evs.find((x) => x.type === 'immigrants');
-    expect(ev?.type === 'immigrants' && ev.goblinIds.length).toBe(2);
-    const fresh = w.s.goblins.slice(3);
-    for (const g of fresh) {
-      expect(g.lifeStage).toBe('adult');
-      expect(g.clanId).toBe(w.s.clans[0]!.id);
-      expect(dist(g.pos, w.s.village.center)).toBeGreaterThan(5);
-    }
-    // not on other days, not for a village of six, not with the flag off
-    const w2 = makeWorld({ goblins: 3 });
-    at(w2, 9, 0.3);
-    w2.s.tick -= 1;
-    w2.step();
-    expect(w2.s.goblins).toHaveLength(3);
-    const w3 = makeWorld({ goblins: 6 });
-    at(w3, 16, 0.3);
-    w3.s.tick -= 1;
-    w3.step();
-    expect(w3.s.goblins).toHaveLength(6);
-    const cfg = CFG as { spawnReinforcements: boolean };
-    cfg.spawnReinforcements = false;
-    try {
-      const w4 = makeWorld({ goblins: 2 });
-      at(w4, 16, 0.3);
-      w4.s.tick -= 1;
-      w4.step();
-      expect(w4.s.goblins).toHaveLength(2);
-    } finally {
-      cfg.spawnReinforcements = true;
-    }
   });
 
   it('beasts, wisps and lured goblins survive a save round-trip', () => {

@@ -35,7 +35,7 @@ function deliveryJob(g: Goblin, w: World): { b: Building; type: ItemType; fromSt
 
 /** Haul construction materials into a blueprint (§10.2, cooperative: several goblins may carry at once). */
 export const DeliverMaterial: UtilityAction = {
-  id: 'deliver_material', tags: ['work'], minStage: 'youngling', interruptible: true,
+  id: 'deliver_material', tags: ['work'], minStage: 'adult', interruptible: true,
   isAvailable: (g, w) => w.s.buildings.length > 0 && !!deliveryJob(g, w),
   score: (g, w) => {
     const job = deliveryJob(g, w)!;
@@ -118,7 +118,7 @@ function buildJob(g: Goblin, w: World): Building | null {
 
 /** Put labor into a supplied blueprint until it is done (or a work chunk passes and needs are re-weighed). */
 export const Build: UtilityAction = {
-  id: 'build', tags: ['work'], minStage: 'youngling', interruptible: true,
+  id: 'build', tags: ['work'], minStage: 'adult', interruptible: true,
   isAvailable: (g, w) => w.s.buildings.length > 0 && !!buildJob(g, w),
   score: (g, w) => {
     const b = buildJob(g, w)!;

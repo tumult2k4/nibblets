@@ -164,5 +164,7 @@ export const DE: Record<keyof typeof EN, string> = {
   'ev.egg_hatched': '{name} ist geschlüpft! Ein Kind von {a} und {b}.', 'ev.egg_lost_cold': 'Das Ei von {a} und {b} ist erfroren.',
   'ev.egg_lost_eaten': 'Ein Gnasher hat das Ei von {a} und {b} gefressen!', 'ev.egg_lost_neglect': 'Das Ei von {a} und {b} ist verloren.',
   'ev.egg_lost_fall': 'Das Ei von {a} und {b} ist bei einem Sturz zerbrochen.',
+  'act.play': 'Spielt', 'act.learn': 'Schaut zu und lernt', 'insp.twin': 'Zwilling', 'insp.orphan': 'Waise',
+  'ev.adopted': '{parent} hat die kleine Waise {name} bei sich aufgenommen.',
   'qty': '×{n}', 'yes': 'Ja', 'no': 'Nein',
 };

@@ -15,7 +15,10 @@ const S = CFG.social;
 const FAMILY: ReadonlySet<RelationBond> = new Set(['mate', 'parent', 'child', 'sibling']);
 const STRENGTH: Partial<Record<RelationBond, number>> = { none: 0, friend: 1, best_friend: 2, rival: -1, enemy: -2 };
 
+const KIN_BONDS: ReadonlySet<RelationBond> = new Set(['parent', 'child', 'sibling']);
+/** Parent, child or sibling: by blood, or by bond (adoption, P5.4). */
 export const isKin = (a: Goblin, b: Goblin): boolean =>
+  KIN_BONDS.has(relationOf(a, b.id)?.bond ?? 'none') ||
   !!a.parents?.includes(b.id) || !!b.parents?.includes(a.id) || (!!a.parents && !!b.parents && a.parents.some((p) => b.parents!.includes(p)));
 
 export const relationOf = (g: Goblin, id: ID): Relation | undefined => g.relationships.find((r) => r.targetId === id);

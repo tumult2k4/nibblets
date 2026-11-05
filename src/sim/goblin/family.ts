@@ -12,7 +12,7 @@ import type { World } from '../world';
 import { meiosis } from './genetics/genome';
 import { express } from './genetics/phenotype';
 import { createGoblin } from './goblin';
-import { relate, relationOf } from './social';
+import { isKin, opinionOf, relate, relationOf } from './social';
 import { buildingDef, isComplete } from '../buildings';
 
 const F = CFG.family;
@@ -54,7 +54,7 @@ const roomyHome = (g: Goblin, w: World): boolean => {
 export function attraction(g: Goblin, o: Goblin, w: World): number {
   if (g.id === o.id || g.lifeStage !== 'adult' || o.lifeStage !== 'adult' || mateOf(g, w) || mateOf(o, w)) return 0;
   const op = relationOf(g, o.id)?.opinion ?? 0;
-  if (op < CFG.social.mateThreshold || isCloseKin(w.s, g.id, o.id)) return 0;
+  if (op < CFG.social.mateThreshold || isCloseKin(w.s, g.id, o.id) || isKin(g, o)) return 0;
   if (!roomyHome(g, w) && !roomyHome(o, w) && g.homeId !== o.homeId) return 0;
   const dh = Math.abs(hueDelta(express(g.genome, 'skinHue'), express(o.genome, 'skinHue')));
   const wander = g.personality.wanderlust > 0.5;
@@ -124,7 +124,7 @@ export function layEggs(w: World, g: Goblin, m: Goblin, at: Vec2): Egg[] {
 }
 
 /** Family bonds start warm (§13.1: +40). */
-function kinBond(w: World, a: Goblin, b: Goblin, bond: 'parent' | 'child' | 'sibling'): void {
+export function kinBond(w: World, a: Goblin, b: Goblin, bond: 'parent' | 'child' | 'sibling'): void {
   const r = relate(a, b.id);
   r.bond = bond;
   r.opinion = Math.max(r.opinion, F.familyOpinion);
@@ -147,19 +147,64 @@ export function hatch(w: World, egg: Egg): Goblin {
   for (const p of parents) { kinBond(w, g, p, 'parent'); kinBond(w, p, g, 'child'); }
   for (const o of s.goblins) if (o !== g && o.parents && shares(o.parents, egg.parents)) { kinBond(w, g, o, 'sibling'); kinBond(w, o, g, 'sibling'); }
   registerLineage(s, g);
+  if (!parents.length) adoptIfOrphan(w, g);
   s.stats.births += 1;
   w.emit({ type: 'egg_hatched', eggId: egg.id, goblinId: g.id, at: { ...egg.pos } });
   return g;
 }
 
+/** Living parents, by bond, so adoptive parents count. */
+export const livingParents = (g: Goblin, w: World): Goblin[] =>
+  g.relationships.filter((r) => r.bond === 'parent').map((r) => w.goblin(r.targetId)).filter((p): p is Goblin => !!p);
+
 /** The closer living parent of a child. */
 export function nearestParent(g: Goblin, w: World): Goblin | undefined {
   let best: Goblin | undefined, bd = Infinity;
-  for (const id of g.parents ?? []) {
-    const p = w.goblin(id);
-    if (p && dist(p.pos, g.pos) < bd) { bd = dist(p.pos, g.pos); best = p; }
+  for (const p of livingParents(g, w)) if (dist(p.pos, g.pos) < bd) { bd = dist(p.pos, g.pos); best = p; }
+  return best;
+}
+
+const young = (g: Goblin): boolean => g.lifeStage === 'hatchling' || g.lifeStage === 'youngling';
+const kidsIn = (w: World, homeId: ID): number => w.s.goblins.filter((c) => young(c) && c.homeId === homeId).length;
+
+/** §13.3 orphans: the grown-up who likes the child best (and the child it), with a home that has room for one more. */
+function adopter(c: Goblin, w: World): Goblin | undefined {
+  let best: Goblin | undefined, bs = -Infinity;
+  for (const a of w.s.goblins) {
+    if (a.id === c.id || (a.lifeStage !== 'adult' && a.lifeStage !== 'elder')) continue;
+    const room = a.homeId !== null && kidsIn(w, a.homeId) < CFG.life.kidsPerHome;
+    const sc = opinionOf(a, c.id) + opinionOf(c, a.id) + (room ? 50 : 0) + (mateOf(a, w) ? 10 : 0);
+    if (sc > bs) { bs = sc; best = a; }
   }
   return best;
+}
+
+/** A child with no living parent is taken in: new parent bonds, the adopter's hut, and the `orphan` trait. */
+export function adoptIfOrphan(w: World, c: Goblin): void {
+  if (!young(c) || livingParents(c, w).length) return;
+  const a = adopter(c, w);
+  if (!a) return;
+  kinBond(w, c, a, 'parent');
+  kinBond(w, a, c, 'child');
+  if (a.homeId !== null) c.homeId = a.homeId;
+  if (!c.traits.includes('orphan')) c.traits.push('orphan');
+  w.emit({ type: 'adopted', goblinId: c.id, parentId: a.id, at: { ...c.pos } });
+}
+
+/** Someone died: any child of theirs left without parents is adopted. */
+export function adoptOrphans(w: World, dead: Goblin): void {
+  for (const c of w.s.goblins) if (relationOf(c, dead.id)?.bond === 'parent') adoptIfOrphan(w, c);
+}
+
+/**
+ * Coming of age (§4.4): children sleep in the family hut without a bed of their own; a new adult takes a free bed
+ * there, or else moves out (ClaimHome then finds or plans one).
+ */
+export function comeOfAge(w: World, g: Goblin): void {
+  const b = g.homeId !== null ? w.s.buildings.find((x) => x.id === g.homeId) : undefined;
+  if (!b || b.occupants.includes(g.id)) return;
+  if (b.occupants.length < (buildingDef(b.type)?.capacity ?? 0)) b.occupants.push(g.id);
+  else g.homeId = null;
 }
 
 /** A parent's body on the egg: sitting on it, or asleep right beside it (§13.3). */

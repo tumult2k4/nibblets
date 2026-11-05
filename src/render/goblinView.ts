@@ -130,6 +130,7 @@ export class GoblinViews {
       if (act === 'flee' || act === 'scatter') { r.armL.rotation.x = -2.6 + Math.sin(ph * 1.5) * 0.4; r.armR.rotation.x = -2.6 - Math.sin(ph * 1.5) * 0.4; earFlop = 0.6; } // flailing panic, ears flat
       if (act === 'attack' || act === 'defend_village') { r.armR.rotation.x = -1.5; r.body.rotation.x += 0.2; } // charging, weapon levelled
       if (act === 'follow_wisp') { r.armL.rotation.x = r.armR.rotation.x = -1.4; r.head.rotation.x = -0.25; earFlop = 0.1; } // sleepwalking after the light
+      if (act === 'play') { r.armL.rotation.x = -2.4 + Math.sin(ph) * 0.5; r.armR.rotation.x = -2.4 - Math.sin(ph) * 0.5; earFlop = 0.45; } // whee
     } else if (act === 'follow_wisp') {
       // spellbound: reaching for the light, swaying
       r.armL.rotation.x = r.armR.rotation.x = -1.5 + Math.sin(t * 1.3 + g.id) * 0.1;
@@ -201,6 +202,12 @@ export class GoblinViews {
       r.armL.rotation.z = -0.6; r.armR.rotation.z = 0.6;
       r.head.rotation.z = Math.sin(t * 0.8 + g.id) * 0.1;
       earFlop = 0.2;
+    } else if (act === 'play' || act === 'learn') {
+      // P5.4: counting to three with hands over the eyes, crouched behind a bush, or sitting and watching an adult work
+      const st = g.activity.stage;
+      if (act === 'play' && st === 1) { r.armL.rotation.x = r.armR.rotation.x = -2.0; r.armL.rotation.z = 0.35; r.armR.rotation.z = -0.35; r.head.rotation.x = 0.25; }
+      else if (act === 'play') { r.body.scale.set(1.06, 0.82, 1.06); r.body.position.y = 0.06; r.head.rotation.y = Math.sin(t * 1.6 + g.id) * 0.6; earFlop = -0.2; }
+      else { r.body.position.y = 0.05; r.legL.rotation.x = r.legR.rotation.x = -1.3; r.head.rotation.z = 0.12 + Math.sin(t * 0.9 + g.id) * 0.08; r.armL.rotation.x = r.armR.rotation.x = -0.6; earFlop = -0.25; }
     } else if (act === 'comfort' && g.activity.stage === 1) {
       // a hug: arms wrapped forward, leaning in, swaying a little
       r.armL.rotation.x = r.armR.rotation.x = -1.35;

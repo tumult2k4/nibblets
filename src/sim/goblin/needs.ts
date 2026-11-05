@@ -12,8 +12,9 @@ import { weatherAt } from '../weather';
 import { spawnGroundItem } from '../groundItems';
 import { markDanger } from '../danger';
 import { witnessDeath } from './safety';
+import { adoptOrphans, comeOfAge } from './family';
 
-const WORK_ACTIONS = new Set(['harvest_fruit', 'pick_up', 'chop', 'build', 'deliver_material']);
+const WORK_ACTIONS = new Set(['harvest_fruit', 'pick_up', 'chop', 'build', 'deliver_material', 'play']);
 
 /** Per-tick decay for the active needs (§7.1). Warmth is event-driven (temperature.ts); others are stubs until their phase. */
 export function needDecay(g: Goblin, need: NeedId, season: string, heatwave = false): number {
@@ -29,18 +30,22 @@ export function needDecay(g: Goblin, need: NeedId, season: string, heatwave = fa
       return perDay(D.thirst) * (season === 'summer' ? 1.15 : 1) * (heatwave ? CFG.weather.heatwaveThirstMul : 1);
     case 'energy':
       if (isSleeping(g)) return 0;
-      return perDay(D.energy) * (WORK_ACTIONS.has(g.activity.action) ? CFG.goblin.workEnergyMul : 1);
+      // hatchlings tire fast and nap half the day (§4.4); playing is as tiring as work
+      return perDay(D.energy) * (WORK_ACTIONS.has(g.activity.action) ? CFG.goblin.workEnergyMul : 1) * (g.lifeStage === 'hatchling' ? CFG.life.hatchlingEnergyMul : 1);
     case 'curiosity':
       return perDay(D.curiosity) * (0.5 + g.personality.wanderlust);
     case 'social':
       // P5.1: × sociability; sleep pauses it
       return isSleeping(g) ? 0 : perDay(D.social) * (0.3 + 1.4 * g.personality.sociability);
+    case 'fun':
+      // P5.4: younglings need play (×2); for grown-ups fun waits for pranks, music and festivals (P8–P9)
+      return g.lifeStage === 'youngling' && !isSleeping(g) ? perDay(D.fun) * CFG.life.funYoungMul : 0;
     default:
       return 0;
   }
 }
 
-const ACTIVE: NeedId[] = ['hunger', 'thirst', 'energy', 'curiosity', 'social'];
+const ACTIVE: NeedId[] = ['hunger', 'thirst', 'energy', 'curiosity', 'social', 'fun'];
 
 export function updateBodies(w: World): void {
   const s = w.s;
@@ -69,6 +74,7 @@ export function updateBodies(w: World): void {
       const st = lifeStageForAge(age, g.lifespanDays);
       if (st !== g.lifeStage) {
         g.lifeStage = st;
+        if (st === 'adult') comeOfAge(w, g);
         w.emit({ type: 'life_stage', goblinId: g.id, stage: st, at: g.pos });
       }
     }
@@ -98,6 +104,7 @@ export function killGoblin(w: World, g: Goblin, cause: DeathCause): void {
   g.inventory = [];
   g.equipped = { hand: null, body: null, neck: null, head: null };
   witnessDeath(w, g.pos, g.id);
+  adoptOrphans(w, g);
   if (cause === 'combat' || cause === 'divine' || cause === 'lightning') markDanger(w, g.pos, 2);
   w.emit({ type: 'goblin_died', goblinId: g.id, cause, at: g.pos });
 }

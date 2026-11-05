@@ -8,6 +8,7 @@ import { sense } from '../../goblin/memory';
 import type { Vec2 } from '../../../shared/types';
 import type { Goblin } from '../../state';
 import type { UtilityAction } from '../action';
+import { homeOf } from './home';
 
 const M = CFG.memory;
 
@@ -25,11 +26,15 @@ export const Explore: UtilityAction = {
   start(g, w) {
     g.activity.progress = g.memory.length;
     const base = w.rng.range(0, Math.PI * 2);
+    // younglings explore close to home (§4.4)
+    const kid = g.lifeStage === 'youngling';
+    const from = kid ? (homeOf(g, w)?.pos ?? w.s.village.center) : g.pos;
+    const [r0, r1] = kid ? CFG.life.youngExplore : [M.exploreMin, M.exploreMax];
     const cands: { p: Vec2; f: number }[] = [];
     for (let i = 0; i < 6; i++) {
       const a = base + (i * Math.PI) / 3;
-      const r = w.rng.range(M.exploreMin, M.exploreMax);
-      const p = { x: q4(g.pos.x + Math.cos(a) * r), y: q4(g.pos.y + Math.sin(a) * r) };
+      const r = w.rng.range(r0, r1);
+      const p = { x: q4(from.x + Math.cos(a) * r), y: q4(from.y + Math.sin(a) * r) };
       if (isWalkable(w.s, Math.floor(p.x), Math.floor(p.y))) cands.push({ p, f: familiarity(g, p) });
     }
     cands.sort((a, b) => a.f - b.f);

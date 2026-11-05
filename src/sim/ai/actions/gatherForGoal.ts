@@ -17,7 +17,7 @@ function obtainGoal(g: Goblin): Extract<Goal, { kind: 'obtain' }> | null {
  * picking up and exploring for them are ordinary actions the planner focuses instead.)
  */
 export const GatherForGoal: UtilityAction = {
-  id: 'gather_for_goal', tags: ['work'], minStage: 'youngling', interruptible: true,
+  id: 'gather_for_goal', tags: ['work'], minStage: 'adult', interruptible: true,
   isAvailable: (g, w) => {
     const goal = obtainGoal(g);
     return !!goal && countItem(g, goal.item) < goal.qty && stockCount(w.s, goal.item) > 0;

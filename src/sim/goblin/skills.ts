@@ -44,8 +44,18 @@ export const skillLevel = (g: Goblin, id: SkillId): number => levelOf(g.skills[i
 /** Work pace from skill: +10 % per level. */
 export const skillSpeed = (g: Goblin, id: SkillId): number => 1 + K.speedPerLevel * skillLevel(g, id);
 
-/** Practice makes perfect: add XP (industrious goblins learn faster); a whole new level is an event. */
+/**
+ * Practice makes perfect: add XP (industrious goblins learn faster); a whole new level is an event. Younglings
+ * watching the worker (`Learn`, P5.4) pick up a quarter of it.
+ */
 export function gainXp(w: World, g: Goblin, id: SkillId, amount: number): void {
+  addXp(w, g, id, amount);
+  if (g.lifeStage !== 'adult' && g.lifeStage !== 'elder') return;
+  for (const c of w.goblinHash.query(g.pos, CFG.life.learnDist + 1.5))
+    if (c.activity.action === 'learn' && c.activity.stage === 1 && c.activity.targetId === g.id) addXp(w, c, id, amount * CFG.life.learnXp);
+}
+
+function addXp(w: World, g: Goblin, id: SkillId, amount: number): void {
   const before = g.skills[id] ?? 0;
   const after = q4(before + amount * (1 - K.industryXp / 2 + K.industryXp * g.personality.industry));
   g.skills[id] = after;

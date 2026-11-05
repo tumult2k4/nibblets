@@ -40,6 +40,7 @@ import type { Vec2 } from '../../shared/types';
 import { skillFocus } from '../goblin/skills';
 import { Court, IncubateEgg, LayEgg } from './actions/courtship';
 import { FeedChild, FollowParent } from './actions/parenting';
+import { Learn, Play } from './actions/childhood';
 
 export const ACTIONS: Record<ActionId, UtilityAction> = {
   idle: Idle, wander: Wander, eat: Eat, harvest_fruit: HarvestFruit, pick_up: PickUp, drop: Drop,
@@ -52,6 +53,7 @@ export const ACTIONS: Record<ActionId, UtilityAction> = {
   flee: Flee, attack: Attack, defend_village: DefendVillage, guard: Guard, repair_building: RepairBuilding,
   follow_wisp: FollowWisp, scatter: Scatter, chat: Chat, comfort: Comfort, gift: Gift,
   court: Court, lay_egg: LayEgg, incubate_egg: IncubateEgg, feed_child: FeedChild, follow_parent: FollowParent,
+  play: Play, learn: Learn,
 };
 const CHOOSABLE = (Object.values(ACTIONS) as UtilityAction[]).filter((a) => !a.forced);
 
@@ -61,6 +63,12 @@ function moodMul(g: Goblin, a: UtilityAction): number {
   // §7.5: mood multiplies work and social action scores (sulky goblins keep to themselves)
   const k = (g.mood.value + 100) / 200;
   return a.tags.includes('work') ? 0.9 + 0.2 * k : a.tags.includes('social') ? 0.7 + 0.6 * k : 1;
+}
+
+/** §4.4: elders work less and seek more company. */
+function stageMul(g: Goblin, a: UtilityAction): number {
+  if (g.lifeStage !== 'elder') return 1;
+  return a.tags.includes('work') ? CFG.life.elderWork : a.tags.includes('social') ? CFG.life.elderSocial : 1;
 }
 
 /** Score every available action (debug overlay uses `noise=false`). */
@@ -73,7 +81,7 @@ export function scoreActions(g: Goblin, w: World, noise = true, planned: ActionI
     const fo = planned === a.id ? CFG.planner.focus : 1;
     if (fo > 1) base = Math.max(base, CFG.planner.floor);
     if (base <= 0) continue;
-    const pw = personalityWeight(g.personality, a.id);
+    const pw = personalityWeight(g.personality, a.id) * stageMul(g, a); // personality and life stage
     const mm = moodMul(g, a);
     const sk = skillFocus(g, a.id);
     const hy = g.activity.action === a.id && g.activity.status === 'running' ? CFG.goblin.hysteresis : 1;

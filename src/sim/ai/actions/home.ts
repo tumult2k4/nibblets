@@ -32,10 +32,11 @@ function freeHome(g: Goblin, w: World): Building | null {
 const openBlueprints = (w: World): number => w.s.buildings.filter((b) => !isComplete(b) && missingMaterials(b).length > 0).length;
 const homeless = (g: Goblin, w: World): boolean => !g.heldByGod && !homeOf(g, w);
 
-/** Spot inside a hut for its n-th resident (beds side by side). */
+/** Spot inside a hut for its n-th resident (beds side by side); children curl up in between (P5.4). */
 export function bedSpot(b: Building, g: Goblin): { x: number; y: number } {
-  const i = Math.max(0, b.occupants.indexOf(g.id));
-  return { x: q4(b.pos.x + (i % 2 ? 0.28 : -0.28)), y: q4(b.pos.y + (i > 1 ? 0.28 : -0.1)) };
+  const i = b.occupants.indexOf(g.id);
+  if (i < 0 && g.lifeStage !== 'adult' && g.lifeStage !== 'elder') return { x: q4(b.pos.x + ((g.id % 3) - 1) * 0.18), y: q4(b.pos.y + 0.12) };
+  return { x: q4(b.pos.x + (i % 2 === 1 ? 0.28 : -0.28)), y: q4(b.pos.y + (i > 1 ? 0.28 : -0.1)) };
 }
 
 export function claim(w: World, g: Goblin, b: Building): void {

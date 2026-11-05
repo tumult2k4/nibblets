@@ -40,7 +40,8 @@ export type ActionId =
   | 'eat_core' | 'plant_seed' | 'water_plant' | 'chop' | 'store_item' | 'take_item' | 'explore'
   | 'deliver_material' | 'build' | 'claim_home' | 'sleep_home' | 'gather_for_goal' | 'seek_shelter' | 'warm_up' | 'forage'
   | 'mine' | 'craft' | 'equip' | 'plan_building' | 'tend_fire' | 'flee' | 'attack' | 'defend_village' | 'guard' | 'repair_building'
-  | 'follow_wisp' | 'scatter' | 'chat' | 'comfort' | 'gift' | 'court' | 'lay_egg' | 'incubate_egg' | 'feed_child' | 'follow_parent';
+  | 'follow_wisp' | 'scatter' | 'chat' | 'comfort' | 'gift' | 'court' | 'lay_egg' | 'incubate_egg' | 'feed_child' | 'follow_parent'
+  | 'play' | 'learn';
 
 export interface ActivityState {
   action: ActionId;

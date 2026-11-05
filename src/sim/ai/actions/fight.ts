@@ -2,7 +2,8 @@
  * §P4.5 fighting: `Attack` (an enemy in sight, above all one biting someone) and `DefendVillage` (any seen enemy inside
  * the village, armed or brave adults only) share one engage loop: close in, wind up 0.4 s, swing, cool down. A fight
  * that ends with the goblin standing counts toward `veteran` (5 fights: never panics). Morale (§14.2): a goblin panics
- * when safety < 20 and bravery < 0.5, or below 30 % hp unless a veteran; defending kin overrides both.
+ * when safety < 20 and bravery < 0.5, or below 30 % hp unless a veteran; defending kin (or its egg) overrides both and
+ * makes it half again as brave.
  */
 import { CFG } from '../../config';
 import { dist } from '../../../shared/math';
@@ -54,16 +55,24 @@ export function canTakeOn(g: Goblin, w: World, e: Enemy): boolean {
 /** Threats in sight this goblin could go for. */
 const foes = (g: Goblin, w: World, pos: { x: number; y: number }, r: number): Enemy[] => threatsNear(w, pos, r).filter((e) => canTakeOn(g, w, e));
 
-/** An enemy in sight that is biting this goblin's parent or child. */
+/** Is `e` biting this goblin's parent, child or sibling, or going for its egg (§13.3)? */
+function threatensKin(g: Goblin, w: World, e: Enemy): boolean {
+  const v = victimOf(w, e);
+  if (v && v.id !== g.id && isKin(g, v)) return true;
+  return e.mode === 'steal' && w.s.eggs.some((x) => x.id === e.targetId && x.parents.includes(g.id));
+}
+
+/** An enemy in sight that is after this goblin's family. */
 export function kinAttacker(g: Goblin, w: World): Enemy | null {
   if (isSleeping(g)) return null;
   const vr = visionRadius(g, w);
-  for (const e of foes(g, w, g.pos, vr)) {
-    const v = victimOf(w, e);
-    if (v && v.id !== g.id && isKin(g, v)) return e;
-  }
+  for (const e of foes(g, w, g.pos, vr)) if (threatensKin(g, w, e)) return e;
   return null;
 }
+
+/** Bravery, ×1.5 while its own egg or child is threatened: fierce parents (§13.3, P5.4). */
+export const courage = (g: Goblin, w: World): number =>
+  Math.min(1, g.personality.bravery * (kinAttacker(g, w) ? CFG.life.parentBravery : 1));
 
 export function panics(g: Goblin, w: World): boolean {
   if (kinAttacker(g, w)) return false;
@@ -143,11 +152,11 @@ export const Attack: UtilityAction = {
   score(g, w) {
     const e = attackTarget(g, w)!;
     const armed = !!bestWeapon(g);
-    let s = (0.2 + 0.5 * g.personality.bravery) * (armed ? 1 : 0.45) * hpFrac(g);
+    let s = (0.2 + 0.5 * courage(g, w)) * (armed ? 1 : 0.45) * hpFrac(g);
     const v = victimOf(w, e);
     if (v?.id === g.id) s += 0.4; // fight back
     else if (v) s += 0.25; // help whoever it is biting
-    if (v && v.id !== g.id && isKin(g, v)) s += 0.5;
+    if (threatensKin(g, w, e)) s += 0.5;
     s += Math.min(0.3, 0.1 * fighters(w, e, g));
     return Math.min(1.3, s);
   },
@@ -157,10 +166,10 @@ export const Attack: UtilityAction = {
 
 export const DefendVillage: UtilityAction = {
   id: 'defend_village', tags: ['danger'], minStage: 'adult', interruptible: true,
-  isAvailable: (g, w) => (!!bestWeapon(g) || g.personality.bravery > 0.5) && !isSleeping(g) && !!villageIntruder(g, w) && !panics(g, w),
+  isAvailable: (g, w) => (!!bestWeapon(g) || courage(g, w) > 0.5) && !isSleeping(g) && !!villageIntruder(g, w) && !panics(g, w),
   score(g, w) {
     const e = villageIntruder(g, w)!;
-    const s = (0.3 + 0.45 * g.personality.bravery) * (bestWeapon(g) ? 1 : 0.55) * hpFrac(g);
+    const s = (0.3 + 0.45 * courage(g, w)) * (bestWeapon(g) ? 1 : 0.55) * hpFrac(g);
     return fighters(w, e, g) >= CFG.enemies.crowdFlee ? s * 0.3 : s;
   },
   start: (g, w) => engageStart(g, w, villageIntruder(g, w)),

@@ -162,5 +162,7 @@ export const EN = {
   'ev.egg_hatched': '{name} has hatched! A child of {a} and {b}.', 'ev.egg_lost_cold': 'The egg of {a} and {b} got too cold and was lost.',
   'ev.egg_lost_eaten': 'A Gnasher ate the egg of {a} and {b}!', 'ev.egg_lost_neglect': 'The egg of {a} and {b} was lost.',
   'ev.egg_lost_fall': 'The egg of {a} and {b} broke in a fall.',
+  'act.play': 'Playing', 'act.learn': 'Watching and learning', 'insp.twin': 'twin', 'insp.orphan': 'orphan',
+  'ev.adopted': '{parent} has taken in little {name}.',
   'qty': '×{n}', 'yes': 'Yes', 'no': 'No',
 } as const;

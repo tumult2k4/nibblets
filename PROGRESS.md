@@ -1,5 +1,5 @@
 # Nibblets progress
-Current: P5.4 — life stages fully active
+Current: P5.5 — knowledge system
 ## Done
 - [x] P1.1 scaffold: Vite + strict TS, ESLint flat config with sim architecture rules, Prettier, Vitest, scripts
 - [x] P1.2 shared/: math, ids, mulberry32 Rng with fork(label), typed EventBus
@@ -51,10 +51,12 @@ Current: P5.4 — life stages fully active
 - [x] P5.1 relationships (opinion, familiarity, bonds incl. best-friend cap, daily drift, hut-mates), social need active (company refill, lonely), `Chat` with weighted topics and icon bubbles (listener pulled in, alternating lines), gossip memory sharing (stale stays stale), talk about a person sways opinion, `Comfort` (hug a sad friend), `Gift` (spare food or a flower), shared meals and fighting together, founders/newcomers know each other, friendship/rival/gift/hug notes, inspector Social tab, chat and hug poses, save v9
 - [x] P5.2 skills: XP per skill read as a level 0–10 (forage, woodcraft, building, mining, crafting, combat, farming, cooking, teaching); work trains its skill and goes faster with it (gathering, chopping, mining, planting, watering +10 %/level; building and crafting +15 %/level; fine items from 4 via the recipe's skill; flint spotting; generous watering); specialization pull in action scoring; skill-up notes at 5 and 10; skill bars in the Mind tab; specialists and friendships in the balance report; save v10
 - [x] P5.3 lineage book and close-kin exclusion (parents, grandparents, siblings, first cousins); attraction (opinion ≥ 60, free bed, spring ×1.5, hue-assortative looks); `Court` (gift + dance, 3 welcome courtships → mates who share a hut); `LayEgg` (well fed, 12-day cooldown, soft-cap fertility roll, 5 % twins, meiosis genome); nest at the hut door; incubation (2 warm days, cold counts down, a day in the red loses it; parent body, roof, fire, air); `IncubateEgg`; Gnashers eat unguarded eggs; hatching with family bonds and lineage; minimal `FeedChild` and `FollowParent`; egg meshes, dance and nesting poses, family notes; save v11
+- [x] P5.4 life stages: younglings' fun need, `Play` (tag, hide-and-peek) and `Learn` (25 % of a watched worker's XP); light work only for younglings; hatchling naps; elders work less, talk more and are listened to; coming of age (own bed or move out); orphan adoption with the `orphan` trait; fierce parents (egg/child threatened: bravery × 1.5); stand-in newcomers removed
 ## Next
-- [ ] P5.4 life stages fully active: continuous growth, younglings' Play/Learn, elders, natural death, orphan adoption; remove `spawnReinforcements`
+- [ ] P5.5 knowledge system (§15.1): unknown recipes, discovery, teach, observe, village knowledge panel, cultural facts
 ## Notes / known issues
 - Balance (32 days × 5 seeds, after P5.2): 0 deaths, ~0.21 ms/tick; best skills split across farming, woodcraft, combat and forage (top level 3.6–4.9), 20–29 mutual friendships per village.
+- Balance (32 days × 5 seeds, after P5.4): 0 deaths, ~0.23 ms/tick, villages of 10 grow to 14–17 by eggs alone. 60-day probe (3 seeds): 19–21 goblins (8 founders already elders), 0–2 combat deaths; younglings average fun 63–68, spend ~15 % of the time playing and ~20 % watching adults work.
 - Balance (32 days × 5 seeds, after P5.3): 0 deaths, ~0.23 ms/tick; villages of 10 grow to 14–15 (first couples days 10–15); Gnashers stole no stockpile food; friendships 9–27 (mates and family bonds take the place of some friend bonds). A 40-day probe reached 18–19 goblins with 2 eggs lost to Gnashers.
 - Balance (32 days × 5 seeds, after P5.1): 0–1 combat deaths, ~0.22 ms/tick, 100 % housed by autumn. In 8-day probes, 16–35 chats per village of 10, the first friendships on days 4–6, social need ~82–85 on average, nobody lonely; no rivals yet (opinion only falls through P8 theft/pranks).
 - Balance (32 days × 5 seeds, after P4 tuning): 0–2 combat deaths, 28–42 Gnashers, 5 huts, 100 % housed by the end of autumn, ~0.2 ms/tick. Control (`--no-craft`): 59 % lost, one seed dies out.

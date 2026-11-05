@@ -106,6 +106,8 @@ export function noteFor(e: SimEvent, w: World, names: Map<ID, string>): Note | n
       return { ...base, id: e.parents[0], text: t('ev.egg_laid', { a: name(e.parents[0]), b: name(e.parents[1]) }), tier: 'notable', icon: 'egg' };
     case 'egg_hatched':
       return { ...base, id: e.goblinId, text: t('ev.egg_hatched', { name: name(e.goblinId), ...parentsOf(e.goblinId) }), tier: 'notable', icon: 'egg' };
+    case 'adopted':
+      return { ...base, id: e.goblinId, text: t('ev.adopted', { name: name(e.goblinId), parent: name(e.parentId) }), tier: 'notable', icon: 'heart' };
     case 'egg_lost':
       return { ...base, text: t(`ev.egg_lost_${e.cause}`, { a: name(e.parents[0]), b: name(e.parents[1]) }), tier: 'critical', icon: 'egg' };
     case 'skill_up':

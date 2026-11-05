@@ -1,7 +1,7 @@
 import { el } from '../../dom';
 import { t } from '../../i18n';
 import { hslCss } from '../../../shared/math';
-import type { Goblin } from '../../../sim/state';
+import type { Goblin, NeedId } from '../../../sim/state';
 import type { Goal } from '../../../sim/ai/planner';
 import type { World } from '../../../sim/world';
 import { ageDays } from '../../../sim/goblin/goblin';
@@ -42,19 +42,22 @@ const goalText = (goal: Goal, w: World): string => goal.kind === 'build'
   ? t('goal.build', { b: t(`bld.${w.s.buildings.find((b) => b.id === goal.buildingId)?.type ?? 'hut'}`) })
   : t('goal.obtain', { n: goal.qty, item: t(`item.${goal.item}`) });
 
-/** Wounds, scars and fighting record, e.g. "limping · 1 scars · veteran · 5 fights, 2 kills". */
+/** Wounds, scars, life-history traits and fighting record, e.g. "limping · 1 scars · veteran · 5 fights, 2 kills". */
 function woundsLine(g: Goblin): string {
   const parts = g.health.injuries.map((i) => t(`injury.${i.kind}`));
   if (g.health.scars) parts.push(t('insp.scars', { n: g.health.scars }));
-  if (g.traits.includes('veteran')) parts.push(t('insp.veteran'));
+  for (const tr of ['veteran', 'twin', 'orphan'] as const) if (g.traits.includes(tr)) parts.push(t(`insp.${tr}`));
   if (g.deeds.fights) parts.push(t('insp.fights', { n: g.deeds.fights, k: g.deeds.kills }));
   return parts.join(' · ');
 }
 
 export function statusTab(g: Goblin, w: World): HTMLElement {
   const n = g.needs;
-  const needs = (['hunger', 'thirst', 'energy', 'warmth', 'safety', 'curiosity'] as const).map((k) => row(t(`need.${k}`), n[k], String(Math.round(n[k])), needColor(n[k])));
-  const stubs = (['social', 'fun', 'comfort', 'purpose'] as const).map((k) => row(t(`need.${k}`), n[k], String(Math.round(n[k])), '#b5a98f'));
+  // fun counts for younglings only until pranks, music and festivals (P5.4); comfort and purpose are still stubs
+  const kid = g.lifeStage === 'youngling';
+  const live: NeedId[] = ['hunger', 'thirst', 'energy', 'warmth', 'safety', 'social', 'curiosity', ...(kid ? ['fun' as const] : [])];
+  const needs = live.map((k) => row(t(`need.${k}`), n[k], String(Math.round(n[k])), needColor(n[k])));
+  const stubs = ([...(kid ? [] : ['fun' as const]), 'comfort', 'purpose'] as NeedId[]).map((k) => row(t(`need.${k}`), n[k], String(Math.round(n[k])), '#b5a98f'));
   const tags = [t('insp.felt', { t: Math.round(feltTemperature(w, g)) })];
   if (isWet(w, g)) tags.push(t('insp.wet'));
   if (shelterOf(w, g)) tags.push(t('insp.sheltered'));

@@ -119,6 +119,7 @@ export type SimEvent = BaseEvent &
     | { type: 'comforted'; goblinId: ID; byId: ID }
     | { type: 'egg_laid'; eggId: ID; parents: [ID, ID] }
     | { type: 'egg_hatched'; eggId: ID; goblinId: ID }
+    | { type: 'adopted'; goblinId: ID; parentId: ID }
     | { type: 'egg_lost'; eggId: ID; parents: [ID, ID]; cause: 'cold' | 'eaten' | 'neglect' | 'fall' }
     | { type: 'life_stage'; goblinId: ID; stage: LifeStage }
     | { type: 'recipe_discovered' | 'recipe_learned' | 'recipe_lost'; goblinId?: ID; recipe: RecipeId; via?: 'teach' | 'book' | 'discovery' }
