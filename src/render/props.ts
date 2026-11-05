@@ -4,7 +4,7 @@ import type { Plant } from '../sim/state';
 import { CFG } from '../sim/config';
 import { heightAt } from '../sim/grid';
 import { flatMat } from './lowpoly';
-import { appleGeo, berryBushGeo, bushGeo, flowerGeo, grassGeo, itemGeo, rockGeo, saplingGeo, seedMoundGeo, sproutGeo, stumpGeo, treeGeo } from './meshFactory';
+import { palletGeo, appleGeo, berryBushGeo, bushGeo, flowerGeo, grassGeo, itemGeo, rockGeo, saplingGeo, seedMoundGeo, sproutGeo, stumpGeo, treeGeo } from './meshFactory';
 import { PROP_COLORS } from './palette';
 import type { Interp } from './interpolation';
 
@@ -50,13 +50,31 @@ function plantsSig(ps: readonly Plant[]): string {
   return `${ps.length}:${h >>> 0}`;
 }
 
+/** A small heap of `qty` copies (max 6) of an item, arranged deterministically. */
+function pile(type: Parameters<typeof itemGeo>[0], qty: number, seed: number): THREE.Group {
+  const g = new THREE.Group();
+  const n = Math.max(1, Math.min(6, qty));
+  for (let i = 0; i < n; i++) {
+    const m = new THREE.Mesh(itemGeo(type), flatMat);
+    m.castShadow = true;
+    const a = i * 2.4 + hash(seed + i) * 0.6;
+    const r = i === 0 ? 0 : 0.12 + 0.05 * (i % 3);
+    m.position.set(Math.cos(a) * r, i >= 4 ? 0.09 : 0, Math.sin(a) * r);
+    m.rotation.y = hash(seed * 3 + i) * 6.28;
+    g.add(m);
+  }
+  return g;
+}
+
 /** Instanced static props (bushes, trees, rocks, flowers, grass), live apples, and ground items. */
 export class Props {
   readonly group = new THREE.Group();
   private apples: THREE.InstancedMesh;
   private appleSig = '';
   private plantMeshes: THREE.InstancedMesh[] = [];
-  private items = new Map<number, THREE.Mesh>();
+  private items = new Map<number, THREE.Object3D>();
+  private stock: THREE.Group | null = null;
+  private stockSig = '';
   private plantsSig = '';
   private sigTimer = 0;
   /** plant id → [mesh, instance index] for picking */
@@ -173,10 +191,10 @@ export class Props {
     for (const it of s.groundItems) {
       seen.add(it.id);
       let mesh = this.items.get(it.id);
-      if (!mesh) {
-        mesh = new THREE.Mesh(itemGeo(it.stack.type), flatMat);
-        mesh.castShadow = true;
-        mesh.userData = { kind: 'item', id: it.id };
+      if (!mesh || mesh.userData.qty !== it.stack.qty) {
+        if (mesh) this.group.remove(mesh);
+        mesh = pile(it.stack.type, it.stack.qty, it.id);
+        mesh.userData = { kind: 'item', id: it.id, qty: it.stack.qty };
         mesh.rotation.y = hash(it.id) * 6.28;
         this.items.set(it.id, mesh);
         this.group.add(mesh);
@@ -186,13 +204,34 @@ export class Props {
       mesh.position.set(p?.x ?? it.pos.x, z, p?.y ?? it.pos.y);
       if (it.airborne) mesh.rotation.x += 0.15;
       else mesh.rotation.x = 0;
-      const k = Math.min(1.6, 1 + (it.stack.qty - 1) * 0.15);
-      mesh.scale.setScalar(k);
     }
     for (const [id, m] of this.items) if (!seen.has(id)) {
       this.group.remove(m);
       this.items.delete(id);
     }
+    this.updateStockpile();
+  }
+
+  /** The village stockpile: a plank pallet with one small pile per stored item type. */
+  private updateStockpile(): void {
+    const v = this.w.s.village;
+    const sig = `${v.stockpilePos.x},${v.stockpilePos.y}:` + v.stockpile.map((x) => `${x.type}${Math.min(x.qty, 8)}`).join(',');
+    if (sig === this.stockSig) return;
+    this.stockSig = sig;
+    if (this.stock) this.group.remove(this.stock);
+    const g = new THREE.Group();
+    const base = new THREE.Mesh(palletGeo(), flatMat);
+    base.receiveShadow = true;
+    g.add(base);
+    v.stockpile.forEach((st, i) => {
+      const m = pile(st.type, Math.min(st.qty, 8), i * 31 + 5);
+      m.position.set(((i % 3) - 1) * 0.55, 0.06, (Math.floor(i / 3) - 0.5) * 0.55);
+      g.add(m);
+    });
+    g.position.set(v.stockpilePos.x, this.ground(v.stockpilePos.x, v.stockpilePos.y), v.stockpilePos.y);
+    g.userData = { kind: 'stockpile' };
+    this.stock = g;
+    this.group.add(g);
   }
 
   itemMeshes(): THREE.Object3D[] {

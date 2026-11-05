@@ -107,3 +107,8 @@ export function stumpGeo(): THREE.BufferGeometry {
     paint(new THREE.CylinderGeometry(0.13, 0.13, 0.01, 6).translate(0, 0.185, 0), '#d9b98a'),
   ]);
 }
+
+/** Stockpile base: three planks on the ground. */
+export function palletGeo(): THREE.BufferGeometry {
+  return merge([-0.4, 0, 0.4].map((z, i) => paint(new THREE.BoxGeometry(1.6, 0.05, 0.32).translate(0, 0.025, z), P.wood, 0.05, i + 1)));
+}

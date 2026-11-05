@@ -29,6 +29,16 @@ export function noteFor(e: SimEvent, w: World, names: Map<ID, string>): Note | n
       return null;
     case 'item_eaten':
       return e.divine ? { ...base, id: e.goblinId, text: t('ev.ate_sky', { name: name(e.goblinId) }), tier: 'info', icon: 'apple' } : null;
+    case 'plant_born':
+      return e.plantedBy !== null && w.goblin(e.plantedBy) ? { ...base, id: e.plantedBy, text: t('ev.planted', { name: name(e.plantedBy) }), tier: 'info', icon: 'leaf' } : null;
+    case 'plant_stage': {
+      const p = w.s.plants.find((x) => x.id === e.plantId);
+      if (e.stage === 'mature' && p?.plantedBy != null && p.kind === 'apple_bush')
+        return { ...base, at: p.pos, text: t('ev.bush_grown', { name: name(p.plantedBy) }), tier: 'notable', icon: 'apple' };
+      return null;
+    }
+    case 'plant_chopped':
+      return { ...base, id: e.goblinId, text: t('ev.chopped', { name: name(e.goblinId), n: e.wood }), tier: 'info', icon: 'leaf' };
     case 'command_rejected':
       return { ...base, text: t('ev.rejected', { reason: t(`reason.${e.reason}`) }), tier: 'info', icon: 'close' };
     default:

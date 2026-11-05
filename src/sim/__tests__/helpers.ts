@@ -30,6 +30,7 @@ export function makeWorld(o: TestWorldOpts = {}): World {
     s.rocks = [];
     s.grass = [];
     s.village.center = { x: size / 2, y: size / 2 };
+    s.village.stockpilePos = { x: size / 2 + 2.5, y: size / 2 + 1.5 };
     s.goblins.forEach((g, i) => (g.pos = { x: size / 2 + (i % 4) - 2, y: size / 2 + Math.floor(i / 4) - 1 }));
     s.terrainVersion += 1;
   }

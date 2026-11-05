@@ -1,7 +1,7 @@
 /** Every tunable number lives here (§21). Additions beyond §21 are logged in DECISIONS.md. */
 export const CFG = {
   tickHz: 10,
-  saveVersion: 1,
+  saveVersion: 2,
   time: { dayTicks: 3600, daysPerSeason: 8, moonCycleDays: 8, phases: { dawn: 0.05, day: 0.6, dusk: 0.7 }, startTick: 360 },
   world: {
     w: 128, h: 128, waterLevel: 0.3, sandBand: 0.03, rockLevel: 0.8, forestNoiseThreshold: 0.6,
@@ -37,6 +37,8 @@ export const CFG = {
     fertilityDraw: 0.15, fertilityRegenPerDay: 0.02, stumpRegrowDays: 4, deadWood: 2,
     hydrationFollow: 1.5, hydrationOfMoisture: 0.8, waterHydration: 0.5, seedSiteVillageRadius: 20,
     flowerSpreadChancePerDay: 0.02, berryAccidentalSeed: 0.05,
+    chopTicksPerHit: 15, chopHitDmg: 20, sticks: { mature: 2, old: 1 }, berryWood: 1, minBushesPerGoblin: 4,
+    woodTarget: 30, stockFoodKeep: 2,
     keepCoreBase: 0.04, keepCorePerIndustry: 0.16, plantTicks: 40, waterTicks: 20, wetHandsTicks: 600, waterBelow: 0.5, waterRadius: 25, minSeedGap: 1.6,
   },
   items: { decayEvery: 50, groundDecayDays: { apple: 6, apple_core: 4, berry: 3 } as Record<string, number> },

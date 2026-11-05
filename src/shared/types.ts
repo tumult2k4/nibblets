@@ -65,6 +65,8 @@ export type SimEvent = BaseEvent &
     | { type: 'item_eaten'; goblinId: ID; item: ItemType; divine?: boolean }
     | { type: 'item_drunk'; goblinId: ID }
     | { type: 'item_picked'; goblinId: ID; item: ItemType }
+    | { type: 'item_stored'; goblinId: ID; item: ItemType; qty: number }
+    | { type: 'item_taken'; goblinId: ID; item: ItemType; qty: number }
     | { type: 'fell_asleep' | 'woke_up'; goblinId: ID }
     | { type: 'harvested'; goblinId: ID; plantId: ID; item: ItemType }
     | { type: 'core_planted'; goblinId: ID; plantId: ID }

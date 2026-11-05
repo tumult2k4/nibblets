@@ -25,6 +25,8 @@ export const DE: Record<keyof typeof EN, string> = {
   'insp.slots': '{n} Plätze', 'insp.deeds': 'Taten', 'insp.deedsLine': 'aß {e} · trank {d} · pflückte {h} · vom Gott gehalten {g}×',
   'insp.glance': 'Das Dorf auf einen Blick', 'insp.glanceGod': 'Ihr Gott: {name}', 'insp.glanceUnnamed': 'noch namenlos',
   'insp.glanceNeeds': 'Größte Sorgen im Dorf', 'insp.noSelection': 'Klicke einen Goblin an, um ihn anzusehen.',
+  'insp.stockpile': 'Vorrat', 'pstage.seed': 'Samen', 'pstage.sprout': 'Keimling', 'pstage.sapling': 'Setzling', 'pstage.young': 'Jung',
+  'pstage.mature': 'Ausgewachsen', 'pstage.old': 'Alt', 'pstage.dead': 'Tot', 'pstage.stump': 'Stumpf',
   'insp.plant': 'Pflanze', 'insp.stage': 'Stadium', 'insp.fruit': 'Früchte', 'insp.nextFruit': 'Nächste Frucht', 'insp.hydration': 'Wasser',
   'insp.fertility': 'Bodenfruchtbarkeit', 'insp.plantedBy': 'Gepflanzt von', 'insp.wild': 'wild', 'insp.item': 'Haufen', 'insp.qty': 'Menge',
   'insp.sky': 'fiel vom Himmel', 'insp.descriptor': 'Wirkt {d}', 'insp.hp': 'LP',
@@ -87,5 +89,6 @@ export const DE: Record<keyof typeof EN, string> = {
   'help.t3': 'Ihre Gene bestimmen Farben, Ohren, Nasen und Größe — öffne den Körper-Reiter.',
   'debug.title': 'Debug', 'debug.hash': 'Prüfsumme berechnen', 'debug.scores': 'KI-Wertung (Auswahl)', 'debug.log': 'Befehlsprotokoll (Ende)',
   'replay.banner': 'Wiederholung — nur ansehen', 'replay.exit': 'Wiederholung beenden', 'title.tagline': 'ein kleines Götterspiel über großohrige Goblins',
+  'ev.planted': '{name} hat einen Apfelbutzen gepflanzt.', 'ev.bush_grown': 'Ein von {name} gepflanzter Apfelbusch ist ausgewachsen!', 'ev.chopped': '{name} hat {n} Holz gehackt.',
   'qty': '×{n}', 'yes': 'Ja', 'no': 'Nein',
 };

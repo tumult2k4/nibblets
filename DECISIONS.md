@@ -20,3 +20,5 @@ Small choices the design doc left open, one line of rationale each.
 - **Fertility draw is charged per finished growth stage** (0.15 × stage share), because per-tick draws round to zero under 4-decimal quantization.
 - **`tileAt` floors fractional coordinates**: callers pass positions; flooring in one place avoids silent misses.
 - **Worldgen mature bushes get ages 8–55 days** so they don't all turn old on the same day.
+- **Village stockpile is a spot, not a building** (P2.3): `village.stockpile` + `stockpilePos` near the center; buildings like storage pits (P3+) can extend it later.
+- **Chop target priority**: old apple bushes, then berry bushes, then fruitless mature apple bushes only while > 4 per goblin exist; trees wait for the stone axe (P4). Goblins chop until 30 wood is stored.

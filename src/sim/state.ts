@@ -106,7 +106,8 @@ export interface Building {
 
 export interface WeatherState { kind: WeatherKind; nextChangeTick: number; temperature: number; windDir: number }
 export interface Clan { id: ID; name: string; archetype: string }
-export interface VillageState { name: string; center: Vec2; chiefId: ID | null }
+/** `stockpile` is the shared village store (P2.3): a marked spot near the center where goblins pile things. */
+export interface VillageState { name: string; center: Vec2; chiefId: ID | null; stockpile: ItemStack[]; stockpilePos: Vec2 }
 
 export interface StatsSample { tick: number; pop: number; food: number; avgHunger: number; avgFaith: number }
 export interface StatsSeries { samples: StatsSample[]; deaths: Record<string, number>; births: number; eaten: number; divineFood: number }

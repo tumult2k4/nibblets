@@ -37,7 +37,14 @@ export function serialize(s: WorldState): string {
 
 type Migration = (raw: Record<string, unknown>) => Record<string, unknown>;
 /** migrations[v] upgrades a save of version v to v+1. */
-export const MIGRATIONS: Record<number, Migration> = {};
+export const MIGRATIONS: Record<number, Migration> = {
+  // v1 → v2 (P2.3): village stockpile
+  1: (raw) => {
+    const v = raw.village as { center: { x: number; y: number } } & Record<string, unknown>;
+    raw.village = { ...v, stockpile: [], stockpilePos: { x: v.center.x + 2, y: v.center.y + 1 } };
+    return raw;
+  },
+};
 
 export function deserialize(json: string): WorldState {
   let raw = JSON.parse(json) as Record<string, unknown>;

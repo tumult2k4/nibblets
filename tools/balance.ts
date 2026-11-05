@@ -51,7 +51,8 @@ function runSeed(seed: number): Row {
   const near = (p: { pos: { x: number; y: number } }) => Math.hypot(p.pos.x - c.x, p.pos.y - c.y) <= CFG.plants.seedSiteVillageRadius + 2;
   const plantedMature = w.s.plants.filter((p) => p.plantedBy !== null && p.kind === 'apple_bush' && (p.stage === 'mature' || p.stage === 'old') && near(p)).length;
   const wood = w.s.groundItems.reduce((n, i) => n + (i.stack.type === 'wood' ? i.stack.qty : 0), 0)
-    + w.s.goblins.reduce((n, g) => n + g.inventory.reduce((m, s) => m + (s.type === 'wood' ? s.qty : 0), 0), 0);
+    + w.s.goblins.reduce((n, g) => n + g.inventory.reduce((m, s) => m + (s.type === 'wood' ? s.qty : 0), 0), 0)
+    + w.s.village.stockpile.reduce((n, s) => n + (s.type === 'wood' ? s.qty : 0), 0);
   const deaths = { ...w.s.stats.deaths };
   const totalDeaths = Object.values(deaths).reduce((a, b) => a + b, 0);
   const hue1 = w.s.goblins.length ? meanHue(w.s.goblins.map((g) => express(g.genome, 'skinHue'))) : hue0;
@@ -62,6 +63,7 @@ function runSeed(seed: number): Row {
   if (tickMs > 2) fails.push('tick>2ms');
   if (days >= 20 && plantedMature < 8) fails.push('planted<8');
   if (bushCount() < bushes0 * 0.9) fails.push('bushes shrinking');
+  if (days >= 10 && wood === 0) fails.push('no wood');
   return {
     seed, popMin, popAvg: popSum / Math.max(1, samples), popMax, popEnd: w.s.goblins.length, births: w.s.stats.births,
     deaths, eaten: w.s.stats.eaten, divineFood: w.s.stats.divineFood, starvationDays,

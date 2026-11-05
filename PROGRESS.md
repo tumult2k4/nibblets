@@ -1,5 +1,5 @@
 # Nibblets progress
-Current: P2.3 — Chop, Store/Take, ground piles
+Current: P2.4 — memory system, senses, Explore
 ## Done
 - [x] P1.1 scaffold: Vite + strict TS, ESLint flat config with sim architecture rules, Prettier, Vitest, scripts
 - [x] P1.2 shared/: math, ids, mulberry32 Rng with fork(label), typed EventBus
@@ -19,8 +19,12 @@ Current: P2.3 — Chop, Store/Take, ground piles
 - [x] P1.16 replay viewer ("Watch replay" from a save: rebuilds from seed, feeds the log, read-only) + replay determinism test (≥50 commands)
 - [x] P2.1 full plant lifecycle (hydration, fertility draw/regen, seasons, old age, stumps coppice), stage meshes
 - [x] P2.2 apple → core (kept by industrious goblins, else tossed), EatCore, PlantSeed (site rules), WaterPlant (water first, wet hands 600 ticks)
+- [x] P2.3 Chop (multi-hit, wood+sticks, stumps), village stockpile with StoreItem/TakeItem (save v2 migration), item piles + stockpile rendered
 ## Next
-- [ ] P2.3 Chop, PickUp/Store/Take, ground piles
+- [ ] P2.4 memory system + senses, Explore, confusion emote
+- [ ] P2.5 berry bushes, flowers, soil depletion
+- [ ] P2.6 emotes
+- [ ] P2.7 terraform powers, uproot/replant, Life tray tab, lenses
 ## Notes / known issues
 - Balance (10 days × 5 seeds): population 10 throughout, 0 deaths, ~0.03 ms/tick.
 - Commits for Phase 1 were batched into three (see DECISIONS.md); from P2 on, one commit per step.

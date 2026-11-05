@@ -63,7 +63,7 @@ export class Inspector implements Component {
         el('div', {}, el('h2', { text: t('insp.plant') }), el('div.sub', { text: p.kind.replace('_', ' ') }),
           el('button.btn', { onclick: () => this.ctx.select(null, []) }, icon('close')))));
       this.body.replaceChildren(
-        el('div.row', {}, el('span.lbl', { text: t('insp.stage') }), el('span', { text: p.stage })),
+        el('div.row', {}, el('span.lbl', { text: t('insp.stage') }), el('span', { text: t(`pstage.${p.stage}`) })),
         el('div.row', {}, el('span.lbl', { text: t('insp.fruit') }), el('span', { text: `${p.fruit} / ${CFG.plants.maxApples}` })),
         el('div.row', {}, el('span.lbl', { text: t('insp.nextFruit') }), bar(p.fruitProgress * 100, 'var(--apple)'), el('span.val', { text: eta })),
         el('div.row', {}, el('span.lbl', { text: t('insp.hydration') }), bar(p.hydration * 100, 'var(--sky)')),
@@ -96,6 +96,8 @@ export class Inspector implements Component {
     setText(godLine, t('insp.glanceGod', { name: s.god.godName ?? t('insp.glanceUnnamed') }));
     this.body.replaceChildren(godLine, el('h3', { text: t('insp.glanceNeeds') }),
       ...needs.map((n) => el('div.row', {}, el('span.lbl', { text: t(`need.${n.k}`) }), bar(n.v), el('span.val', { text: String(Math.round(n.v)) }))),
+      el('h3', { text: t('insp.stockpile') }),
+      el('div.sub', { text: s.village.stockpile.length ? s.village.stockpile.map((x) => `${t(`item.${x.type}`)} ${x.qty}`).join(' · ') : t('insp.empty') }),
       el('p.sub', {}, t('insp.noSelection')),
       el('p.sub', { 'data-tip': tipKey(t('key.inspector'), keyLabel('inspector')) }, `${t('key.inspector')}: `, el('kbd', { text: keyLabel('inspector') })));
   }

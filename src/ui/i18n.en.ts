@@ -23,6 +23,8 @@ export const EN = {
   'insp.slots': '{n} slots', 'insp.deeds': 'Deeds', 'insp.deedsLine': 'ate {e} · drank {d} · picked {h} · held by the god {g}×',
   'insp.glance': 'Village at a glance', 'insp.glanceGod': 'Their god: {name}', 'insp.glanceUnnamed': 'not yet named',
   'insp.glanceNeeds': 'Biggest village needs', 'insp.noSelection': 'Click a goblin to inspect it.',
+  'insp.stockpile': 'Stockpile', 'pstage.seed': 'Seed', 'pstage.sprout': 'Sprout', 'pstage.sapling': 'Sapling', 'pstage.young': 'Young',
+  'pstage.mature': 'Mature', 'pstage.old': 'Old', 'pstage.dead': 'Dead', 'pstage.stump': 'Stump',
   'insp.plant': 'Plant', 'insp.stage': 'Stage', 'insp.fruit': 'Fruit', 'insp.nextFruit': 'Next fruit', 'insp.hydration': 'Hydration',
   'insp.fertility': 'Soil fertility', 'insp.plantedBy': 'Planted by', 'insp.wild': 'wild', 'insp.item': 'Item pile', 'insp.qty': 'Amount',
   'insp.sky': 'fell from the sky', 'insp.descriptor': 'Seems {d}', 'insp.hp': 'HP',
@@ -85,5 +87,6 @@ export const EN = {
   'help.t3': 'Their genes decide their colors, ears, noses and size — open the Body tab.',
   'debug.title': 'Debug', 'debug.hash': 'Compute hash', 'debug.scores': 'AI scores (selected)', 'debug.log': 'Command log (tail)',
   'replay.banner': 'Replay — read only', 'replay.exit': 'Exit replay', 'title.tagline': 'a little god game about big-eared goblins',
+  'ev.planted': '{name} planted an apple core.', 'ev.bush_grown': 'An apple bush {name} planted is fully grown!', 'ev.chopped': '{name} chopped {n} wood.',
   'qty': '×{n}', 'yes': 'Yes', 'no': 'No',
 } as const;

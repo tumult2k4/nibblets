@@ -7,7 +7,8 @@ import { findVillageCenter, generateTiles, scatterResources, type TerrainPreset 
 import { founderGenome, type ClanArchetype } from './goblin/genetics/founders';
 import { createGoblin } from './goblin/goblin';
 import { newGodState, type GameMode } from './god/godState';
-import { isWalkable } from './grid';
+import { isWalkable, tileAt } from './grid';
+import type { Vec2 } from '../shared/types';
 import { World } from './world';
 
 export interface WorldParams {
@@ -58,7 +59,7 @@ export function createWorldState(params: WorldParams): WorldState {
     tiles: generateTiles(p.seed, w, h, p.preset),
     goblins: [], eggs: [], plants: [], rocks: [], grass: [], mushrooms: [], wildlife: [], groundItems: [],
     buildings: [], fires: [], enemies: [], graves: [], places: [],
-    clans: [], village: { name: p.villageName, center: { x: w / 2, y: h / 2 }, chiefId: null },
+    clans: [], village: { name: p.villageName, center: { x: w / 2, y: h / 2 }, chiefId: null, stockpile: [], stockpilePos: { x: w / 2, y: h / 2 } },
     god: newGodState(p.mode, p.gentle), commandLog: [],
     weather: { kind: 'clear', nextChangeTick: CFG.weather.transitionTicks, temperature: 14, windDir: 0 },
     stats: { samples: [], deaths: {}, births: 0, eaten: 0, divineFood: 0 },
@@ -68,6 +69,7 @@ export function createWorldState(params: WorldParams): WorldState {
   const rng = new Rng(p.seed);
   scatterResources(s, rng.fork('scatter'));
   s.village.center = findVillageCenter(s);
+  s.village.stockpilePos = stockpileSpot(s);
   const clanId = allocId(s);
   s.clans.push({ id: clanId, name: p.villageName, archetype: p.archetype });
   const frng = rng.fork(`founders${p.founderSalt || ''}`);
@@ -89,3 +91,13 @@ export function createWorldState(params: WorldParams): WorldState {
 }
 
 export const createWorld = (p: WorldParams): World => new World(createWorldState(p));
+
+/** First walkable tile 2–3 tiles east/south of the village center (deterministic spiral). */
+export function stockpileSpot(s: WorldState): Vec2 {
+  const c = s.village.center;
+  for (const [dx, dy] of [[2, 1], [2, -1], [-2, 1], [1, 2], [-1, -2], [3, 0], [0, 3], [-3, 0], [0, -3]] as const) {
+    const t = tileAt(s, c.x + dx, c.y + dy);
+    if (t?.walkable) return { x: Math.floor(c.x + dx) + 0.5, y: Math.floor(c.y + dy) + 0.5 };
+  }
+  return { x: c.x, y: c.y };
+}

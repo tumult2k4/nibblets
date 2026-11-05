@@ -9,6 +9,8 @@ import { Wander } from './actions/wander';
 import { Eat, EatCore } from './actions/eat';
 import { PlantSeed } from './actions/plantSeed';
 import { WaterPlant } from './actions/waterPlant';
+import { Chop } from './actions/chop';
+import { StoreItem, TakeItem } from './actions/stockpile';
 import { HarvestFruit } from './actions/harvestFruit';
 import { PickUp } from './actions/pickUp';
 import { Drop } from './actions/drop';
@@ -24,7 +26,7 @@ export const ACTIONS: Record<ActionId, UtilityAction> = {
   idle: Idle, wander: Wander, eat: Eat, harvest_fruit: HarvestFruit, pick_up: PickUp, drop: Drop,
   drink: Drink, sleep_ground: SleepGround, look_up: LookUp, struggle: Struggle,
   eat_core: EatCore, plant_seed: PlantSeed, water_plant: WaterPlant,
-  chop: later('chop'), store_item: later('store_item'), take_item: later('take_item'), explore: later('explore'),
+  chop: Chop, store_item: StoreItem, take_item: TakeItem, explore: later('explore'),
 };
 const CHOOSABLE = (Object.values(ACTIONS) as UtilityAction[]).filter((a) => !a.forced);
 

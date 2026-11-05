@@ -6,6 +6,7 @@ import { needUrgency } from '../../goblin/needs';
 import { moveAlong, planPath } from '../../steering';
 import { findGroundItem } from '../targets';
 import type { UtilityAction } from '../action';
+import { woodWanted } from './chop';
 import type { Goblin, GroundItem } from '../../state';
 import type { World } from '../../world';
 
@@ -28,7 +29,9 @@ export const PickUp: UtilityAction = {
       const carrying = foodStack(g) ? 0.4 : 1;
       return carrying * (0.12 + 1.15 * needUrgency(g.needs.hunger)) * near * (it.stack.divine ? 1.1 : 1);
     }
-    return 0.1 * near * (0.5 + g.personality.industry);
+    // materials: worth fetching while the village wants wood (chopping drops it on the ground)
+    const want = it.stack.type === 'wood' || it.stack.type === 'stick' ? 0.12 + 0.3 * woodWanted(g, w) : 0.1;
+    return want * near * (0.5 + g.personality.industry);
   },
   start(g, w) {
     const it = target(g, w);

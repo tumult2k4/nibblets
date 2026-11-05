@@ -32,8 +32,9 @@ export function pick(
     if (d < r && (!best || d < best.d)) best = { id: g.id, d };
   }
   if (best) return { ground, entity: { kind: 'goblin', id: best.id } };
-  const ih = ray.intersectObjects(items, false)[0];
-  if (ih?.object.userData.kind === 'item') return { ground, entity: { kind: 'item', id: ih.object.userData.id as ID } };
+  const ih = ray.intersectObjects(items, true)[0];
+  const io = ih?.object.parent?.userData.kind === 'item' ? ih.object.parent : ih?.object;
+  if (io?.userData.kind === 'item') return { ground, entity: { kind: 'item', id: io.userData.id as ID } };
   const ph = ray.intersectObjects(plants, false)[0];
   if (ph && ph.instanceId !== undefined) {
     const list = plantList(ph.object as THREE.InstancedMesh);
