@@ -4,6 +4,7 @@ import type { Goblin } from '../state';
 import type { World } from '../world';
 import { CFG } from '../config';
 import { isNight } from '../time';
+import { weatherVisionMul } from '../weather';
 
 export const linear = (x: number): number => clamp(x, 0, 1);
 export const quadratic = (x: number): number => clamp(x, 0, 1) ** 2;
@@ -14,7 +15,8 @@ export const step = (x: number, threshold: number): number => (x >= threshold ? 
 /** 1 at distance 0 → 0.25 at `max` (never zero: far food still beats starving). */
 export const distanceFalloff = (d: number, max: number): number => 1 - 0.75 * clamp(d / max, 0, 1);
 
-export const visionRadius = (_g: Goblin, w: World): number =>
-  isNight(w.clock) ? CFG.goblin.visionNight : CFG.goblin.visionDay;
+/** Sight range: shorter at night, cut by fog (−50 %) and blizzards (−70 %). */
+export const visionRadius = (g: Goblin, w: World): number =>
+  (isNight(w.clock) ? CFG.goblin.visionNight : CFG.goblin.visionDay) * weatherVisionMul(w, g.pos);
 
 export const isNightNow = (w: World): boolean => isNight(w.clock);

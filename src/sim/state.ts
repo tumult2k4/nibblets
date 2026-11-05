@@ -104,7 +104,13 @@ export interface Building {
   fuel?: number; data?: Record<string, number>; decoration: ID[];
 }
 
-export interface WeatherState { kind: WeatherKind; nextChangeTick: number; temperature: number; windDir: number }
+/** A local weather cell (§17.5.2) overriding global weather inside its radius until `untilTick`. */
+export interface WeatherCell { id: ID; kind: WeatherKind; pos: Vec2; radius: number; untilTick: number; tempOffset: number }
+/** `upcoming` is rolled one transition ahead so the top bar can show a true forecast (§18.2). */
+export interface WeatherState {
+  kind: WeatherKind; nextChangeTick: number; temperature: number; windDir: number;
+  upcoming: WeatherKind; cells: WeatherCell[];
+}
 export interface Clan { id: ID; name: string; archetype: string }
 /** `stockpile` is the shared village store (P2.3): a marked spot near the center where goblins pile things. */
 export interface VillageState { name: string; center: Vec2; chiefId: ID | null; stockpile: ItemStack[]; stockpilePos: Vec2 }

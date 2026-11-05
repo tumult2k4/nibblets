@@ -12,6 +12,7 @@ import { updateBodies } from './goblin/needs';
 import { updateMood } from './goblin/mood';
 import { updateSenses } from './goblin/memory';
 import { updateWear } from './god/terraform';
+import { updateWeather } from './weather';
 import { think, act } from './ai/utility';
 import { updateGod } from './god/godState';
 import { sampleStats } from './stats';
@@ -82,7 +83,7 @@ export class World {
     if (this.clock.day !== prev.day) this.emit({ type: 'day_started', day: this.clock.day });
     if (this.clock.season !== prev.season)
       this.emit({ type: 'season_changed', season: this.clock.season, year: this.clock.year });
-    //                        2 weather (P3)
+    updateWeather(this); //   2 weather + temperature + wetness
     updateTiles(this); //     3
     updatePlants(this); //    4
     //                        5 ecology (P2+), 6 fire (P6)

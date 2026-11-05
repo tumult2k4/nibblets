@@ -4,7 +4,7 @@ import type { ID, Vec2 } from '../../shared/types';
 import type { Goblin, MemoryEntry } from '../state';
 import type { World } from '../world';
 import { shoreTiles } from '../ai/targets';
-import { isNight } from '../time';
+import { visionRadius } from '../ai/considerations';
 
 const M = CFG.memory;
 type Kind = 'fruit_plant' | 'water' | 'rock' | 'stockpile' | 'place';
@@ -36,7 +36,7 @@ export const memoriesOf = (g: Goblin, kind: Kind): MemoryEntry[] => g.memory.fil
 
 /** Look around: remember fruit plants, water, rocks and the stockpile within vision. */
 export function sense(g: Goblin, w: World, radius?: number): void {
-  const r = radius ?? (isNight(w.clock) ? CFG.goblin.visionNight : CFG.goblin.visionDay);
+  const r = radius ?? visionRadius(g, w);
   for (const p of w.plantHash.query(g.pos, r)) {
     if (p.kind !== 'apple_bush' && p.kind !== 'berry_bush') continue;
     if (p.stage === 'mature' || p.stage === 'old') remember(g, w, 'fruit_plant', p.pos, p.fruit, p.id);

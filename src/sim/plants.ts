@@ -6,6 +6,7 @@ import type { World } from './world';
 import { tileAt } from './grid';
 import { makePlant } from './worldgen';
 import { spawnGroundItem } from './groundItems';
+import { rainingAt } from './weather';
 
 const P = CFG.plants;
 const GROW: PlantStage[] = ['seed', 'sprout', 'sapling', 'young'];
@@ -82,8 +83,8 @@ export function updatePlants(w: World): void {
     if (p.id % every !== slot || s.god.held?.id === p.id) continue;
     const t = tileAt(s, p.pos.x, p.pos.y);
     if (!t) continue;
-    // hydration follows soil moisture; watering raises it above
-    const target = t.moisture * P.hydrationOfMoisture;
+    // hydration follows soil moisture (rain soaks it); watering raises it above
+    const target = rainingAt(w, p.pos) ? CFG.weather.rainHydration : t.moisture * P.hydrationOfMoisture;
     p.hydration = q4(p.hydration + (target - p.hydration) * Math.min(1, dtDays * P.hydrationFollow));
     if (p.stage === 'stump') {
       p.growth = q4(p.growth + dtDays);

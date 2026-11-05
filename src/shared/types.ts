@@ -87,6 +87,7 @@ export type SimEvent = BaseEvent &
     | { type: 'enemy_spotted'; goblinId: ID; enemyId: ID }
     | { type: 'attack'; attackerId: ID; targetId: ID; damage: number }
     | { type: 'goblin_hurt'; goblinId: ID; damage: number; cause: DeathCause }
+    | { type: 'freezing'; goblinId: ID }
     | { type: 'goblin_died'; goblinId: ID; cause: DeathCause }
     | { type: 'gift_given'; fromId: ID; toId: ID; item: ItemType }
     | { type: 'theft'; thiefId: ID; victimId: ID | null; item: ItemType; witnessIds: ID[] }

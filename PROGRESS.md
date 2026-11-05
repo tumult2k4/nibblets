@@ -1,5 +1,5 @@
 # Nibblets progress
-Current: P3.1 — weather state machine + temperature (Phase 2 complete)
+Current: P3.2 — season visuals, snow accumulation, winter dormancy
 ## Done
 - [x] P1.1 scaffold: Vite + strict TS, ESLint flat config with sim architecture rules, Prettier, Vitest, scripts
 - [x] P1.2 shared/: math, ids, mulberry32 Rng with fork(label), typed EventBus
@@ -24,8 +24,9 @@ Current: P3.1 — weather state machine + temperature (Phase 2 complete)
 - [x] P2.5 berry bushes (fast fruit, harvestable, 5% accidental seeding when eaten), flowers spread (harvest stub item), soil depletion/regen
 - [x] P2.6 emotes (?, !, heart, Zzz, idea, sweat, music) as billboard bubbles; sim emits emote events, renderer derives sweat/music
 - [x] P2.7 terraform powers (brush tool, Shift+wheel radius, chunk rebuilds, path-cache invalidation), path wear, uproot & replant, Gift Tray Life tab (cores, saplings), lenses: fertility, moisture, paths
+- [x] P3.1 weather Markov chain (season weights, forecast one step ahead, local cells ready), air/felt temperature, warmth need + hypothermia, wet status, fog/blizzard vision, heatwave thirst, rain hydrates plants; top-bar temperature + forecast, sandbox weather picker (save v3)
 ## Next
-- [ ] P3.1 weather state machine + temperature; warmth need; wet status
+- [ ] P3.2 season visuals (palette blending), gameplay multipliers, snow accumulation, winter dormancy (`winterFoodEase`)
 ## Notes / known issues
 - Balance (20 days × 5 seeds, after P2): population 10, 0 deaths, 25–36 goblin-planted mature bushes, apple bushes 70→~105, ~29 wood stored, ~0.12 ms/tick.
 - Commits for Phase 1 were batched into three (see DECISIONS.md); from P2 on, one commit per step.

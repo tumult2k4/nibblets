@@ -39,6 +39,11 @@ export function noteFor(e: SimEvent, w: World, names: Map<ID, string>): Note | n
     }
     case 'plant_chopped':
       return { ...base, id: e.goblinId, text: t('ev.chopped', { name: name(e.goblinId), n: e.wood }), tier: 'info', icon: 'leaf' };
+    case 'freezing':
+      return { ...base, id: e.goblinId, text: t('ev.hypothermia', { name: name(e.goblinId) }), tier: 'critical', icon: 'snow' };
+    case 'weather_changed':
+      return ['storm', 'blizzard', 'heatwave', 'snow'].includes(e.to) && e.from !== e.to
+        ? { ...base, text: t(`ev.weather_${e.to}`), tier: 'notable', icon: e.to === 'heatwave' ? 'heat' : e.to === 'storm' ? 'storm' : 'snow' } : null;
     case 'command_rejected':
       return { ...base, text: t('ev.rejected', { reason: t(`reason.${e.reason}`) }), tier: 'info', icon: 'close' };
     default:

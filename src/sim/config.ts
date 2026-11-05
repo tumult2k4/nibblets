@@ -1,7 +1,7 @@
 /** Every tunable number lives here (§21). Additions beyond §21 are logged in DECISIONS.md. */
 export const CFG = {
   tickHz: 10,
-  saveVersion: 2,
+  saveVersion: 3,
   time: { dayTicks: 3600, daysPerSeason: 8, moonCycleDays: 8, phases: { dawn: 0.05, day: 0.6, dusk: 0.7 }, startTick: 360 },
   world: {
     w: 128, h: 128, waterLevel: 0.3, sandBand: 0.03, rockLevel: 0.8, forestNoiseThreshold: 0.6,
@@ -52,8 +52,31 @@ export const CFG = {
   },
   paths: { wearEvery: 5, wearPerStep: 0.008, decayPerDay: 0.05, roadAt: 0.5 },
   items: { decayEvery: 50, groundDecayDays: { apple: 6, apple_core: 4, berry: 3 } as Record<string, number> },
-  weather: { transitionTicks: 900, rainWarmthDrainPerHour: 6, lightningPerStormHour: 1, stormBuildingDmgPerHour: 4 },
-  temperature: { seasonBase: { spring: 12, summer: 24, autumn: 10, winter: -4 }, daySwing: 6, comfortMin: 10, comfortMax: 24 },
+  weather: {
+    transitionTicks: 900, rainWarmthDrainPerHour: 6, lightningPerStormHour: 1, stormBuildingDmgPerHour: 4,
+    // P3.1 Markov chain: chance to keep the current state, then a season-weighted pick among the others
+    persist: { clear: 0.5, cloudy: 0.4, fog: 0.35, rain: 0.45, storm: 0.3, snow: 0.5, blizzard: 0.3, heatwave: 0.55 },
+    seasonWeights: {
+      spring: { clear: 3, cloudy: 2.5, fog: 1, rain: 3, storm: 0.6, snow: 0, blizzard: 0, heatwave: 0 },
+      summer: { clear: 5, cloudy: 2, fog: 0.3, rain: 1.2, storm: 0.8, snow: 0, blizzard: 0, heatwave: 1.5 },
+      autumn: { clear: 2, cloudy: 3, fog: 2, rain: 3, storm: 1.2, snow: 0.3, blizzard: 0, heatwave: 0 },
+      winter: { clear: 2, cloudy: 3, fog: 1, rain: 0.4, storm: 0, snow: 3.5, blizzard: 1, heatwave: 0 },
+    },
+    /** storms grow out of rain/clouds, blizzards out of snow/clouds */
+    follows: { storm: ['rain', 'cloudy', 'storm'], blizzard: ['snow', 'cloudy', 'blizzard'] } as Record<string, string[]>,
+    vision: { fog: 0.5, blizzard: 0.3, storm: 0.7, snow: 0.85, rain: 0.9 } as Record<string, number>,
+    heatwaveThirstMul: 1.8, rainHydration: 1, maxCells: 4, windJitter: 0.8,
+  },
+  temperature: {
+    seasonBase: { spring: 12, summer: 24, autumn: 10, winter: -4 }, daySwing: 6, comfortMin: 10, comfortMax: 24,
+    // P3.1 additions
+    warmestDayFrac: 0.375, weatherOffset: { clear: 0, cloudy: -1, fog: -2, rain: -3, storm: -5, snow: -2, blizzard: -6, heatwave: 9 },
+    // warmth drifts toward a target set by felt temperature: 100 inside the band, −targetPerDeg below it
+    coldToleranceRange: 8, targetPerDeg: 6, driftDownPerHour: 0.15, driftUpPerHour: 0.25, sunDriftUpPerHour: 0.4,
+    exposurePerHour: { rain: 6, storm: 10, snow: 2, blizzard: 12 } as Record<string, number>,
+    wetPenalty: 5, wetTicks: 150, shelter: { hut: 8, stone_hut: 12, longhouse: 16 } as Record<string, number>, shelterRadius: 0.9,
+    hypothermiaBelow: 1, hypothermiaDmgPerDay: 30, frailColdMul: 1.5, coldMoodBelow: 50, coldRainMood: -3,
+  },
   enemies: { graceDays: 3, baseThreat: 1, rampPerDay: 0.05, newMoonMul: 1.6, fullMoonMul: 0.7, maxActive: 20, gnasher: { hp: 60, dmg: 10, speed: 2.4, fleeAt: 0.3 } },
   combat: { fists: 5, spear: 15, stone_spear: 28, club: 20, sling: 10, injuryChance: 0.25 },
   social: { chat: [2, 5], giftCap: 20, sharedMeal: 3, foughtTogether: 8, saved: 25, theftDiscovered: -25, prank: -5, driftPerDay: 1, friend: 40, bestFriend: 75, rival: -40, enemy: -75, mateThreshold: 60, eggCooldownDays: 12 },

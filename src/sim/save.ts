@@ -44,6 +44,12 @@ export const MIGRATIONS: Record<number, Migration> = {
     raw.village = { ...v, stockpile: [], stockpilePos: { x: v.center.x + 2, y: v.center.y + 1 } };
     return raw;
   },
+  // v2 → v3 (P3.1): weather forecast + local weather cells
+  2: (raw) => {
+    const wx = raw.weather as Record<string, unknown>;
+    raw.weather = { ...wx, upcoming: wx.kind, cells: [] };
+    return raw;
+  },
 };
 
 export function deserialize(json: string): WorldState {

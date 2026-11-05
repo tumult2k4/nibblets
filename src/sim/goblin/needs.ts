@@ -7,11 +7,13 @@ import type { World } from '../world';
 import { express, lifeStageForAge } from './genetics/phenotype';
 import { ageDays, isSleeping } from './goblin';
 import { allocId } from '../../shared/ids';
+import { coldDamage, warmthDelta } from '../temperature';
+import { weatherAt } from '../weather';
 
 const WORK_ACTIONS = new Set(['harvest_fruit', 'pick_up']);
 
-/** Per-tick decay for the active needs (§7.1). Others are static stubs until their phase. */
-export function needDecay(g: Goblin, need: NeedId, season: string): number {
+/** Per-tick decay for the active needs (§7.1). Warmth is event-driven (temperature.ts); others are stubs until their phase. */
+export function needDecay(g: Goblin, need: NeedId, season: string, heatwave = false): number {
   const D = CFG.goblin.decayPerDay;
   const size = express(g.genome, 'adultSize');
   switch (need) {
@@ -21,7 +23,7 @@ export function needDecay(g: Goblin, need: NeedId, season: string): number {
       return perDay(D.hunger) * m;
     }
     case 'thirst':
-      return perDay(D.thirst) * (season === 'summer' ? 1.15 : 1);
+      return perDay(D.thirst) * (season === 'summer' ? 1.15 : 1) * (heatwave ? CFG.weather.heatwaveThirstMul : 1);
     case 'energy':
       if (isSleeping(g)) return 0;
       return perDay(D.energy) * (WORK_ACTIONS.has(g.activity.action) ? CFG.goblin.workEnergyMul : 1);
@@ -38,14 +40,20 @@ export function updateBodies(w: World): void {
   const s = w.s;
   const dead: { g: Goblin; cause: DeathCause }[] = [];
   for (const g of s.goblins) {
-    for (const n of ACTIVE) g.needs[n] = q4(clamp(g.needs[n] - needDecay(g, n, w.clock.season), 0, 100));
-    // starvation / dehydration damage at 0
+    const heat = weatherAt(w, g.pos) === 'heatwave';
+    for (const n of ACTIVE) g.needs[n] = q4(clamp(g.needs[n] - needDecay(g, n, w.clock.season, heat), 0, 100));
+    const warm0 = g.needs.warmth;
+    g.needs.warmth = q4(clamp(warm0 + warmthDelta(w, g), 0, 100));
+    if (warm0 >= CFG.temperature.hypothermiaBelow && g.needs.warmth < CFG.temperature.hypothermiaBelow) w.emit({ type: 'freezing', goblinId: g.id, at: g.pos });
+    // starvation / dehydration / hypothermia damage at 0
     let dmg = 0;
     let cause: DeathCause | null = null;
+    const cold = coldDamage(g);
+    if (cold > 0) { dmg += cold; cause = 'hypothermia'; }
     if (g.needs.hunger <= 0) { dmg += perDay(CFG.goblin.starveDmgPerDay); cause = 'starvation'; }
     if (g.needs.thirst <= 0) { dmg += perDay(CFG.goblin.starveDmgPerDay) * 1.5; cause = 'dehydration'; }
     if (dmg > 0) g.health.hp = q4(g.health.hp - dmg);
-    else if (g.health.hp < g.health.maxHp && g.needs.hunger > 30 && g.needs.thirst > 30)
+    else if (g.health.hp < g.health.maxHp && g.needs.hunger > 30 && g.needs.thirst > 30 && g.needs.warmth > 20)
       g.health.hp = q4(Math.min(g.health.maxHp, g.health.hp + perDay(40) * express(g.genome, 'metabolism')));
     if (g.health.hp <= 0) { dead.push({ g, cause: cause ?? 'fall' }); continue; }
     // aging and life stage (recomputed hourly)

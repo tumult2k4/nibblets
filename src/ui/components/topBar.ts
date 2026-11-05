@@ -7,13 +7,20 @@ import { tipKey } from './tooltip';
 import { isFood, itemDef } from '../../sim/items';
 import { CFG } from '../../sim/config';
 import { keyLabel } from '../keys';
+import { WEATHER_KINDS } from '../../sim/weather';
+import type { WeatherKind } from '../../shared/types';
+
+const WEATHER_ICON: Record<WeatherKind, string> = {
+  clear: 'sun', cloudy: 'cloud', fog: 'fog', rain: 'rain', storm: 'storm', snow: 'snow', blizzard: 'snow', heatwave: 'heat',
+};
 
 /** Top bar (§18.2): menu, village, calendar, weather, population, food, faith, mode badge, speed, alerts. */
 export class TopBar implements Component {
   private root = el('div.topbar.panel');
   private village = el('span.village');
   private cal = el('span.stat');
-  private weather = el('span.stat');
+  private weather = el('span.stat.clickable', { onclick: () => this.weatherMenu() });
+  private wxMenu = el('div.wxmenu.panel.hidden');
   private pop = el('span.stat');
   private food = el('span.stat');
   private faith = el('span.stat');
@@ -37,7 +44,24 @@ export class TopBar implements Component {
     const bell = el('button.btn.iconbtn', { onclick: () => { this.alertCount = 0; this.ctx.store.set({ openPanels: { ...this.ctx.store.state.openPanels, feed: true } }); this.update(); } }, icon('bell'), this.alerts);
     bell.dataset.tip = t('top.alerts');
     this.root.append(menu, this.village, el('span.sep'), this.cal, this.weather, el('span.sep'), this.pop, this.food, this.faith, el('span.grow'), this.mode, speed, bell);
-    parent.append(this.root);
+    parent.append(this.root, this.wxMenu);
+    window.addEventListener('pointerdown', (e) => {
+      if (!this.wxMenu.contains(e.target as Node) && !this.weather.contains(e.target as Node)) this.wxMenu.classList.add('hidden');
+    });
+  }
+
+  /** Sandbox: pick the weather directly (logged as a command, so replays match). */
+  private weatherMenu(): void {
+    const w = this.ctx.game.world;
+    if (w.s.god.mode !== 'sandbox' || this.ctx.readOnly()) return;
+    if (!this.wxMenu.classList.contains('hidden')) return void this.wxMenu.classList.add('hidden');
+    const r = this.weather.getBoundingClientRect();
+    this.wxMenu.style.left = `${r.left}px`;
+    this.wxMenu.style.top = `${r.bottom + 6}px`;
+    this.wxMenu.replaceChildren(...WEATHER_KINDS.map((k) => el(`button.btn${w.s.weather.kind === k ? '.on' : ''}`, {
+      onclick: () => { w.push({ type: 'sandbox', op: { op: 'set_weather', kind: k } }); this.wxMenu.classList.add('hidden'); },
+    }, icon(WEATHER_ICON[k]), ` ${t(`weather.${k}`)}`)));
+    this.wxMenu.classList.remove('hidden');
   }
 
   setSpeed(i: number): void {
@@ -54,10 +78,16 @@ export class TopBar implements Component {
     this.village.dataset.tip = s.god.godName ? t('insp.glanceGod', { name: s.god.godName }) : t('insp.glance');
     const hh = Math.floor(c.hour), mm = Math.floor((c.hour % 1) * 60);
     setText(this.cal, `${t('top.day', { season: t(`season.${c.season}`), day: c.seasonDay + 1 })} · ${t('top.year', { year: c.year })} · ${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`);
-    if (!this.weather.firstChild || this.weather.dataset.k !== s.weather.kind + (c.phase === 'night')) {
-      this.weather.replaceChildren(icon(c.phase === 'night' ? 'moon' : s.weather.kind === 'clear' ? 'sun' : 'cloud'), ` ${t(`weather.${s.weather.kind}`)}`);
-      this.weather.dataset.k = s.weather.kind + (c.phase === 'night');
-      this.weather.dataset.tip = t('weather.forecast', { w: t(`weather.${s.weather.kind}`) });
+    const wx = s.weather;
+    const deg = Math.round(wx.temperature);
+    const key = `${wx.kind}:${c.phase === 'night'}:${deg}:${wx.upcoming}:${this.ctx.store.state.settings.language}`;
+    if (this.weather.dataset.k !== key) {
+      const ic = wx.kind === 'clear' && c.phase === 'night' ? 'moon' : WEATHER_ICON[wx.kind];
+      this.weather.replaceChildren(icon(ic), ` ${t(`weather.${wx.kind}`)} · ${deg}°C`);
+      this.weather.dataset.k = key;
+      const hours = Math.max(0, Math.ceil((wx.nextChangeTick - s.tick) / CFG.god.hourTicks));
+      this.weather.dataset.tip = t('weather.forecast2', { now: t(`weather.${wx.kind}`), t: deg, next: t(`weather.${wx.upcoming}`), h: hours })
+        + (s.god.mode === 'sandbox' && !this.ctx.readOnly() ? ` · ${t('weather.setHint')}` : '');
     }
     const gs = s.goblins;
     const by = (st: string) => gs.filter((g) => g.lifeStage === st).length;

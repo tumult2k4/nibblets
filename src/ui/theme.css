@@ -109,3 +109,8 @@ table.genome td { padding: 1px 4px; border-bottom: 1px solid rgba(0,0,0,.08); }
 .flyout { flex-wrap: wrap; max-width: calc(100vw - 440px); }
 .flyout .card { width: 96px; padding: 6px; }
 .flyout .card .name { font-size: .9em; }
+
+/* P3.1: clickable weather stat + sandbox weather picker */
+.topbar .stat.clickable { cursor: pointer; }
+.wxmenu { position: fixed; z-index: 40; display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 6px; }
+.wxmenu .btn { justify-content: flex-start; gap: 4px; white-space: nowrap; }

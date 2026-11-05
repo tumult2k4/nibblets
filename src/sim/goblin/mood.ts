@@ -26,6 +26,9 @@ export function moodTarget(g: Goblin): number {
     v += (n[k] - 50) * 0.35;
     if (n[k] < 15) v -= 15;
   }
+  // warmth only hurts: being cold is miserable, being warm is merely normal
+  v += Math.min(0, n.warmth - 50) * 0.35;
+  if (n.warmth < 15) v -= 15;
   for (const m of g.mood.modifiers) v += m.amount;
   return clamp(v, -100, 100);
 }

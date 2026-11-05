@@ -30,3 +30,14 @@ Small choices the design doc left open, one line of rationale each.
 - **Renderer finds changed terrain by diffing a snapshot** of heights/biomes/wear rather than reading a dirty list from the sim (keeps the renderer read-only).
 - **Uprooted plants stay in `plants` while held** (growth paused); replanting at ≤ 3 height on a valid site keeps them (hydration × 0.6 shock), otherwise they die.
 - **Saplings in the Gift Tray are a `god_spawn_plant` command**, not an item type.
+
+## P3.1 weather & temperature
+- **Markov chain in compact form**: per-season weights + a per-state "persist" chance + `follows` (storms only out of rain/clouds, blizzards out of snow/clouds) instead of four full 8×8 matrices. Same semantics, a quarter the numbers to tune.
+- **Forecast is real**: `weather.upcoming` is rolled one transition ahead (6 in-game hours = one transition), so the top-bar forecast never lies. Save v3 adds it plus `weather.cells` (local cells, used by P3.8 Rain/Warm Sun).
+- **Warmth drifts toward a target** set by felt temperature (100 inside the comfort band, −6 per °C below it, band bottom = 10 − 8 × coldTolerance), with an hourly drift rate (0.15 down, 0.25 up, 0.4 up in sunshine), plus the §21 rain drain (6/h) and storm/snow/blizzard equivalents outdoors. A first linear-drain version froze every goblin in the first winter even with a hut; the drift form lets moderate cold settle at a lower warmth and only deep cold (winter nights outdoors, blizzards) reach 0.
+- **Hypothermia** below warmth 1: 30 hp/day (×1.5 hatchlings/elders); hp only regenerates when warmth > 20. A `freezing` event drives a critical notification.
+- **Shelter is positional**: a goblin within 0.9 tiles of a completed hut/stone hut/longhouse is sheltered (+8/+12/+16 °C, no exposure drain, can't get wet). No extra goblin state needed.
+- **Air temperature blends seasons over the first day** of a season (not on day 0 of the world).
+- **Rain sets plant hydration's target to 1** (instead of soil moisture × 0.8); puddles and mud are deferred to P3.6/P3.7.
+- **Warmth only lowers mood** (below 50), so warm summers don't inflate mood.
+- **Sandbox `set_weather` op** (click the weather in the top bar) is a logged command, so replays match.

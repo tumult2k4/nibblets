@@ -61,7 +61,7 @@ export function createWorldState(params: WorldParams): WorldState {
     buildings: [], fires: [], enemies: [], graves: [], places: [],
     clans: [], village: { name: p.villageName, center: { x: w / 2, y: h / 2 }, chiefId: null, stockpile: [], stockpilePos: { x: w / 2, y: h / 2 } },
     god: newGodState(p.mode, p.gentle), commandLog: [],
-    weather: { kind: 'clear', nextChangeTick: CFG.weather.transitionTicks, temperature: 14, windDir: 0 },
+    weather: { kind: 'clear', nextChangeTick: CFG.weather.transitionTicks, temperature: 14, windDir: 0, upcoming: 'clear', cells: [] },
     stats: { samples: [], deaths: {}, births: 0, eaten: 0, divineFood: 0 },
     llm: { journals: [], speechText: {} },
     genParams: p,

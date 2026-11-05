@@ -12,6 +12,7 @@ import { slotCount } from '../../../sim/inventory';
 import { icon, ITEM_ICON } from '../../icons';
 import { portraits } from '../../../render/portraits';
 import { CFG } from '../../../sim/config';
+import { feltTemperature, isWet, shelterOf } from '../../../sim/temperature';
 
 export const bar = (v: number, color = 'var(--moss)'): HTMLElement => el('div.bar', {}, el('i', { style: `width:${Math.max(0, Math.min(100, v))}%;background:${color}` }));
 const row = (label: string, v: number, shown: string, color?: string) =>
@@ -33,15 +34,18 @@ export function goblinHeader(g: Goblin, w: World, onFollow: () => void, onClose:
         el('button.btn', { onclick: onClose, 'data-tip': t('insp.close') }, icon('close')))));
 }
 
-export function statusTab(g: Goblin): HTMLElement {
+export function statusTab(g: Goblin, w: World): HTMLElement {
   const n = g.needs;
-  const needs = (['hunger', 'thirst', 'energy', 'curiosity'] as const).map((k) => row(t(`need.${k}`), n[k], String(Math.round(n[k])), needColor(n[k])));
-  const stubs = (['warmth', 'safety', 'social', 'fun', 'comfort', 'purpose'] as const).map((k) => row(t(`need.${k}`), n[k], String(Math.round(n[k])), '#b5a98f'));
+  const needs = (['hunger', 'thirst', 'energy', 'warmth', 'curiosity'] as const).map((k) => row(t(`need.${k}`), n[k], String(Math.round(n[k])), needColor(n[k])));
+  const stubs = (['safety', 'social', 'fun', 'comfort', 'purpose'] as const).map((k) => row(t(`need.${k}`), n[k], String(Math.round(n[k])), '#b5a98f'));
+  const tags = [t('insp.felt', { t: Math.round(feltTemperature(w, g)) })];
+  if (isWet(w, g)) tags.push(t('insp.wet'));
+  if (shelterOf(w, g)) tags.push(t('insp.sheltered'));
   const mood = g.mood.value;
   const mods = [...g.mood.modifiers].sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount)).slice(0, 3).map((m) => `${m.id.replace(/_/g, ' ')} ${m.amount > 0 ? '+' : ''}${Math.round(m.amount)}`);
   return el('div', {},
     el('div.row', {}, el('b', { text: `${t('insp.doing')}: ` }), el('span', { text: t(`act.${g.activity.action}`) })),
-    el('h3', { text: t('insp.needs') }), ...needs, ...stubs,
+    el('h3', { text: t('insp.needs') }), ...needs, el('div.sub', { text: tags.join(' · ') }), ...stubs,
     el('h3', { text: t('insp.mood') }),
     row(t(`emotion.${g.mood.emotion}`), (mood + 100) / 2, String(Math.round(mood)), mood < -30 ? 'var(--apple)' : 'var(--gold)'),
     mods.length ? el('div.sub', { text: mods.join(' · ') }) : null,

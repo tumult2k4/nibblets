@@ -48,7 +48,7 @@ export class Inspector implements Component {
         if (st.selection.length > 1) this.tabs.prepend(el('span.badge', { text: `+${st.selection.length - 1}` }));
       }
       const tab = st.inspectorTab;
-      this.body.replaceChildren(tab === 'status' ? statusTab(g) : tab === 'mind' ? mindTab(g) : tab === 'body' ? bodyTab(g, w) : inventoryTab(g));
+      this.body.replaceChildren(tab === 'status' ? statusTab(g, w) : tab === 'mind' ? mindTab(g) : tab === 'body' ? bodyTab(g, w) : inventoryTab(g));
       if (tab === 'body' && !fresh) return;
       return;
     }
