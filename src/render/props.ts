@@ -4,7 +4,7 @@ import type { Plant } from '../sim/state';
 import { CFG } from '../sim/config';
 import { heightAt } from '../sim/grid';
 import { flatMat } from './lowpoly';
-import { palletGeo, appleGeo, berryBushGeo, bushGeo, flowerGeo, grassGeo, itemGeo, rockGeo, saplingGeo, seedMoundGeo, sproutGeo, stumpGeo, treeGeo } from './meshFactory';
+import { berryGeo, palletGeo, appleGeo, berryBushGeo, bushGeo, flowerGeo, grassGeo, itemGeo, rockGeo, saplingGeo, seedMoundGeo, sproutGeo, stumpGeo, treeGeo } from './meshFactory';
 import { PROP_COLORS } from './palette';
 import type { Interp } from './interpolation';
 
@@ -70,6 +70,7 @@ function pile(type: Parameters<typeof itemGeo>[0], qty: number, seed: number): T
 export class Props {
   readonly group = new THREE.Group();
   private apples: THREE.InstancedMesh;
+  private berries: THREE.InstancedMesh;
   private appleSig = '';
   private plantMeshes: THREE.InstancedMesh[] = [];
   private items = new Map<number, THREE.Object3D>();
@@ -84,6 +85,9 @@ export class Props {
     this.apples = new THREE.InstancedMesh(appleGeo(), flatMat, 4000);
     this.apples.castShadow = false;
     this.group.add(this.apples);
+    this.berries = new THREE.InstancedMesh(berryGeo(), flatMat, 4000);
+    this.berries.castShadow = false;
+    this.group.add(this.berries);
     this.buildStatic();
   }
 
@@ -165,24 +169,33 @@ export class Props {
   private updateApples(): void {
     const s = this.w.s;
     let sig = '';
-    for (const p of s.plants) if (p.kind === 'apple_bush' && p.fruit) sig += p.id + ':' + p.fruit + ',';
+    for (const p of s.plants) if (p.fruit) sig += p.id + ':' + p.fruit + ',';
     if (sig === this.appleSig) return;
     this.appleSig = sig;
     let i = 0;
+    let j = 0;
     for (const p of s.plants) {
-      if (p.kind !== 'apple_bush' || !p.fruit) continue;
+      if (!p.fruit || (p.kind !== 'apple_bush' && p.kind !== 'berry_bush')) continue;
+      const berry = p.kind === 'berry_bush';
+      const mesh = berry ? this.berries : this.apples;
       const size = plantScale(p);
       const base = this.ground(p.pos.x, p.pos.y);
-      for (let k = 0; k < p.fruit && i < this.apples.instanceMatrix.count; k++) {
+      for (let k = 0; k < p.fruit; k++) {
+        const idx = berry ? j : i;
+        if (idx >= mesh.instanceMatrix.count) break;
         const a = hash(p.id * 13 + k) * Math.PI * 2;
-        const hgt = 0.35 + hash(p.id * 17 + k) * 0.4;
-        const r = 0.42 * size;
+        const hgt = berry ? 0.25 + hash(p.id * 17 + k) * 0.2 : 0.35 + hash(p.id * 17 + k) * 0.4;
+        const r = (berry ? 0.33 : 0.42) * size;
         m4.compose(v.set(p.pos.x + Math.cos(a) * r, base + hgt * size, p.pos.y + Math.sin(a) * r), q.identity(), sc.set(1, 1, 1));
-        this.apples.setMatrixAt(i++, m4);
+        mesh.setMatrixAt(idx, m4);
+        if (berry) j++;
+        else i++;
       }
     }
     this.apples.count = i;
+    this.berries.count = j;
     this.apples.instanceMatrix.needsUpdate = true;
+    this.berries.instanceMatrix.needsUpdate = true;
   }
 
   private updateItems(interp: Interp, alpha: number): void {

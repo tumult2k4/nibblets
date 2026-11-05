@@ -68,3 +68,30 @@ describe('plant lifecycle (§8.1)', () => {
     expect(p.stage).not.toBe('seed');
   });
 });
+
+describe('other plants (§8.2, P2.5)', () => {
+  it('berry bushes regrow berries quickly; goblins sometimes seed new ones by eating', async () => {
+    const { spawnGoblin, HOUR } = await import('./helpers');
+    const w = makeWorld({ size: 32 });
+    setMorning(w, 1);
+    const b = placePlant(w, 'berry_bush', 'mature', { x: 20.5, y: 20.5 }, 0);
+    runTicks(w, DAY * 2);
+    expect(b.fruit).toBe(CFG.plants.maxBerries);
+    const g = spawnGoblin(w);
+    const before = w.s.plants.filter((p) => p.kind === 'berry_bush').length;
+    for (let i = 0; i < 80; i++) {
+      g.inventory = [{ type: 'berry', qty: 1 }];
+      g.needs.hunger = 30;
+      runTicks(w, HOUR / 2, () => g.inventory.length === 0);
+    }
+    expect(w.s.plants.filter((p) => p.kind === 'berry_bush').length).toBeGreaterThan(before);
+  });
+
+  it('flowers slowly spread in the warm seasons', () => {
+    const w = makeWorld({ size: 32 });
+    setMorning(w, 1);
+    for (let i = 0; i < 10; i++) placePlant(w, 'flower', 'mature', { x: 6.5 + i * 2, y: 20.5 });
+    runTicks(w, DAY * 6);
+    expect(w.s.plants.filter((p) => p.kind === 'flower').length).toBeGreaterThan(10);
+  });
+});

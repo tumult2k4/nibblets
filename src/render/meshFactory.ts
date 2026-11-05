@@ -18,8 +18,11 @@ export function berryBushGeo(): THREE.BufferGeometry {
   return merge([
     paint(wobble(new THREE.IcosahedronGeometry(0.38, 0).translate(0, 0.32, 0), 0.1, 11), '#4d7f3c', 0.06, 8),
     paint(wobble(new THREE.IcosahedronGeometry(0.28, 0).translate(0.22, 0.26, 0.1), 0.08, 13), '#406f33', 0.05, 9),
-    ...[0, 1, 2, 3].map((i) => paint(new THREE.OctahedronGeometry(0.05).translate(Math.cos(i * 1.7) * 0.3, 0.35 + (i % 2) * 0.1, Math.sin(i * 1.7) * 0.3), P.berry)),
   ]);
+}
+
+export function berryGeo(): THREE.BufferGeometry {
+  return paint(new THREE.OctahedronGeometry(0.05), P.berry);
 }
 
 export function treeGeo(): THREE.BufferGeometry {

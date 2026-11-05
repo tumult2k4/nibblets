@@ -27,6 +27,8 @@ export const ITEM_DEFS: Partial<Record<ItemType, ItemDef>> = {
   flint: { stack: 10, weight: 1, value: 5, tray: 'materials' },
   fiber: { stack: 20, weight: 0.3, value: 2, burnable: true, tray: 'materials' },
   clay: { stack: 10, weight: 2, value: 2, tray: 'materials' },
+  // flowers: decor now; crowns and courtship gifts arrive with culture (P8)
+  flower: { stack: 10, weight: 0.1, decayDays: 2, value: 1 },
 };
 
 export const GIFT_TRAY: Record<'food' | 'materials', ItemType[]> = {

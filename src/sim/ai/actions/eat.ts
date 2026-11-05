@@ -5,6 +5,7 @@ import { addItem, countItem, foodStack, takeOne } from '../../inventory';
 import { needUrgency } from '../../goblin/needs';
 import { addMood } from '../../goblin/mood';
 import { spawnGroundItem } from '../../groundItems';
+import { siteOk, spawnPlant } from '../../plants';
 import type { ItemStack } from '../../../shared/types';
 import type { Goblin } from '../../state';
 import type { World } from '../../world';
@@ -24,6 +25,11 @@ function eatStep(g: Goblin, w: World, pick: () => ItemStack | undefined): StepRe
   if (one.divine) w.s.stats.divineFood += 1;
   if (one.divine) addMood(w, g, 'sky_food', 3, 1800);
   w.emit({ type: 'item_eaten', goblinId: g.id, item: one.type, at: g.pos, ...(one.divine ? { divine: true } : {}) });
+  // §8.2 accidental gardening: now and then a berry seed ends up in the ground
+  if (one.type === 'berry' && w.rng.chance(CFG.plants.berryAccidentalSeed)) {
+    const pos = { x: g.pos.x + w.rng.range(-1.5, 1.5), y: g.pos.y + w.rng.range(-1.5, 1.5) };
+    if (siteOk(w, pos)) spawnPlant(w, 'berry_bush', pos, 'seed', null);
+  }
   if (one.type === 'apple') {
     // industrious goblins pocket the core for planting; the rest toss it (it rots in a few days)
     const keep = w.rng.chance(CFG.plants.keepCoreBase + CFG.plants.keepCorePerIndustry * g.personality.industry);
