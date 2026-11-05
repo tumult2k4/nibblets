@@ -1,18 +1,20 @@
 import type { Vec2 } from '../shared/types';
 import type { WorldState } from './state';
 import { inBounds, tileIndex } from './grid';
+import { CFG } from './config';
 
 const SQRT2 = Math.SQRT2;
 const MAX_EXPANSIONS = 9000;
 const CACHE_MAX = 600;
 
-/** Movement cost multiplier of a tile; depends only on walkability and the wear>0.5 flag. */
+/** Movement cost multiplier of a tile: wear>0.5 trails, marsh, forest, building footprints (changes bump terrainVersion). */
 export function tileCost(s: WorldState, i: number): number {
   const t = s.tiles[i]!;
   let c = 1;
   if (t.wear > 0.5) c *= 0.8;
   if (t.biome === 'marsh') c *= 1.4;
   if (t.biome === 'forest') c *= 1.1;
+  if (t.occupiedBy !== null) c *= CFG.buildings.occupiedCost; // walk around buildings unless heading inside
   return c;
 }
 

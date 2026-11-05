@@ -10,7 +10,7 @@ import { allocId } from '../../shared/ids';
 import { coldDamage, warmthDelta } from '../temperature';
 import { weatherAt } from '../weather';
 
-const WORK_ACTIONS = new Set(['harvest_fruit', 'pick_up']);
+const WORK_ACTIONS = new Set(['harvest_fruit', 'pick_up', 'chop', 'build', 'deliver_material']);
 
 /** Per-tick decay for the active needs (§7.1). Warmth is event-driven (temperature.ts); others are stubs until their phase. */
 export function needDecay(g: Goblin, need: NeedId, season: string, heatwave = false): number {

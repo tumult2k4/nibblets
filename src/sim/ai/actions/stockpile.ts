@@ -6,15 +6,17 @@ import { needUrgency } from '../../goblin/needs';
 import { moveAlong, planPath } from '../../steering';
 import { distanceFalloff } from '../considerations';
 import { deposit, stockFood, withdraw } from '../../stockpile';
+import { blueprints, missingMaterials } from '../../buildings';
 import type { ItemStack } from '../../../shared/types';
 import type { Goblin } from '../../state';
 import type { World } from '../../world';
 import type { StepResult, UtilityAction } from '../action';
 
-/** Stacks a goblin would rather store: materials, and food beyond what it keeps for itself. */
-function storable(g: Goblin): ItemStack[] {
+/** Stacks a goblin would rather store: materials no blueprint is waiting for, and food beyond what it keeps. */
+function storable(g: Goblin, w: World): ItemStack[] {
   const food = g.inventory.filter((s) => isFood(s.type) && s.type !== 'apple_core').reduce((n, s) => n + s.qty, 0);
-  return g.inventory.filter((s) => (!isFood(s.type) ? true : s.type !== 'apple_core' && food > CFG.plants.stockFoodKeep + 1));
+  const wanted = new Set(blueprints(w.s).flatMap((b) => missingMaterials(b).map((m) => m.type)));
+  return g.inventory.filter((s) => (!isFood(s.type) ? !wanted.has(s.type) : s.type !== 'apple_core' && food > CFG.plants.stockFoodKeep + 1));
 }
 
 function walkTo(g: Goblin, w: World): StepResult | null {
@@ -31,9 +33,9 @@ function walkTo(g: Goblin, w: World): StepResult | null {
 /** Carry materials (and surplus food) to the village stockpile. */
 export const StoreItem: UtilityAction = {
   id: 'store_item', tags: ['work'], minStage: 'youngling', interruptible: true,
-  isAvailable: (g) => storable(g).length > 0,
-  score: (g) => {
-    const n = storable(g).reduce((k, s) => k + s.qty, 0);
+  isAvailable: (g, w) => storable(g, w).length > 0,
+  score: (g, w) => {
+    const n = storable(g, w).reduce((k, s) => k + s.qty, 0);
     const full = g.inventory.length >= CFG.goblin.inventorySlots ? 1.4 : 1;
     return Math.min(0.6, 0.18 + 0.05 * n) * full * (1 - needUrgency(Math.min(g.needs.hunger, g.needs.thirst)));
   },

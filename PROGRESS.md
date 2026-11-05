@@ -1,5 +1,5 @@
 # Nibblets progress
-Current: P3.3 — building system (blueprints, delivery, Build, ghosts)
+Current: P3.4 — huts: ClaimHome, capacity, storage, SleepHome, warmth
 ## Done
 - [x] P1.1 scaffold: Vite + strict TS, ESLint flat config with sim architecture rules, Prettier, Vitest, scripts
 - [x] P1.2 shared/: math, ids, mulberry32 Rng with fork(label), typed EventBus
@@ -26,8 +26,9 @@ Current: P3.3 — building system (blueprints, delivery, Build, ghosts)
 - [x] P2.7 terraform powers (brush tool, Shift+wheel radius, chunk rebuilds, path-cache invalidation), path wear, uproot & replant, Gift Tray Life tab (cores, saplings), lenses: fertility, moisture, paths
 - [x] P3.1 weather Markov chain (season weights, forecast one step ahead, local cells ready), air/felt temperature, warmth need + hypothermia, wet status, fog/blizzard vision, heatwave thirst, rain hydrates plants; top-bar temperature + forecast, sandbox weather picker (save v3)
 - [x] P3.2 seasonal terrain palettes + foliage tints blended over each season's first day, snow cover (falls ≤ 2 °C, melts above 0, faster in rain/sun, local cells), deep snow/mud slow walking, winter dormancy with temporary `winterFoodEase` (berries fruit at 50 % in winter until P5.6), spring planting rush, less exploring in winter
+- [x] P3.3 building system: findSite (flatness, water 4–10, spacing 3–6, orchards/fertility/trails avoided), blueprints reserve footprints (path cost ×4), DeliverMaterial (cooperative, no over-delivery), Build (skill, mood, friend ×1.3), completion + deeds + building skill; ghost/scaffold/hut meshes with delivered piles; hammering animation; sandbox spawn_building
 ## Next
-- [ ] P3.3 building system: findSite, blueprint, material delivery, Build (cooperative), scaffold/complete meshes, ghost rendering
+- [ ] P3.4 hut: ClaimHome, capacity, storage, SleepHome (2×), warmth bonus
 ## Notes / known issues
 - Balance (20 days × 5 seeds, after P2): population 10, 0 deaths, 25–36 goblin-planted mature bushes, apple bushes 70→~105, ~29 wood stored, ~0.12 ms/tick.
 - Commits for Phase 1 were batched into three (see DECISIONS.md); from P2 on, one commit per step.

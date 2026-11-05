@@ -53,7 +53,7 @@ function plantsSig(ps: readonly Plant[], held: { kind: string; id: number } | nu
 }
 
 /** A small heap of `qty` copies (max 6) of an item, arranged deterministically. */
-function pile(type: Parameters<typeof itemGeo>[0], qty: number, seed: number): THREE.Group {
+export function pile(type: Parameters<typeof itemGeo>[0], qty: number, seed: number): THREE.Group {
   const g = new THREE.Group();
   const n = Math.max(1, Math.min(6, qty));
   for (let i = 0; i < n; i++) {

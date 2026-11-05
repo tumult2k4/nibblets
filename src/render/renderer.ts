@@ -14,6 +14,7 @@ import { GodHand } from './godHand';
 import { pick, type Pick } from './picking';
 import { Rings } from './decals';
 import { seasonLook } from './seasons';
+import { BuildingViews } from './buildingView';
 
 export interface RenderSettings { shadows: 'off' | 'low' | 'high'; renderScale: number; outlines: boolean; fog: boolean }
 
@@ -31,6 +32,7 @@ export class Renderer {
   terrain!: TerrainMesh;
   props!: Props;
   goblins!: GoblinViews;
+  buildings!: BuildingViews;
   interp!: Interp;
   sky: SkyLights;
   private water!: ReturnType<typeof makeWater>;
@@ -64,9 +66,10 @@ export class Renderer {
     this.water = makeWater(w.s);
     this.props = new Props(w);
     this.goblins = new GoblinViews(w);
+    this.buildings = new BuildingViews(w);
     this.goblins.outlines = this.settings.outlines;
     this.interp = new Interp(w);
-    this.worldGroup.add(this.terrain.group, this.water.mesh, this.props.group, this.goblins.group);
+    this.worldGroup.add(this.terrain.group, this.water.mesh, this.props.group, this.buildings.group, this.goblins.group);
     const c = w.s.village.center;
     this.camera.setTarget(c.x, c.y, true);
   }
@@ -140,13 +143,17 @@ export class Renderer {
       const shaped = w.s.terrainVersion !== this.terrainSeen;
       this.terrainSeen = w.s.terrainVersion;
       this.terrainTimer = 2;
-      if (this.terrain.refresh() > 0 && shaped) this.props.buildStatic();
-      else if (shaped) this.props.buildStatic();
+      this.terrain.refresh();
+      if (shaped) {
+        this.props.buildStatic();
+        this.buildings.reseat();
+      }
     }
     const season = seasonLook(w.clock);
     this.terrain.setPalette(season.look.biomes, season.sig);
     this.props.setLook(season.look, season.sig);
     this.props.update(this.interp, alpha);
+    this.buildings.update();
     this.goblins.update(this.interp, alpha, this.time, this.sky.night, dt);
     this.ambientEmotes(dt);
     this.emotes.update(dt, (id) => this.goblins.headPos(id), this.camera.dist);

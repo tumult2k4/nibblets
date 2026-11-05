@@ -49,3 +49,11 @@ Small choices the design doc left open, one line of rationale each.
 - **Ground speed**: snow > 0.5 → ×0.8; worn trails (wear > 0.5) in rain → mud ×0.85.
 - **`winterFoodEase: 0.5`** (temporary, remove in P5.6): berry bushes keep fruiting at half rate in winter; apples, growth and planting stop.
 - **Season gameplay multipliers** live in `CFG.seasons`: planting ×1.4 spring / ×0.8 autumn / off in winter, exploring ×0.6 in winter.
+
+## P3.3 buildings
+- **Footprints stay walkable** but cost ×4 in A* (so goblins walk around huts yet can still reach the door/inside); placing a blueprint bumps `terrainVersion` to drop cached paths.
+- **Building positions are integer tile corners**; a 2×2 hut covers the four tiles around its center.
+- **Cooperative hauling without over-delivery**: a hauler only withdraws what is still missing minus what others are already carrying to the same blueprint (activity stage ≥ 2).
+- **StoreItem leaves materials alone while a blueprint needs them** — otherwise haulers were pre-empted by StoreItem and put the wood straight back (an endless loop seen in the first browser run).
+- **Contributors are tracked in `building.data` (`w<goblinId>` = labor ticks)** and each gets a `builds` deed on completion; construction materials are consumed, the storage then belongs to the hut.
+- **Building skill grows 0.001 per labor tick** (a solo hut ≈ +0.5).

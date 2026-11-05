@@ -120,6 +120,13 @@ export class GoblinViews {
       r.armL.rotation.x = -Math.sin(ph) * 0.5; r.armR.rotation.x = Math.sin(ph) * 0.5;
       earFlop = Math.sin(ph - 0.8) * 0.25; // secondary motion with phase lag
       if (baby) r.body.rotation.z = Math.sin(ph * 0.5) * 0.12; // babies wobble
+    } else if (act === 'build' || act === 'chop') {
+      // hammering / chopping: big overhead swing, lean into it
+      const k = t * 7 + g.id;
+      const hit = Math.sin(k);
+      r.armR.rotation.x = -1.9 + hit * 1.1; r.armL.rotation.x = -1.2 + hit * 0.5;
+      r.body.rotation.x = 0.15 + Math.max(0, -hit) * 0.15;
+      earFlop = Math.max(0, -hit) * 0.3;
     } else if (act === 'harvest_fruit' || act === 'pick_up' || act === 'drink' || act === 'eat') {
       const k = t * 9 + g.id;
       if (act === 'drink') { r.body.rotation.x = 0.6; r.head.rotation.x = 0.4; }

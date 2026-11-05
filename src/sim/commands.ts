@@ -3,7 +3,8 @@ import { siteOk, spawnPlant } from './plants';
 import { tileAt } from './grid';
 import { divineAct } from './god/faith';
 import { TERRAFORM_POWERS, terraform, type TerraformPower } from './god/terraform';
-import type { ID, ItemType, PlantKind, Vec2, Vec3, WeatherKind } from '../shared/types';
+import type { BuildingType, ID, ItemType, PlantKind, Vec2, Vec3, WeatherKind } from '../shared/types';
+import { buildingDef, completeBuilding, placeBlueprint, siteClear, siteTilesOk } from './buildings';
 import { WEATHER_KINDS, setWeather } from './weather';
 import { q2 } from '../shared/math';
 import { CFG } from './config';
@@ -15,7 +16,8 @@ import type { NeedId } from './state';
 export type SandboxOp =
   | { op: 'remove'; id: ID }
   | { op: 'set_need'; goblinId: ID; need: NeedId; value: number }
-  | { op: 'set_weather'; kind: WeatherKind };
+  | { op: 'set_weather'; kind: WeatherKind }
+  | { op: 'spawn_building'; kind: BuildingType; pos: Vec2; complete: boolean };
 
 export type GodCommand =
   | { type: 'god_grab'; entityId: ID }
@@ -97,6 +99,12 @@ export function validate(w: World, cmd: Command): string | null {
     case 'sandbox':
       if (cmd.op.op === 'set_need') return needGoblin(cmd.op.goblinId);
       if (cmd.op.op === 'set_weather') return WEATHER_KINDS.includes(cmd.op.kind) ? null : 'unknown_weather';
+      if (cmd.op.op === 'spawn_building') {
+        const def = buildingDef(cmd.op.kind);
+        if (!def) return 'unknown_building';
+        const at = { x: Math.round(cmd.op.pos.x), y: Math.round(cmd.op.pos.y) };
+        return siteTilesOk(s, at, def.footprint) && siteClear(w, at, def.footprint) ? null : 'bad_site';
+      }
       return null;
   }
 }
@@ -123,6 +131,10 @@ function apply(w: World, cmd: Command): void {
       const op = cmd.op;
       if (op.op === 'set_need') w.goblin(op.goblinId)!.needs[op.need] = Math.max(0, Math.min(100, op.value));
       else if (op.op === 'set_weather') setWeather(w, op.kind);
+      else if (op.op === 'spawn_building') {
+        const b = placeBlueprint(w, op.kind, { x: Math.round(op.pos.x), y: Math.round(op.pos.y) }, null);
+        if (op.complete) completeBuilding(w, b, null);
+      }
       else if (op.op === 'remove') {
         // sandbox removal: the entity simply vanishes — no grave, no death event
         if (s.god.held?.id === op.id) s.god.held = null;

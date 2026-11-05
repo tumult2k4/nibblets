@@ -69,6 +69,15 @@ export const CFG = {
     vision: { fog: 0.5, blizzard: 0.3, storm: 0.7, snow: 0.85, rain: 0.9 } as Record<string, number>,
     heatwaveThirstMul: 1.8, rainHydration: 1, maxCells: 4, windJitter: 0.8,
   },
+  /** P3.3 buildings (§10.1–10.2); shelter warmth lives in `temperature.shelter` */
+  buildings: {
+    defs: {
+      hut: { cost: { wood: 6 } as Record<string, number>, footprint: 2, hp: 100, capacity: 2, storage: 6 },
+    } as Record<string, { cost: Record<string, number>; footprint: number; hp: number; capacity: number; storage: number }>,
+    buildRate: 0.002, skillBonus: 0.15, friendBonus: 1.3, skillPerTick: 0.001, workChunk: 300,
+    siteRadius: 14, maxSlope: 0.06, waterPref: [4, 10] as [number, number], hutSpacing: [3, 6] as [number, number],
+    occupiedCost: 4,
+  },
   /** P3.2 season gameplay multipliers and snow cover */
   seasons: {
     plantingMul: { spring: 1.4, summer: 1, autumn: 0.8, winter: 0 }, exploreMul: { spring: 1, summer: 1.1, autumn: 1, winter: 0.6 },
