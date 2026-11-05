@@ -1,3 +1,4 @@
+import type { TrayTab } from '../sim/items';
 import type { EntityKind } from '../render/picking';
 import type { TerraformPower } from '../sim/god/terraform';
 import type { ID } from '../shared/types';
@@ -28,7 +29,7 @@ export interface UIState {
   openPanels: { inspector: boolean; feed: boolean; debug: boolean; flyout: boolean; tray: boolean };
   overlay: null | 'pause' | 'saves' | 'settings' | 'help' | 'wizard';
   lens: Lens;
-  trayTab: 'food' | 'materials' | 'life';
+  trayTab: TrayTab;
   power: TerraformPower;
   brushRadius: number;
   powerOption: string;

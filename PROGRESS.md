@@ -1,5 +1,5 @@
 # Nibblets progress
-Current: P4.1 — rocks harvestable (Mine, finite stone, flint chance), sticks, tool items with durability
+Current: P4.2 — crafting system (Craft, §11 recipes for P4 items), quality tiers, Equip (hand slot rendered)
 ## Done
 - [x] P1.1 scaffold: Vite + strict TS, ESLint flat config with sim architecture rules, Prettier, Vitest, scripts
 - [x] P1.2 shared/: math, ids, mulberry32 Rng with fork(label), typed EventBus
@@ -36,8 +36,9 @@ Current: P4.1 — rocks harvestable (Mine, finite stone, flint chance), sticks, 
 - [x] Rain test green (shelter.test: unsheltered goblin with a home is inside within 300 ticks); build-a-hut test green (homes.test)
 - [x] Balance 32 days × 5 seeds: 100 % of adults housed by the end of autumn, 0 weather deaths on every seed
 - [x] Local rain cell test green; Warm Sun dries wet goblins (powers.test)
+- [x] P4.1 Mine (finite stone shrinking rocks, flint chance, pick ×2), sticks shed by trees, tools & weapons with durability (stone axe fells trees), Tools tray tab, planner obtains stone
 ## Next
-- [ ] P4.1 Mine (finite stone, flint chance), sticks, tool items with durability
+- [ ] P4.2 Craft (P4 recipes), quality tiers (fine), Equip with a rendered hand slot
 ## Notes / known issues
 - Balance (32 days × 5 seeds, after P3.8): unchanged from P3.4 — 0 deaths, 5–6 huts, 100 % housed by the end of autumn, ~0.13–0.15 ms/tick.
 - Balance (32 days × 5 seeds, after P3.4): 0 deaths, 5 huts and 100 % housed by the end of autumn on every seed, 29–55 goblin-planted mature bushes, ~0.14 ms/tick.

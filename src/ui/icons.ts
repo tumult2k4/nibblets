@@ -42,6 +42,10 @@ const SPRITE = [
   S('stick', `<path d="M4 19L20 5M14 10l3 1" stroke="#7a5636" stroke-width="2.5" stroke-linecap="round"/>`),
   S('stone', `<path d="M5 16l2-7 6-3 6 4 1 6-7 3z" fill="#a39d93" stroke="${I}" stroke-width="1.5" stroke-linejoin="round"/>`),
   S('flint', `<path d="M6 18l4-13 8 6-4 8z" fill="#4c4f5c" stroke="${I}" stroke-width="1.5" stroke-linejoin="round"/>`),
+  S('spear', `<path d="M4 20L17 7" stroke="#a07a4e" stroke-width="2.5" stroke-linecap="round"/><path d="M15 5l5-1-1 5-3 1z" fill="#d6b98a" stroke="${I}" stroke-width="1.3" stroke-linejoin="round"/>`),
+  S('club', `<path d="M5 20l8-8" stroke="#9a6b3f" stroke-width="3" stroke-linecap="round"/><circle cx="15.5" cy="8.5" r="4.5" fill="#8d8a84" stroke="${I}" stroke-width="1.4"/>`),
+  S('axe', `<path d="M6 20L16 6" stroke="#a07a4e" stroke-width="2.5" stroke-linecap="round"/><path d="M13 4c3 0 6 2 6 6l-4 1-4-4z" fill="#4c4f5c" stroke="${I}" stroke-width="1.3" stroke-linejoin="round"/>`),
+  S('pick', `<path d="M7 20L15 8" stroke="#a07a4e" stroke-width="2.5" stroke-linecap="round"/><path d="M5 8c4-4 10-4 14 2-4-2-9-3-14-2z" fill="#8d8a84" stroke="${I}" stroke-width="1.3" stroke-linejoin="round"/>`),
   S('fiber', `<path d="M6 20c2-6 2-11 0-16M12 20c1-6 1-11 0-16M18 20c-2-6-2-11 0-16" stroke="#c9b26a" stroke-width="2" fill="none"/><path d="M5 13h14" stroke="${I}" stroke-width="1.5"/>`),
   S('clay', `<ellipse cx="12" cy="14" rx="8" ry="5" fill="#b8734e" stroke="${I}" stroke-width="1.5"/>`),
   S('berry', `<circle cx="9" cy="14" r="4" fill="#7a3fa0" stroke="${I}" stroke-width="1.5"/><circle cx="15" cy="13" r="4" fill="#8a4fb0" stroke="${I}" stroke-width="1.5"/><path d="M12 9l1-4" stroke="#6e8b3d" stroke-width="2"/>`),
@@ -76,4 +80,5 @@ export function icon(name: string, cls = 'icon'): SVGSVGElement {
 export const ITEM_ICON: Record<string, string> = {
   apple: 'apple', berry: 'berry', mushroom: 'mushroom', glowcap: 'mushroom', fish: 'fish', apple_mash: 'bowl', stew: 'bowl',
   wood: 'wood', stick: 'stick', stone: 'stone', flint: 'flint', fiber: 'fiber', clay: 'clay', apple_core: 'apple',
+  spear: 'spear', stone_spear: 'spear', club: 'club', stone_axe: 'axe', pick: 'pick',
 };

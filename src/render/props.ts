@@ -1,10 +1,11 @@
 import * as THREE from 'three';
 import type { World } from '../sim/world';
-import type { Plant } from '../sim/state';
+import type { Plant, Rock } from '../sim/state';
 import { CFG } from '../sim/config';
 import { heightAt } from '../sim/grid';
 import { flatMat } from './lowpoly';
-import { berryGeo, palletGeo, appleGeo, berryBushGeo, bushGeo, flowerGeo, grassGeo, itemGeo, rockGeo, saplingGeo, seedMoundGeo, sproutGeo, stumpGeo, treeGeo } from './meshFactory';
+import { pile } from './piles';
+import { berryGeo, palletGeo, appleGeo, berryBushGeo, bushGeo, flowerGeo, grassGeo, rockGeo, saplingGeo, seedMoundGeo, sproutGeo, stumpGeo, treeGeo } from './meshFactory';
 import { PROP_COLORS } from './palette';
 import { seasonLook, type SeasonLook } from './seasons';
 import { clockAt } from '../sim/time';
@@ -46,26 +47,12 @@ function plantScale(p: Plant): number {
   return base;
 }
 const STAGE_IDX: Record<Plant['stage'], number> = { seed: 0, sprout: 1, sapling: 2, young: 3, mature: 4, old: 5, dead: 6, stump: 7 };
-function plantsSig(ps: readonly Plant[], held: { kind: string; id: number } | null): string {
+/** Static-prop signature: plant stages, the held plant, and rocks as they are mined down. */
+function plantsSig(ps: readonly Plant[], held: { kind: string; id: number } | null, rocks: readonly Rock[]): string {
   let h = held?.kind === 'plant' ? held.id : 2166136261;
   for (const p of ps) h = Math.imul(h ^ (p.id * 8 + STAGE_IDX[p.stage]), 16777619);
-  return `${ps.length}:${h >>> 0}`;
-}
-
-/** A small heap of `qty` copies (max 6) of an item, arranged deterministically. */
-export function pile(type: Parameters<typeof itemGeo>[0], qty: number, seed: number): THREE.Group {
-  const g = new THREE.Group();
-  const n = Math.max(1, Math.min(6, qty));
-  for (let i = 0; i < n; i++) {
-    const m = new THREE.Mesh(itemGeo(type), flatMat);
-    m.castShadow = true;
-    const a = i * 2.4 + hash(seed + i) * 0.6;
-    const r = i === 0 ? 0 : 0.12 + 0.05 * (i % 3);
-    m.position.set(Math.cos(a) * r, i >= 4 ? 0.09 : 0, Math.sin(a) * r);
-    m.rotation.y = hash(seed * 3 + i) * 6.28;
-    g.add(m);
-  }
-  return g;
+  for (const r of rocks) h = Math.imul(h ^ (r.id * 16 + r.stoneLeft), 16777619);
+  return `${ps.length}:${rocks.length}:${h >>> 0}`;
 }
 
 /** Instanced static props (bushes, trees, rocks, flowers, grass), live apples, and ground items. */
@@ -165,7 +152,8 @@ export class Props {
     rocks.count = s.rocks.length;
     rocks.castShadow = true;
     s.rocks.forEach((r, i) => {
-      const k = 0.6 + r.size * 0.45;
+      // shrinks as it is mined (stoneLeft starts at size × 4)
+      const k = 0.6 + 0.45 * Math.max(0.6, r.stoneLeft / 4);
       q.setFromAxisAngle(up, hash(r.id) * 6.28);
       m4.compose(v.set(r.pos.x, this.ground(r.pos.x, r.pos.y) - 0.05, r.pos.y), q, sc.set(k, k * (0.8 + hash(r.id + 3) * 0.5), k));
       rocks.setMatrixAt(i, m4);
@@ -187,7 +175,7 @@ export class Props {
     this.grassMesh = grass;
     this.group.add(grass);
     this.plantMeshes.push(grass);
-    this.plantsSig = plantsSig(s.plants, s.god.held);
+    this.plantsSig = plantsSig(s.plants, s.god.held, s.rocks);
   }
 
   update(interp: Interp, alpha: number): void {
@@ -195,7 +183,7 @@ export class Props {
     this.sigTimer -= 1;
     if (this.sigTimer <= 0) {
       this.sigTimer = 15;
-      if (plantsSig(s.plants, s.god.held) !== this.plantsSig) this.buildStatic();
+      if (plantsSig(s.plants, s.god.held, s.rocks) !== this.plantsSig) this.buildStatic();
     }
     this.updateApples();
     this.updateItems(interp, alpha);

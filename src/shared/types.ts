@@ -23,6 +23,8 @@ export interface ItemStack {
   qty: number;
   /** true if it fell from the sky (god-given); used by prayers and dependence. */
   divine?: boolean;
+  /** tools & weapons: uses left (absent = brand new, §11.3) */
+  dur?: number;
 }
 
 /** Billboard emotes over a goblin's head (§P2.6). */
@@ -78,7 +80,8 @@ export type SimEvent = BaseEvent &
     | { type: 'plant_died'; plantId: ID; kind: PlantKind; at: Vec2 }
     | { type: 'plant_watered'; goblinId: ID; plantId: ID; at: Vec2 }
     | { type: 'plant_chopped'; goblinId: ID; plantId: ID; wood: number }
-    | { type: 'rock_mined'; goblinId: ID; rockId: ID }
+    | { type: 'rock_mined'; goblinId: ID; rockId: ID; flint: boolean; left: number }
+    | { type: 'tool_broken'; goblinId: ID; item: ItemType; at: Vec2 }
     | { type: 'item_crafted'; goblinId: ID; item: ItemType }
     | { type: 'building_placed' | 'building_completed' | 'building_destroyed'; buildingId: ID; kind: BuildingType; goblinId?: ID; cause?: string }
     | { type: 'weather_changed'; from: WeatherKind; to: WeatherKind }

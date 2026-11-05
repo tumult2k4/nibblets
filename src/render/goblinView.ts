@@ -130,6 +130,12 @@ export class GoblinViews {
       r.armR.rotation.x = -1.9 + hit * 1.1; r.armL.rotation.x = -1.2 + hit * 0.5;
       r.body.rotation.x = 0.15 + Math.max(0, -hit) * 0.15;
       earFlop = Math.max(0, -hit) * 0.3;
+    } else if (act === 'mine') {
+      // two-handed pounding at the rock, deep bow on each blow
+      const hit = Math.sin(t * 6 + g.id);
+      r.armR.rotation.x = r.armL.rotation.x = -2.1 + hit * 1.3;
+      r.body.rotation.x = 0.2 + Math.max(0, -hit) * 0.25;
+      earFlop = Math.max(0, -hit) * 0.35;
     } else if (act === 'warm_up' || (act === 'seek_shelter' && g.needs.warmth < 40)) {
       // arms hugged tight, shivering when properly cold
       r.armL.rotation.x = -0.9; r.armR.rotation.x = -0.9;

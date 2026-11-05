@@ -99,3 +99,12 @@ Small choices the design doc left open, one line of rationale each.
 - **Casting UX**: arming a card sets `armed`; LMB casts and the power stays armed; Esc or a right click without drag puts it away; global powers cast straight from their card. Wide rings (power radius) use a thin band and ignore depth so the whole circle reads over hills.
 - **Temperature lens** colors tiles by local air temperature (cells included) on a −10/0/10/20/30 °C scale and recolors when the rounded global temperature or the cell set changes.
 
+## P4.1 mining, sticks, tool durability
+- **Durability lives on the stack** as `dur` (uses left); a brand-new tool has no field and counts as full (`usesLeft`). Tools stack 1, so they never merge; `addItem`/`takeOne` keep the field. A use is one finished job (a stone mined, a plant felled), weapons wear per hit (P4.5). Broken tools drop `breaksInto` parts (pick → stick + stone, axe/spears → stick, club → stone) and emit `tool_broken`. Repair waits for the workbench (P5).
+- **Until Equip (P4.2) a carried tool counts**: `toolFor(g, job)` picks the best multiplier in the inventory; P4.2 will look at the hand slot first. Goblins keep their tools (never stored, dropped last) and only pick up a tool kind they lack.
+- **Mine**: adults walk to the nearest workable rock within 30 tiles (one miner per rock, flint-bearing rocks slightly preferred), knock off one stone per 60 ticks (30 with a pick) until they carry 3, then StoreItem hauls it. Flint rolls per stone at the rock's `flintChance` (0.15 at worldgen). Rocks shrink visibly (`size` tracks `stoneLeft`) and vanish when spent. The drive is a village wish like wood: stone target 12, flint target 4 (at 0.6 weight), plus blueprint shortfalls, so stone huts and campfires will pull miners automatically.
+- **Trees need a stone axe** (§11.1 "can fell trees"): with one, mature/old trees are the most valuable chop (8 wood + 3 sticks, stump left); trees take 2.5× the hits. The axe also doubles chop damage on bushes.
+- **Sticks without an axe**: every 300 ticks, 4 random plants are sampled and grown trees drop a stick beside them at 12 % (×3 in storms), up to 30 loose sticks in the world. Stick wish (target 8) drives PickUp.
+- **Planner** resolves `obtain stone/flint` to `mine` (or explore when no rock is known); only fiber/clay etc. remain impossible until their sources exist.
+- **Tools tray tab** (spear, club, stone axe, pick): free in Sandbox; in Divine mode the tab is hidden and `god_spawn_item` is rejected with `locked` below god tier 2.
+

@@ -2,11 +2,11 @@ import { el } from '../dom';
 import { icon, ITEM_ICON } from '../icons';
 import { t } from '../i18n';
 import type { Ctx, Component } from '../ctx';
-import { GIFT_TRAY, SAPLING_VALUE, itemDef, saplingKind, type TrayEntry } from '../../sim/items';
+import { GIFT_TRAY, SAPLING_VALUE, TOOLS_TIER, TRAY_TABS, itemDef, saplingKind, type TrayEntry } from '../../sim/items';
 
 export type TrayDragStart = (item: TrayEntry, e: PointerEvent) => void;
 
-/** Bottom-center Gift Tray (§18.5): Food and Materials tabs; drag a slot into the world. */
+/** Bottom-center Gift Tray (§18.5): Food, Materials, Tools (Divine: tier 2+) and Life tabs; drag a slot into the world. */
 export class GiftTray implements Component {
   private root = el('div.tray.panel.hidden');
   private tabs = el('div.tabs');
@@ -22,10 +22,20 @@ export class GiftTray implements Component {
     parent.append(this.root);
   }
 
+  private sig(): string {
+    const st = this.ctx.store.state;
+    return st.trayTab + st.settings.language + (this.toolsLocked() ? 'L' : '');
+  }
+  private toolsLocked(): boolean {
+    const g = this.ctx.game.world.s.god;
+    return g.mode === 'divine' && g.tier < TOOLS_TIER;
+  }
+
   private render(): void {
     const st = this.ctx.store.state;
-    this.renderedTab = st.trayTab + st.settings.language;
-    this.tabs.replaceChildren(...(['food', 'materials', 'life'] as const).map((tab) =>
+    if (st.trayTab === 'tools' && this.toolsLocked()) st.trayTab = 'food';
+    this.renderedTab = this.sig();
+    this.tabs.replaceChildren(...TRAY_TABS.filter((tab) => tab !== 'tools' || !this.toolsLocked()).map((tab) =>
       el(`button.btn${tab === st.trayTab ? '.on' : ''}`, { onclick: () => this.ctx.store.set({ trayTab: tab }) }, t(`tray.${tab}`))));
     this.slots.replaceChildren(...GIFT_TRAY[st.trayTab].map((item, i) => {
       const kind = saplingKind(item);
@@ -47,7 +57,7 @@ export class GiftTray implements Component {
     const st = this.ctx.store.state;
     const show = st.openPanels.tray && !this.ctx.readOnly();
     this.root.classList.toggle('hidden', !show);
-    if (show && this.renderedTab !== st.trayTab + st.settings.language) this.render();
+    if (show && this.renderedTab !== this.sig()) this.render();
     this.hint.textContent = t('tray.hint', { n: this.qty });
   }
 

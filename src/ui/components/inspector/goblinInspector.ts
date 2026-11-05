@@ -10,6 +10,7 @@ import { express } from '../../../sim/goblin/genetics/phenotype';
 import { LOCUS_DEFS, type LocusDef } from '../../../sim/goblin/genetics/genome';
 import { describePersonality, TRAITS } from '../../../sim/goblin/personality';
 import { slotCount } from '../../../sim/inventory';
+import { isTool, maxUses, usesLeft } from '../../../sim/tools';
 import { icon, ITEM_ICON } from '../../icons';
 import { portraits } from '../../../render/portraits';
 import { CFG } from '../../../sim/config';
@@ -104,6 +105,8 @@ export function bodyTab(g: Goblin, w: World): HTMLElement {
 }
 
 export function inventoryTab(g: Goblin): HTMLElement {
-  const items = g.inventory.map((s) => el('div.row', {}, icon(ITEM_ICON[s.type] ?? 'gift'), el('span', { text: `${t(`item.${s.type}`)} ×${s.qty}${s.divine ? ` (${t('insp.sky')})` : ''}` })));
+  const items = g.inventory.map((s) => el('div.row', {}, icon(ITEM_ICON[s.type] ?? 'gift'), el('span', {
+    text: `${t(`item.${s.type}`)} ×${s.qty}${isTool(s.type) ? ` · ${t('insp.uses', { n: usesLeft(s), max: maxUses(s.type) })}` : ''}${s.divine ? ` (${t('insp.sky')})` : ''}`,
+  })));
   return el('div', {}, el('div.sub', { text: t('insp.slots', { n: slotCount(g) }) }), ...(items.length ? items : [el('div.sub', { text: t('insp.empty') })]));
 }

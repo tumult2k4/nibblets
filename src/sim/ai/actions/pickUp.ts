@@ -6,12 +6,18 @@ import { needUrgency } from '../../goblin/needs';
 import { moveAlong, planPath } from '../../steering';
 import { findGroundItem } from '../targets';
 import type { UtilityAction } from '../action';
-import { woodWanted } from './chop';
+import { stickWanted, woodWanted } from '../wants';
+import { isTool } from '../../tools';
 import type { Goblin, GroundItem } from '../../state';
 import type { World } from '../../world';
 
-const wantItem = (g: Goblin) => (it: GroundItem) =>
-  canCarry(g, it.stack.type) && (it.stack.type === 'apple_core' ? g.needs.hunger < 30 : isFood(it.stack.type) ? g.needs.hunger < 92 : true);
+/** Food when hungry-ish, cores when starving, materials always, a tool only if it has none of that kind yet. */
+const wantItem = (g: Goblin) => (it: GroundItem) => {
+  const t = it.stack.type;
+  if (!canCarry(g, t)) return false;
+  if (isTool(t)) return g.lifeStage === 'adult' && !g.inventory.some((s) => s.type === t);
+  return t === 'apple_core' ? g.needs.hunger < 30 : isFood(t) ? g.needs.hunger < 92 : true;
+};
 
 function target(g: Goblin, w: World): GroundItem | null {
   return findGroundItem(g, w, wantItem(g));
@@ -30,7 +36,8 @@ export const PickUp: UtilityAction = {
       return carrying * (0.12 + 1.15 * needUrgency(g.needs.hunger)) * near * (it.stack.divine ? 1.1 : 1);
     }
     // materials: worth fetching while the village wants wood (chopping drops it on the ground)
-    const want = it.stack.type === 'wood' || it.stack.type === 'stick' ? 0.12 + 0.3 * woodWanted(g, w) : 0.1;
+    const t = it.stack.type;
+    const want = isTool(t) ? 0.3 : t === 'wood' ? 0.12 + 0.3 * woodWanted(g, w) : t === 'stick' ? 0.1 + 0.3 * stickWanted(g, w) : 0.1;
     return want * near * (0.5 + g.personality.industry);
   },
   start(g, w) {

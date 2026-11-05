@@ -16,18 +16,26 @@ export function canCarry(g: Goblin, type: ItemType): boolean {
   return !!st || g.inventory.length < slotCount(g);
 }
 
+/** A stack of `qty` like `s` (keeps the divine mark and a tool's wear). */
+export function copyStack(s: ItemStack, qty: number): ItemStack {
+  const c: ItemStack = { type: s.type, qty };
+  if (s.divine) c.divine = true;
+  if (s.dur !== undefined) c.dur = s.dur;
+  return c;
+}
+
 export function addItem(g: Goblin, stack: ItemStack): number {
   let left = stack.qty;
   const max = itemDef(stack.type).stack;
   for (const s of g.inventory)
-    if (s.type === stack.type && !!s.divine === !!stack.divine && s.qty < max) {
+    if (s.type === stack.type && !!s.divine === !!stack.divine && s.dur === stack.dur && s.qty < max) {
       const n = Math.min(left, max - s.qty);
       s.qty += n;
       left -= n;
     }
   while (left > 0 && g.inventory.length < slotCount(g)) {
     const n = Math.min(left, max);
-    g.inventory.push(stack.divine ? { type: stack.type, qty: n, divine: true } : { type: stack.type, qty: n });
+    g.inventory.push(copyStack(stack, n));
     left -= n;
   }
   return stack.qty - left;
@@ -40,7 +48,7 @@ export function takeOne(g: Goblin, pred: (s: ItemStack) => boolean): ItemStack |
   const s = g.inventory[i]!;
   s.qty -= 1;
   if (s.qty <= 0) g.inventory.splice(i, 1);
-  return { type: s.type, qty: 1, ...(s.divine ? { divine: true } : {}) };
+  return copyStack(s, 1);
 }
 
 /** Best food in the inventory (most nutritious first). Apple cores are kept for planting unless `cores`. */

@@ -1,6 +1,7 @@
 import type { SimEvent, Vec2, ID } from '../shared/types';
 import type { World } from '../sim/world';
 import { t } from './i18n';
+import { ITEM_ICON } from './icons';
 
 export interface Note { text: string; tier: 'info' | 'notable' | 'critical'; at?: Vec2; id?: ID; tick: number; icon: string }
 
@@ -39,6 +40,10 @@ export function noteFor(e: SimEvent, w: World, names: Map<ID, string>): Note | n
     }
     case 'plant_chopped':
       return { ...base, id: e.goblinId, text: t('ev.chopped', { name: name(e.goblinId), n: e.wood }), tier: 'info', icon: 'leaf' };
+    case 'rock_mined':
+      return e.flint ? { ...base, id: e.goblinId, text: t('ev.flint', { name: name(e.goblinId) }), tier: 'info', icon: 'flint' } : null;
+    case 'tool_broken':
+      return { ...base, id: e.goblinId, text: t('ev.tool_broken', { name: name(e.goblinId), item: t(`item.${e.item}`) }), tier: 'info', icon: ITEM_ICON[e.item] ?? 'gift' };
     case 'building_placed':
       return e.goblinId !== undefined && e.kind === 'hut' ? { ...base, id: e.goblinId, text: t('ev.hut_planned', { name: name(e.goblinId) }), tier: 'info', icon: 'hill' } : null;
     case 'building_completed':

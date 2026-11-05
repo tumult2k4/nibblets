@@ -14,6 +14,8 @@ export const DE: Record<keyof typeof EN, string> = {
   'weather.forecast2': 'Jetzt: {now}, {t}°C · in ~{h} Std.: {next}', 'weather.setHint': 'klicken, um das Wetter zu setzen', 'weather.cells': 'Örtlich', 'weather.cell': '{w} ({h} Std.)', 'weather.warm': 'Warme Sonne',
   'ev.hut_planned': '{name} plant eine Hütte.', 'ev.hut_built': 'Eine neue Hütte ist fertig!', 'ev.home_claimed': '{name} ist in eine Hütte gezogen.',
   'act.seek_shelter': 'Sucht Schutz', 'act.warm_up': 'Wärmt sich auf', 'act.forage': 'Sammelt Pilze', 'item.glowcap': 'Leuchtkappe',
+  'act.mine': 'Bricht Steine', 'item.spear': 'Speer', 'item.stone_spear': 'Steinspeer', 'item.club': 'Keule', 'item.stone_axe': 'Steinaxt', 'item.pick': 'Spitzhacke',
+  'tray.tools': 'Werkzeug', 'ev.tool_broken': '{item} von {name} ist zerbrochen', 'ev.flint': '{name} hat Feuerstein gefunden', 'insp.uses': '{n}/{max} Nutzungen',
   'ev.hut_lost': 'Der Sturm hat eine Hütte zerstört!', 'insp.repair': 'reparaturbedürftig', 'insp.huddle': 'kuschelt',
   'insp.building': 'Gebäude', 'insp.progress': 'Fortschritt', 'insp.hpLbl': 'Zustand', 'insp.owner': 'Besitzer', 'insp.residents': 'Bewohner',
   'insp.storage': 'Vorrat', 'insp.needsMat': 'Wartet auf', 'insp.nobody': 'niemand', 'insp.storeEmpty': 'leer', 'insp.blueprint': 'geplant', 'insp.done': 'fertig',

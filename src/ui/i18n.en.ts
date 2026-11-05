@@ -12,6 +12,8 @@ export const EN = {
   'weather.forecast2': 'Now: {now}, {t}°C · next ~{h} h: {next}', 'weather.setHint': 'click to set the weather', 'weather.cells': 'Local', 'weather.cell': '{w} ({h} h)', 'weather.warm': 'Warm Sun',
   'ev.hut_planned': '{name} is planning a hut.', 'ev.hut_built': 'A new hut is finished!', 'ev.home_claimed': '{name} moved into a hut.',
   'act.seek_shelter': 'Taking shelter', 'act.warm_up': 'Warming up', 'act.forage': 'Foraging mushrooms', 'item.glowcap': 'Glowcap',
+  'act.mine': 'Mining stone', 'item.spear': 'Spear', 'item.stone_spear': 'Stone spear', 'item.club': 'Club', 'item.stone_axe': 'Stone axe', 'item.pick': 'Pick',
+  'tray.tools': 'Tools', 'ev.tool_broken': "{name}'s {item} broke", 'ev.flint': '{name} found flint', 'insp.uses': '{n}/{max} uses',
   'ev.hut_lost': 'The storm brought down a hut!', 'insp.repair': 'needs repair', 'insp.huddle': 'huddling',
   'insp.building': 'Building', 'insp.progress': 'Progress', 'insp.hpLbl': 'Condition', 'insp.owner': 'Owner', 'insp.residents': 'Residents',
   'insp.storage': 'Storage', 'insp.needsMat': 'Waiting for', 'insp.nobody': 'nobody', 'insp.storeEmpty': 'empty', 'insp.blueprint': 'planned', 'insp.done': 'finished',

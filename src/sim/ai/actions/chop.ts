@@ -1,12 +1,12 @@
 import { CFG } from '../../config';
-import { missingMaterials } from '../../buildings';
 import { dist } from '../../../shared/math';
-import { canCarry, countItem } from '../../inventory';
+import { canCarry } from '../../inventory';
 import { needUrgency } from '../../goblin/needs';
 import { moveAlong, planPath, faceToward } from '../../steering';
 import { spawnGroundItem } from '../../groundItems';
 import { removePlant } from '../../plants';
-import { stockCount } from '../../stockpile';
+import { fellingTool, toolFor, wearTool } from '../../tools';
+import { woodWanted } from '../wants';
 import type { Goblin, Plant } from '../../state';
 import type { World } from '../../world';
 import type { UtilityAction } from '../action';
@@ -21,34 +21,32 @@ function matureApples(w: World): number {
   return cache.n;
 }
 
-/** How much a goblin wants to chop this plant (0 = never). Old bushes first, then berry bushes, then fruitless mature apples. */
-function chopValue(w: World, p: Plant): number {
+/**
+ * How much a goblin wants to chop this plant (0 = never). Old bushes first, then berry bushes, then fruitless mature
+ * apples; trees only with a stone axe (§11.1), and then they are the best wood there is.
+ */
+function chopValue(w: World, p: Plant, axe: boolean): number {
+  if (p.kind === 'tree') return axe && (p.stage === 'young' || p.stage === 'mature' || p.stage === 'old') ? (p.stage === 'young' ? 0.6 : 2.4) : 0;
   if (p.kind === 'apple_bush') {
     if (p.stage === 'old') return 2;
     if (p.stage === 'mature' && p.fruit === 0 && matureApples(w) > P.minBushesPerGoblin * w.s.goblins.length) return 0.7;
     return 0;
   }
   if (p.kind === 'berry_bush' && p.stage === 'mature') return 1.1;
-  return 0; // trees need a stone axe (P4)
+  return 0;
 }
 
 export function findChopTarget(g: Goblin, w: World): Plant | null {
   let best: Plant | null = null;
   let bestS = 0;
+  const axe = !!fellingTool(g);
   for (const p of w.plantHash.query(g.pos, 30)) {
-    const v = chopValue(w, p);
+    const v = chopValue(w, p, axe);
     if (v <= 0 || w.s.goblins.some((o) => o.id !== g.id && o.activity.action === 'chop' && o.activity.targetId === p.id)) continue;
     const s = v / (1 + dist(g.pos, p.pos) / 15);
     if (s > bestS) { bestS = s; best = p; }
   }
   return best;
-}
-
-/** 0..1 wish for more wood: the stockpile target plus whatever blueprints still wait for. */
-export function woodWanted(g: Goblin, w: World): number {
-  let need = P.woodTarget;
-  for (const b of w.s.buildings) for (const m of missingMaterials(b)) if (m.type === 'wood') need += m.qty;
-  return Math.max(0, 1 - (stockCount(w.s, 'wood') + countItem(g, 'wood')) / need);
 }
 
 const busy = (g: Goblin): number => Math.max(needUrgency(g.needs.hunger), needUrgency(g.needs.thirst), needUrgency(g.needs.energy));
@@ -70,7 +68,7 @@ export const Chop: UtilityAction = {
   step(g, w) {
     const a = g.activity;
     const p = w.s.plants.find((x) => x.id === a.targetId);
-    if (!p || chopValue(w, p) <= 0 && p.hp === 100) return 'failed';
+    if (!p || chopValue(w, p, !!fellingTool(g)) <= 0 && p.hp === 100) return 'failed';
     if (a.stage === 0) {
       if (dist(g.pos, p.pos) < 0.9) a.path = [];
       if (moveAlong(w, g) !== 'arrived') return 'running';
@@ -79,11 +77,16 @@ export const Chop: UtilityAction = {
       a.progress = P.chopTicksPerHit;
     }
     if (--a.progress > 0) return 'running';
-    p.hp -= P.chopHitDmg;
+    const tool = toolFor(g, 'chop');
+    p.hp -= (P.chopHitDmg * tool.mul) / (p.kind === 'tree' ? P.treeToughness : 1);
     a.progress = P.chopTicksPerHit;
     if (p.hp > 0) return 'running';
-    const wood = p.kind === 'berry_bush' ? P.berryWood : p.stage === 'old' ? P.wood.old : p.stage === 'young' ? P.wood.young : P.wood.mature;
-    const sticks = p.kind === 'apple_bush' ? (p.stage === 'old' ? P.sticks.old : p.stage === 'mature' ? P.sticks.mature : 0) : 0;
+    const tree = p.kind === 'tree';
+    const wood = tree ? (p.stage === 'young' ? P.wood.young * 2 : P.wood.tree)
+      : p.kind === 'berry_bush' ? P.berryWood : p.stage === 'old' ? P.wood.old : p.stage === 'young' ? P.wood.young : P.wood.mature;
+    const sticks = tree ? (p.stage === 'young' ? 1 : P.sticks.tree)
+      : p.kind === 'apple_bush' ? (p.stage === 'old' ? P.sticks.old : p.stage === 'mature' ? P.sticks.mature : 0) : 0;
+    if (tool.stack) wearTool(w, g, tool.stack);
     spawnGroundItem(w, { type: 'wood', qty: wood }, { x: p.pos.x + 0.3, y: p.pos.y });
     if (sticks) spawnGroundItem(w, { type: 'stick', qty: sticks }, { x: p.pos.x - 0.3, y: p.pos.y + 0.2 });
     w.emit({ type: 'plant_chopped', goblinId: g.id, plantId: p.id, wood });

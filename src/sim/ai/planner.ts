@@ -11,6 +11,7 @@ import { countItem } from '../inventory';
 import { stockCount } from '../stockpile';
 import { isComplete, missingMaterials } from '../buildings';
 import { needUrgency } from '../goblin/needs';
+import { findRock } from './actions/mine';
 
 const PL = CFG.planner;
 
@@ -36,10 +37,13 @@ export interface PlanView {
   onGround(item: ItemType): boolean;
   /** a known plant it could chop for this item */
   canChop(item: ItemType): boolean;
+  /** a rock it could mine (stone, flint) */
+  canMine(item: ItemType): boolean;
   carryCap: number;
 }
 
 const CHOPPABLE: ReadonlySet<ItemType> = new Set(['wood', 'stick']);
+const MINEABLE: ReadonlySet<ItemType> = new Set(['stone', 'flint']);
 
 /** Pure: what the goal wants next. */
 export function resolve(goal: Goal, v: PlanView): Plan {
@@ -57,6 +61,7 @@ export function resolve(goal: Goal, v: PlanView): Plan {
   if (v.stock(goal.item) > 0) return { kind: 'act', action: 'gather_for_goal' };
   if (v.onGround(goal.item)) return { kind: 'act', action: 'pick_up' };
   if (CHOPPABLE.has(goal.item)) return { kind: 'act', action: v.canChop(goal.item) ? 'chop' : 'explore' };
+  if (MINEABLE.has(goal.item)) return { kind: 'act', action: v.canMine(goal.item) ? 'mine' : 'explore' };
   return { kind: 'impossible' };
 }
 
@@ -71,6 +76,7 @@ export function viewFor(g: Goblin, w: World, canChop: (g: Goblin, w: World) => b
     onGround: (item) => w.s.groundItems.some((i) => i.stack.type === item && !i.airborne && (i.reservedBy === null || i.reservedBy === g.id)
       && Math.hypot(i.pos.x - g.pos.x, i.pos.y - g.pos.y) < PL.groundSearch),
     canChop: () => canChop(g, w),
+    canMine: () => !!findRock(g, w),
     carryCap: 10,
   };
 }

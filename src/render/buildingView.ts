@@ -4,7 +4,7 @@ import type { Building } from '../sim/state';
 import { CFG } from '../sim/config';
 import { heightAt } from '../sim/grid';
 import { flatMat, flatMatDouble, merge, paint, wobble } from './lowpoly';
-import { pile } from './props';
+import { pile } from './piles';
 
 const HS = CFG.world.heightScale;
 const WOOD = '#9a6b3f', THATCH = '#d4a94e', DARK = '#4a3420';

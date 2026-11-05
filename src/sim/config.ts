@@ -37,7 +37,7 @@ export const CFG = {
     fertilityDraw: 0.15, fertilityRegenPerDay: 0.02, stumpRegrowDays: 4, deadWood: 2,
     hydrationFollow: 1.5, hydrationOfMoisture: 0.8, waterHydration: 0.5, seedSiteVillageRadius: 20,
     flowerSpreadChancePerDay: 0.02, berryAccidentalSeed: 0.05,
-    chopTicksPerHit: 15, chopHitDmg: 20, sticks: { mature: 2, old: 1 }, berryWood: 1, minBushesPerGoblin: 4,
+    chopTicksPerHit: 15, chopHitDmg: 20, sticks: { mature: 2, old: 1, tree: 3 }, treeToughness: 2.5, berryWood: 1, minBushesPerGoblin: 4,
     woodTarget: 30, stockFoodKeep: 2,
     keepCoreBase: 0.04, keepCorePerIndustry: 0.16, plantTicks: 40, waterTicks: 20, wetHandsTicks: 600, waterBelow: 0.5, waterRadius: 25, minSeedGap: 1.6,
     /** TEMPORARY (P3.2 → remove in P5.6): berry bushes keep fruiting at this rate in winter until preservation exists */
@@ -117,6 +117,11 @@ export const CFG = {
     exposurePerHour: { rain: 6, storm: 10, snow: 2, blizzard: 12 } as Record<string, number>,
     wetPenalty: 5, wetTicks: 150, shelter: { hut: 8, stone_hut: 12, longhouse: 16 } as Record<string, number>, shelterRadius: 0.9,
     hypothermiaBelow: 1, hypothermiaDmgPerDay: 30, frailColdMul: 1.5, coldMoodBelow: 50, coldRainMood: -3,
+  },
+  /** P4.1: Mine (finite stone, flint by chance), fallen sticks under trees */
+  mining: {
+    ticksPerStone: 60, stonesPerTrip: 3, stoneTarget: 12, flintTarget: 4, searchRadius: 30, minStone: 1,
+    stickTarget: 8, stickFallTries: 4, stickFallChance: 0.12, stickStormMul: 3, looseStickCap: 30,
   },
   enemies: { graceDays: 3, baseThreat: 1, rampPerDay: 0.05, newMoonMul: 1.6, fullMoonMul: 0.7, maxActive: 20, gnasher: { hp: 60, dmg: 10, speed: 2.4, fleeAt: 0.3 } },
   combat: { fists: 5, spear: 15, stone_spear: 28, club: 20, sling: 10, injuryChance: 0.25 },

@@ -11,7 +11,7 @@ import { CFG } from './config';
 import type { World } from './world';
 import { flick, grab, holdMove, pet, poke, release, spawnGift } from './god/hand';
 import { cast, castProblem } from './god/cast';
-import { ITEM_DEFS } from './items';
+import { ITEM_DEFS, TOOLS_TIER } from './items';
 import type { NeedId } from './state';
 
 export type SandboxOp =
@@ -84,6 +84,7 @@ export function validate(w: World, cmd: Command): string | null {
       if (!ITEM_DEFS[cmd.item]) return 'unknown_item';
       if (cmd.qty < 1 || cmd.qty > CFG.god.maxGiftQty) return 'bad_quantity';
       if (cmd.pos.x < 0 || cmd.pos.y < 0 || cmd.pos.x >= s.size.w || cmd.pos.y >= s.size.h) return 'out_of_bounds';
+      if (ITEM_DEFS[cmd.item]!.tray === 'tools' && s.god.mode === 'divine' && s.god.tier < TOOLS_TIER) return 'locked';
       return null;
     case 'god_pet':
     case 'god_poke':

@@ -2,6 +2,7 @@ import { CFG } from '../../config';
 import { dist } from '../../../shared/math';
 import { addItem, countItem, foodStack } from '../../inventory';
 import { isFood } from '../../items';
+import { isTool } from '../../tools';
 import { needUrgency } from '../../goblin/needs';
 import { moveAlong, planPath } from '../../steering';
 import { distanceFalloff } from '../considerations';
@@ -13,11 +14,11 @@ import type { Building, Goblin } from '../../state';
 import type { World } from '../../world';
 import type { StepResult, UtilityAction } from '../action';
 
-/** Stacks a goblin would rather store: materials no blueprint is waiting for, and food beyond what it keeps. */
+/** Stacks a goblin would rather store: materials no blueprint is waiting for, and food beyond what it keeps. Tools stay with their user. */
 function storable(g: Goblin, w: World): ItemStack[] {
   const food = g.inventory.filter((s) => isFood(s.type) && s.type !== 'apple_core').reduce((n, s) => n + s.qty, 0);
   const wanted = new Set(blueprints(w.s).flatMap((b) => missingMaterials(b).map((m) => m.type)));
-  return g.inventory.filter((s) => (!isFood(s.type) ? !wanted.has(s.type) : s.type !== 'apple_core' && food > CFG.plants.stockFoodKeep + 1));
+  return g.inventory.filter((s) => (isTool(s.type) ? false : !isFood(s.type) ? !wanted.has(s.type) : s.type !== 'apple_core' && food > CFG.plants.stockFoodKeep + 1));
 }
 
 function walkTo(g: Goblin, w: World): StepResult | null {

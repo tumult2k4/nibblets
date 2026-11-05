@@ -9,13 +9,14 @@ import type { ItemType, SimEvent } from '../../shared/types';
 
 const DAY = CFG.time.dayTicks;
 
-function view(o: Partial<{ carried: Partial<Record<ItemType, number>>; stock: Partial<Record<ItemType, number>>; missing: number; complete: boolean; gone: boolean; ground: boolean; chop: boolean }> = {}): PlanView {
+function view(o: Partial<{ carried: Partial<Record<ItemType, number>>; stock: Partial<Record<ItemType, number>>; missing: number; complete: boolean; gone: boolean; ground: boolean; chop: boolean; mine: boolean }> = {}): PlanView {
   return {
     carried: (i) => o.carried?.[i] ?? 0,
     stock: (i) => o.stock?.[i] ?? 0,
     building: () => (o.gone ? null : { complete: !!o.complete, missing: o.missing ? [{ type: 'wood', qty: o.missing }] : [] }),
     onGround: () => !!o.ground,
     canChop: () => !!o.chop,
+    canMine: () => !!o.mine,
     carryCap: 10,
   };
 }
@@ -38,7 +39,9 @@ describe('planner goal stack (§7.4, P3.5)', () => {
     expect(resolve(obtain, view({ ground: true, chop: true }))).toEqual({ kind: 'act', action: 'pick_up' });
     expect(resolve(obtain, view({ chop: true }))).toEqual({ kind: 'act', action: 'chop' });
     expect(resolve(obtain, view({}))).toEqual({ kind: 'act', action: 'explore' });
-    expect(resolve({ kind: 'obtain', item: 'stone', qty: 2 }, view({}))).toEqual({ kind: 'impossible' });
+    expect(resolve({ kind: 'obtain', item: 'stone', qty: 2 }, view({ mine: true }))).toEqual({ kind: 'act', action: 'mine' });
+    expect(resolve({ kind: 'obtain', item: 'flint', qty: 1 }, view({}))).toEqual({ kind: 'act', action: 'explore' });
+    expect(resolve({ kind: 'obtain', item: 'fiber', qty: 2 }, view({}))).toEqual({ kind: 'impossible' });
   });
 
   it('planFor pushes subgoals, never deeper than 4, and pops satisfied ones', () => {
@@ -53,7 +56,7 @@ describe('planner goal stack (§7.4, P3.5)', () => {
     g.inventory.push({ type: 'wood', qty: 6 });
     expect(planFor(g, w, () => true)).toBe('deliver_material');
     expect(g.goalStack.length).toBe(1);
-    for (let i = 0; i < 6; i++) pushGoal(g, w, { kind: 'obtain', item: 'stone', qty: i + 1 });
+    for (let i = 0; i < 6; i++) pushGoal(g, w, { kind: 'obtain', item: 'fiber', qty: i + 1 });
     expect(g.goalStack.length).toBeLessThanOrEqual(CFG.planner.maxDepth);
   });
 
