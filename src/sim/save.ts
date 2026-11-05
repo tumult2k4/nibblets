@@ -14,7 +14,7 @@ import { lineageEntry } from './goblin/lineage';
 const BIOMES: Biome[] = ['meadow', 'forest', 'sand', 'rock', 'water', 'marsh', 'snow'];
 
 /** Tiles are stored column-wise to keep saves small enough for localStorage. */
-interface PackedTiles { n: number; height: number[]; biome: number[]; fertility: number[]; moisture: number[]; wear: number[]; snow: number[]; occ: (number | null)[] }
+interface PackedTiles { n: number; height: number[]; biome: number[]; fertility: number[]; moisture: number[]; wear: number[]; snow: number[]; occ: (number | null)[]; ash?: number[] }
 
 function packTiles(tiles: Tile[]): PackedTiles {
   return {
@@ -22,16 +22,19 @@ function packTiles(tiles: Tile[]): PackedTiles {
     height: tiles.map((t) => t.height), biome: tiles.map((t) => BIOMES.indexOf(t.biome)),
     fertility: tiles.map((t) => t.fertility), moisture: tiles.map((t) => t.moisture),
     wear: tiles.map((t) => t.wear), snow: tiles.map((t) => t.snow), occ: tiles.map((t) => t.occupiedBy),
+    ash: tiles.map((t) => t.ash ?? 0),
   };
 }
 function unpackTiles(p: PackedTiles): Tile[] {
   const out: Tile[] = [];
   for (let i = 0; i < p.n; i++) {
     const biome = BIOMES[p.biome[i]!]!;
-    out.push({
+    const t: Tile = {
       height: p.height[i]!, biome, fertility: p.fertility[i]!, moisture: p.moisture[i]!,
       walkable: biome !== 'water', wear: p.wear[i]!, occupiedBy: p.occ[i] ?? null, snow: p.snow[i]!,
-    });
+    };
+    if (p.ash?.[i]) t.ash = p.ash[i]!;
+    out.push(t);
   }
   return out;
 }
@@ -140,6 +143,8 @@ export const MIGRATIONS: Record<number, Migration> = {
     for (const g of raw.goblins as { health: Record<string, unknown> }[]) Object.assign(g.health, { disease: null, immune: {}, coldTicks: 0, tendedUntil: 0 });
     return raw;
   },
+  // P6.2 wildfires: `fires` was an always-empty placeholder; tiles may now carry ash (none yet)
+  16: (raw) => ({ ...raw, fires: [] }),
 };
 
 export function deserialize(json: string): WorldState {

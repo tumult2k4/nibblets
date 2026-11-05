@@ -7,6 +7,9 @@ export const EN6 = {
   'act.rest_sick': 'Resting, unwell', 'act.tend_sick': 'Looking after someone',
   'insp.ill': '{d}: sick, about {n} days to go', 'insp.incubating': '{d}: caught it, not showing yet', 'insp.tended': 'being looked after',
   'insp.immune': 'immune to {d}',
+  'ev.fire_near': 'Fire! The flames are close to the village.', 'ev.fire_far': 'A wildfire has broken out.',
+  'ev.fire_cause.lightning': 'Lightning set it alight.', 'ev.fire_cause.heat': 'The heat set the dry ground alight.',
+  'act.extinguish_fire': 'Stomping out the fire', 'act.escape_fire': 'Running from the flames',
 } as const;
 
 export const DE6: Record<keyof typeof EN6, string> = {
@@ -17,4 +20,7 @@ export const DE6: Record<keyof typeof EN6, string> = {
   'act.rest_sick': 'Kuriert sich aus', 'act.tend_sick': 'Pflegt jemanden',
   'insp.ill': '{d}: krank, noch etwa {n} Tage', 'insp.incubating': '{d}: angesteckt, noch ohne Anzeichen', 'insp.tended': 'wird gepflegt',
   'insp.immune': 'immun gegen {d}',
+  'ev.fire_near': 'Feuer! Die Flammen sind nah am Dorf.', 'ev.fire_far': 'Ein Flächenbrand ist ausgebrochen.',
+  'ev.fire_cause.lightning': 'Ein Blitz hat es entzündet.', 'ev.fire_cause.heat': 'Die Hitze hat den trockenen Boden entzündet.',
+  'act.extinguish_fire': 'Tritt das Feuer aus', 'act.escape_fire': 'Flieht vor den Flammen',
 };

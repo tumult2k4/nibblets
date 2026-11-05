@@ -163,6 +163,11 @@ export function noteFor(e: SimEvent, w: World, names: Map<ID, string>): Note | n
       return { ...base, id: e.goblinId, text: t('ev.recovered', { name: name(e.goblinId), d: t(`disease.${e.disease}`) }), tier: 'info', icon: 'heart' };
     case 'outbreak':
       return { ...base, id: e.goblinId, text: t('ev.outbreak', { name: name(e.goblinId) }), tier: 'critical', icon: 'sick' };
+    case 'fire_started': {
+      const near = !!e.at && Math.hypot(e.at.x - w.s.village.center.x, e.at.y - w.s.village.center.y) <= CFG.world.villageRadius + 10;
+      const why = e.cause === 'lightning' || e.cause === 'heat' ? ` ${t(`ev.fire_cause.${e.cause}`)}` : '';
+      return { ...base, text: t(near ? 'ev.fire_near' : 'ev.fire_far') + why, tier: near ? 'critical' : 'notable', icon: 'heat' };
+    }
     case 'tended':
       return { ...base, id: e.goblinId, text: t('ev.tended', { a: name(e.byId), b: name(e.goblinId) }), tier: 'info', icon: 'heart' };
     case 'comforted':

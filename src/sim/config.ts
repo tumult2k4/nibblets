@@ -1,9 +1,10 @@
 /** Every tunable number lives here (§21), or in cfg/ files it pulls in. Additions beyond §21 are logged in DECISIONS.md. */
 import { HEALTH } from './cfg/health';
+import { DISASTERS } from './cfg/disasters';
 
 export const CFG = {
   tickHz: 10,
-  saveVersion: 16,
+  saveVersion: 17,
   time: { dayTicks: 3600, daysPerSeason: 8, moonCycleDays: 8, phases: { dawn: 0.05, day: 0.6, dusk: 0.7 }, startTick: 360 },
   world: {
     w: 128, h: 128, waterLevel: 0.3, sandBand: 0.03, rockLevel: 0.8, forestNoiseThreshold: 0.6,
@@ -285,6 +286,8 @@ export const CFG = {
   },
   /** P6.1 health and disease (§14.3): see cfg/health.ts */
   health: HEALTH,
+  /** P6.2–P6.3 fire, floods, drought, blight, shooting stars: see cfg/disasters.ts */
+  disasters: DISASTERS,
   llm: { diariesPerDay: 3, dialoguesPerDay: 4, barksPerDay: 6, tokensPerDay: 12000, rpm: 10, concurrency: 2, timeoutMs: 20000 },
   god: {
     startFavor: 50, maxFavorBase: 100, maxFavorPerBeliever: 15, believerFaith: 40, prayingFavorMul: 3,

@@ -14,7 +14,12 @@ export interface Tile {
   wear: number;
   occupiedBy: ID | null;
   snow: number;
+  /** P6.2: ash left by a fire, 1 fresh .. fading to 0 (absent when none) */
+  ash?: number;
 }
+
+/** A burning tile (§10.3, P6.2): `intensity` 0..1, `fuel` left to burn; `cause` what lit it. */
+export interface Fire { x: number; y: number; intensity: number; fuel: number; since: number; cause: string }
 
 export interface Needs {
   hunger: number; thirst: number; energy: number; warmth: number; safety: number;
@@ -51,7 +56,7 @@ export type ActionId =
   | 'deliver_material' | 'build' | 'claim_home' | 'sleep_home' | 'gather_for_goal' | 'seek_shelter' | 'warm_up' | 'forage'
   | 'mine' | 'craft' | 'equip' | 'plan_building' | 'tend_fire' | 'flee' | 'attack' | 'defend_village' | 'guard' | 'repair_building'
   | 'follow_wisp' | 'scatter' | 'chat' | 'comfort' | 'gift' | 'court' | 'lay_egg' | 'incubate_egg' | 'feed_child' | 'follow_parent'
-  | 'play' | 'learn' | 'teach' | 'cut_grass' | 'pick_flowers' | 'process' | 'rest_sick' | 'tend_sick';
+  | 'play' | 'learn' | 'teach' | 'cut_grass' | 'pick_flowers' | 'process' | 'rest_sick' | 'tend_sick' | 'extinguish_fire' | 'escape_fire';
 
 export interface ActivityState {
   action: ActionId;
@@ -208,7 +213,9 @@ export interface WorldState {
   size: { w: number; h: number }; preset: string; terrainVersion: number;
   tiles: Tile[];
   goblins: Goblin[]; eggs: Egg[]; plants: Plant[]; rocks: Rock[]; grass: GrassPatch[]; mushrooms: Mushroom[];
-  wildlife: unknown[]; groundItems: GroundItem[]; buildings: Building[]; fires: unknown[]; enemies: Enemy[];
+  /** P6.2 wildfires: the tiles burning now */
+  fires: Fire[];
+  wildlife: unknown[]; groundItems: GroundItem[]; buildings: Building[]; enemies: Enemy[];
   /** spawn director: last budgeted night, queued spawn ticks, enemies spotted so far (drives fencing), and recent
    * danger marks (sightings, bites, thefts, smashes, deaths) for the danger lens (P4.8) */
   threat: { night: number; spawnAt: number[]; alarms: number; marks: DangerMark[]; /** P5.7 tower warning: until when, and where the threat was seen */ warnUntil?: number; warnAt?: Vec2 };

@@ -23,6 +23,7 @@ import { divineAct } from '../faith';
 import { godHarmed } from '../anger';
 import { addZone } from '../zones';
 import type { CastTarget } from './nature';
+import { startFire } from '../../wildfire';
 
 const PW = CFG.powers;
 const H = CFG.god.hourTicks;
@@ -62,6 +63,7 @@ export function castLightning(w: World, c: CastTarget): void {
   }
   const t = tileAt(s, c.pos.x, c.pos.y);
   if (t && t.biome !== 'water') t.fertility = q4(Math.max(0.05, t.fertility - 0.3));
+  startFire(w, c.pos, 0.9, 'lightning'); // P6.2: what still stands there may catch
   addZone(w, 'dread', c.pos, PW.dreadRadius, PW.dreadTicks);
 }
 
@@ -138,6 +140,8 @@ function meteorImpact(w: World, pos: Vec2, r: number): void {
     const p = { x: q4(pos.x + Math.cos(a) * d), y: q4(pos.y + Math.sin(a) * d) };
     if (isWalkable(s, Math.floor(p.x), Math.floor(p.y))) spawnGroundItem(w, { type: i === 0 ? 'flint' : 'stone', qty: 1 }, p);
   }
+  // P6.2: the rim catches fire wherever there is something to burn
+  for (let i = 0; i < 10; i++) { const a = (i / 10) * Math.PI * 2; startFire(w, { x: pos.x + Math.cos(a) * (r + 0.8), y: pos.y + Math.sin(a) * (r + 0.8) }, 0.9, 'meteor'); }
   addZone(w, 'dread', pos, r + PW.dreadRadius, PW.dreadTicks);
 }
 

@@ -8,6 +8,7 @@ import { MushroomViews } from './mushroomView';
 import { WeatherFx } from './weatherFx';
 import { WrathFx } from './wrathFx';
 import { FireFx } from './fireView';
+import { WildfireFx } from './wildfireView';
 import { EnemyViews } from './enemyView';
 import { GraveViews } from './graveView';
 import { EggViews } from './eggView';
@@ -46,6 +47,7 @@ export class Renderer {
   buildings!: BuildingViews;
   mushrooms!: MushroomViews;
   fires!: FireFx;
+  wildfire!: WildfireFx;
   enemies!: EnemyViews;
   graves!: GraveViews;
   eggs!: EggViews;
@@ -89,6 +91,7 @@ export class Renderer {
     this.buildings = new BuildingViews(w);
     this.mushrooms = new MushroomViews(w);
     this.fires = new FireFx(w);
+    this.wildfire = new WildfireFx(w);
     this.enemies = new EnemyViews(w);
     this.graves = new GraveViews(w);
     this.eggs = new EggViews(w);
@@ -96,7 +99,7 @@ export class Renderer {
     this.wrathFx.reduced = this.weatherFx.reduced;
     this.goblins.outlines = this.settings.outlines;
     this.interp = new Interp(w);
-    this.worldGroup.add(this.terrain.group, this.water.mesh, this.props.group, this.buildings.group, this.mushrooms.group, this.goblins.group, this.weatherFx.group, this.fires.group, this.enemies.group, this.graves.group, this.eggs.group, this.wrathFx.group);
+    this.worldGroup.add(this.terrain.group, this.water.mesh, this.props.group, this.buildings.group, this.mushrooms.group, this.goblins.group, this.weatherFx.group, this.fires.group, this.wildfire.group, this.enemies.group, this.graves.group, this.eggs.group, this.wrathFx.group);
     const c = w.s.village.center;
     this.camera.setTarget(c.x, c.y, true);
   }
@@ -202,6 +205,7 @@ export class Renderer {
     this.buildings.lights(this.sky.night);
     this.mushrooms.update(this.sky.night);
     this.fires.update(this.time, this.sky.night, this.camera.target);
+    this.wildfire.update(this.time, this.sky.night, this.camera.target);
     this.goblins.update(this.interp, alpha, this.time, this.sky.night, dt);
     this.enemies.update(this.interp, alpha, this.time, dt);
     this.graves.update();

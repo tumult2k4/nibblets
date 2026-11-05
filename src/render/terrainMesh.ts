@@ -26,6 +26,9 @@ export function cornerPos(s: WorldState, cx: number, cy: number): THREE.Vector3 
 export type TerrainLens = 'fertility' | 'moisture' | 'paths' | 'temperature' | 'danger';
 /** Snow cover in fifths: what the renderer can see change. */
 const snowBucket = (v: number): number => (v < 0.05 ? 0 : Math.min(5, Math.ceil(v * 5)));
+/** P6.2 ash in 5 steps (0 none) */
+const ashBucket = (v?: number): number => (!v ? 0 : Math.min(5, Math.ceil(v * 5)));
+const ASH = new THREE.Color('#4a4642');
 
 const BIOME_IDX: Record<string, number> & Record<'meadow', number> = { meadow: 0, forest: 1, sand: 2, rock: 3, water: 4, marsh: 5, snow: 6 };
 const L_LOW = new THREE.Color('#9a4a2a'), L_MID = new THREE.Color('#e8cf62'), L_HIGH = new THREE.Color('#2f9e3a');
@@ -134,7 +137,7 @@ export class TerrainMesh {
       b[i] = (BIOME_IDX[t.biome] ?? 0);
       w[i] = Math.min(9, Math.floor(t.wear * 10));
       f[i] = Math.min(15, Math.floor(t.fertility * 10));
-      sn[i] = snowBucket(t.snow);
+      sn[i] = snowBucket(t.snow) + 8 * ashBucket(t.ash);
     });
   }
 
@@ -151,7 +154,7 @@ export class TerrainMesh {
     s.tiles.forEach((t, i) => {
       const wb = Math.min(9, Math.floor(t.wear * 10));
       const fb = Math.min(15, Math.floor(t.fertility * 10));
-      const sb = snowBucket(t.snow);
+      const sb = snowBucket(t.snow) + 8 * ashBucket(t.ash);
       if (h[i] === t.height && b[i] === (BIOME_IDX[t.biome] ?? 0) && w[i] === wb && sn[i] === sb && (f[i] === fb || this.lens !== 'fertility')) return;
       h[i] = t.height; b[i] = (BIOME_IDX[t.biome] ?? 0); w[i] = wb; f[i] = fb; sn[i] = sb;
       const x = i % W, y = Math.floor(i / W);
@@ -190,6 +193,7 @@ export class TerrainMesh {
         if (t.biome === 'water') c.copy(pal.sand).lerp(pal.water, 0.5);
         if (slope > 0.9 && t.biome !== 'water') c.lerp(pal.rock, Math.min(0.6, (slope - 0.9) * 0.8));
         if (t.wear > 0.2) c.lerp(DIRT, Math.min(0.8, t.wear));
+        if (t.ash) c.lerp(ASH, ashBucket(t.ash) * 0.15);
         if (t.snow > 0.05 && t.biome !== 'water') c.lerp(SNOW_WHITE, Math.min(0.95, snowBucket(t.snow) / 5 + 0.15));
         if (this.lens === 'temperature') { if (this.tempAt) tempColor(c, this.tempAt(x + 0.5, y + 0.5)); }
         else if (this.lens === 'danger') { if (this.dangerAt) dangerColor(c, this.dangerAt(x + 0.5, y + 0.5)); }

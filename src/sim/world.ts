@@ -16,6 +16,7 @@ import { updateWeather } from './weather';
 import { updateStorms } from './storms';
 import { updateEcology } from './ecology';
 import { updateFires } from './fire';
+import { updateWildfire } from './wildfire';
 import { updateDirector } from './enemies/director';
 import { enemiesAct, enemiesDecide } from './enemies';
 import { updateSafety } from './goblin/safety';
@@ -119,7 +120,8 @@ export class World {
     updateTiles(this); //     3
     updatePlants(this); //    4
     updateEcology(this); //   5 ecology: mushrooms, fallen sticks (wildlife P7)
-    updateFires(this); //     6 campfires burn down, torches burn (spreading fire P6)
+    updateFires(this); //     6 campfires burn down, torches burn
+    updateWildfire(this); //  6b wildfires spread and burn out; storms throw lightning (P6.2)
     updateGroundItems(this); // 7 (+ airborne items)
     updateSpoilage(this); //  7b stored and carried food rots (P5.6)
     updateRacks(this); //     7c drying racks dry (P5.6)

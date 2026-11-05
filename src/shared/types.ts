@@ -124,7 +124,7 @@ export type SimEvent = BaseEvent &
     | { type: 'egg_laid'; eggId: ID; parents: [ID, ID] }
     | { type: 'egg_hatched'; eggId: ID; goblinId: ID }
     | { type: 'adopted'; goblinId: ID; parentId: ID }
-    | { type: 'egg_lost'; eggId: ID; parents: [ID, ID]; cause: 'cold' | 'eaten' | 'neglect' | 'fall' }
+    | { type: 'egg_lost'; eggId: ID; parents: [ID, ID]; cause: 'cold' | 'eaten' | 'neglect' | 'fall' | 'fire' }
     | { type: 'life_stage'; goblinId: ID; stage: LifeStage }
     | { type: 'recipe_discovered' | 'recipe_learned' | 'recipe_lost'; goblinId?: ID; recipe: RecipeId; via?: LearnVia; byId?: ID }
     | { type: 'poisoned'; goblinId: ID; item: ItemType }
@@ -139,13 +139,16 @@ export type SimEvent = BaseEvent &
     | { type: 'recovered'; goblinId: ID; disease: string }
     | { type: 'outbreak'; goblinId: ID; disease: string }
     | { type: 'tended'; goblinId: ID; byId: ID }
+    // P6.2 fire: a wildfire starts (lightning, heat, the god…), a bolt from a storm, a fire put out by goblins
+    | { type: 'fire_started'; cause: string }
+    | { type: 'lightning_strike' }
+    | { type: 'fire_stomped'; goblinId: ID }
     | { type: 'trait_gained'; goblinId: ID; trait: string }
     | { type: 'sickness'; goblinId: ID; disease: DiseaseId; phase: 'infected' | 'symptomatic' | 'recovered' | 'died' }
     | { type: 'trinket_found'; goblinId: ID; trinket: TrinketKind; rarity: Rarity }
     | { type: 'mood_break'; goblinId: ID; kind: MoodBreakKind }
     | { type: 'festival'; kind: FestivalKind; phase: 'start' | 'end' }
     | { type: 'chief_chosen'; goblinId: ID; previousId: ID | null }
-    | { type: 'fire_started' | 'fire_spread' | 'fire_out'; tile: Vec2 }
     | { type: 'trade'; aId: ID; bId: ID; gave: ItemStack[]; got: ItemStack[] }
     | { type: 'clan_contact' | 'clan_raid' | 'clan_alliance'; clanA: ID; clanB: ID }
     | { type: 'place_named'; placeId: ID; name: string }

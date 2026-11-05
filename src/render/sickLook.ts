@@ -1,6 +1,7 @@
 /**
- * Illness on the body (§14.3, P6.1): spotted fever shows as green spots on belly and head, the shivers as a constant
- * tremble, and a goblin resting sick lies curled on its side (the pose is set in goblinView's chain).
+ * Touches on top of goblinView's poses. Illness (§14.3, P6.1): spotted fever shows as green spots on belly and head,
+ * the shivers as a constant tremble (a goblin resting sick lies on its side, set in goblinView's chain). Fire (P6.2):
+ * stomping out flames, high knees and arms flung out.
  */
 import * as THREE from 'three';
 import type { Goblin } from '../sim/state';
@@ -44,4 +45,10 @@ export function sickLook(g: Goblin, r: GoblinRig, t: number): void {
   if (color && !has) spots(color, g.id * 7919 + 13, r);
   else if (!color && has) for (const p of [r.body, r.head]) p.getObjectByName('spots')?.removeFromParent();
   if (def && g.health.disease?.id === 'shivers') r.body.position.x += Math.sin(t * 55 + g.id) * 0.012;
+  if (g.activity.action === 'extinguish_fire' && g.activity.stage === 1) {
+    const k = Math.sin(t * 16 + g.id);
+    r.legL.rotation.x = -Math.max(0, k) * 1.2; r.legR.rotation.x = -Math.max(0, -k) * 1.2;
+    r.armL.rotation.x = r.armR.rotation.x = -0.6; r.armL.rotation.z = -0.9; r.armR.rotation.z = 0.9;
+    r.body.position.y = 0.12 + Math.abs(k) * 0.05;
+  }
 }

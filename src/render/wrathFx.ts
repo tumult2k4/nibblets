@@ -71,6 +71,11 @@ export class WrathFx {
         this.burst('puff', p, 0.8, 1.6);
         continue;
       }
+      if (e.type === 'lightning_strike' && e.at) { // a storm's own bolt (P6.2)
+        this.sky.strike(new THREE.Vector3(e.at.x, this.groundAt(e.at.x, e.at.y), e.at.y));
+        this.scorch(e.at.x, e.at.y, 1, 30);
+        continue;
+      }
       if (e.type !== 'divine_act' || !e.at) continue;
       const { x, y } = e.at;
       const gy = this.groundAt(x, y);

@@ -50,6 +50,8 @@ interface Row {
   generations: number; hue: string;
   /** P6.1: cases by disease, and how often a friend tended the sick */
   ill: string; tended: number;
+  /** P6.2: wildfires started (by cause), tiles burned, buildings lost to fire */
+  wildfires: string;
 }
 
 const meanHue = (hs: number[]): number => {
@@ -72,10 +74,13 @@ function runSeed(seed: number): Row {
   let winterStarve = 0, winterDeaths = 0, mash = 0, dried = 0;
   const rare = { beasts: 0, smashed: 0, wisps: 0, lured: 0, newcomers: 0 };
   const ill: Record<string, number> = {};
-  let tended = 0;
+  let tended = 0, burnedB = 0;
+  const fireCauses: Record<string, number> = {};
   w.bus.subscribe((e) => {
     if (e.type === 'fell_ill') ill[e.disease] = (ill[e.disease] ?? 0) + 1;
     if (e.type === 'tended') tended++;
+    if (e.type === 'fire_started') fireCauses[e.cause] = (fireCauses[e.cause] ?? 0) + 1;
+    if (e.type === 'building_destroyed' && e.cause === 'fire') burnedB++;
     if (e.type === 'goblin_died' && e.cause === 'starvation' && w.clock.season === 'winter') winterDeaths++;
     if (e.type === 'food_processed') { if (e.item === 'apple_mash') mash += e.qty; else dried += e.qty; }
     if (e.type === 'enemy_spawned' && e.kind !== 'gnasher') rare[e.kind === 'bramblebeast' ? 'beasts' : 'wisps']++;
@@ -150,6 +155,7 @@ function runSeed(seed: number): Row {
   return {
     winterStarve, winterDeaths, spoiled: w.s.stats.spoiled ?? 0, preserved: `${mash}/${dried}`, generations: gens, hue: `${Math.round(hue0)}°→${Math.round(hue1)}°`,
     ill: Object.entries(ill).map(([k, v]) => `${k} ${v}`).join(', ') || '—', tended,
+    wildfires: `${Object.entries(fireCauses).map(([k, v]) => `${k} ${v}`).join(', ') || '—'} / ash ${w.s.tiles.filter((t) => t.ash).length} / burned ${burnedB}`,
     specialists: `${Object.entries(spec).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${k} ${n}`).join(', ') || '—'} · top ${top.toFixed(1)}`, friends,
     lost: totalDeaths, residents: founders + rare.newcomers,
     seed, popMin, popAvg: popSum / Math.max(1, samples), popMax, popEnd: w.s.goblins.length, births: w.s.stats.births,
@@ -166,7 +172,7 @@ const rows: Row[] = [];
 for (let i = 0; i < seedCount; i++) {
   const r = runSeed(firstSeed + i);
   rows.push(r);
-  console.log(`seed ${r.seed}: pop ${r.popEnd} (min ${r.popMin}, max ${r.popMax}) deaths ${JSON.stringify(r.deaths)} eaten ${r.eaten} bushes ${r.bushes0}→${r.bushesEnd} plantedMature ${r.plantedMature} wood ${r.wood} stone/flint/sticks ${r.stone} armed ${r.armed} fires ${r.fires} gnashers/stolen/bites/fled/killed/wounds ${r.foes} veterans ${r.veterans} huts ${r.huts} fences ${r.fences} beasts/smashed wisps/lured newcomers ${r.rare} housed@autumn ${r.housedAutumn < 0 ? '—' : Math.round(r.housedAutumn * 100) + '%'} specialists ${r.specialists} friends ${r.friends} winterStarve ${r.winterStarve} winterDeaths ${r.winterDeaths} spoiled ${r.spoiled} mash/dried ${r.preserved} generations ${r.generations} hue ${r.hue} (drift ${r.hueDrift.toFixed(1)}°) ill [${r.ill}] tended ${r.tended} tick ${r.tickMs.toFixed(3)}ms ${r.fails.length ? 'FAIL ' + r.fails.join(',') : 'ok'}`);
+  console.log(`seed ${r.seed}: pop ${r.popEnd} (min ${r.popMin}, max ${r.popMax}) deaths ${JSON.stringify(r.deaths)} eaten ${r.eaten} bushes ${r.bushes0}→${r.bushesEnd} plantedMature ${r.plantedMature} wood ${r.wood} stone/flint/sticks ${r.stone} armed ${r.armed} fires ${r.fires} gnashers/stolen/bites/fled/killed/wounds ${r.foes} veterans ${r.veterans} huts ${r.huts} fences ${r.fences} beasts/smashed wisps/lured newcomers ${r.rare} housed@autumn ${r.housedAutumn < 0 ? '—' : Math.round(r.housedAutumn * 100) + '%'} specialists ${r.specialists} friends ${r.friends} winterStarve ${r.winterStarve} winterDeaths ${r.winterDeaths} spoiled ${r.spoiled} mash/dried ${r.preserved} generations ${r.generations} hue ${r.hue} (drift ${r.hueDrift.toFixed(1)}°) ill [${r.ill}] tended ${r.tended} wildfires [${r.wildfires}] tick ${r.tickMs.toFixed(3)}ms ${r.fails.length ? 'FAIL ' + r.fails.join(',') : 'ok'}`);
 }
 const lines = [
   `# Balance report — ${days} days × ${seedCount} seeds${noCraft ? ' (control: no crafting)' : ''}${noPreserve ? ' (control: no preservation)' : ''}`,
