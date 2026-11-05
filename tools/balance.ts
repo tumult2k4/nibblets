@@ -29,7 +29,7 @@ interface Row {
   deaths: Record<string, number>; eaten: number; divineFood: number; starvationDays: number;
   hueDrift: number; tickMs: number; fails: string[];
   bushes0: number; bushesEnd: number; planted: number; plantedMature: number; wood: number; stone: string; armed: number; fires: string; foes: string;
-  housedAutumn: number; huts: number; weatherDeaths: number; veterans: number; fences: string;
+  housedAutumn: number; huts: number; weatherDeaths: number; veterans: number; fences: string; rare: string;
 }
 
 const meanHue = (hs: number[]): number => {
@@ -47,8 +47,13 @@ function runSeed(seed: number): Row {
   let popMin = Infinity, popMax = 0, popSum = 0, samples = 0, starvationDays = 0;
   const t0 = performance.now();
   const foes = { spawned: 0, stolen: 0, bites: 0, fled: 0, killed: 0, wounds: 0 };
+  const rare = { beasts: 0, smashed: 0, wisps: 0, lured: 0, newcomers: 0 };
   w.bus.subscribe((e) => {
-    if (e.type === 'enemy_spawned') foes.spawned++;
+    if (e.type === 'enemy_spawned' && e.kind !== 'gnasher') rare[e.kind === 'bramblebeast' ? 'beasts' : 'wisps']++;
+    else if (e.type === 'building_destroyed' && e.cause === 'bramblebeast') rare.smashed++;
+    else if (e.type === 'wisp' && e.phase === 'lure') rare.lured++;
+    else if (e.type === 'immigrants') rare.newcomers += e.goblinIds.length;
+    else if (e.type === 'enemy_spawned') foes.spawned++;
     else if (e.type === 'enemy_stole') foes.stolen += e.qty;
     else if (e.type === 'enemy_bit' && e.damage > 0) foes.bites++;
     else if (e.type === 'enemy_fled') foes.fled++;
@@ -103,6 +108,7 @@ function runSeed(seed: number): Row {
     hueDrift: Math.abs(hueDelta(hue0, hue1)), tickMs, fails,
     bushes0, bushesEnd: bushCount(), planted: w.s.plants.filter((p) => p.plantedBy !== null).length, plantedMature, wood, stone, armed, fires, foes: `${foes.spawned}/${foes.stolen}/${foes.bites}/${foes.fled}/${foes.killed}/${foes.wounds}`, veterans: w.s.goblins.filter((g) => g.traits.includes('veteran')).length,
     housedAutumn, huts: w.s.buildings.filter((b) => (b.type === 'hut' || b.type === 'stone_hut') && b.buildProgress >= 1).length, weatherDeaths,
+    rare: `${rare.beasts}/${rare.smashed} ${rare.wisps}/${rare.lured} ${rare.newcomers}`,
     fences: `${w.s.buildings.filter((b) => b.type === 'fence' && b.buildProgress >= 1).length}/${w.s.village.fenceRing ? ringTiles(w.s, w.s.village.fenceRing).length : 0}`,
   };
 }
@@ -111,7 +117,7 @@ const rows: Row[] = [];
 for (let i = 0; i < seedCount; i++) {
   const r = runSeed(firstSeed + i);
   rows.push(r);
-  console.log(`seed ${r.seed}: pop ${r.popEnd} (min ${r.popMin}, max ${r.popMax}) deaths ${JSON.stringify(r.deaths)} eaten ${r.eaten} bushes ${r.bushes0}→${r.bushesEnd} plantedMature ${r.plantedMature} wood ${r.wood} stone/flint/sticks ${r.stone} armed ${r.armed} fires ${r.fires} gnashers/stolen/bites/fled/killed/wounds ${r.foes} veterans ${r.veterans} huts ${r.huts} fences ${r.fences} housed@autumn ${r.housedAutumn < 0 ? '—' : Math.round(r.housedAutumn * 100) + '%'} tick ${r.tickMs.toFixed(3)}ms ${r.fails.length ? 'FAIL ' + r.fails.join(',') : 'ok'}`);
+  console.log(`seed ${r.seed}: pop ${r.popEnd} (min ${r.popMin}, max ${r.popMax}) deaths ${JSON.stringify(r.deaths)} eaten ${r.eaten} bushes ${r.bushes0}→${r.bushesEnd} plantedMature ${r.plantedMature} wood ${r.wood} stone/flint/sticks ${r.stone} armed ${r.armed} fires ${r.fires} gnashers/stolen/bites/fled/killed/wounds ${r.foes} veterans ${r.veterans} huts ${r.huts} fences ${r.fences} beasts/smashed wisps/lured newcomers ${r.rare} housed@autumn ${r.housedAutumn < 0 ? '—' : Math.round(r.housedAutumn * 100) + '%'} tick ${r.tickMs.toFixed(3)}ms ${r.fails.length ? 'FAIL ' + r.fails.join(',') : 'ok'}`);
 }
 const lines = [
   `# Balance report — ${days} days × ${seedCount} seeds${noCraft ? ' (control: no crafting)' : ''}`,

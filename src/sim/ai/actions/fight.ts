@@ -7,9 +7,10 @@
 import { CFG } from '../../config';
 import { dist } from '../../../shared/math';
 import { moveAlong, planPath, faceToward } from '../../steering';
-import { bestWeapon } from '../../tools';
+import { bestWeapon, weaponDmg } from '../../tools';
 import { isVeteran, reachOf, strike, threatsNear } from '../../combat';
 import { visionRadius } from '../considerations';
+import { harmless, running } from '../../enemies/common';
 import { isSleeping } from '../../goblin/goblin';
 import type { ActionId, Enemy, Goblin } from '../../state';
 import type { World } from '../../world';
@@ -33,11 +34,31 @@ export function visibleThreat(g: Goblin, w: World): Enemy | null {
   return best;
 }
 
+const heavy = (g: Goblin): boolean => {
+  const wpn = bestWeapon(g);
+  return !!wpn && weaponDmg(wpn) >= CFG.enemies.bramblebeast.mobDmg;
+};
+/**
+ * Anything but a Bramblebeast can be fought; that one only by a mob: at least three awake adults with heavy weapons
+ * (≥ 20 dmg) within 14 tiles of it, who then close in together (§14.1).
+ */
+export function canTakeOn(g: Goblin, w: World, e: Enemy): boolean {
+  if (e.kind !== 'bramblebeast') return true;
+  const B = CFG.enemies.bramblebeast;
+  if (!heavy(g)) return false;
+  let n = 1;
+  for (const o of w.goblinHash.query(e.pos, B.mobRadius))
+    if (o !== g && o.lifeStage === 'adult' && !isSleeping(o) && heavy(o) && dist(o.pos, e.pos) <= B.mobRadius) n++;
+  return n >= B.mobSize;
+}
+/** Threats in sight this goblin could go for. */
+const foes = (g: Goblin, w: World, pos: { x: number; y: number }, r: number): Enemy[] => threatsNear(w, pos, r).filter((e) => canTakeOn(g, w, e));
+
 /** An enemy in sight that is biting this goblin's parent or child. */
 export function kinAttacker(g: Goblin, w: World): Enemy | null {
   if (isSleeping(g)) return null;
   const vr = visionRadius(g, w);
-  for (const e of threatsNear(w, g.pos, vr)) {
+  for (const e of foes(g, w, g.pos, vr)) {
     const v = victimOf(w, e);
     if (v && v.id !== g.id && isKin(g, v)) return e;
   }
@@ -55,15 +76,18 @@ function attackTarget(g: Goblin, w: World): Enemy | null {
   if (isSleeping(g)) return null;
   const kin = kinAttacker(g, w);
   if (kin) return kin;
-  return threatsNear(w, g.pos, visionRadius(g, w)).find((e) => victimOf(w, e)) ?? visibleThreat(g, w);
+  const near = foes(g, w, g.pos, visionRadius(g, w)).sort((a, b) => dist(a.pos, g.pos) - dist(b.pos, g.pos));
+  return near.find((e) => victimOf(w, e)) ?? near[0] ?? null;
 }
 
 /** Seen enemies inside the village, nearest first. */
 function villageIntruder(g: Goblin, w: World): Enemy | null {
   let best: Enemy | null = null, bd: number = C.defendRange;
-  for (const e of threatsNear(w, w.s.village.center, C.villageRadius)) {
+  const c = w.s.village.center;
+  for (const e of w.s.enemies) {
+    if (!e.seen || running(e) || harmless(e) || dist(e.pos, c) > C.villageRadius || !canTakeOn(g, w, e)) continue;
     const d = dist(e.pos, g.pos);
-    if (e.seen && d < bd) { bd = d; best = e; }
+    if (d < bd) { bd = d; best = e; }
   }
   return best;
 }

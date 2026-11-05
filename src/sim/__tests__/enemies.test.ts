@@ -6,7 +6,7 @@ import { completeBuilding, placeBlueprint } from '../buildings';
 import { deposit, stockCount } from '../stockpile';
 import { dist } from '../../shared/math';
 import { moonMul, spawnEnemy, threatBudget, updateDirector } from '../enemies/director';
-import { enemiesDecide } from '../enemies/gnasher';
+import { enemiesDecide } from '../enemies';
 import { deserialize, serialize } from '../save';
 import { makeWorld, spawnGoblin } from './helpers';
 import type { World } from '../world';

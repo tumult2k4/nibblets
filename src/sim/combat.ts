@@ -13,6 +13,7 @@ import { spawnGroundItem } from './groundItems';
 import { itemDef } from './items';
 import { enemyCanStand } from './fences';
 import { scare } from './goblin/safety';
+import { menaces } from './enemies/common';
 import type { DeathCause, ItemType } from '../shared/types';
 import type { Enemy, Goblin, Injury } from './state';
 import type { World } from './world';
@@ -25,9 +26,9 @@ export const workMul = (g: Goblin): number => (hasInjury(g, 'bruised_arm') ? C.a
 export const isVeteran = (g: Goblin): boolean => g.traits.includes('veteran');
 const combatSkill = (g: Goblin): number => g.skills.combat ?? 0;
 
-/** Enemies that still mean harm (not running off) within `r` of `pos`. */
+/** Enemies that still mean harm within `r` of `pos`. */
 export function threatsNear(w: World, pos: { x: number; y: number }, r: number): Enemy[] {
-  return w.s.enemies.filter((e) => e.mode !== 'flee' && e.mode !== 'leave' && dist(e.pos, pos) <= r);
+  return w.s.enemies.filter((e) => menaces(e, pos, r));
 }
 
 /** 25 % chance of a wound when a blow leaves a goblin under half health. */
@@ -57,7 +58,7 @@ export function hurtGoblin(w: World, g: Goblin, dmg: number, cause: DeathCause):
     scare(g, CFG.safety.bite);
     maybeInjure(w, g);
   }
-  if (isSleeping(g)) g.activity.status = 'done'; // jolted awake: re-decide at once
+  if (isSleeping(g) || g.activity.action === 'follow_wisp') g.activity.status = 'done'; // jolted awake (or out of a trance)
 }
 
 /** Wounds heal on their own; resting in one's hut heals them twice as fast (§14.2). */
@@ -75,7 +76,7 @@ export function killEnemy(w: World, e: Enemy, killer: Goblin | null): void {
   const i = w.s.enemies.indexOf(e);
   if (i < 0) return;
   w.s.enemies.splice(i, 1);
-  const drops: [ItemType, number][] = [...Object.entries(C.gnasherDrops)] as [ItemType, number][];
+  const drops: [ItemType, number][] = [...Object.entries(CFG.enemies.drops[e.kind] ?? {})] as [ItemType, number][];
   if (e.carrying) drops.push([e.carrying.type, e.carrying.qty]);
   drops.forEach(([type, qty], k) => spawnGroundItem(w, { type, qty }, { x: q4(e.pos.x + 0.3 * Math.cos(k * 2.1)), y: q4(e.pos.y + 0.3 * Math.sin(k * 2.1)) }));
   if (killer) killer.deeds.kills++;
@@ -116,7 +117,7 @@ export function strike(w: World, g: Goblin, e: Enemy): boolean {
   const nx = q4(e.pos.x + ((e.pos.x - g.pos.x) / d) * C.knockback), ny = q4(e.pos.y + ((e.pos.y - g.pos.y) / d) * C.knockback);
   if (enemyCanStand(w, nx, ny)) e.pos = { x: nx, y: ny };
   // it turns on whoever hit it, unless it is about to run anyway
-  if (e.mode !== 'flee' && e.mode !== 'leave' && e.hp >= CFG.enemies.gnasher.fleeAt * e.maxHp) {
+  if (e.mode !== 'flee' && e.mode !== 'leave' && e.hp >= CFG.enemies[e.kind].fleeAt * e.maxHp) {
     e.mode = 'attack';
     e.targetId = g.id;
     e.target = { ...g.pos };

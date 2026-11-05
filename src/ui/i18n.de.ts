@@ -136,5 +136,9 @@ export const DE: Record<keyof typeof EN, string> = {
   'injury.limp': 'humpelt', 'injury.bruised_arm': 'Arm geprellt', 'insp.scars': '{n} Narben', 'insp.veteran': 'Veteran', 'insp.fights': '{n} Kämpfe, {k} erlegt',
   'bld.fence': 'Zaun', 'bld.stone_hut': 'Steinhütte', 'act.repair_building': 'Repariert ein Gebäude', 'ev.fence_started': 'Das Dorf beginnt einen Zaun um seine Hütten.',
   'ev.fence_closed': 'Der Zaun ums Dorf ist geschlossen!', 'ev.stone_hut_planned': '{name} baut die Hütte aus Stein neu.', 'ev.stone_hut_built': 'Eine Steinhütte ist fertig!',
+  'act.follow_wisp': 'Folgt einem seltsamen Licht', 'ev.beast_spotted': '{name} sieht eine Dornbestie aus dem Wald brechen!',
+  'ev.beast_smashed': 'Eine Dornbestie hat ein Bauwerk zertrümmert: {building}!', 'ev.beast_smashed_fence': 'Eine Dornbestie hat einen Zaunpfahl niedergetrampelt.',
+  'ev.wisp_lure': '{name} folgt einem seltsamen Licht in die Dunkelheit…', 'ev.wisp_dispersed': '{name}s Fackel hat ein Nachtirrlicht vertrieben.',
+  'ev.wisp_faded': '{name} kommt zu sich, weit weg von zu Hause und verstört.', 'ev.immigrants': 'Neuankömmlinge sind ins Dorf gekommen: {names}.',
   'qty': '×{n}', 'yes': 'Ja', 'no': 'Nein',
 };

@@ -39,7 +39,8 @@ export type ActionId =
   | 'idle' | 'wander' | 'harvest_fruit' | 'eat' | 'drink' | 'sleep_ground' | 'pick_up' | 'drop' | 'look_up' | 'struggle'
   | 'eat_core' | 'plant_seed' | 'water_plant' | 'chop' | 'store_item' | 'take_item' | 'explore'
   | 'deliver_material' | 'build' | 'claim_home' | 'sleep_home' | 'gather_for_goal' | 'seek_shelter' | 'warm_up' | 'forage'
-  | 'mine' | 'craft' | 'equip' | 'plan_building' | 'tend_fire' | 'flee' | 'attack' | 'defend_village' | 'guard' | 'repair_building';
+  | 'mine' | 'craft' | 'equip' | 'plan_building' | 'tend_fire' | 'flee' | 'attack' | 'defend_village' | 'guard' | 'repair_building'
+  | 'follow_wisp';
 
 export interface ActivityState {
   action: ActionId;
@@ -99,13 +100,14 @@ export interface Plant {
   hydration: number; hp: number; plantedBy: ID | null; age: number; blight: number;
 }
 /**
- * An enemy (§14.1, P4.4). Gnashers prowl in from the wilds, steal food and bite lone goblins, and run off when hurt,
- * crowded or at dawn. `mode` is the current intent; `home` is where it came from and where it flees to.
+ * An enemy (§14.1, P4.4/P4.7). Gnashers prowl in from the wilds, steal food and bite lone goblins, and run off when
+ * hurt, crowded or at dawn. A Bramblebeast tramples through (`smash` = breaking whatever blocks it); a Night Wisp
+ * drifts and `lure`s a goblin away. `mode` is the current intent; `home` is where it flees to (a beast's exit).
  */
 export interface Enemy {
   id: ID; kind: EnemyKind; pos: Vec2; velocity: Vec2; facing: number;
   hp: number; maxHp: number;
-  mode: 'prowl' | 'steal' | 'attack' | 'flee' | 'leave';
+  mode: 'prowl' | 'steal' | 'attack' | 'flee' | 'leave' | 'smash' | 'lure';
   targetId: ID | null; target: Vec2 | null; path: Vec2[];
   carrying: ItemStack | null;
   home: Vec2; spawnTick: number; nextDecide: number; timer: number; hits: number;

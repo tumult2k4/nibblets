@@ -134,5 +134,9 @@ export const EN = {
   'injury.limp': 'limping', 'injury.bruised_arm': 'bruised arm', 'insp.scars': '{n} scars', 'insp.veteran': 'veteran', 'insp.fights': '{n} fights, {k} kills',
   'bld.fence': 'Fence', 'bld.stone_hut': 'Stone hut', 'act.repair_building': 'Mending a building', 'ev.fence_started': 'The village has begun a fence around its huts.',
   'ev.fence_closed': 'The fence around the village is closed!', 'ev.stone_hut_planned': '{name} is rebuilding the hut in stone.', 'ev.stone_hut_built': 'A stone hut is finished!',
+  'act.follow_wisp': 'Following a strange light', 'ev.beast_spotted': '{name} spotted a Bramblebeast crashing out of the forest!',
+  'ev.beast_smashed': 'A Bramblebeast smashed a {building}!', 'ev.beast_smashed_fence': 'A Bramblebeast trampled a fence post.',
+  'ev.wisp_lure': '{name} is following a strange light into the dark…', 'ev.wisp_dispersed': "{name}'s torch scattered a Night Wisp.",
+  'ev.wisp_faded': '{name} came to, far from home and shaken.', 'ev.immigrants': 'Newcomers have joined the village: {names}.',
   'qty': '×{n}', 'yes': 'Yes', 'no': 'No',
 } as const;

@@ -59,7 +59,7 @@ export function findSpawnPoint(w: World): Vec2 | null {
 }
 
 export function spawnEnemy(w: World, kind: EnemyKind, pos: Vec2): Enemy {
-  const st = E.gnasher;
+  const st = E[kind];
   const e: Enemy = {
     id: allocId(w.s), kind, pos: { x: pos.x, y: pos.y }, velocity: { x: 0, y: 0 }, facing: 0, hp: st.hp, maxHp: st.hp,
     mode: 'prowl', targetId: null, target: null, path: [], carrying: null, home: { x: pos.x, y: pos.y },

@@ -6,6 +6,7 @@ import { flatMat, merge, paint, wobble } from './lowpoly';
 import { itemGeo } from './meshFactory';
 import { glowTexture } from './fireView';
 import type { Interp } from './interpolation';
+import { buildBramble, buildWisp, type KindRig } from './beastView';
 
 const HIDE = '#3d3448', BELLY = '#5b4d63', TOOTH = '#efe6d2', SPINE = '#b4a27e';
 
@@ -81,17 +82,40 @@ function build(): Rig {
   return { root, body, head, jaw, legs, mouth, carried: '', phase: 0, hp: Infinity, hurt: 0 };
 }
 
-/** Read-only enemy views with a trot, a bite lunge and loot in the mouth. */
+/** Read-only enemy views: Gnashers with a trot, a bite lunge and loot in the mouth; Bramblebeasts; wisps (beastView). */
 export class EnemyViews {
   readonly group = new THREE.Group();
   private rigs = new Map<number, Rig>();
+  private others = new Map<number, KindRig>();
+  /** two cold lights kept for wisps (a fixed pool, so materials never recompile) */
+  private wispLights = [0, 1].map(() => new THREE.PointLight('#9ff5e6', 0, 7, 1.5));
 
-  constructor(private w: World) {}
+  constructor(private w: World) {
+    for (const l of this.wispLights) this.group.add(l);
+  }
 
   update(interp: Interp, alpha: number, t: number, dt: number): void {
     const seen = new Set<number>();
+    let lit = 0;
     for (const e of this.w.s.enemies) {
       seen.add(e.id);
+      if (e.kind !== 'gnasher') {
+        let k = this.others.get(e.id);
+        if (!k) {
+          k = e.kind === 'bramblebeast' ? buildBramble() : buildWisp();
+          k.root.userData = { kind: 'enemy', id: e.id };
+          this.others.set(e.id, k);
+          this.group.add(k.root);
+        }
+        const p = interp.get(e.id, alpha);
+        if (!p) continue;
+        k.root.position.set(p.x, p.z, p.y);
+        k.root.rotation.y = -p.facing + Math.PI / 2;
+        k.animate(e, t, dt);
+        const l = e.kind === 'night_wisp' ? this.wispLights[lit++] : undefined;
+        if (l) { l.position.set(p.x, p.z + 1.2, p.y); l.intensity = (e.mode === 'lure' ? 2.2 : 1.4) * (1 + Math.sin(t * 7 + e.id) * 0.12); }
+        continue;
+      }
       let r = this.rigs.get(e.id);
       if (!r) {
         r = build();
@@ -101,7 +125,9 @@ export class EnemyViews {
       }
       this.animate(e, r, interp, alpha, t, dt);
     }
+    for (let i = lit; i < this.wispLights.length; i++) this.wispLights[i]!.intensity = 0;
     for (const [id, r] of this.rigs) if (!seen.has(id)) { this.group.remove(r.root); this.rigs.delete(id); }
+    for (const [id, k] of this.others) if (!seen.has(id)) { this.group.remove(k.root); this.others.delete(id); }
   }
 
   private animate(e: Enemy, r: Rig, interp: Interp, alpha: number, t: number, dt: number): void {

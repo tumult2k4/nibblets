@@ -129,6 +129,12 @@ export class GoblinViews {
       if (act === 'seek_shelter') { r.armL.rotation.x = -2.7; r.armR.rotation.x = -2.7; } // hands over the head, hurrying in
       if (act === 'flee') { r.armL.rotation.x = -2.6 + Math.sin(ph * 1.5) * 0.4; r.armR.rotation.x = -2.6 - Math.sin(ph * 1.5) * 0.4; earFlop = 0.6; } // flailing panic, ears flat
       if (act === 'attack' || act === 'defend_village') { r.armR.rotation.x = -1.5; r.body.rotation.x += 0.2; } // charging, weapon levelled
+      if (act === 'follow_wisp') { r.armL.rotation.x = r.armR.rotation.x = -1.4; r.head.rotation.x = -0.25; earFlop = 0.1; } // sleepwalking after the light
+    } else if (act === 'follow_wisp') {
+      // spellbound: reaching for the light, swaying
+      r.armL.rotation.x = r.armR.rotation.x = -1.5 + Math.sin(t * 1.3 + g.id) * 0.1;
+      r.head.rotation.x = -0.3;
+      r.body.rotation.z = Math.sin(t * 1.1 + g.id) * 0.06;
     } else if (act === 'attack' || act === 'defend_village') {
       // wind up, thrust, recover (driven by the sim's swing timer)
       const p = g.activity.progress, C = CFG.combat;

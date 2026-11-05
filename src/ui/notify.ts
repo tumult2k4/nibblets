@@ -54,7 +54,15 @@ export function noteFor(e: SimEvent, w: World, names: Map<ID, string>): Note | n
     case 'tool_broken':
       return { ...base, id: e.goblinId, text: t('ev.tool_broken', { name: name(e.goblinId), item: t(`item.${e.item}`) }), tier: 'info', icon: ITEM_ICON[e.item] ?? 'gift' };
     case 'enemy_spotted':
+      if (w.s.enemies.find((x) => x.id === e.enemyId)?.kind === 'bramblebeast')
+        return { ...base, id: e.goblinId, text: t('ev.beast_spotted', { name: name(e.goblinId) }), tier: 'critical', icon: 'fang' };
       return { ...base, id: e.goblinId, text: t('ev.enemy_spotted', { name: name(e.goblinId), enemy: foe(e.enemyId) }), tier: 'notable', icon: 'fang' };
+    case 'wisp':
+      if (e.goblinId === null) return null;
+      if (e.phase === 'lure') return { ...base, id: e.goblinId, text: t('ev.wisp_lure', { name: name(e.goblinId) }), tier: 'notable', icon: 'moon' };
+      return { ...base, id: e.goblinId, text: t(e.phase === 'dispersed' ? 'ev.wisp_dispersed' : 'ev.wisp_faded', { name: name(e.goblinId) }), tier: 'info', icon: 'moon' };
+    case 'immigrants':
+      return { ...base, id: e.goblinIds[0], text: t('ev.immigrants', { names: e.goblinIds.map((id) => name(id)).join(', ') }), tier: 'notable', icon: 'goblin' };
     case 'enemy_stole':
       return { ...base, text: t('ev.enemy_stole', { enemy: foe(e.enemyId), n: e.qty, item: t(`item.${e.item}`) }), tier: 'notable', icon: 'fang' };
     case 'enemy_killed':
@@ -79,6 +87,9 @@ export function noteFor(e: SimEvent, w: World, names: Map<ID, string>): Note | n
       if (e.kind === 'fence') return fenceJustClosed(w) ? { ...base, text: t('ev.fence_closed'), tier: 'notable', icon: 'hill' } : null;
       return e.kind === 'hut' ? { ...base, text: t('ev.hut_built'), tier: 'notable', icon: 'hill' } : null;
     case 'building_destroyed':
+      if (e.cause === 'bramblebeast')
+        return e.kind === 'fence' ? { ...base, text: t('ev.beast_smashed_fence'), tier: 'info', icon: 'fang' }
+          : { ...base, text: t('ev.beast_smashed', { building: t(`bld.${e.kind}`) }), tier: 'critical', icon: 'fang' };
       return { ...base, text: t('ev.hut_lost'), tier: 'critical', icon: 'storm' };
     case 'home_claimed':
       return { ...base, id: e.goblinId, text: t('ev.home_claimed', { name: name(e.goblinId) }), tier: 'info', icon: 'heart' };

@@ -17,7 +17,8 @@ import { updateStorms } from './storms';
 import { updateEcology } from './ecology';
 import { updateFires } from './fire';
 import { updateDirector } from './enemies/director';
-import { enemiesAct, enemiesDecide } from './enemies/gnasher';
+import { updateReinforcements } from './reinforcements';
+import { enemiesAct, enemiesDecide } from './enemies';
 import { updateSafety } from './goblin/safety';
 import { fenceMask } from './fences';
 import { updateInjuries } from './combat';
@@ -114,7 +115,7 @@ export class World {
     updateEcology(this); //   5 ecology: mushrooms, fallen sticks (wildlife P7)
     updateFires(this); //     6 campfires burn down, torches burn (spreading fire P6)
     updateGroundItems(this); // 7 (+ airborne items)
-    //                        8 eggs (P5)
+    updateReinforcements(this); // 8 eggs (P5); newcomers until then (P4.7)
     updateGod(this); //       8b
     this.goblinHash.rebuild(s.goblins);
     if (this.plantsDirty || this.plantsVersion < 0) {

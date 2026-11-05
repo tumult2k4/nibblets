@@ -147,6 +147,18 @@ export const CFG = {
   },
   enemies: {
     graceDays: 3, baseThreat: 1, rampPerDay: 0.05, newMoonMul: 1.6, fullMoonMul: 0.7, maxActive: 20, gnasher: { hp: 60, dmg: 10, speed: 2.4, fleeAt: 0.3 },
+    // P4.7: a rare thorny brute that tramples straight through the village, smashing what stands in its way; it only
+    // turns on goblins that hit it, and only a mob of three with heavy weapons (≥ 20 dmg) within 14 tiles will take it on
+    bramblebeast: {
+      hp: 250, dmg: 25, speed: 1.2, fleeAt: 0.3, fromDay: 6, chancePerDay: 0.12, smashDmg: 20, smashEvery: 15,
+      swipeEvery: 20, swipeRange: 1.5, maxSwipes: 4, giveUp: 6, scareRadius: 6, mobSize: 3, mobDmg: 20, mobRadius: 14,
+    },
+    // P4.7: lights over the marsh on full-moon nights that lure the curious and pious away; a lit torch scatters one
+    night_wisp: {
+      hp: 1, dmg: 0, speed: 0.9, fleeAt: 0, count: 2, marshRange: 30, drift: 12, seekRange: 14, seekMul: 2.2, hover: 2.5, lureRadius: 6, lureChance: 0.06,
+      lureTicks: 900, lureDist: 26, followDist: 1.4, waitDist: 3, torchRadius: 3, mood: -8,
+    },
+    drops: { gnasher: { pelt: 1, bone: 1 }, bramblebeast: { pelt: 2, bone: 2, wood: 3 }, night_wisp: {} } as Record<string, Record<string, number>>,
     // P4.4 director & AI
     defenseMul: 0.3, armedDefense: 0.5, fireDefense: 1, fenceDefense: 2, fogChancePerHour: 0.08, spawnMinVillageDist: 28, spawnMinGoblinDist: 16,
     decideEvery: 10, sneakMul: 0.6, stealQty: 3, loneRadius: 4, crowdFlee: 3, crowdRadius: 4, sightRange: 18,
@@ -161,13 +173,16 @@ export const CFG = {
     panicSafety: 20, panicBravery: 0.5, panicHp: 0.3, veteranFights: 5, sprintMul: 1.15, fleeTicks: 400, safeDist: 9,
     // injuries: hp < 50 % after a hit, 25 %; limp −30 % speed and bruised arm −20 % work for 3 days; ear notch +1 scar
     injuryBelow: 0.5, injuryDays: 3, limpMul: 0.7, armMul: 0.8, maxScars: 3, restHealMul: 2,
-    villageRadius: 12, defendRange: 22, guardShare: 0.2, guardTicks: 600, guardRadius: 2.6, gnasherDrops: { pelt: 1, bone: 1 },
+    villageRadius: 12, defendRange: 22, guardShare: 0.2, guardTicks: 600, guardRadius: 2.6,
   },
   /** P4.5 safety need (§7.1): event-driven, drifts toward a target set by daylight, roofs, fires, armed friends and threats */
   safety: {
     every: 10, day: 90, nightOutside: 55, nightInside: 85, hut: 15, fire: 20, armed: 10, armedFriend: 8, armedFriendMax: 16, friendRadius: 5,
     threat: 35, threatNear: 25, fall: 0.3, rise: 0.05, bite: 20, witnessDeath: 30, moodMul: 0.3, scaredBelow: 25,
   },
+  /** P4.7 stand-in for migration until P5: founder-like newcomers walk in every 8 days while the village is small */
+  spawnReinforcements: true as boolean,
+  reinforcements: { everyDays: 8, below: 6, count: 2, atFrac: 0.3, edgeDist: 14 },
   social: { chat: [2, 5], giftCap: 20, sharedMeal: 3, foughtTogether: 8, saved: 25, theftDiscovered: -25, prank: -5, driftPerDay: 1, friend: 40, bestFriend: 75, rival: -40, enemy: -75, mateThreshold: 60, eggCooldownDays: 12 },
   knowledge: { discoveryBase: 0.01, teachTicks: 300, observeChance: 0.02, younglingLearnMul: 2, elderTeachMul: 1.5 },
   disease: { feverMinPop: 25, feverYearlyChance: 0.5 },

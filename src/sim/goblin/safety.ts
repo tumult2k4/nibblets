@@ -10,6 +10,7 @@ import { litFireNear } from '../fire';
 import { shelterOf } from '../temperature';
 import { bestWeapon } from '../tools';
 import { visionRadius } from '../ai/considerations';
+import { menaces } from '../enemies/common';
 import type { Goblin } from '../state';
 import type { World } from '../world';
 
@@ -36,9 +37,9 @@ export function safetyTarget(g: Goblin, w: World): number {
   v += Math.min(S.armedFriendMax, friends);
   const vr = visionRadius(g, w);
   for (const e of w.s.enemies) {
-    if (e.mode === 'flee' || e.mode === 'leave') continue;
+    if (!menaces(e, g.pos, vr)) continue;
     const d = dist(e.pos, g.pos);
-    if (d <= vr) v -= (S.threat + S.threatNear * (1 - d / vr)) * fearMul(g);
+    v -= (S.threat + S.threatNear * (1 - d / vr)) * fearMul(g);
   }
   return clamp(v, 0, 100);
 }
