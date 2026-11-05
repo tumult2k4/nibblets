@@ -1,5 +1,9 @@
 import * as THREE from 'three';
-import type { Emote, ID } from '../shared/types';
+import type { ChatTopic, Emote, ID } from '../shared/types';
+import { drawTopic } from './topicIcons';
+
+/** An emote glyph, or a chat topic picture (`t:food`, P5.1). */
+type Key = Emote | `t:${ChatTopic}`;
 
 const GLYPH: Record<Emote, { text: string; color: string }> = {
   question: { text: '?', color: '#3b6fb6' },
@@ -12,9 +16,9 @@ const GLYPH: Record<Emote, { text: string; color: string }> = {
   anger: { text: '💢', color: '#d0402a' },
 };
 
-const textures = new Map<Emote, THREE.Texture>();
-/** A speech-bubble texture with one glyph, drawn once per emote kind. */
-function texture(e: Emote): THREE.Texture {
+const textures = new Map<Key, THREE.Texture>();
+/** A speech-bubble texture with one glyph (or topic picture), drawn once per kind. */
+function texture(e: Key): THREE.Texture {
   const hit = textures.get(e);
   if (hit) return hit;
   const c = document.createElement('canvas');
@@ -32,7 +36,13 @@ function texture(e: Emote): THREE.Texture {
   x.stroke();
   x.fillStyle = '#fff8ea';
   x.fillRect(27, 44, 10, 6);
-  const g = GLYPH[e];
+  if (e.startsWith('t:')) {
+    drawTopic(x, e.slice(2) as ChatTopic, 32, 28);
+    const t = new THREE.CanvasTexture(c);
+    textures.set(e, t);
+    return t;
+  }
+  const g = GLYPH[e as Emote];
   x.font = e === 'sweat' || e === 'anger' ? '26px sans-serif' : 'bold 30px Fredoka, sans-serif';
   x.textAlign = 'center';
   x.textBaseline = 'middle';
@@ -43,7 +53,7 @@ function texture(e: Emote): THREE.Texture {
   return t;
 }
 
-interface Live { sprite: THREE.Sprite; id: ID; emote: Emote; age: number; life: number }
+interface Live { sprite: THREE.Sprite; id: ID; emote: Key; age: number; life: number }
 
 /** Billboard emotes (§P2.6): pop in, float, fade. One at a time per goblin; repeats refresh it. */
 export class Emotes {
@@ -51,7 +61,12 @@ export class Emotes {
   private live: Live[] = [];
   reducedMotion = false;
 
-  show(id: ID, emote: Emote, life = 2.4): void {
+  /** A chat line (P5.1): the speaker's bubble shows what the two are talking about. */
+  showTopic(id: ID, topic: ChatTopic, life = 2.2): void {
+    this.show(id, `t:${topic}`, life);
+  }
+
+  show(id: ID, emote: Key, life = 2.4): void {
     const cur = this.live.find((l) => l.id === id);
     if (cur && cur.emote === emote) {
       cur.age = Math.min(cur.age, 0.3);
@@ -64,7 +79,7 @@ export class Emotes {
     this.live.push({ sprite, id, emote, age: 0, life });
   }
 
-  has(id: ID, emote: Emote): boolean {
+  has(id: ID, emote: Key): boolean {
     return this.live.some((l) => l.id === id && l.emote === emote);
   }
 

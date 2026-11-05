@@ -38,7 +38,7 @@ export interface UIState {
   /** armed god_cast power (§18.4 casting UX) and its radius */
   armed: string | null;
   castRadius: number;
-  inspectorTab: 'status' | 'mind' | 'body' | 'inventory';
+  inspectorTab: 'status' | 'mind' | 'social' | 'body' | 'inventory';
   settings: Settings;
 }
 

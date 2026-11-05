@@ -86,6 +86,12 @@ export const MIGRATIONS: Record<number, Migration> = {
     (raw.threat as Record<string, unknown>).marks = [];
     return raw;
   },
+  // v8 → v9 (P5.1): relationships gain familiarity, a bond and a last-contact tick
+  8: (raw) => {
+    for (const g of raw.goblins as { relationships: Record<string, unknown>[] }[])
+      g.relationships = g.relationships.map((r) => ({ familiarity: 0, bond: 'none', lastInteraction: 0, ...r }));
+    return raw;
+  },
 };
 
 export function deserialize(json: string): WorldState {

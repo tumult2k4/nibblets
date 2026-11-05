@@ -11,6 +11,7 @@ import type { EnemyKind, Vec2 } from '../../shared/types';
 import type { Enemy, Goblin } from '../state';
 import type { World } from '../world';
 import { markDanger } from '../danger';
+import { foughtTogether } from '../goblin/social';
 
 const E = CFG.enemies;
 
@@ -50,7 +51,10 @@ export function setMode(w: World, e: Enemy, mode: Enemy['mode'], to: Vec2, targe
   e.targetId = targetId;
   e.timer = 0;
   if (!setPath(w, e, to)) { e.mode = prev.mode; e.targetId = prev.targetId; return false; }
-  if (fleeing) w.emit({ type: 'enemy_fled', enemyId: e.id, kind: e.kind, at: e.pos });
+  if (fleeing) {
+    foughtTogether(w, e, prev.mode === 'attack' ? prev.targetId : null);
+    w.emit({ type: 'enemy_fled', enemyId: e.id, kind: e.kind, at: e.pos });
+  }
   return true;
 }
 

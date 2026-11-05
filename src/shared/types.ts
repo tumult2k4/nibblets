@@ -50,7 +50,8 @@ export type Rarity = 'common' | 'uncommon' | 'rare' | 'legendary';
 export type MoodBreakKind = 'tantrum' | 'sulk' | 'binge' | 'wander_off';
 export type FestivalKind = string;
 export type PrankKind = string;
-export type ChatTopic = string;
+/** §13.2 conversation topics (festival comes with festivals, P8). */
+export type ChatTopic = 'weather' | 'food' | 'danger' | 'gossip' | 'a_person' | 'trinkets' | 'a_place' | 'the_dead' | 'festival' | 'complaint';
 export type BeliefId = string;
 export type PowerId = string;
 export type PrayerKind = string;
@@ -109,7 +110,9 @@ export type SimEvent = BaseEvent &
     | { type: 'theft'; thiefId: ID; victimId: ID | null; item: ItemType; witnessIds: ID[] }
     | { type: 'prank'; prankerId: ID; targetId: ID; kind: PrankKind }
     | { type: 'chat'; aId: ID; bId: ID; topic: ChatTopic }
-    | { type: 'bond_formed'; aId: ID; bId: ID; kind: 'friend' | 'mate' | 'rival' }
+    | { type: 'chat_line'; goblinId: ID; topic: ChatTopic }
+    | { type: 'bond_formed'; aId: ID; bId: ID; kind: 'friend' | 'best_friend' | 'rival' | 'enemy' | 'mate' }
+    | { type: 'comforted'; goblinId: ID; byId: ID }
     | { type: 'egg_laid'; eggId: ID; parents: [ID, ID] }
     | { type: 'egg_hatched'; eggId: ID; goblinId: ID }
     | { type: 'egg_lost'; eggId: ID; cause: 'cold' | 'eaten' | 'neglect' | 'fall' }

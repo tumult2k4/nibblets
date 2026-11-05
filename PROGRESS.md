@@ -1,5 +1,5 @@
 # Nibblets progress
-Current: P5.1 — relationships, Chat, gossip, Comfort, Gift
+Current: P5.2 — skills with XP, levels and effects
 ## Done
 - [x] P1.1 scaffold: Vite + strict TS, ESLint flat config with sim architecture rules, Prettier, Vitest, scripts
 - [x] P1.2 shared/: math, ids, mulberry32 Rng with fork(label), typed EventBus
@@ -48,9 +48,11 @@ Current: P5.1 — relationships, Chat, gossip, Comfort, Gift
 - [x] Combat behavior tests green (combat.test, enemies.test incl. the undefended-village rules); campfire repel test green (fences.test)
 - [x] Balance 32 days × 5 seeds with enemies: 0, 0, 0, 0, 2 combat deaths; control run without crafting (`--no-craft`: no Phase 4 recipes, so no spears, campfire, torches or fences) loses 59 % of all goblins
 - [x] Witness-rule test green; lightning on a Gnasher damages it and raises witnesses' fear; Gentle mode rejects wrath commands (wrath.test)
+- [x] P5.1 relationships (opinion, familiarity, bonds incl. best-friend cap, daily drift, hut-mates), social need active (company refill, lonely), `Chat` with weighted topics and icon bubbles (listener pulled in, alternating lines), gossip memory sharing (stale stays stale), talk about a person sways opinion, `Comfort` (hug a sad friend), `Gift` (spare food or a flower), shared meals and fighting together, founders/newcomers know each other, friendship/rival/gift/hug notes, inspector Social tab, chat and hug poses, save v9
 ## Next
-- [ ] P5.1 relationships, Chat with topics and icon bubbles, gossip memory sharing, Comfort, Gift
+- [ ] P5.2 skills (forage, woodcraft, building, mining, crafting, combat, farming, cooking, teaching) with XP/levels and effects
 ## Notes / known issues
+- Balance (32 days × 5 seeds, after P5.1): 0–1 combat deaths, ~0.22 ms/tick, 100 % housed by autumn. In 8-day probes, 16–35 chats per village of 10, the first friendships on days 4–6, social need ~82–85 on average, nobody lonely; no rivals yet (opinion only falls through P8 theft/pranks).
 - Balance (32 days × 5 seeds, after P4 tuning): 0–2 combat deaths, 28–42 Gnashers, 5 huts, 100 % housed by the end of autumn, ~0.2 ms/tick. Control (`--no-craft`): 59 % lost, one seed dies out.
 - Balance (32 days × 5 seeds, after P3.8): unchanged from P3.4 — 0 deaths, 5–6 huts, 100 % housed by the end of autumn, ~0.13–0.15 ms/tick.
 - Balance (32 days × 5 seeds, after P3.4): 0 deaths, 5 huts and 100 % housed by the end of autumn on every seed, 29–55 goblin-planted mature bushes, ~0.14 ms/tick.

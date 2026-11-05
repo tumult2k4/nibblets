@@ -32,12 +32,15 @@ export function needDecay(g: Goblin, need: NeedId, season: string, heatwave = fa
       return perDay(D.energy) * (WORK_ACTIONS.has(g.activity.action) ? CFG.goblin.workEnergyMul : 1);
     case 'curiosity':
       return perDay(D.curiosity) * (0.5 + g.personality.wanderlust);
+    case 'social':
+      // P5.1: × sociability; sleep pauses it
+      return isSleeping(g) ? 0 : perDay(D.social) * (0.3 + 1.4 * g.personality.sociability);
     default:
       return 0;
   }
 }
 
-const ACTIVE: NeedId[] = ['hunger', 'thirst', 'energy', 'curiosity'];
+const ACTIVE: NeedId[] = ['hunger', 'thirst', 'energy', 'curiosity', 'social'];
 
 export function updateBodies(w: World): void {
   const s = w.s;

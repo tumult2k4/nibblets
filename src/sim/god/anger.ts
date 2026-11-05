@@ -13,10 +13,10 @@ import { applyReaction, calmAnger } from './faith';
 import { addMood } from '../goblin/mood';
 import { visionRadius } from '../ai/considerations';
 import { isSleeping } from '../goblin/goblin';
+import { isKin } from '../goblin/social';
 
 const PW = CFG.powers;
 
-const isKin = (a: Goblin, b: Goblin): boolean => !!a.parents?.includes(b.id) || !!b.parents?.includes(a.id);
 const loves = (g: Goblin, v: Goblin): boolean => isKin(g, v) || g.relationships.some((r) => r.targetId === v.id && r.opinion > 50);
 
 /** The god hurt `victim` at `at`: whoever loves it (and saw, or is family) turns against the god. */

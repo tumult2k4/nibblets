@@ -15,6 +15,7 @@ export function updateMood(w: World): void {
       (g.heldByGod && g.godView.fear > 50) || g.needs.safety < CFG.safety.scaredBelow ? 'scared'
         : g.mood.value > 45 ? 'happy'
           : g.mood.value < -40 ? 'sad'
+            : g.needs.social < 15 ? 'lonely'
             : g.needs.curiosity < 15 ? 'bored'
               : 'content';
   }
@@ -30,6 +31,9 @@ export function moodTarget(g: Goblin): number {
   // warmth only hurts: being cold is miserable, being warm is merely normal
   v += Math.min(0, n.warmth - 50) * 0.35;
   if (n.warmth < 15) v -= 15;
+  // company (P5.1): loneliness weighs, good company lifts a little
+  v += (n.social - 50) * CFG.social.moodMul;
+  if (n.social < 15) v -= 10;
   // feeling unsafe is miserable too (P4.5)
   v += Math.min(0, n.safety - 50) * CFG.safety.moodMul;
   for (const m of g.mood.modifiers) v += m.amount;

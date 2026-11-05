@@ -179,6 +179,19 @@ export class GoblinViews {
       if (act === 'drink') { r.body.rotation.x = 0.6; r.head.rotation.x = 0.4; }
       else if (act === 'eat') { r.armR.rotation.x = -1.6 + Math.sin(k) * 0.3; r.head.rotation.x = Math.sin(k) * 0.08; }
       else { r.armR.rotation.x = -1.2 + Math.sin(k) * 0.6; r.armL.rotation.x = -0.9 - Math.sin(k) * 0.4; const sq = 1 + Math.sin(k) * 0.04; r.body.scale.set(1 / sq, sq, 1 / sq); }
+    } else if (act === 'chat') {
+      // talking with the hands, then listening with a tilted head and the odd nod (P5.1)
+      const k = t * 5 + g.id;
+      const talking = Math.sin(t * (Math.PI / 2.5) + (g.activity.stage === 2 ? Math.PI : 0)) > 0;
+      if (talking) { r.armR.rotation.x = -1.3 + Math.sin(k) * 0.5; r.armL.rotation.x = -0.5 - Math.sin(k * 0.7) * 0.3; r.head.rotation.x = Math.sin(k * 1.4) * 0.06; }
+      else { r.head.rotation.z = 0.18; r.head.rotation.x = Math.max(0, Math.sin(t * 2.2 + g.id)) ** 6 * 0.25; earFlop = -0.15; }
+    } else if (act === 'comfort' && g.activity.stage === 1) {
+      // a hug: arms wrapped forward, leaning in, swaying a little
+      r.armL.rotation.x = r.armR.rotation.x = -1.35;
+      r.armL.rotation.z = 0.55; r.armR.rotation.z = -0.55;
+      r.body.rotation.x += 0.18;
+      r.body.rotation.z = Math.sin(t * 2 + g.id) * 0.06;
+      earFlop = 0.3;
     } else if (act === 'look_up') {
       r.head.rotation.x = -0.7;
       earFlop = -0.2;

@@ -1,6 +1,6 @@
 /** Plain-data world state (§5). Everything here is serializable; no class instances. */
 import type {
-  Biome, BuildingType, EnemyKind, ID, ItemStack, LifeStage, PlantKind, PlantStage, Vec2, WeatherKind, Tone, WishIntent,
+  Biome, BuildingType, ChatTopic, EnemyKind, ID, ItemStack, LifeStage, PlantKind, PlantStage, Vec2, WeatherKind, Tone, WishIntent,
 } from '../shared/types';
 import type { Genome } from './goblin/genetics/genome';
 import type { GodState } from './god/godState';
@@ -40,7 +40,7 @@ export type ActionId =
   | 'eat_core' | 'plant_seed' | 'water_plant' | 'chop' | 'store_item' | 'take_item' | 'explore'
   | 'deliver_material' | 'build' | 'claim_home' | 'sleep_home' | 'gather_for_goal' | 'seek_shelter' | 'warm_up' | 'forage'
   | 'mine' | 'craft' | 'equip' | 'plan_building' | 'tend_fire' | 'flee' | 'attack' | 'defend_village' | 'guard' | 'repair_building'
-  | 'follow_wisp' | 'scatter';
+  | 'follow_wisp' | 'scatter' | 'chat' | 'comfort' | 'gift';
 
 export interface ActivityState {
   action: ActionId;
@@ -51,6 +51,9 @@ export interface ActivityState {
   path: Vec2[]; // remaining waypoints (tile centers)
   progress: number; // action-specific ticks
   stage: number; // action-specific sub-phase
+  /** what a conversation is about and how many lines it runs (P5.1 Chat) */
+  topic?: ChatTopic;
+  count?: number;
 }
 
 export interface DivineWish {
@@ -65,7 +68,9 @@ export interface GodView {
 }
 
 export interface MemoryEntry { kind: string; targetId?: ID; pos: Vec2; data: number; lastSeenTick: number; confidence: number }
-export interface Relation { targetId: ID; opinion: number }
+export type RelationBond = 'none' | 'friend' | 'best_friend' | 'rival' | 'enemy' | 'mate' | 'parent' | 'child' | 'sibling';
+/** §13.1: how one goblin sees another (one-sided). */
+export interface Relation { targetId: ID; opinion: number; familiarity: number; bond: RelationBond; lastInteraction: number }
 export interface DeedCounters { eaten: number; drank: number; harvested: number; planted: number; kills: number; builds: number; gifts: number; timesHeld: number; fights: number }
 
 /** Ballistic state of a held/thrown/dropped entity. z is absolute altitude in world units. */

@@ -81,7 +81,7 @@ describe('building system (§10.1–10.2, P3.3)', () => {
     g.mood.value = 100;
     expect(laborRate(w, g, b)).toBeCloseTo(0.002 * 1.2, 6);
     g.mood.value = 0;
-    g.relationships.push({ targetId: f.id, opinion: 50 });
+    g.relationships.push({ targetId: f.id, opinion: 50, familiarity: 0, bond: 'friend', lastInteraction: 0 });
     f.activity = { ...f.activity, action: 'build', targetId: b.id };
     expect(laborRate(w, g, b)).toBeCloseTo(base * 1.3, 6);
     // no labor before materials arrive

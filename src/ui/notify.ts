@@ -91,6 +91,19 @@ export function noteFor(e: SimEvent, w: World, names: Map<ID, string>): Note | n
         return e.kind === 'fence' ? { ...base, text: t('ev.beast_smashed_fence'), tier: 'info', icon: 'fang' }
           : { ...base, text: t('ev.beast_smashed', { building: t(`bld.${e.kind}`) }), tier: 'critical', icon: 'fang' };
       return { ...base, text: t('ev.hut_lost'), tier: 'critical', icon: 'storm' };
+    case 'bond_formed': {
+      // friendship is news once it is mutual; a grudge is news straight away
+      const back = w.goblin(e.bId)?.relationships.find((r) => r.targetId === e.aId)?.bond;
+      const pair = { a: name(e.aId), b: name(e.bId) };
+      if (e.kind === 'friend' && (back === 'friend' || back === 'best_friend')) return { ...base, id: e.aId, text: t('ev.friends', pair), tier: 'info', icon: 'heart' };
+      if (e.kind === 'best_friend' && back === 'best_friend') return { ...base, id: e.aId, text: t('ev.best_friends', pair), tier: 'notable', icon: 'heart' };
+      if (e.kind === 'rival' || e.kind === 'enemy') return { ...base, id: e.aId, text: t(`ev.${e.kind}`, pair), tier: e.kind === 'enemy' ? 'notable' : 'info', icon: 'bolt' };
+      return null;
+    }
+    case 'gift_given':
+      return { ...base, id: e.fromId, text: t('ev.gift_given', { a: name(e.fromId), b: name(e.toId), item: t(`item.${e.item}`) }), tier: 'info', icon: 'gift' };
+    case 'comforted':
+      return { ...base, id: e.goblinId, text: t('ev.comforted', { a: name(e.byId), b: name(e.goblinId) }), tier: 'info', icon: 'heart' };
     case 'home_claimed':
       return { ...base, id: e.goblinId, text: t('ev.home_claimed', { name: name(e.goblinId) }), tier: 'info', icon: 'heart' };
     case 'freezing':

@@ -24,6 +24,8 @@ import { Flee, Guard, dangerCaught } from './actions/flee';
 import { RepairBuilding } from './actions/repair';
 import { FollowWisp } from './actions/followWisp';
 import { Scatter } from './actions/scatter';
+import { Chat } from './actions/chat';
+import { Comfort, Gift } from './actions/kindness';
 import { findChopTarget } from './actions/chop';
 import { planFor } from './planner';
 import { Explore } from './actions/explore';
@@ -45,15 +47,16 @@ export const ACTIONS: Record<ActionId, UtilityAction> = {
   seek_shelter: SeekShelter, warm_up: WarmUp, forage: Forage, mine: Mine,
   craft: Craft, equip: Equip, plan_building: PlanBuilding, tend_fire: TendFire,
   flee: Flee, attack: Attack, defend_village: DefendVillage, guard: Guard, repair_building: RepairBuilding,
-  follow_wisp: FollowWisp, scatter: Scatter,
+  follow_wisp: FollowWisp, scatter: Scatter, chat: Chat, comfort: Comfort, gift: Gift,
 };
 const CHOOSABLE = (Object.values(ACTIONS) as UtilityAction[]).filter((a) => !a.forced);
 
 export interface ScoreRow { id: ActionId; base: number; personality: number; mood: number; hysteresis: number; focus: number; final: number }
 
 function moodMul(g: Goblin, a: UtilityAction): number {
-  // mood multiplies social action scores (P5+); work slightly affected now
-  return a.tags.includes('work') ? 0.9 + 0.2 * ((g.mood.value + 100) / 200) : 1;
+  // §7.5: mood multiplies work and social action scores (sulky goblins keep to themselves)
+  const k = (g.mood.value + 100) / 200;
+  return a.tags.includes('work') ? 0.9 + 0.2 * k : a.tags.includes('social') ? 0.7 + 0.6 * k : 1;
 }
 
 /** Score every available action (debug overlay uses `noise=false`). */

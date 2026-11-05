@@ -6,6 +6,7 @@ import { CFG } from './config';
 import { q4 } from '../shared/math';
 import { isWalkable } from './grid';
 import { createGoblin } from './goblin/goblin';
+import { seedClanRelations } from './goblin/social';
 import { CLAN_ARCHETYPES, founderGenome, type ClanArchetype } from './goblin/genetics/founders';
 import type { Vec2 } from '../shared/types';
 import type { World } from './world';
@@ -40,5 +41,6 @@ export function updateReinforcements(w: World): void {
     s.goblins.push(g);
     ids.push(g.id);
   }
+  seedClanRelations(w.rng, s.goblins.filter((g) => ids.includes(g.id)));
   if (ids.length) w.emit({ type: 'immigrants', goblinIds: ids, at });
 }

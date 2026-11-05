@@ -148,5 +148,10 @@ export const EN = {
   'reason.too_close': 'too close to the village', 'set.confirmLethal': 'Confirm lethal casts', 'ring.smite': 'Smite (Lightning)',
   'cast.confirm': '☠ {n} would die — click again or press Enter · Esc cancels', 'cast.pickGoblin': 'click a goblin', 'cast.beasts': '{n} beasts',
   'lens.danger': 'Danger', 'act.scatter': 'Scattering in panic', 'insp.angryAtGod': 'Angry at the god',
+  'act.chat': 'Chatting', 'act.comfort': 'Comforting a friend', 'act.gift': 'Bringing a gift', 'insp.social': 'Social',
+  'insp.relations': 'Relationships', 'insp.relationsLine': '{f} friends ({b} best) · {r} rivals · {g} gifts given', 'insp.knowsNobody': 'Knows nobody yet.',
+  'insp.familiarity': 'Familiarity {n}', 'ev.friends': '{a} and {b} have become friends.', 'ev.best_friends': '{a} and {b} are best friends now!',
+  'ev.rival': '{a} can\'t stand {b}.', 'ev.enemy': '{a} and {b} are bitter enemies.', 'ev.gift_given': '{a} gave {b} a {item}.',
+  'ev.comforted': '{a} hugged {b} and cheered them up.',
   'qty': '×{n}', 'yes': 'Yes', 'no': 'No',
 } as const;

@@ -1,7 +1,7 @@
 /** Every tunable number lives here (§21). Additions beyond §21 are logged in DECISIONS.md. */
 export const CFG = {
   tickHz: 10,
-  saveVersion: 8,
+  saveVersion: 9,
   time: { dayTicks: 3600, daysPerSeason: 8, moonCycleDays: 8, phases: { dawn: 0.05, day: 0.6, dusk: 0.7 }, startTick: 360 },
   world: {
     w: 128, h: 128, waterLevel: 0.3, sandBand: 0.03, rockLevel: 0.8, forestNoiseThreshold: 0.6,
@@ -195,7 +195,14 @@ export const CFG = {
   /** P4.7 stand-in for migration until P5: founder-like newcomers walk in every 8 days while the village is small */
   spawnReinforcements: true as boolean,
   reinforcements: { everyDays: 8, below: 6, count: 2, atFrac: 0.3, edgeDist: 14 },
-  social: { chat: [2, 5], giftCap: 20, sharedMeal: 3, foughtTogether: 8, saved: 25, theftDiscovered: -25, prank: -5, driftPerDay: 1, friend: 40, bestFriend: 75, rival: -40, enemy: -75, mateThreshold: 60, eggCooldownDays: 12 },
+  social: {
+    chat: [2, 5], giftCap: 20, sharedMeal: 3, foughtTogether: 8, saved: 25, theftDiscovered: -25, prank: -5, driftPerDay: 1, friend: 40, bestFriend: 75, rival: -40, enemy: -75, mateThreshold: 60, eggCooldownDays: 12,
+    // P5.1 relationships & conversations
+    maxBestFriends: 2, familiarityPerContact: 1, familiarityFade: 0.5, sameHut: 1, clanFamiliarity: 30, clanOpinion: [-5, 20] as [number, number],
+    companyRadius: 3, companyPerDay: 20, chatRange: 10, chatLines: [4, 6] as [number, number], lineTicks: 25, chatSocial: 25, topicMatch: 2,
+    gossipShare: 3, gossipConfidence: 0.8, personSway: 0.2, comfortMood: 10, comfortOpinion: 10, comfortSocial: 15, comfortRange: 14,
+    sadBelow: -30, giftRange: 15, giftSocial: 10, mealSocial: 6, mealRange: 3, fightBondRange: 8, moodMul: 0.2,
+  },
   knowledge: { discoveryBase: 0.01, teachTicks: 300, observeChance: 0.02, younglingLearnMul: 2, elderTeachMul: 1.5 },
   disease: { feverMinPop: 25, feverYearlyChance: 0.5 },
   llm: { diariesPerDay: 3, dialoguesPerDay: 4, barksPerDay: 6, tokensPerDay: 12000, rpm: 10, concurrency: 2, timeoutMs: 20000 },

@@ -12,6 +12,7 @@ import { isVeteran, reachOf, strike, threatsNear } from '../../combat';
 import { visionRadius } from '../considerations';
 import { harmless, running } from '../../enemies/common';
 import { isSleeping } from '../../goblin/goblin';
+import { isKin } from '../../goblin/social';
 import type { ActionId, Enemy, Goblin } from '../../state';
 import type { World } from '../../world';
 import type { UtilityAction } from '../action';
@@ -19,7 +20,6 @@ import type { UtilityAction } from '../action';
 const C = CFG.combat;
 export const DANGER: ReadonlySet<ActionId> = new Set(['flee', 'attack', 'defend_village']);
 
-const isKin = (a: Goblin, b: Goblin): boolean => !!a.parents?.includes(b.id) || !!b.parents?.includes(a.id);
 const enemyById = (w: World, id: number | null): Enemy | undefined => (id === null ? undefined : w.s.enemies.find((e) => e.id === id));
 const victimOf = (w: World, e: Enemy): Goblin | undefined => (e.mode === 'attack' && e.targetId !== null ? w.goblin(e.targetId) : undefined);
 

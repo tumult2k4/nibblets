@@ -22,6 +22,7 @@ import { enemiesAct, enemiesDecide } from './enemies';
 import { updateSafety } from './goblin/safety';
 import { fenceMask } from './fences';
 import { updateInjuries } from './combat';
+import { updateSocial } from './goblin/social';
 import { think, act } from './ai/utility';
 import { updateGod } from './god/godState';
 import { sampleStats } from './stats';
@@ -135,7 +136,8 @@ export class World {
     act(this); //             13
     updateWear(this); //      13b path wear (§P2.7)
     enemiesAct(this); //      14 enemies.act
-    //                        15 combat (P4.5), 16 social, 17 culture, 18 village, 19 clans
+    updateSocial(this); //    16 social (P5.1); 15 combat runs inside act
+    //                        17 culture, 18 village, 19 clans
     if (s.tick % CFG.stats.sampleEvery === 0) sampleStats(this); // 20
     s.rngState = this.rng.state;
     const events = this.bus.flush(); // 21

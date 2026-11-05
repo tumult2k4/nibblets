@@ -4,6 +4,7 @@ import { itemDef } from '../../items';
 import { addItem, countItem, foodStack, takeOne } from '../../inventory';
 import { needUrgency } from '../../goblin/needs';
 import { addMood } from '../../goblin/mood';
+import { sharedMeal } from '../../goblin/social';
 import { spawnGroundItem } from '../../groundItems';
 import { siteOk, spawnPlant } from '../../plants';
 import type { ItemStack } from '../../../shared/types';
@@ -24,6 +25,7 @@ function eatStep(g: Goblin, w: World, pick: () => ItemStack | undefined): StepRe
   w.s.stats.eaten += 1;
   if (one.divine) w.s.stats.divineFood += 1;
   if (one.divine) addMood(w, g, 'sky_food', 3, 1800);
+  sharedMeal(w, g);
   w.emit({ type: 'item_eaten', goblinId: g.id, item: one.type, at: g.pos, ...(one.divine ? { divine: true } : {}) });
   // §8.2 accidental gardening: now and then a berry seed ends up in the ground
   if (one.type === 'berry' && w.rng.chance(CFG.plants.berryAccidentalSeed)) {

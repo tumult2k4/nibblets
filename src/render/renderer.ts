@@ -217,6 +217,7 @@ export class Renderer {
     this.wrathFx.onEvents(evs);
     for (const e of evs) {
       if (e.type === 'emote') this.emotes.show(e.goblinId, e.emote);
+      else if (e.type === 'chat_line') this.emotes.showTopic(e.goblinId, e.topic);
       else if (e.type === 'divine_act' && e.act === 'pet' && e.targetId !== undefined) this.emotes.show(e.targetId, 'heart');
     }
   }

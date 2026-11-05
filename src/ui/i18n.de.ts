@@ -150,5 +150,10 @@ export const DE: Record<keyof typeof EN, string> = {
   'reason.too_close': 'zu nah am Dorf', 'set.confirmLethal': 'Tödliche Kräfte bestätigen', 'ring.smite': 'Strafen (Blitz)',
   'cast.confirm': '☠ {n} würden sterben — nochmal klicken oder Enter · Esc bricht ab', 'cast.pickGoblin': 'klicke einen Goblin', 'cast.beasts': '{n} Bestien',
   'lens.danger': 'Gefahr', 'act.scatter': 'Flieht in Panik', 'insp.angryAtGod': 'Zornig auf den Gott',
+  'act.chat': 'Plaudert', 'act.comfort': 'Tröstet einen Freund', 'act.gift': 'Bringt ein Geschenk', 'insp.social': 'Soziales',
+  'insp.relations': 'Beziehungen', 'insp.relationsLine': '{f} Freunde ({b} beste) · {r} Rivalen · {g} Geschenke gemacht', 'insp.knowsNobody': 'Kennt noch niemanden.',
+  'insp.familiarity': 'Vertrautheit {n}', 'ev.friends': '{a} und {b} sind Freunde geworden.', 'ev.best_friends': '{a} und {b} sind jetzt beste Freunde!',
+  'ev.rival': '{a} kann {b} nicht ausstehen.', 'ev.enemy': '{a} und {b} sind erbitterte Feinde.', 'ev.gift_given': '{a} hat {b} etwas geschenkt: {item}.',
+  'ev.comforted': '{a} hat {b} umarmt und aufgemuntert.',
   'qty': '×{n}', 'yes': 'Ja', 'no': 'Nein',
 };

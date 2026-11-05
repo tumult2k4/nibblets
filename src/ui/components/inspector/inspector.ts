@@ -8,9 +8,10 @@ import { icon, ITEM_ICON } from '../../icons';
 import { keyLabel } from '../../keys';
 import { tipKey } from '../tooltip';
 import { buildingBody, buildingHead } from './buildingInspector';
+import { socialTab } from './socialTab';
 
-type Tab = 'status' | 'mind' | 'body' | 'inventory';
-const TABS: Tab[] = ['status', 'mind', 'body', 'inventory'];
+type Tab = 'status' | 'mind' | 'social' | 'body' | 'inventory';
+const TABS: Tab[] = ['status', 'mind', 'social', 'body', 'inventory'];
 
 /** Right context panel (§18.6): inspector for the selection, else "Village at a glance". */
 export class Inspector implements Component {
@@ -49,7 +50,8 @@ export class Inspector implements Component {
         if (st.selection.length > 1) this.tabs.prepend(el('span.badge', { text: `+${st.selection.length - 1}` }));
       }
       const tab = st.inspectorTab;
-      this.body.replaceChildren(tab === 'status' ? statusTab(g, w) : tab === 'mind' ? mindTab(g) : tab === 'body' ? bodyTab(g, w) : inventoryTab(g));
+      const pick = (o: number) => this.ctx.select('goblin', [o]);
+      this.body.replaceChildren(tab === 'status' ? statusTab(g, w) : tab === 'mind' ? mindTab(g) : tab === 'social' ? socialTab(g, w, pick) : tab === 'body' ? bodyTab(g, w) : inventoryTab(g));
       if (tab === 'body' && !fresh) return;
       return;
     }
