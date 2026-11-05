@@ -1,5 +1,9 @@
 /** Typed command queue (§3.1, §17.8). UI/god tools never mutate state; they push commands. */
-import type { ID, ItemType, Vec2, Vec3 } from '../shared/types';
+import { siteOk, spawnPlant } from './plants';
+import { tileAt } from './grid';
+import { divineAct } from './god/faith';
+import { TERRAFORM_POWERS, terraform, type TerraformPower } from './god/terraform';
+import type { ID, ItemType, PlantKind, Vec2, Vec3 } from '../shared/types';
 import { q2 } from '../shared/math';
 import { CFG } from './config';
 import type { World } from './world';
@@ -19,6 +23,8 @@ export type GodCommand =
   | { type: 'god_pet'; goblinId: ID; ticks: number }
   | { type: 'god_poke'; goblinId: ID }
   | { type: 'god_flick'; goblinId: ID; dir: Vec2 }
+  | { type: 'god_power'; power: TerraformPower; pos: Vec2; radius: number; option?: string }
+  | { type: 'god_spawn_plant'; kind: PlantKind; pos: Vec2 }
   | { type: 'sandbox'; op: SandboxOp }
   | { type: 'set_mode'; mode: 'sandbox' | 'observer' };
 
@@ -39,6 +45,10 @@ export function quantize(cmd: Command): Command {
       return { ...cmd, pos: qv(cmd.pos), qty: Math.round(cmd.qty) };
     case 'god_flick':
       return { ...cmd, dir: qv(cmd.dir) };
+    case 'god_power':
+      return { ...cmd, pos: qv(cmd.pos), radius: Math.round(cmd.radius) };
+    case 'god_spawn_plant':
+      return { ...cmd, pos: qv(cmd.pos) };
     case 'god_pet':
       return { ...cmd, ticks: Math.round(cmd.ticks) };
     default:
@@ -58,7 +68,7 @@ export function validate(w: World, cmd: Command): string | null {
   switch (cmd.type) {
     case 'god_grab':
       if (s.god.held) return 'already_holding';
-      return w.goblin(cmd.entityId) || s.groundItems.some((i) => i.id === cmd.entityId) ? null : 'missing_entity';
+      return w.goblin(cmd.entityId) || s.groundItems.some((i) => i.id === cmd.entityId) || s.plants.some((p) => p.id === cmd.entityId) ? null : 'missing_entity';
     case 'god_hold_move':
     case 'god_release':
       return s.god.held ? null : 'nothing_held';
@@ -73,6 +83,15 @@ export function validate(w: World, cmd: Command): string | null {
     case 'god_flick':
       if (s.god.gentle) return 'gentle_mode';
       return needGoblin(cmd.goblinId) ?? (w.goblin(cmd.goblinId)!.heldByGod ? 'held' : null);
+    case 'god_spawn_plant': {
+      const t = tileAt(s, cmd.pos.x, cmd.pos.y);
+      if (!t || t.biome === 'water' || t.biome === 'rock' || !siteOk(w, cmd.pos, cmd.kind === 'flower' ? 0.6 : 1.2)) return 'bad_site';
+      return null;
+    }
+    case 'god_power':
+      if (!(TERRAFORM_POWERS as readonly string[]).includes(cmd.power)) return 'unknown_power';
+      if (cmd.pos.x < 0 || cmd.pos.y < 0 || cmd.pos.x >= s.size.w || cmd.pos.y >= s.size.h) return 'out_of_bounds';
+      return null;
     case 'sandbox':
       if (cmd.op.op === 'set_need') return needGoblin(cmd.op.goblinId);
       return null;
@@ -89,6 +108,12 @@ function apply(w: World, cmd: Command): void {
     case 'god_pet': pet(w, w.goblin(cmd.goblinId)!, cmd.ticks); break;
     case 'god_poke': poke(w, w.goblin(cmd.goblinId)!); break;
     case 'god_flick': flick(w, w.goblin(cmd.goblinId)!, cmd.dir); break;
+    case 'god_power': terraform(w, cmd.power, cmd.pos, cmd.radius, cmd.option); break;
+    case 'god_spawn_plant': {
+      spawnPlant(w, cmd.kind, cmd.pos, cmd.kind === 'flower' ? 'mature' : 'sapling', null);
+      divineAct(w, 'gift', cmd.pos);
+      break;
+    }
     case 'set_mode': s.god.mode = cmd.mode; break;
     case 'set_gentle': s.god.gentle = cmd.on; break;
     case 'sandbox': {

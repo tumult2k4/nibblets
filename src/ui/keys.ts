@@ -4,9 +4,10 @@ import { loadPref, savePref } from './store';
 export const DEFAULT_KEYS: Record<string, string> = {
   pause: 'Space', speed1: 'Digit1', speed2: 'Digit2', speed3: 'Digit3', speed4: 'Digit4', hand: 'KeyH', gifts: 'KeyG',
   follow: 'KeyF', lens: 'KeyL', cycle: 'Tab', quicksave: 'F5', quickload: 'F9', debug: 'Backquote', rotL: 'KeyQ', rotR: 'KeyE',
-  help: 'F1', inspector: 'KeyI', feed: 'KeyN',
+  help: 'F1', inspector: 'KeyI', feed: 'KeyN', terraform: 'KeyT',
 };
-let keys: Record<string, string> = loadPref('keys', DEFAULT_KEYS);
+// stored bindings from older versions lack newer actions: fill them from the defaults
+let keys: Record<string, string> = { ...DEFAULT_KEYS, ...loadPref('keys', {} as Record<string, string>) };
 
 export const getKeys = (): Record<string, string> => keys;
 export function setKey(action: string, code: string): string | null {

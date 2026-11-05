@@ -9,7 +9,7 @@ import { q4 } from '../../shared/math';
 export type GameMode = 'sandbox' | 'divine' | 'observer';
 
 export interface HeldState {
-  kind: 'goblin' | 'item' | 'egg';
+  kind: 'goblin' | 'item' | 'egg' | 'plant';
   id: ID;
   pos: Vec2;
   height: number;

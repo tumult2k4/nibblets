@@ -1,7 +1,8 @@
 import type { ID, ItemType, Vec2, Vec3 } from '../../shared/types';
 import { clamp, q4 } from '../../shared/math';
 import { CFG } from '../config';
-import { isWalkable, tileOf } from '../grid';
+import { isWalkable, tileAt, tileOf } from '../grid';
+import { removePlant, siteOk } from '../plants';
 import type { Goblin } from '../state';
 import type { World } from '../world';
 import { groundZ } from './godState';
@@ -38,6 +39,13 @@ export function grab(w: World, entityId: ID): GrabResult {
     s.god.held = { kind: 'item', id: it.id, pos: { ...it.pos }, height, sinceTick: s.tick, fearApplied: false };
     it.reservedBy = null;
     it.airborne = { z: q4(groundZ(w, it.pos) + height), vel: { x: 0, y: 0, z: 0 }, dropHeight: height, throwSpeed: 0, held: true };
+    return null;
+  }
+  // uproot (§P2.7): the plant stays in the list (growth paused) until replanted or dropped
+  const p = s.plants.find((x) => x.id === entityId);
+  if (p && p.stage !== 'stump' && p.stage !== 'dead') {
+    s.god.held = { kind: 'plant', id: p.id, pos: { ...p.pos }, height: CFG.god.holdHeight.start, sinceTick: s.tick, fearApplied: false };
+    divineAct(w, 'uproot', p.pos);
     return null;
   }
   return 'missing_entity';
@@ -79,6 +87,22 @@ export function release(w: World, pos: Vec2, height: number, velocity: Vec3): vo
     g.airborne = { z: q4(groundZ(w, h.pos) + h.height), vel: v, dropHeight: h.height, throwSpeed: q4(horiz), held: false };
     s.god.counts.drops += 1;
     divineAct(w, horiz > 3 ? 'throw' : 'drop', g.pos, g.id, true);
+  } else if (h.kind === 'plant') {
+    const p = s.plants.find((x) => x.id === h.id);
+    if (!p) return;
+    const t = tileAt(s, h.pos.x, h.pos.y);
+    const ok = h.height <= G.replantHeight && horiz < 3 && !!t && t.biome !== 'rock' && siteOk(w, h.pos, p.kind === 'flower' ? 0.6 : 1.2, p.id);
+    if (ok) {
+      p.pos = { x: h.pos.x, y: h.pos.y };
+      p.hydration = q4(p.hydration * G.transplantShock);
+      w.markPlantsDirty();
+      divineAct(w, 'replant', p.pos);
+    } else {
+      // dropped from too high or onto bad ground: it does not survive
+      if (p.stage === 'mature' || p.stage === 'old') spawnGroundItem(w, { type: 'wood', qty: 1 }, h.pos);
+      w.emit({ type: 'plant_died', plantId: p.id, kind: p.kind, at: h.pos });
+      removePlant(w, p);
+    }
   } else if (h.kind === 'item') {
     const it = s.groundItems.find((x) => x.id === h.id);
     if (!it || !it.airborne) return;

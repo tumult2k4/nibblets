@@ -4,12 +4,19 @@ import type { Goblin } from '../sim/state';
 import { CFG } from '../sim/config';
 import type { HandPose } from '../render/godHand';
 import { express } from '../sim/goblin/genetics/phenotype';
+import type { TerraformPower } from '../sim/god/terraform';
+import { TERRAIN_LENSES } from './store';
+import type { TerrainLens } from '../render/terrainMesh';
 
 const lerpColor = (a: THREE.Color, b: THREE.Color, t: number) => a.clone().lerp(b, Math.max(0, Math.min(1, t)));
 const BAD = new THREE.Color('#e0503c');
 const MID = new THREE.Color('#f2c14e');
 const GOOD = new THREE.Color('#6cc46a');
 const scale3 = (t: number) => (t < 0.5 ? lerpColor(BAD, MID, t * 2) : lerpColor(MID, GOOD, (t - 0.5) * 2));
+
+const BRUSH_COLOR: Record<TerraformPower, string> = {
+  raise_land: '#c9e07a', lower_land: '#c99a6b', smooth: '#e8e2c8', create_water: '#7fc6ea', fertile_soil: '#e9c35b', plant_forest: '#7ccf6a', place_rock: '#bdb7ad',
+};
 
 /** Per-goblin lens color (§18.10), or null for the default lens. */
 function lensColor(lens: string, g: Goblin): THREE.Color | null {
@@ -51,8 +58,10 @@ export class WorldFx {
     const tray = input.tray;
 
     // ---- hand ----
+    const brushing = input.brushing();
     let pose: HandPose = 'open';
-    if (tray.active) pose = 'cast';
+    if (brushing) pose = 'paint';
+    else if (tray.active) pose = 'cast';
     else if (hand.holding) pose = 'grab';
     else if (hand.petting) pose = 'pet';
     else if (hand.hoverGoblin !== null) pose = 'point';
@@ -60,7 +69,7 @@ export class WorldFx {
     const glowK = tray.active ? 0.35 + Math.sin(this.t * 6) * 0.1 : hand.petting ? 0.2 : 0;
     r.hand.glow.setRGB(glowK, glowK * 0.8, glowK * 0.3);
     r.hand.size = Math.max(0.9, Math.min(3, r.camera.dist * 0.055));
-    const ground = tray.active ? tray.ground : hand.ground;
+    const ground = brushing ? input.brush.ground : tray.active ? tray.ground : hand.ground;
     const showHand = inGame && !this.app.replayMode && w.s.god.mode !== 'observer';
     const height = hand.holding ? hand.holdHeight : 1.2;
     r.hand.update(dt, showHand ? ground : null, height, r.camera.yaw, this.t, hand.holding);
@@ -88,6 +97,12 @@ export class WorldFx {
         r.rings.ring(gp.x, gp.y, gp.z, 0.6 * pulse, '#ffd36b', 0.9);
         r.rings.ring(gp.x, gp.y, gp.z, CFG.goblin.visionDay, '#ffd36b', 0.18);
       }
+      // terraform brush footprint
+      if (brushing && input.brush.ground) {
+        const bg = input.brush.ground;
+        const rad = st.power === 'place_rock' ? 0.8 : st.brushRadius;
+        r.rings.ring(bg.x, bg.y, bg.z, rad, BRUSH_COLOR[st.power], input.brush.painting ? 0.95 : 0.65);
+      }
       // held entity: landing spot under the hand
       if (hand.holding && hand.ground) {
         const hg = hand.ground;
@@ -96,5 +111,6 @@ export class WorldFx {
       }
     }
     r.rings.end();
+    r.setTerrainLens(TERRAIN_LENSES.includes(st.lens) && st.screen !== 'title' ? (st.lens as TerrainLens) : null);
   }
 }

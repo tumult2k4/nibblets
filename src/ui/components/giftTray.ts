@@ -2,10 +2,9 @@ import { el } from '../dom';
 import { icon, ITEM_ICON } from '../icons';
 import { t } from '../i18n';
 import type { Ctx, Component } from '../ctx';
-import { GIFT_TRAY, itemDef } from '../../sim/items';
-import type { ItemType } from '../../shared/types';
+import { GIFT_TRAY, SAPLING_VALUE, itemDef, saplingKind, type TrayEntry } from '../../sim/items';
 
-export type TrayDragStart = (item: ItemType, e: PointerEvent) => void;
+export type TrayDragStart = (item: TrayEntry, e: PointerEvent) => void;
 
 /** Bottom-center Gift Tray (§18.5): Food and Materials tabs; drag a slot into the world. */
 export class GiftTray implements Component {
@@ -26,11 +25,15 @@ export class GiftTray implements Component {
   private render(): void {
     const st = this.ctx.store.state;
     this.renderedTab = st.trayTab + st.settings.language;
-    this.tabs.replaceChildren(...(['food', 'materials'] as const).map((tab) =>
+    this.tabs.replaceChildren(...(['food', 'materials', 'life'] as const).map((tab) =>
       el(`button.btn${tab === st.trayTab ? '.on' : ''}`, { onclick: () => this.ctx.store.set({ trayTab: tab }) }, t(`tray.${tab}`))));
     this.slots.replaceChildren(...GIFT_TRAY[st.trayTab].map((item, i) => {
-      const s = el('div.slot', {}, el('span.k', { text: String(i + 1) }), icon(ITEM_ICON[item] ?? 'gift'), el('span', { text: t(`item.${item}`) }));
-      s.dataset.tip = `${t(`item.${item}`)} · ${this.ctx.game.world.s.god.mode === 'sandbox' ? t('power.free') : t('power.cost', { n: itemDef(item).value })}`;
+      const kind = saplingKind(item);
+      const label = kind ? t(`tray.sapling.${kind}`) : t(`item.${item}`);
+      const ic = kind ? 'leaf' : ITEM_ICON[item as keyof typeof ITEM_ICON] ?? 'gift';
+      const cost = kind ? SAPLING_VALUE : itemDef(item as Exclude<TrayEntry, `sapling:${string}`>).value;
+      const s = el('div.slot', {}, el('span.k', { text: String(i + 1) }), icon(ic), el('span', { text: label }));
+      s.dataset.tip = `${label} · ${this.ctx.game.world.s.god.mode === 'sandbox' ? t('power.free') : t('power.cost', { n: cost })}`;
       s.addEventListener('pointerdown', (e) => {
         e.preventDefault();
         this.onDrag(item, e);
@@ -49,7 +52,7 @@ export class GiftTray implements Component {
   }
 
   /** Number keys pick tray slots only while the tray is open & hovered/focused (§18.11 note). */
-  itemAt(i: number): ItemType | undefined {
+  itemAt(i: number): TrayEntry | undefined {
     return GIFT_TRAY[this.ctx.store.state.trayTab][i];
   }
   isHovered(): boolean {

@@ -58,7 +58,8 @@ export class HandTool {
     if (st.k === 'pending') {
       const moved = Math.hypot(e.clientX - st.x, e.clientY - st.y);
       if (moved > 6 && !this.petting) {
-        if (st.entity && (st.entity.kind === 'goblin' || st.entity.kind === 'item') && this.canAct()) {
+        if (st.entity && this.canAct()) {
+          // goblins, items, and plants (uproot, §P2.7) can be lifted
           this.ctx.push({ type: 'god_grab', entityId: st.entity.id });
           this.holdHeight = CFG.god.holdHeight.start;
           this.st = { k: 'holding', id: st.entity.id };

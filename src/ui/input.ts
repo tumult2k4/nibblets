@@ -1,6 +1,7 @@
 import type { Ctx } from './ctx';
 import { HandTool } from './tools/handTool';
 import { TrayDrag } from './tools/trayDrag';
+import { BrushTool } from './tools/brushTool';
 import { actionFor } from './keys';
 
 export interface KeyHandlers { [action: string]: () => void }
@@ -12,6 +13,7 @@ export interface KeyHandlers { [action: string]: () => void }
 export class Input {
   readonly hand: HandTool;
   readonly tray: TrayDrag;
+  readonly brush: BrushTool;
   private keysDown = new Set<string>();
   private drag: { button: number; x: number; y: number; moved: boolean } | null = null;
   private mouse = { x: 0, y: 0, inside: false };
@@ -20,6 +22,7 @@ export class Input {
   constructor(private ctx: Ctx, private canvas: HTMLCanvasElement, private handlers: KeyHandlers, private escape: () => void) {
     this.hand = new HandTool(ctx);
     this.tray = new TrayDrag(ctx);
+    this.brush = new BrushTool(ctx);
     canvas.addEventListener('contextmenu', (e) => e.preventDefault());
     canvas.addEventListener('pointerdown', (e) => this.down(e));
     window.addEventListener('pointermove', (e) => this.move(e));
@@ -33,13 +36,19 @@ export class Input {
     window.addEventListener('blur', () => this.keysDown.clear());
   }
 
+  /** Terraform tool active and allowed (not observer/replay). */
+  brushing(): boolean {
+    return this.ctx.store.state.activeTool === 'terraform' && !this.ctx.readOnly() && this.ctx.game.world.s.god.mode !== 'observer';
+  }
+
   private get cam() {
     return this.ctx.game.renderer.camera;
   }
 
   private down(e: PointerEvent): void {
     this.canvas.focus();
-    if (e.button === 0 && !this.tray.active) this.hand.down(e);
+    if (e.button === 0 && this.brushing()) this.brush.down(e);
+    else if (e.button === 0 && !this.tray.active) this.hand.down(e);
     this.drag = { button: e.button, x: e.clientX, y: e.clientY, moved: false };
   }
 
@@ -61,6 +70,10 @@ export class Input {
       else this.cam.pan(-dx * 0.1, -dy * 0.1);
       return;
     }
+    if (this.brushing()) {
+      this.brush.move(e);
+      return;
+    }
     if (e.target === this.canvas || this.hand.holding || (d && d.button === 0)) this.hand.move(e);
   }
 
@@ -70,13 +83,15 @@ export class Input {
       this.drag = null;
       return;
     }
-    if (this.drag?.button === 0) this.hand.up(e);
+    if (this.drag?.button === 0 && this.brush.painting) this.brush.up();
+    else if (this.drag?.button === 0) this.hand.up(e);
     this.drag = null;
   }
 
   private wheel(e: WheelEvent): void {
     e.preventDefault();
     if (this.tray.active) return;
+    if (this.brushing() && this.brush.wheel(e.deltaY, e.shiftKey)) return;
     if (this.hand.wheel(e.deltaY)) return;
     this.cam.zoom(e.deltaY > 0 ? 1.12 : 1 / 1.12);
   }
@@ -126,5 +141,6 @@ export class Input {
     if (k.has('KeyQ') && actionFor('KeyQ') === 'rotL') this.cam.orbit(dt * 1.5, 0);
     if (k.has('KeyE') && actionFor('KeyE') === 'rotR') this.cam.orbit(-dt * 1.5, 0);
     this.hand.frame();
+    this.brush.frame();
   }
 }

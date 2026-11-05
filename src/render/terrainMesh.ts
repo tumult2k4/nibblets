@@ -21,15 +21,86 @@ export function cornerPos(s: WorldState, cx: number, cy: number): THREE.Vector3 
   return new THREE.Vector3(cx + jx, cornerHeight(s, cx, cy) * HS, cy + jz);
 }
 
+export type TerrainLens = 'fertility' | 'moisture' | 'paths';
+const BIOME_IDX: Record<string, number> & Record<'meadow', number> = { meadow: 0, forest: 1, sand: 2, rock: 3, water: 4, marsh: 5, snow: 6 };
+const L_LOW = new THREE.Color('#9a4a2a'), L_MID = new THREE.Color('#e8cf62'), L_HIGH = new THREE.Color('#2f9e3a');
+const M_LOW = new THREE.Color('#d8c48e'), M_HIGH = new THREE.Color('#2f78c4');
+const P_HOT = new THREE.Color('#f08a24');
+
+function lensColor(c: THREE.Color, t: { fertility: number; moisture: number; wear: number }, l: TerrainLens): void {
+  if (l === 'fertility') {
+    const k = Math.max(0, Math.min(1, (t.fertility - 0.2) / 0.9));
+    if (k < 0.5) c.copy(L_LOW).lerp(L_MID, k * 2);
+    else c.copy(L_MID).lerp(L_HIGH, (k - 0.5) * 2);
+  }
+  else if (l === 'moisture') c.copy(M_LOW).lerp(M_HIGH, Math.min(1, t.moisture));
+  else c.multiplyScalar(0.55).lerp(P_HOT, Math.min(1, t.wear * 1.6));
+}
+
 /** Terrain split into 16×16-tile chunks so terraforming can rebuild locally (§17.5.3). */
 export class TerrainMesh {
   readonly group = new THREE.Group();
   readonly chunks = new Map<string, THREE.Mesh>();
   private mat = new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true });
+  /** Terrain lens (§18.10, P2.7): recolors tiles by fertility, moisture or path wear. */
+  lens: TerrainLens | null = null;
+  private snap: { h: Float32Array; b: Uint8Array; w: Uint8Array; f: Uint8Array };
 
   constructor(private s: WorldState) {
+    const n = s.tiles.length;
+    this.snap = { h: new Float32Array(n), b: new Uint8Array(n), w: new Uint8Array(n), f: new Uint8Array(n) };
+    this.takeSnapshot();
+    this.rebuildAll();
+  }
+
+  rebuildAll(): void {
     const C = CFG.world.chunk;
-    for (let cy = 0; cy < s.size.h; cy += C) for (let cx = 0; cx < s.size.w; cx += C) this.buildChunk(cx, cy);
+    for (let cy = 0; cy < this.s.size.h; cy += C) for (let cx = 0; cx < this.s.size.w; cx += C) this.buildChunk(cx, cy);
+  }
+
+  setLens(l: TerrainLens | null): void {
+    if (l === this.lens) return;
+    this.lens = l;
+    this.rebuildAll();
+  }
+
+  private takeSnapshot(): void {
+    const { h, b, w, f } = this.snap;
+    this.s.tiles.forEach((t, i) => {
+      h[i] = t.height;
+      b[i] = (BIOME_IDX[t.biome] ?? 0);
+      w[i] = Math.min(9, Math.floor(t.wear * 10));
+      f[i] = Math.min(15, Math.floor(t.fertility * 10));
+    });
+  }
+
+  /**
+   * Rebuild only chunks whose tiles changed since the last call (terraform, wear, fertility).
+   * A tile's height moves its four corners, so neighbouring chunks are included at borders.
+   */
+  refresh(): number {
+    const s = this.s;
+    const C = CFG.world.chunk;
+    const { h, b, w, f } = this.snap;
+    const dirty = new Set<string>();
+    const W = s.size.w;
+    s.tiles.forEach((t, i) => {
+      const wb = Math.min(9, Math.floor(t.wear * 10));
+      const fb = Math.min(15, Math.floor(t.fertility * 10));
+      if (h[i] === t.height && b[i] === (BIOME_IDX[t.biome] ?? 0) && w[i] === wb && (f[i] === fb || this.lens !== 'fertility')) return;
+      h[i] = t.height; b[i] = (BIOME_IDX[t.biome] ?? 0); w[i] = wb; f[i] = fb;
+      const x = i % W, y = Math.floor(i / W);
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+        const xx = x + dx, yy = y + dy;
+        if (xx < 0 || yy < 0 || xx >= W || yy >= s.size.h) continue;
+        dirty.add(`${Math.floor(xx / C) * C},${Math.floor(yy / C) * C}`);
+      }
+    });
+    for (const k of dirty) {
+      const [x0, y0] = k.split(',').map(Number) as [number, number];
+      this.buildChunk(x0, y0);
+    }
+    return dirty.size;
   }
 
   buildChunk(x0: number, y0: number): void {
@@ -53,6 +124,7 @@ export class TerrainMesh {
         if (t.biome === 'water') c.copy(BIOME_COLORS.sand).lerp(BIOME_COLORS.water, 0.5);
         if (slope > 0.9 && t.biome !== 'water') c.lerp(BIOME_COLORS.rock, Math.min(0.6, (slope - 0.9) * 0.8));
         if (t.wear > 0.2) c.lerp(DIRT, Math.min(0.8, t.wear));
+        if (this.lens && t.biome !== 'water') lensColor(c, t, this.lens);
         // gentle per-tile variation
         const v = jitter(x, y, 7) * 0.12;
         const tri = (p: THREE.Vector3[], k: number) => {

@@ -6,6 +6,7 @@ import { SkyLights } from './sky';
 import { Props } from './props';
 import { GoblinViews } from './goblinView';
 import { Emotes } from './emotes';
+import type { TerrainLens } from './terrainMesh';
 import type { SimEvent } from '../shared/types';
 import { Interp } from './interpolation';
 import { OrbitCam } from './camera';
@@ -24,6 +25,8 @@ export class Renderer {
   readonly rings = new Rings();
   readonly emotes = new Emotes();
   private moodCheck = 0;
+  private terrainSeen = -1;
+  private terrainTimer = 0;
   terrain!: TerrainMesh;
   props!: Props;
   goblins!: GoblinViews;
@@ -131,11 +134,23 @@ export class Renderer {
     fog.near = this.settings.fog ? 50 + this.camera.dist * 0.6 : 900;
     fog.far = this.settings.fog ? 180 + this.camera.dist * 1.5 : 1000;
     this.water.update(this.time);
+    this.terrainTimer -= dt;
+    if (w.s.terrainVersion !== this.terrainSeen || this.terrainTimer <= 0) {
+      const shaped = w.s.terrainVersion !== this.terrainSeen;
+      this.terrainSeen = w.s.terrainVersion;
+      this.terrainTimer = 2;
+      if (this.terrain.refresh() > 0 && shaped) this.props.buildStatic();
+      else if (shaped) this.props.buildStatic();
+    }
     this.props.update(this.interp, alpha);
     this.goblins.update(this.interp, alpha, this.time, this.sky.night, dt);
     this.ambientEmotes(dt);
     this.emotes.update(dt, (id) => this.goblins.headPos(id), this.camera.dist);
     this.gl.render(this.scene, this.camera.cam);
+  }
+
+  setTerrainLens(l: TerrainLens | null): void {
+    this.terrain.setLens(l);
   }
 
   /** Event-driven emotes (§P2.6); the renderer only reads events, it never changes the sim. */

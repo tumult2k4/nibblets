@@ -25,3 +25,8 @@ Small choices the design doc left open, one line of rationale each.
 - **Memory merges untargeted entries within 3 tiles** (water spots) so a lakeshore doesn't fill all 60 slots; a goblin's first look covers 24 tiles (it knows its home area).
 - **Drinking falls back to instinct** (nearest shore) only when no water is remembered, so founders on a strange island don't die of thirst.
 - **Seen-gone plants are forgotten quietly** unless they are the current harvest target, which shows the `?` confusion on arrival.
+- **Terraform power commands are one stroke tick each** (`god_power`, sent every 100 ms while painting); witnesses react at most every 30 ticks so painting doesn't freeze the village in awe.
+- **Path wear starts now (P2.7)** instead of P7: walking adds wear, it fades 0.05/day, and crossing the 0.5 road threshold bumps `terrainVersion` so cached paths stay exact.
+- **Renderer finds changed terrain by diffing a snapshot** of heights/biomes/wear rather than reading a dirty list from the sim (keeps the renderer read-only).
+- **Uprooted plants stay in `plants` while held** (growth paused); replanting at ≤ 3 height on a valid site keeps them (hydration × 0.6 shock), otherwise they die.
+- **Saplings in the Gift Tray are a `god_spawn_plant` command**, not an item type.

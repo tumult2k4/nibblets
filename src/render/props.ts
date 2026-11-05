@@ -44,8 +44,8 @@ function plantScale(p: Plant): number {
   return base;
 }
 const STAGE_IDX: Record<Plant['stage'], number> = { seed: 0, sprout: 1, sapling: 2, young: 3, mature: 4, old: 5, dead: 6, stump: 7 };
-function plantsSig(ps: readonly Plant[]): string {
-  let h = 2166136261;
+function plantsSig(ps: readonly Plant[], held: { kind: string; id: number } | null): string {
+  let h = held?.kind === 'plant' ? held.id : 2166136261;
   for (const p of ps) h = Math.imul(h ^ (p.id * 8 + STAGE_IDX[p.stage]), 16777619);
   return `${ps.length}:${h >>> 0}`;
 }
@@ -75,6 +75,7 @@ export class Props {
   private plantMeshes: THREE.InstancedMesh[] = [];
   private items = new Map<number, THREE.Object3D>();
   private stock: THREE.Group | null = null;
+  private held: THREE.Mesh | null = null;
   private stockSig = '';
   private plantsSig = '';
   private sigTimer = 0;
@@ -101,7 +102,9 @@ export class Props {
     this.plantIndex.clear();
     const s = this.w.s;
     const groups = new Map<string, Plant[]>();
+    const heldId = s.god.held?.kind === 'plant' ? s.god.held.id : -1;
     for (const p of s.plants) {
+      if (p.id === heldId) continue;
       const k = `${p.kind}:${geoKey(p)}`;
       let arr = groups.get(k);
       if (!arr) groups.set(k, (arr = []));
@@ -152,7 +155,7 @@ export class Props {
     grass.count = gi;
     this.group.add(grass);
     this.plantMeshes.push(grass);
-    this.plantsSig = plantsSig(s.plants);
+    this.plantsSig = plantsSig(s.plants, s.god.held);
   }
 
   update(interp: Interp, alpha: number): void {
@@ -160,10 +163,11 @@ export class Props {
     this.sigTimer -= 1;
     if (this.sigTimer <= 0) {
       this.sigTimer = 15;
-      if (plantsSig(s.plants) !== this.plantsSig) this.buildStatic();
+      if (plantsSig(s.plants, s.god.held) !== this.plantsSig) this.buildStatic();
     }
     this.updateApples();
     this.updateItems(interp, alpha);
+    this.updateHeldPlant();
   }
 
   private updateApples(): void {
@@ -223,6 +227,28 @@ export class Props {
       this.items.delete(id);
     }
     this.updateStockpile();
+  }
+
+  /** An uprooted plant dangles under the god hand (roots and all). */
+  private updateHeldPlant(): void {
+    const h = this.w.s.god.held;
+    const p = h?.kind === 'plant' ? this.w.s.plants.find((x) => x.id === h.id) : undefined;
+    if (!p || !h) {
+      if (this.held) this.group.remove(this.held);
+      this.held = null;
+      return;
+    }
+    if (!this.held || this.held.userData.id !== p.id) {
+      if (this.held) this.group.remove(this.held);
+      this.held = new THREE.Mesh(geoFor(p.kind, geoKey(p)), flatMat);
+      this.held.userData = { id: p.id };
+      this.held.scale.setScalar(plantScale(p));
+      this.held.position.set(h.pos.x, this.ground(h.pos.x, h.pos.y) + h.height * 0.8, h.pos.y);
+      this.group.add(this.held);
+    }
+    const z = Math.max(this.ground(h.pos.x, h.pos.y), CFG.world.waterLevel * HS) + h.height * 0.8;
+    this.held.position.lerp(v.set(h.pos.x, z, h.pos.y), 0.3);
+    this.held.rotation.z = Math.sin(performance.now() / 300) * 0.15;
   }
 
   /** The village stockpile: a plank pallet with one small pile per stored item type. */

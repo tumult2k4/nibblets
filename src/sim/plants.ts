@@ -23,11 +23,11 @@ export const maxFruit = (p: Plant): number =>
     : p.kind === 'apple_bush' ? (p.stage === 'mature' ? P.maxApples : p.stage === 'old' ? P.oldMaxApples : 0) : 0;
 
 /** Can a new plant take root here? Fertile, dry land, not adjacent to another plant (§P2.2). */
-export function siteOk(w: World, pos: Vec2, minGap = 1.2): boolean {
+export function siteOk(w: World, pos: Vec2, minGap = 1.2, ignoreId?: ID): boolean {
   const t = tileAt(w.s, pos.x, pos.y);
   if (!t || !t.walkable || t.biome === 'water' || t.biome === 'rock' || t.biome === 'sand' || t.occupiedBy !== null) return false;
   for (const p of w.plantHash.query(pos, minGap + 0.5))
-    if (Math.hypot(p.pos.x - pos.x, p.pos.y - pos.y) < minGap && p.kind !== 'flower') return false;
+    if (p.id !== ignoreId && Math.hypot(p.pos.x - pos.x, p.pos.y - pos.y) < minGap && p.kind !== 'flower') return false;
   return true;
 }
 
@@ -79,7 +79,7 @@ export function updatePlants(w: World): void {
   const dead: Plant[] = [];
   for (let i = 0; i < s.plants.length; i++) {
     const p = s.plants[i]!;
-    if (p.id % every !== slot) continue;
+    if (p.id % every !== slot || s.god.held?.id === p.id) continue;
     const t = tileAt(s, p.pos.x, p.pos.y);
     if (!t) continue;
     // hydration follows soil moisture; watering raises it above

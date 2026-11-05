@@ -1,9 +1,12 @@
+import type { TerraformPower } from '../sim/god/terraform';
 import type { ID } from '../shared/types';
 import type { Lang } from './i18n';
 
-export type ToolId = 'hand' | 'gifts';
-export type Lens = 'default' | 'needs' | 'faith' | 'mood' | 'genetics';
-export const LENSES: Lens[] = ['default', 'needs', 'faith', 'mood', 'genetics'];
+export type ToolId = 'hand' | 'gifts' | 'terraform';
+export type Lens = 'default' | 'needs' | 'faith' | 'mood' | 'genetics' | 'fertility' | 'moisture' | 'paths';
+export const LENSES: Lens[] = ['default', 'needs', 'faith', 'mood', 'genetics', 'fertility', 'moisture', 'paths'];
+/** Lenses that recolor the terrain instead of ringing goblins. */
+export const TERRAIN_LENSES: Lens[] = ['fertility', 'moisture', 'paths'];
 
 export interface Settings {
   shadows: 'off' | 'low' | 'high'; renderScale: number; outlines: boolean; fog: boolean;
@@ -24,7 +27,10 @@ export interface UIState {
   openPanels: { inspector: boolean; feed: boolean; debug: boolean; flyout: boolean; tray: boolean };
   overlay: null | 'pause' | 'saves' | 'settings' | 'help' | 'wizard';
   lens: Lens;
-  trayTab: 'food' | 'materials';
+  trayTab: 'food' | 'materials' | 'life';
+  power: TerraformPower;
+  brushRadius: number;
+  powerOption: string;
   inspectorTab: 'status' | 'mind' | 'body' | 'inventory';
   settings: Settings;
 }
@@ -67,7 +73,7 @@ export function initialState(): UIState {
   return {
     screen: 'title', selection: [], selectedKind: null, hoveredId: null, activeTool: 'hand',
     openPanels: { inspector: true, feed: true, debug: false, flyout: false, tray: false },
-    overlay: null, lens: 'default', trayTab: 'food', inspectorTab: 'status',
+    overlay: null, lens: 'default', trayTab: 'food', inspectorTab: 'status', power: 'raise_land', brushRadius: 3, powerOption: 'apple_bush',
     settings: loadPref('settings', DEFAULT_SETTINGS),
   };
 }
