@@ -5,10 +5,11 @@ import type { Building } from '../../../sim/state';
 import type { World } from '../../../sim/world';
 import { buildingDef, missingMaterials } from '../../../sim/buildings';
 import { bar } from './goblinInspector';
+import { CFG } from '../../../sim/config';
 
 const row = (label: string, ...rest: (HTMLElement | string)[]) => el('div.row', {}, el('span.lbl', { text: label }), ...rest);
 
-/** Building inspector (§18.6): progress, condition, owner, residents, storage. */
+/** Building inspector (§18.6): progress, condition, owner, residents, storage, fuel. */
 export function buildingHead(b: Building, onClose: () => void): HTMLElement {
   return el('div.insp-head', {}, icon('hill', 'portrait'),
     el('div', {}, el('h2', { text: t(`bld.${b.type}`) }),
@@ -27,6 +28,9 @@ export function buildingBody(b: Building, w: World): HTMLElement {
     row(t('insp.hpLbl'), bar((b.hp / b.maxHp) * 100), el('span.val', { text: `${Math.round(b.hp)}/${b.maxHp}` })),
     row(t('insp.owner'), el('span', { text: name(b.ownerId) })),
     def?.capacity ? row(t('insp.residents'), el('span', { text: `${b.occupants.map((id) => name(id)).join(', ') || t('insp.nobody')} (${b.occupants.length}/${def.capacity})` })) : null,
+    b.type === 'campfire' && b.buildProgress >= 1
+      ? row(t('insp.fuel'), bar(((b.fuel ?? 0) / CFG.fire.maxFuel) * 100, 'var(--gold)'), el('span.val', { text: (b.fuel ?? 0) > 0 ? t('insp.fuelHours', { n: Math.round((b.fuel ?? 0) / CFG.god.hourTicks) }) : t('insp.fireOut') }))
+      : null,
     b.buildProgress >= 1 && def?.storage ? row(t('insp.storage'), el('span', { text: `${stored} (${b.storage.reduce((n, s) => n + s.qty, 0)}/${def.storage})` })) : null,
   );
 }

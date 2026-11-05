@@ -5,6 +5,7 @@ import type { World } from '../world';
 import { CFG } from '../config';
 import { isNight } from '../time';
 import { weatherVisionMul } from '../weather';
+import { nightVisionMul } from '../fire';
 
 export const linear = (x: number): number => clamp(x, 0, 1);
 export const quadratic = (x: number): number => clamp(x, 0, 1) ** 2;
@@ -17,6 +18,6 @@ export const distanceFalloff = (d: number, max: number): number => 1 - 0.75 * cl
 
 /** Sight range: shorter at night, cut by fog (−50 %) and blizzards (−70 %). */
 export const visionRadius = (g: Goblin, w: World): number =>
-  (isNight(w.clock) ? CFG.goblin.visionNight : CFG.goblin.visionDay) * weatherVisionMul(w, g.pos);
+  (isNight(w.clock) ? CFG.goblin.visionNight * nightVisionMul(g, w) : CFG.goblin.visionDay) * weatherVisionMul(w, g.pos);
 
 export const isNightNow = (w: World): boolean => isNight(w.clock);

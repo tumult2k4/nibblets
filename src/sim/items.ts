@@ -38,6 +38,8 @@ export const ITEM_DEFS: Partial<Record<ItemType, ItemDef>> = {
   stone_spear: { stack: 1, weight: 2, value: 10, weapon: { dmg: CFG.combat.stone_spear, range: 1.5 }, uses: 35, breaksInto: { stick: 1 } },
   club: { stack: 1, weight: 3, value: 8, weapon: { dmg: CFG.combat.club, range: 1.1 }, uses: 40, breaksInto: { stone: 1 }, tray: 'tools' },
   stone_axe: { stack: 1, weight: 2, value: 10, tool: { chopMul: 2, fells: true }, uses: 15, breaksInto: { stick: 1 }, tray: 'tools' },
+  // a torch burns one use per in-game hour of night in the hand and leaves nothing behind
+  torch: { stack: 1, weight: 0.5, value: 3, uses: 8, burnable: true, tray: 'tools' },
   pick: { stack: 1, weight: 3, value: 10, tool: { mineMul: 2 }, uses: 25, breaksInto: { stick: 1, stone: 1 }, tray: 'tools' },
   // flowers: decor now; crowns and courtship gifts arrive with culture (P8)
   flower: { stack: 10, weight: 0.1, decayDays: 2, value: 1 },
@@ -53,7 +55,7 @@ export const TOOLS_TIER = 2;
 export const GIFT_TRAY: Record<TrayTab, TrayEntry[]> = {
   food: ['apple', 'berry', 'mushroom', 'fish', 'apple_mash', 'stew'],
   materials: ['wood', 'stick', 'stone', 'flint', 'fiber', 'clay'],
-  tools: ['spear', 'club', 'stone_axe', 'pick'],
+  tools: ['spear', 'club', 'stone_axe', 'pick', 'torch'],
   life: ['apple_core', 'sapling:apple_bush', 'sapling:berry_bush', 'sapling:tree', 'sapling:flower'],
 };
 export const saplingKind = (e: TrayEntry): PlantKind | null => (e.startsWith('sapling:') ? (e.slice(8) as PlantKind) : null);

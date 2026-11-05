@@ -105,6 +105,23 @@ export function findSite(w: World, type: BuildingType, near: Vec2): Vec2 | null 
   return best;
 }
 
+/** A communal site (§10.1 "near the center"): the closest clear spot to the village center, a little apart from the rest. */
+export function findCommunalSite(w: World, type: BuildingType): Vec2 | null {
+  const s = w.s, def = buildingDef(type), c = s.village.center, R = CFG.fire.communalRadius;
+  if (!def) return null;
+  let best: Vec2 | null = null, bestScore = -Infinity;
+  for (let y = Math.ceil(c.y - R); y <= c.y + R; y++)
+    for (let x = Math.ceil(c.x - R); x <= c.x + R; x++) {
+      const pos = { x, y };
+      if (dist(pos, c) > R || !siteTilesOk(s, pos, def.footprint) || !siteClear(w, pos, def.footprint)) continue;
+      if (dist(pos, s.village.stockpilePos) < 2.5) continue;
+      if (s.buildings.some((b) => dist(b.pos, pos) < CFG.fire.communalSpacing + b.footprint.w / 2)) continue;
+      const score = -dist(pos, c) + (fnv1a(`${x},${y}`, s.seed) % 1000) / 1e5;
+      if (score > bestScore) { bestScore = score; best = pos; }
+    }
+  return best;
+}
+
 function markFootprint(w: World, b: Building, id: ID | null): void {
   for (const p of footprintTiles(b.pos, b.footprint.w)) {
     const t = tileAt(w.s, p.x, p.y);
@@ -152,6 +169,7 @@ export function addLabor(w: World, g: Goblin, b: Building): boolean {
 export function completeBuilding(w: World, b: Building, finisher: ID | null): void {
   b.buildProgress = 1;
   b.storage = []; // construction materials are used up; the storage now belongs to the building
+  if (b.type === 'campfire') b.fuel = CFG.fire.startFuel; // lit with its kindling
   for (const k of Object.keys(b.data ?? {})) {
     if (!k.startsWith('w')) continue;
     const g = w.goblin(Number(k.slice(1)));

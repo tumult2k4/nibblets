@@ -16,6 +16,7 @@ import { bedSpot, homeOf } from './home';
 import type { ActionId, Building, Goblin } from '../../state';
 import type { World } from '../../world';
 import type { UtilityAction } from '../action';
+import { litFireNear } from '../../fire';
 
 const SH = CFG.shelter;
 const STILL: ReadonlySet<ActionId> = new Set(['idle', 'sleep_ground', 'warm_up', 'seek_shelter', 'eat', 'eat_core']);
@@ -97,6 +98,13 @@ function warmSpot(g: Goblin, w: World): { pos: Vec2; partner: ID | null } | null
   const r = roof(g, w);
   if (r) { best = { pos: r.pos, partner: null }; bc = r.d; }
   const vr = visionRadius(g, w);
+  // a lit campfire (P4.3) is the cosiest spot: sit a step from the flames
+  const fire = litFireNear(w, g.pos, vr * 2);
+  if (fire) {
+    const d = Math.max(0.01, dist(g.pos, fire.pos));
+    const c = d + 1;
+    if (c < bc) { bc = c; best = { pos: { x: q4(fire.pos.x + ((g.pos.x - fire.pos.x) / d) * 1.3), y: q4(fire.pos.y + ((g.pos.y - fire.pos.y) / d) * 1.3) }, partner: null }; }
+  }
   for (const o of w.goblinHash.query(g.pos, vr)) {
     if (o.id === g.id || o.airborne || o.heldByGod || !STILL.has(o.activity.action) || Math.hypot(o.velocity.x, o.velocity.y) > 0.01) continue;
     const friend = (g.relationships.find((x) => x.targetId === o.id)?.opinion ?? 0) > 30;

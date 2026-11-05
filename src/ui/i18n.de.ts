@@ -19,6 +19,8 @@ export const DE: Record<keyof typeof EN, string> = {
   'recipe.hut': 'Hütte', 'recipe.campfire': 'Lagerfeuer', 'recipe.spear': 'Speer', 'recipe.stone_spear': 'Steinspeer', 'recipe.club': 'Keule', 'recipe.stone_axe': 'Steinaxt', 'recipe.pick': 'Spitzhacke', 'recipe.fence': 'Zaun', 'recipe.stone_hut': 'Steinhütte', 'recipe.torch': 'Fackel',
   'act.craft': 'Bastelt', 'act.equip': 'Nimmt Werkzeug zur Hand', 'item.rope': 'Seil', 'ev.crafted': '{name} hat {item} gemacht.', 'ev.craftedFine': '{name} hat ein feines Stück gemacht: {item}!',
   'insp.hand': 'In der Hand', 'insp.emptyHand': 'Nichts in der Hand.', 'insp.pack': 'Gepäck', 'insp.recipes': 'Kann herstellen', 'insp.craftSkill': 'Handwerk {n}', 'insp.fine': 'Fein',
+  'bld.campfire': 'Lagerfeuer', 'act.plan_building': 'Steckt einen Platz ab', 'act.tend_fire': 'Hütet das Feuer', 'item.torch': 'Fackel', 'ev.campfire_planned': 'Das Dorf hat einen Platz für ein Lagerfeuer abgesteckt.',
+  'ev.campfire_lit': 'Das Lagerfeuer brennt!', 'ev.campfire_out': 'Das Lagerfeuer ist ausgegangen.', 'insp.fuel': 'Brennstoff', 'insp.fuelHours': 'noch {n} h', 'insp.fireOut': 'aus',
   'ev.hut_lost': 'Der Sturm hat eine Hütte zerstört!', 'insp.repair': 'reparaturbedürftig', 'insp.huddle': 'kuschelt',
   'insp.building': 'Gebäude', 'insp.progress': 'Fortschritt', 'insp.hpLbl': 'Zustand', 'insp.owner': 'Besitzer', 'insp.residents': 'Bewohner',
   'insp.storage': 'Vorrat', 'insp.needsMat': 'Wartet auf', 'insp.nobody': 'niemand', 'insp.storeEmpty': 'leer', 'insp.blueprint': 'geplant', 'insp.done': 'fertig',

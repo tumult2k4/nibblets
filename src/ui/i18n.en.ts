@@ -17,6 +17,8 @@ export const EN = {
   'recipe.hut': 'Hut', 'recipe.campfire': 'Campfire', 'recipe.spear': 'Spear', 'recipe.stone_spear': 'Stone spear', 'recipe.club': 'Club', 'recipe.stone_axe': 'Stone axe', 'recipe.pick': 'Pick', 'recipe.fence': 'Fence', 'recipe.stone_hut': 'Stone hut', 'recipe.torch': 'Torch',
   'act.craft': 'Crafting', 'act.equip': 'Taking up a tool', 'item.rope': 'Rope', 'ev.crafted': '{name} made a {item}.', 'ev.craftedFine': '{name} made a fine {item}!',
   'insp.hand': 'In hand', 'insp.emptyHand': 'Nothing in hand.', 'insp.pack': 'Pack', 'insp.recipes': 'Knows how to make', 'insp.craftSkill': 'crafting {n}', 'insp.fine': 'Fine',
+  'bld.campfire': 'Campfire', 'act.plan_building': 'Marking out a site', 'act.tend_fire': 'Tending the fire', 'item.torch': 'Torch', 'ev.campfire_planned': 'The village marked out a spot for a campfire.',
+  'ev.campfire_lit': 'The campfire is lit!', 'ev.campfire_out': 'The campfire went out.', 'insp.fuel': 'Fuel', 'insp.fuelHours': '{n} h left', 'insp.fireOut': 'out',
   'ev.hut_lost': 'The storm brought down a hut!', 'insp.repair': 'needs repair', 'insp.huddle': 'huddling',
   'insp.building': 'Building', 'insp.progress': 'Progress', 'insp.hpLbl': 'Condition', 'insp.owner': 'Owner', 'insp.residents': 'Residents',
   'insp.storage': 'Storage', 'insp.needsMat': 'Waiting for', 'insp.nobody': 'nobody', 'insp.storeEmpty': 'empty', 'insp.blueprint': 'planned', 'insp.done': 'finished',

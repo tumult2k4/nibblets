@@ -34,6 +34,8 @@ export function personalityWeight(p: Personality, action: string): number {
     case 'chop':
     case 'mine':
     case 'craft':
+    case 'plan_building':
+    case 'tend_fire':
     case 'store_item':
     case 'deliver_material':
     case 'build':

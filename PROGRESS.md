@@ -1,5 +1,5 @@
 # Nibblets progress
-Current: P4.3 — campfire (fuel, TendFire, warmth radius, light), torch
+Current: P4.4 — enemies: Gnasher + spawn director (threat budget, moon), enemy AI (sneak, steal, attack, flee), meshes
 ## Done
 - [x] P1.1 scaffold: Vite + strict TS, ESLint flat config with sim architecture rules, Prettier, Vitest, scripts
 - [x] P1.2 shared/: math, ids, mulberry32 Rng with fork(label), typed EventBus
@@ -38,8 +38,9 @@ Current: P4.3 — campfire (fuel, TendFire, warmth radius, light), torch
 - [x] Local rain cell test green; Warm Sun dries wet goblins (powers.test)
 - [x] P4.1 Mine (finite stone shrinking rocks, flint chance, pick ×2), sticks shed by trees, tools & weapons with durability (stone axe fells trees), Tools tray tab, planner obtains stone
 - [x] P4.2 recipe table (P4 rows), starter recipes, Craft (pack + spare stock, exact consumption, skill, fine quality), Equip + rendered hand slot, save v4
+- [x] P4.3 campfire (PlanBuilding near the center, fuel from sticks/wood, TendFire evenings/cold, +14 °C warmth r5, night light r6), torch (night hand item, vision ×1.4, burns hourly), fire FX
 ## Next
-- [ ] P4.3 Campfire (fuel, TendFire, warmth radius, light), torch
+- [ ] P4.4 Gnasher + spawn director (threat budget, moon), enemy AI (sneak, steal, attack, flee), meshes
 ## Notes / known issues
 - Balance (32 days × 5 seeds, after P3.8): unchanged from P3.4 — 0 deaths, 5–6 huts, 100 % housed by the end of autumn, ~0.13–0.15 ms/tick.
 - Balance (32 days × 5 seeds, after P3.4): 0 deaths, 5 huts and 100 % housed by the end of autumn on every seed, 29–55 goblin-planted mature bushes, ~0.14 ms/tick.

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { flatMat, merge, paint, wobble } from './lowpoly';
 import { PROP_COLORS as P } from './palette';
+import { flame } from './fireView';
 import type { ItemType } from '../shared/types';
 
 const FLINT = '#4c4f5c';
@@ -29,6 +30,8 @@ export function toolGeo(t: ItemType): THREE.BufferGeometry | null {
     case 'pick':
       return merge([shaft(0.45, 0.02), paint(wobble(new THREE.CylinderGeometry(0.025, 0.012, 0.3, 4).rotateX(Math.PI / 2).translate(0.2, 0.03, 0), 0.01, 7), P.stone, 0.05),
         paint(new THREE.TorusGeometry(0.025, 0.008, 3, 6).rotateY(Math.PI / 2).translate(0.17, 0.02, 0), '#c9b26a')]);
+    case 'torch':
+      return merge([shaft(0.4, 0.02, '#7a5636'), paint(new THREE.CylinderGeometry(0.045, 0.035, 0.1, 5).rotateZ(Math.PI / 2).translate(0.2, 0.03, 0), '#c9b26a')]);
     default:
       return null;
   }
@@ -54,6 +57,11 @@ export function heldMesh(t: ItemType, fine: boolean): THREE.Object3D {
   const m = new THREE.Mesh(geo, flatMat);
   m.castShadow = true;
   g.add(m);
+  if (t === 'torch') {
+    const f = flame(0.32);
+    f.position.set(0, 0.06, 0.32);
+    g.add(f);
+  }
   if (fine) {
     const band = new THREE.Mesh(new THREE.TorusGeometry(0.03, 0.012, 4, 8), GOLD);
     band.position.set(0, 0, 0.05);

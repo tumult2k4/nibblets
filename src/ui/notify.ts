@@ -46,9 +46,13 @@ export function noteFor(e: SimEvent, w: World, names: Map<ID, string>): Note | n
       return { ...base, id: e.goblinId, text: t(e.fine ? 'ev.craftedFine' : 'ev.crafted', { name: name(e.goblinId), item: t(`item.${e.item}`) }), tier: e.fine ? 'notable' : 'info', icon: ITEM_ICON[e.item] ?? 'gift' };
     case 'tool_broken':
       return { ...base, id: e.goblinId, text: t('ev.tool_broken', { name: name(e.goblinId), item: t(`item.${e.item}`) }), tier: 'info', icon: ITEM_ICON[e.item] ?? 'gift' };
+    case 'campfire_out':
+      return { ...base, text: t('ev.campfire_out'), tier: 'info', icon: 'heat' };
     case 'building_placed':
+      if (e.kind === 'campfire') return { ...base, text: t('ev.campfire_planned'), tier: 'info', icon: 'heat' };
       return e.goblinId !== undefined && e.kind === 'hut' ? { ...base, id: e.goblinId, text: t('ev.hut_planned', { name: name(e.goblinId) }), tier: 'info', icon: 'hill' } : null;
     case 'building_completed':
+      if (e.kind === 'campfire') return { ...base, text: t('ev.campfire_lit'), tier: 'notable', icon: 'heat' };
       return e.kind === 'hut' ? { ...base, text: t('ev.hut_built'), tier: 'notable', icon: 'hill' } : null;
     case 'building_destroyed':
       return { ...base, text: t('ev.hut_lost'), tier: 'critical', icon: 'storm' };

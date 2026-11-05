@@ -6,6 +6,7 @@ import { SkyLights } from './sky';
 import { Props } from './props';
 import { MushroomViews } from './mushroomView';
 import { WeatherFx } from './weatherFx';
+import { FireFx } from './fireView';
 import { GoblinViews } from './goblinView';
 import { Emotes } from './emotes';
 import type { TerrainLens } from './terrainMesh';
@@ -37,6 +38,7 @@ export class Renderer {
   goblins!: GoblinViews;
   buildings!: BuildingViews;
   mushrooms!: MushroomViews;
+  fires!: FireFx;
   readonly weatherFx = new WeatherFx();
   interp!: Interp;
   sky: SkyLights;
@@ -74,9 +76,10 @@ export class Renderer {
     this.goblins = new GoblinViews(w);
     this.buildings = new BuildingViews(w);
     this.mushrooms = new MushroomViews(w);
+    this.fires = new FireFx(w);
     this.goblins.outlines = this.settings.outlines;
     this.interp = new Interp(w);
-    this.worldGroup.add(this.terrain.group, this.water.mesh, this.props.group, this.buildings.group, this.mushrooms.group, this.goblins.group, this.weatherFx.group);
+    this.worldGroup.add(this.terrain.group, this.water.mesh, this.props.group, this.buildings.group, this.mushrooms.group, this.goblins.group, this.weatherFx.group, this.fires.group);
     const c = w.s.village.center;
     this.camera.setTarget(c.x, c.y, true);
   }
@@ -171,6 +174,7 @@ export class Renderer {
     this.buildings.update();
     this.buildings.lights(this.sky.night);
     this.mushrooms.update(this.sky.night);
+    this.fires.update(this.time, this.sky.night, this.camera.target);
     this.goblins.update(this.interp, alpha, this.time, this.sky.night, dt);
     this.ambientEmotes(dt);
     this.emotes.update(dt, (id) => this.goblins.headPos(id), this.camera.dist);

@@ -73,6 +73,7 @@ export const CFG = {
   buildings: {
     defs: {
       hut: { cost: { wood: 6 } as Record<string, number>, footprint: 2, hp: 100, capacity: 2, storage: 6 },
+      campfire: { cost: { wood: 2, stone: 1 } as Record<string, number>, footprint: 1, hp: 40, capacity: 0, storage: 0 },
     } as Record<string, { cost: Record<string, number>; footprint: number; hp: number; capacity: number; storage: number }>,
     buildRate: 0.002, skillBonus: 0.15, friendBonus: 1.3, skillPerTick: 0.001, workChunk: 300,
     siteRadius: 14, maxSlope: 0.06, waterPref: [4, 10] as [number, number], hutSpacing: [3.6, 7] as [number, number],
@@ -122,6 +123,15 @@ export const CFG = {
   mining: {
     ticksPerStone: 60, stonesPerTrip: 3, stoneTarget: 12, flintTarget: 4, searchRadius: 30, minStone: 1,
     stickTarget: 8, stickFallTries: 4, stickFallChance: 0.12, stickStormMul: 3, looseStickCap: 30,
+  },
+  /** P4.3 campfires & torches (§11.1, §10.3): contained fires, fuel in ticks (1 wood = half a day) */
+  fire: {
+    every: 10, ticksPerWood: 1800, maxFuel: 7200, startFuel: 1800, tendBelow: 2700,
+    /** fuel ticks per item: sticks (shed by trees) burn a quarter as long as wood and are fed first */
+    fuelTicks: { wood: 1800, stick: 450 } as Record<string, number>, tendLoad: { wood: 2, stick: 6 } as Record<string, number>,
+    weatherBurn: { rain: 3, storm: 5, snow: 2, blizzard: 5 } as Record<string, number>,
+    warmRadius: 5, heat: 14, lightRadius: 6, repelRadius: 6, communalRadius: 6, communalSpacing: 2.6,
+    torchLight: 4, torchVision: 1.4, torchScare: 3, tendTicks: 20,
   },
   /** P4.2 crafting (§11.1): skill is a level that grows per craft; level 4+ may make fine items */
   crafting: {

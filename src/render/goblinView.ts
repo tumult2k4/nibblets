@@ -6,6 +6,7 @@ import { phenotypeOf, type Phenotype } from '../sim/goblin/genetics/phenotype';
 import { buildGoblin, disposeRig, phenoBucket, type GoblinRig } from './goblinMesh';
 import { itemGeo } from './meshFactory';
 import { heldMesh } from './toolMeshes';
+import { flicker } from './fireView';
 import { isTool, toolFor } from '../sim/tools';
 import { flatMat } from './lowpoly';
 import type { Interp } from './interpolation';
@@ -176,6 +177,8 @@ export class GoblinViews {
       }
     }
     this.updateHeld(g, v);
+    const fl = v.held?.getObjectByName('flame');
+    if (fl) flicker(fl, t, g.id, 0.32);
     // Zzz sprite
     if (sleeping && !v.zzz) {
       v.zzz = new THREE.Sprite(this.zzzMat);

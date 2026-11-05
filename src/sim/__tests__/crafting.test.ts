@@ -125,6 +125,9 @@ describe('crafting, quality and equip (P4.2)', () => {
     const hut = placeBlueprint(w, 'hut', { x: 16, y: 16 }, g.id);
     completeBuilding(w, hut, g.id);
     claim(w, g, hut);
+    const fire = placeBlueprint(w, 'campfire', { x: 9, y: 9 }, null); // the village already has a full fire
+    completeBuilding(w, fire, null);
+    fire.fuel = CFG.fire.maxFuel;
     addItem(g, { type: 'wood', qty: 2 });
     for (let t = 0; t < 1500 && g.equipped.hand?.type !== 'spear'; t++) {
       w.step();

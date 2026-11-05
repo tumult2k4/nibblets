@@ -84,6 +84,8 @@ export type SimEvent = BaseEvent &
     | { type: 'plant_chopped'; goblinId: ID; plantId: ID; wood: number }
     | { type: 'rock_mined'; goblinId: ID; rockId: ID; flint: boolean; left: number }
     | { type: 'tool_broken'; goblinId: ID; item: ItemType; at: Vec2 }
+    | { type: 'campfire_out'; buildingId: ID }
+    | { type: 'fire_tended'; goblinId: ID; buildingId: ID; wood: number }
     | { type: 'item_crafted'; goblinId: ID; recipe: RecipeId; item: ItemType; fine: boolean; at: Vec2 }
     | { type: 'building_placed' | 'building_completed' | 'building_destroyed'; buildingId: ID; kind: BuildingType; goblinId?: ID; cause?: string }
     | { type: 'weather_changed'; from: WeatherKind; to: WeatherKind }

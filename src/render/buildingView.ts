@@ -5,6 +5,7 @@ import { CFG } from '../sim/config';
 import { heightAt } from '../sim/grid';
 import { flatMat, flatMatDouble, merge, paint, wobble } from './lowpoly';
 import { pile } from './piles';
+import { campfireGeo } from './fireView';
 
 const HS = CFG.world.heightScale;
 const WOOD = '#9a6b3f', THATCH = '#d4a94e', DARK = '#4a3420';
@@ -41,7 +42,13 @@ function scaffoldGroup(progress: number): THREE.Group {
 }
 
 const GHOST_MAT = new THREE.MeshLambertMaterial({ color: '#9ec5e8', transparent: true, opacity: 0.32, depthWrite: false, flatShading: true });
-let HUT: THREE.BufferGeometry | null = null;
+const GEOS = new Map<string, THREE.BufferGeometry>();
+/** Finished-building geometry by type (huts P3.3, campfire P4.3). */
+function geoOf(type: Building['type']): THREE.BufferGeometry {
+  let g = GEOS.get(type);
+  if (!g) GEOS.set(type, (g = type === 'campfire' ? campfireGeo() : hutGeo()));
+  return g;
+}
 /** Lit window + doorway, and a pool of warm light spilling out past the roof's overhang. */
 const WINDOW = merge([new THREE.BoxGeometry(0.05, 0.2, 0.22).translate(1.0, 0.6, 0), new THREE.BoxGeometry(0.34, 0.54, 0.04).translate(0, 0.29, 1.04)]);
 const WINDOW_MAT = new THREE.MeshBasicMaterial({ color: '#ffc561', fog: false });
@@ -98,29 +105,35 @@ export class BuildingViews {
     g.position.set(b.pos.x, heightAt(this.w.s, b.pos) * HS, b.pos.y);
     g.rotation.y = (b.rotation * Math.PI) / 2 + ((b.id * 0.37) % 0.6) - 0.3;
     g.userData = { buildingId: b.id };
-    HUT ??= hutGeo();
+    const geo = geoOf(b.type);
+    const hut = b.type === 'hut';
     if (b.buildProgress >= 1) {
-      const m = new THREE.Mesh(HUT, flatMat);
+      const m = new THREE.Mesh(geo, flatMat);
       m.castShadow = m.receiveShadow = true;
       g.add(m);
+      if (!hut) return tag(g, b);
       const win = new THREE.Mesh(WINDOW, WINDOW_MAT);
       win.add(new THREE.Mesh(POOL, POOL_MAT));
       win.name = 'window';
       win.visible = false;
       g.add(win);
     } else {
-      const ghost = new THREE.Mesh(HUT, GHOST_MAT);
+      const ghost = new THREE.Mesh(geo, GHOST_MAT);
       ghost.renderOrder = 2;
       g.add(ghost);
-      if (b.buildProgress > 0) g.add(scaffoldGroup(b.buildProgress));
+      if (b.buildProgress > 0 && hut) g.add(scaffoldGroup(b.buildProgress));
       // delivered materials wait beside the site
       b.storage.forEach((st, i) => {
         const p = pile(st.type, st.qty, b.id * 7 + i);
-        p.position.set(1.5, 0, -0.6 + i * 0.7);
+        p.position.set(hut ? 1.5 : 0.9, 0, -0.6 + i * 0.7);
         g.add(p);
       });
     }
-    g.traverse((o) => (o.userData = { ...o.userData, buildingId: b.id }));
-    return g;
+    return tag(g, b);
   }
+}
+
+function tag(g: THREE.Group, b: Building): THREE.Group {
+  g.traverse((o) => (o.userData = { ...o.userData, buildingId: b.id }));
+  return g;
 }

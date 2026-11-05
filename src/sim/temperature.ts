@@ -4,6 +4,7 @@ import type { Vec2, WeatherKind } from '../shared/types';
 import type { Building, Goblin } from './state';
 import type { World } from './world';
 import { SEASONS, daylight, type ClockState } from './time';
+import { fireWarmth } from './fire';
 import { express } from './goblin/genetics/phenotype';
 import { addMood } from './goblin/mood';
 import { RAINY, weatherAt } from './weather';
@@ -61,10 +62,10 @@ export function inShade(w: World, g: Goblin): boolean {
   return false;
 }
 
-/** Felt temperature: air + shelter + huddle (+ fire P4, clothing P5) − wet penalty. */
+/** Felt temperature: air + shelter + huddle + campfire (+ clothing P5) − wet penalty. */
 export function feltTemperature(w: World, g: Goblin): number {
   const home = shelterOf(w, g);
-  return airAt(w, g.pos) + (home ? T.shelter[home.type]! : 0) + huddleBonus(w, g) - (isWet(w, g) ? T.wetPenalty : 0);
+  return airAt(w, g.pos) + (home ? T.shelter[home.type]! : 0) + huddleBonus(w, g) + fireWarmth(w, g.pos) - (isWet(w, g) ? T.wetPenalty : 0);
 }
 
 /** Lowest comfortable felt temperature for this goblin (cold-tolerant goblins shrug off more). */
