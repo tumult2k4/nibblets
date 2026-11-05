@@ -10,6 +10,7 @@ import { Eat, EatCore } from './actions/eat';
 import { PlantSeed } from './actions/plantSeed';
 import { WaterPlant } from './actions/waterPlant';
 import { Chop } from './actions/chop';
+import { Explore } from './actions/explore';
 import { StoreItem, TakeItem } from './actions/stockpile';
 import { HarvestFruit } from './actions/harvestFruit';
 import { PickUp } from './actions/pickUp';
@@ -19,14 +20,11 @@ import { SleepGround } from './actions/sleepGround';
 import { LookUp, Struggle } from './actions/divine';
 import type { Vec2 } from '../../shared/types';
 
-/** Placeholder for actions whose step is not built yet: never available. */
-const later = (id: ActionId): UtilityAction => ({ ...Idle, id, isAvailable: () => false });
-
 export const ACTIONS: Record<ActionId, UtilityAction> = {
   idle: Idle, wander: Wander, eat: Eat, harvest_fruit: HarvestFruit, pick_up: PickUp, drop: Drop,
   drink: Drink, sleep_ground: SleepGround, look_up: LookUp, struggle: Struggle,
   eat_core: EatCore, plant_seed: PlantSeed, water_plant: WaterPlant,
-  chop: Chop, store_item: StoreItem, take_item: TakeItem, explore: later('explore'),
+  chop: Chop, store_item: StoreItem, take_item: TakeItem, explore: Explore,
 };
 const CHOOSABLE = (Object.values(ACTIONS) as UtilityAction[]).filter((a) => !a.forced);
 

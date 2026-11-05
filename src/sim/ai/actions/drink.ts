@@ -3,7 +3,7 @@ import { dist, q4 } from '../../../shared/math';
 import { needUrgency } from '../../goblin/needs';
 import { moveAlong, planPath, faceToward } from '../../steering';
 import { distanceFalloff } from '../considerations';
-import { nearestShores } from '../targets';
+import { waterTargets } from '../targets';
 import type { UtilityAction } from '../action';
 
 /** Walk to the nearest shore and drink. */
@@ -11,12 +11,12 @@ export const Drink: UtilityAction = {
   id: 'drink', tags: ['food'], minStage: 'hatchling', interruptible: true,
   isAvailable: (g) => g.needs.thirst < 90,
   score(g, w) {
-    const s = nearestShores(g, w, 1)[0];
+    const s = waterTargets(g, 1, w)[0];
     if (!s) return 0;
     return (0.05 + 1.15 * needUrgency(g.needs.thirst)) * distanceFalloff(dist(g.pos, s), 50);
   },
   start(g, w) {
-    for (const s of nearestShores(g, w, 4)) {
+    for (const s of waterTargets(g, 4, w)) {
       if (planPath(w, g, s)) {
         g.activity.target = s;
         g.activity.stage = 0;

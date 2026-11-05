@@ -10,6 +10,7 @@ import { updatePlants, updateTiles } from './plants';
 import { updateGroundItems } from './groundItems';
 import { updateBodies } from './goblin/needs';
 import { updateMood } from './goblin/mood';
+import { updateSenses } from './goblin/memory';
 import { think, act } from './ai/utility';
 import { updateGod } from './god/godState';
 import { sampleStats } from './stats';
@@ -97,6 +98,7 @@ export class World {
     this.itemHash.rebuild(s.groundItems);
     updateBodies(this); //    10
     updateMood(this); //      11
+    updateSenses(this); //    11b senses + memory decay (§7.8)
     think(this); //           12
     act(this); //             13
     //                        14 enemies.act, 15 combat, 16 social, 17 culture, 18 village, 19 clans

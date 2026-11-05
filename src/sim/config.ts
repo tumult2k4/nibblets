@@ -41,6 +41,11 @@ export const CFG = {
     woodTarget: 30, stockFoodKeep: 2,
     keepCoreBase: 0.04, keepCorePerIndustry: 0.16, plantTicks: 40, waterTicks: 20, wetHandsTicks: 600, waterBelow: 0.5, waterRadius: 25, minSeedGap: 1.6,
   },
+  memory: {
+    capacity: 60, forgetBelow: 0.1, senseEvery: 20, initialRadius: 24, mergeDist: 3,
+    decayPerDay: { fruit_plant: 0.25, enemy_sighting: 0.5, building: 0.02, stockpile: 0.02, water: 0.02, rock: 0.02, default: 0.1 } as Record<string, number>,
+    exploreMin: 12, exploreMax: 28, exploreCuriosityMul: 1.6,
+  },
   items: { decayEvery: 50, groundDecayDays: { apple: 6, apple_core: 4, berry: 3 } as Record<string, number> },
   weather: { transitionTicks: 900, rainWarmthDrainPerHour: 6, lightningPerStormHour: 1, stormBuildingDmgPerHour: 4 },
   temperature: { seasonBase: { spring: 12, summer: 24, autumn: 10, winter: -4 }, daySwing: 6, comfortMin: 10, comfortMax: 24 },

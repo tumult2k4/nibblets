@@ -25,6 +25,8 @@ export interface ItemStack {
   divine?: boolean;
 }
 
+/** Billboard emotes over a goblin's head (§P2.6). */
+export type Emote = 'question' | 'exclaim' | 'heart' | 'zzz' | 'idea' | 'sweat' | 'music';
 export type PlantKind = 'apple_bush' | 'berry_bush' | 'tree' | 'flower';
 export type PlantStage = 'seed' | 'sprout' | 'sapling' | 'young' | 'mature' | 'old' | 'dead' | 'stump';
 export type BuildingType =
@@ -108,6 +110,7 @@ export type SimEvent = BaseEvent &
     | { type: 'superstition_formed'; belief: BeliefId }
     | { type: 'divine_act'; act: DivineActKind; targetId?: ID; witnessIds: ID[] }
     | { type: 'landed'; entityId: ID; damage: number; water: boolean }
+    | { type: 'emote'; goblinId: ID; emote: Emote }
     | { type: 'god_spoke'; addressees: ID[]; tone: Tone; intents: WishIntent[]; source: 'voice' | 'sign' }
     | { type: 'first_voice'; goblinId: ID }
     | { type: 'prayer'; prayerId: ID; goblinId: ID; kind: PrayerKind }

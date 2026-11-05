@@ -61,6 +61,12 @@ export function mindTab(g: Goblin): HTMLElement {
     row(t('insp.fear'), v.fear, String(Math.round(v.fear)), 'var(--wrath)'),
     el('h3', { text: t('insp.deeds') }),
     el('div.sub', { text: t('insp.deedsLine', { e: g.deeds.eaten, d: g.deeds.drank, h: g.deeds.harvested, g: g.deeds.timesHeld }) }),
+    el('div.sub', { text: t('insp.deedsLine2', { p: g.deeds.planted }) }),
+    el('h3', { text: t('insp.memory') }),
+    el('div.sub', { text: t('insp.memoryLine', {
+      f: g.memory.filter((m) => m.kind === 'fruit_plant').length, w: g.memory.filter((m) => m.kind === 'water').length,
+      r: g.memory.filter((m) => m.kind === 'rock').length, n: g.memory.length,
+    }) }),
   );
 }
 

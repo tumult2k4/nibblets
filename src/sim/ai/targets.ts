@@ -5,7 +5,7 @@ import { visionRadius } from './considerations';
 import { isShore, tileAt } from '../grid';
 import { CFG } from '../config';
 import { isGrowing, siteOk } from '../plants';
-import type { Vec2 } from '../../shared/types';
+import type { ID, Vec2 } from '../../shared/types';
 
 const FAR = 48;
 
@@ -15,9 +15,23 @@ function claimedBy(w: World, plantId: number, except: number): number {
   return n;
 }
 
-export function findFruitPlant(g: Goblin, w: World): Plant | null {
-  const ok = (p: Plant) => p.kind === 'apple_bush' && p.stage === 'mature' && p.fruit > claimedBy(w, p.id, g.id);
-  return w.plantHash.nearest(g.pos, visionRadius(g, w), ok) ?? w.plantHash.nearest(g.pos, FAR, ok);
+/** A fruit target: a visible fruiting bush, else the best remembered one (which may be stale). */
+export interface FruitTarget { id: ID; pos: Vec2; remembered: boolean }
+
+export function findFruitPlant(g: Goblin, w: World): FruitTarget | null {
+  const ok = (p: Plant) => (p.kind === 'apple_bush' || p.kind === 'berry_bush') && (p.stage === 'mature' || p.stage === 'old') && p.fruit > claimedBy(w, p.id, g.id);
+  const seen = w.plantHash.nearest(g.pos, visionRadius(g, w), ok);
+  if (seen) return { id: seen.id, pos: seen.pos, remembered: false };
+  let best: FruitTarget | null = null;
+  let bs = 0;
+  for (const m of g.memory) {
+    if (m.kind !== 'fruit_plant' || m.data <= 0 || m.targetId === undefined) continue;
+    const d = Math.hypot(m.pos.x - g.pos.x, m.pos.y - g.pos.y);
+    if (d > FAR) continue;
+    const s = (m.confidence * Math.min(m.data, 3)) / (1 + d / 10);
+    if (s > bs) { bs = s; best = { id: m.targetId, pos: m.pos, remembered: true }; }
+  }
+  return best;
 }
 
 export function findGroundItem(g: Goblin, w: World, pred: (it: GroundItem) => boolean, radius?: number): GroundItem | null {
@@ -95,4 +109,12 @@ export function findDryPlant(g: Goblin, w: World): Plant | null {
     if (s > bestS) { bestS = s; best = p; }
   }
   return best;
+}
+
+/** Where a goblin would go to drink: remembered water first (§7.8), else instinct (nearest shore). */
+export function waterTargets(g: Goblin, k: number, w: World): Vec2[] {
+  const known = g.memory.filter((m) => m.kind === 'water')
+    .map((m) => ({ p: m.pos, d: Math.hypot(m.pos.x - g.pos.x, m.pos.y - g.pos.y) }))
+    .sort((a, b) => a.d - b.d).slice(0, k).map((x) => x.p);
+  return known.length ? known : nearestShores(g, w, k);
 }

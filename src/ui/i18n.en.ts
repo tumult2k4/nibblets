@@ -23,6 +23,7 @@ export const EN = {
   'insp.slots': '{n} slots', 'insp.deeds': 'Deeds', 'insp.deedsLine': 'ate {e} · drank {d} · picked {h} · held by the god {g}×',
   'insp.glance': 'Village at a glance', 'insp.glanceGod': 'Their god: {name}', 'insp.glanceUnnamed': 'not yet named',
   'insp.glanceNeeds': 'Biggest village needs', 'insp.noSelection': 'Click a goblin to inspect it.',
+  'insp.deedsLine2': 'Planted {p} apple cores', 'insp.memory': 'Remembers', 'insp.memoryLine': '{f} fruit bushes · {w} water spots · {r} rocks ({n} memories)',
   'insp.stockpile': 'Stockpile', 'pstage.seed': 'Seed', 'pstage.sprout': 'Sprout', 'pstage.sapling': 'Sapling', 'pstage.young': 'Young',
   'pstage.mature': 'Mature', 'pstage.old': 'Old', 'pstage.dead': 'Dead', 'pstage.stump': 'Stump',
   'insp.plant': 'Plant', 'insp.stage': 'Stage', 'insp.fruit': 'Fruit', 'insp.nextFruit': 'Next fruit', 'insp.hydration': 'Hydration',

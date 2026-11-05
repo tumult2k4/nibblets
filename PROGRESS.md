@@ -1,5 +1,5 @@
 # Nibblets progress
-Current: P2.4 — memory system, senses, Explore
+Current: P2.5 — berry bushes, flowers, soil depletion
 ## Done
 - [x] P1.1 scaffold: Vite + strict TS, ESLint flat config with sim architecture rules, Prettier, Vitest, scripts
 - [x] P1.2 shared/: math, ids, mulberry32 Rng with fork(label), typed EventBus
@@ -20,8 +20,8 @@ Current: P2.4 — memory system, senses, Explore
 - [x] P2.1 full plant lifecycle (hydration, fertility draw/regen, seasons, old age, stumps coppice), stage meshes
 - [x] P2.2 apple → core (kept by industrious goblins, else tossed), EatCore, PlantSeed (site rules), WaterPlant (water first, wet hands 600 ticks)
 - [x] P2.3 Chop (multi-hit, wood+sticks, stumps), village stockpile with StoreItem/TakeItem (save v2 migration), item piles + stockpile rendered
+- [x] P2.4 senses + memory (decay, capacity, stale-memory confusion), AI targets memories (fruit, water), Explore
 ## Next
-- [ ] P2.4 memory system + senses, Explore, confusion emote
 - [ ] P2.5 berry bushes, flowers, soil depletion
 - [ ] P2.6 emotes
 - [ ] P2.7 terraform powers, uproot/replant, Life tray tab, lenses

@@ -22,3 +22,6 @@ Small choices the design doc left open, one line of rationale each.
 - **Worldgen mature bushes get ages 8–55 days** so they don't all turn old on the same day.
 - **Village stockpile is a spot, not a building** (P2.3): `village.stockpile` + `stockpilePos` near the center; buildings like storage pits (P3+) can extend it later.
 - **Chop target priority**: old apple bushes, then berry bushes, then fruitless mature apple bushes only while > 4 per goblin exist; trees wait for the stone axe (P4). Goblins chop until 30 wood is stored.
+- **Memory merges untargeted entries within 3 tiles** (water spots) so a lakeshore doesn't fill all 60 slots; a goblin's first look covers 24 tiles (it knows its home area).
+- **Drinking falls back to instinct** (nearest shore) only when no water is remembered, so founders on a strange island don't die of thirst.
+- **Seen-gone plants are forgotten quietly** unless they are the current harvest target, which shows the `?` confusion on arrival.
