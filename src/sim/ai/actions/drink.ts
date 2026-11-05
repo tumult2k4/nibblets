@@ -1,0 +1,48 @@
+import { CFG } from '../../config';
+import { dist, q4 } from '../../../shared/math';
+import { needUrgency } from '../../goblin/needs';
+import { moveAlong, planPath, faceToward } from '../../steering';
+import { distanceFalloff } from '../considerations';
+import { nearestShores } from '../targets';
+import type { UtilityAction } from '../action';
+
+/** Walk to the nearest shore and drink. */
+export const Drink: UtilityAction = {
+  id: 'drink', tags: ['food'], minStage: 'hatchling', interruptible: true,
+  isAvailable: (g) => g.needs.thirst < 90,
+  score(g, w) {
+    const s = nearestShores(g, w, 1)[0];
+    if (!s) return 0;
+    return (0.05 + 1.15 * needUrgency(g.needs.thirst)) * distanceFalloff(dist(g.pos, s), 50);
+  },
+  start(g, w) {
+    for (const s of nearestShores(g, w, 4)) {
+      if (planPath(w, g, s)) {
+        g.activity.target = s;
+        g.activity.stage = 0;
+        return true;
+      }
+    }
+    return false;
+  },
+  step(g, w) {
+    const a = g.activity;
+    if (a.stage === 0) {
+      if (moveAlong(w, g) !== 'arrived') return 'running';
+      a.stage = 1;
+      a.progress = CFG.goblin.drinkTicks;
+      // face the water
+      const t = a.target!;
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, -1], [1, -1], [-1, 1]] as const) {
+        const tile = w.s.tiles[Math.floor(t.y + dy) * w.s.size.w + Math.floor(t.x + dx)];
+        if (tile?.biome === 'water') { faceToward(g, { x: t.x + dx, y: t.y + dy }); break; }
+      }
+    }
+    a.progress -= 1;
+    if (a.progress > 0) return 'running';
+    g.needs.thirst = q4(Math.min(100, g.needs.thirst + CFG.goblin.drinkAmount));
+    g.deeds.drank += 1;
+    w.emit({ type: 'item_drunk', goblinId: g.id, at: g.pos });
+    return 'done';
+  },
+};
