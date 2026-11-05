@@ -59,6 +59,12 @@ export const MIGRATIONS: Record<number, Migration> = {
     }
     return raw;
   },
+  // v4 → v5 (P4.4): enemies + spawn director
+  4: (raw) => {
+    raw.enemies = [];
+    raw.threat = { night: -1, spawnAt: [] };
+    return raw;
+  },
 };
 
 export function deserialize(json: string): WorldState {

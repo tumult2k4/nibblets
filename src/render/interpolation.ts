@@ -28,6 +28,7 @@ export class Interp {
     const s = this.w.s;
     for (const g of s.goblins)
       cur.set(g.id, { x: g.pos.x, y: g.pos.y, z: g.airborne ? g.airborne.z : this.alt(g.pos.x, g.pos.y), facing: g.facing });
+    for (const e of s.enemies) cur.set(e.id, { x: e.pos.x, y: e.pos.y, z: this.alt(e.pos.x, e.pos.y), facing: e.facing });
     for (const it of s.groundItems)
       cur.set(it.id, { x: it.pos.x, y: it.pos.y, z: it.airborne ? it.airborne.z : this.alt(it.pos.x, it.pos.y), facing: 0 });
     this.cur = cur;

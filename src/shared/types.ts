@@ -93,6 +93,8 @@ export type SimEvent = BaseEvent &
     | { type: 'day_started'; day: number }
     | { type: 'enemy_spawned' | 'enemy_fled' | 'enemy_killed'; enemyId: ID; kind: EnemyKind }
     | { type: 'enemy_spotted'; goblinId: ID; enemyId: ID }
+    | { type: 'enemy_stole'; enemyId: ID; item: ItemType; qty: number }
+    | { type: 'enemy_bit'; enemyId: ID; goblinId: ID; damage: number }
     | { type: 'attack'; attackerId: ID; targetId: ID; damage: number }
     | { type: 'goblin_hurt'; goblinId: ID; damage: number; cause: DeathCause }
     | { type: 'freezing'; goblinId: ID }

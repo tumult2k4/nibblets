@@ -8,6 +8,7 @@ export interface Note { text: string; tier: 'info' | 'notable' | 'critical'; at?
 /** Turn sim events into player-facing notifications (§18.9). Returns null for routine events. */
 export function noteFor(e: SimEvent, w: World, names: Map<ID, string>): Note | null {
   const name = (id?: ID) => (id !== undefined ? names.get(id) ?? w.goblin(id)?.name ?? '?' : '?');
+  const foe = (id: ID) => t(`enemy.${w.s.enemies.find((x) => x.id === id)?.kind ?? 'gnasher'}`);
   const base = { tick: e.tick, ...(e.at ? { at: e.at } : {}) };
   switch (e.type) {
     case 'goblin_died':
@@ -46,6 +47,12 @@ export function noteFor(e: SimEvent, w: World, names: Map<ID, string>): Note | n
       return { ...base, id: e.goblinId, text: t(e.fine ? 'ev.craftedFine' : 'ev.crafted', { name: name(e.goblinId), item: t(`item.${e.item}`) }), tier: e.fine ? 'notable' : 'info', icon: ITEM_ICON[e.item] ?? 'gift' };
     case 'tool_broken':
       return { ...base, id: e.goblinId, text: t('ev.tool_broken', { name: name(e.goblinId), item: t(`item.${e.item}`) }), tier: 'info', icon: ITEM_ICON[e.item] ?? 'gift' };
+    case 'enemy_spotted':
+      return { ...base, id: e.goblinId, text: t('ev.enemy_spotted', { name: name(e.goblinId), enemy: foe(e.enemyId) }), tier: 'notable', icon: 'fang' };
+    case 'enemy_stole':
+      return { ...base, text: t('ev.enemy_stole', { enemy: foe(e.enemyId), n: e.qty, item: t(`item.${e.item}`) }), tier: 'notable', icon: 'fang' };
+    case 'enemy_bit':
+      return { ...base, id: e.goblinId, text: t('ev.enemy_bit', { enemy: foe(e.enemyId), name: name(e.goblinId) }), tier: 'info', icon: 'fang' };
     case 'campfire_out':
       return { ...base, text: t('ev.campfire_out'), tier: 'info', icon: 'heat' };
     case 'building_placed':

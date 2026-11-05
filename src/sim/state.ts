@@ -1,6 +1,6 @@
 /** Plain-data world state (§5). Everything here is serializable; no class instances. */
 import type {
-  Biome, BuildingType, ID, ItemStack, LifeStage, PlantKind, PlantStage, Vec2, WeatherKind, Tone, WishIntent,
+  Biome, BuildingType, EnemyKind, ID, ItemStack, LifeStage, PlantKind, PlantStage, Vec2, WeatherKind, Tone, WishIntent,
 } from '../shared/types';
 import type { Genome } from './goblin/genetics/genome';
 import type { GodState } from './god/godState';
@@ -96,6 +96,21 @@ export interface Plant {
   id: ID; kind: PlantKind; pos: Vec2; stage: PlantStage; growth: number; fruit: number; fruitProgress: number;
   hydration: number; hp: number; plantedBy: ID | null; age: number; blight: number;
 }
+/**
+ * An enemy (§14.1, P4.4). Gnashers prowl in from the wilds, steal food and bite lone goblins, and run off when hurt,
+ * crowded or at dawn. `mode` is the current intent; `home` is where it came from and where it flees to.
+ */
+export interface Enemy {
+  id: ID; kind: EnemyKind; pos: Vec2; velocity: Vec2; facing: number;
+  hp: number; maxHp: number;
+  mode: 'prowl' | 'steal' | 'attack' | 'flee' | 'leave';
+  targetId: ID | null; target: Vec2 | null; path: Vec2[];
+  carrying: ItemStack | null;
+  home: Vec2; spawnTick: number; nextDecide: number; timer: number; hits: number;
+  /** has any goblin noticed it yet (one alarm per enemy) */
+  seen: boolean;
+}
+
 export interface Rock { id: ID; pos: Vec2; size: 1 | 2 | 3; stoneLeft: number; flintChance: number }
 export interface GrassPatch { id: ID; pos: Vec2; density: number }
 export interface Mushroom { id: ID; pos: Vec2; kind: 'brown' | 'glowcap' | 'redcap'; age: number }
@@ -130,7 +145,9 @@ export interface WorldState {
   size: { w: number; h: number }; preset: string; terrainVersion: number;
   tiles: Tile[];
   goblins: Goblin[]; eggs: Egg[]; plants: Plant[]; rocks: Rock[]; grass: GrassPatch[]; mushrooms: Mushroom[];
-  wildlife: unknown[]; groundItems: GroundItem[]; buildings: Building[]; fires: unknown[]; enemies: unknown[];
+  wildlife: unknown[]; groundItems: GroundItem[]; buildings: Building[]; fires: unknown[]; enemies: Enemy[];
+  /** spawn director (§14.1): the night last budgeted and the ticks of spawns still to come */
+  threat: { night: number; spawnAt: number[] };
   graves: { id: ID; goblinId: ID; name: string; pos: Vec2; tick: number; cause: string }[];
   places: unknown[]; clans: Clan[]; village: VillageState; god: GodState;
   commandLog: LoggedCommand[]; weather: WeatherState; stats: StatsSeries; llm: LlmAnnotations;

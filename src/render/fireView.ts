@@ -40,8 +40,10 @@ export function flicker(f: THREE.Object3D, t: number, seed: number, base = 1): v
   f.rotation.y = t * 0.8 + seed;
 }
 
-/** Soft radial glow (bright core fading to nothing) so the pool has no hard rim. */
-function glowTexture(): THREE.Texture {
+let GLOW: THREE.Texture | null = null;
+/** Soft radial glow (bright core fading to nothing) so the pool has no hard rim; shared. */
+export function glowTexture(): THREE.Texture {
+  if (GLOW) return GLOW;
   const c = document.createElement('canvas');
   c.width = c.height = 128;
   const x = c.getContext('2d')!;
@@ -51,7 +53,7 @@ function glowTexture(): THREE.Texture {
   g.addColorStop(1, 'rgba(255,255,255,0)');
   x.fillStyle = g;
   x.fillRect(0, 0, 128, 128);
-  return new THREE.CanvasTexture(c);
+  return (GLOW = new THREE.CanvasTexture(c));
 }
 const POOL_GEO = new THREE.PlaneGeometry(2, 2).rotateX(-Math.PI / 2);
 const POOL_MAT = new THREE.MeshBasicMaterial({ color: '#ff9a3c', map: glowTexture(), transparent: true, opacity: 0.3, blending: THREE.AdditiveBlending, depthWrite: false, depthTest: false, fog: false });

@@ -128,5 +128,7 @@ export const DE: Record<keyof typeof EN, string> = {
   'debug.title': 'Debug', 'debug.hash': 'Prüfsumme berechnen', 'debug.scores': 'KI-Wertung (Auswahl)', 'debug.log': 'Befehlsprotokoll (Ende)',
   'replay.banner': 'Wiederholung — nur ansehen', 'replay.exit': 'Wiederholung beenden', 'title.tagline': 'ein kleines Götterspiel über großohrige Goblins',
   'ev.planted': '{name} hat einen Apfelbutzen gepflanzt.', 'ev.bush_grown': 'Ein von {name} gepflanzter Apfelbusch ist ausgewachsen!', 'ev.chopped': '{name} hat {n} Holz gehackt.',
+  'enemy.gnasher': 'Knirscher', 'enemy.bramblebeast': 'Dornbestie', 'enemy.night_wisp': 'Nachtirrlicht',
+  'ev.enemy_spotted': '{name} hat einen {enemy} herumschleichen sehen!', 'ev.enemy_stole': 'Ein {enemy} hat {n} {item} gestohlen!', 'ev.enemy_bit': 'Ein {enemy} hat {name} gebissen!',
   'qty': '×{n}', 'yes': 'Ja', 'no': 'Nein',
 };

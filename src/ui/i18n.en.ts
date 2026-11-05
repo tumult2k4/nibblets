@@ -126,5 +126,7 @@ export const EN = {
   'debug.title': 'Debug', 'debug.hash': 'Compute hash', 'debug.scores': 'AI scores (selected)', 'debug.log': 'Command log (tail)',
   'replay.banner': 'Replay — read only', 'replay.exit': 'Exit replay', 'title.tagline': 'a little god game about big-eared goblins',
   'ev.planted': '{name} planted an apple core.', 'ev.bush_grown': 'An apple bush {name} planted is fully grown!', 'ev.chopped': '{name} chopped {n} wood.',
+  'enemy.gnasher': 'Gnasher', 'enemy.bramblebeast': 'Bramblebeast', 'enemy.night_wisp': 'Night Wisp',
+  'ev.enemy_spotted': '{name} spotted a {enemy} creeping in!', 'ev.enemy_stole': 'A {enemy} made off with {n} {item}!', 'ev.enemy_bit': 'A {enemy} bit {name}!',
   'qty': '×{n}', 'yes': 'Yes', 'no': 'No',
 } as const;

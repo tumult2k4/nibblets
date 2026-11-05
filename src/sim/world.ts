@@ -16,6 +16,8 @@ import { updateWeather } from './weather';
 import { updateStorms } from './storms';
 import { updateEcology } from './ecology';
 import { updateFires } from './fire';
+import { updateDirector } from './enemies/director';
+import { enemiesAct, enemiesDecide } from './enemies/gnasher';
 import { think, act } from './ai/utility';
 import { updateGod } from './god/godState';
 import { sampleStats } from './stats';
@@ -95,7 +97,6 @@ export class World {
     updateGroundItems(this); // 7 (+ airborne items)
     //                        8 eggs (P5)
     updateGod(this); //       8b
-    //                        9 enemies.senseAndDecide (P4)
     this.goblinHash.rebuild(s.goblins);
     if (this.plantsDirty || this.plantsVersion < 0) {
       this.plantHash.rebuild(s.plants);
@@ -103,13 +104,16 @@ export class World {
       this.plantsDirty = false;
     }
     this.itemHash.rebuild(s.groundItems);
+    updateDirector(this); //  9 spawn director
+    enemiesDecide(this); //   9 enemies.senseAndDecide
     updateBodies(this); //    10
     updateMood(this); //      11
     updateSenses(this); //    11b senses + memory decay (§7.8)
     think(this); //           12
     act(this); //             13
     updateWear(this); //      13b path wear (§P2.7)
-    //                        14 enemies.act, 15 combat, 16 social, 17 culture, 18 village, 19 clans
+    enemiesAct(this); //      14 enemies.act
+    //                        15 combat (P4.5), 16 social, 17 culture, 18 village, 19 clans
     if (s.tick % CFG.stats.sampleEvery === 0) sampleStats(this); // 20
     s.rngState = this.rng.state;
     const events = this.bus.flush(); // 21

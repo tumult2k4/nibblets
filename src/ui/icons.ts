@@ -55,6 +55,7 @@ const SPRITE = [
   S('leaf', `<path d="M5 19C5 9 11 4 20 4c0 9-5 15-15 15z" fill="#6e8b3d" stroke="${I}" stroke-width="1.5"/><path d="M5 19L14 10" stroke="${I}"/>`),
   S('help', `<circle cx="12" cy="12" r="9" fill="#7fb3d5" stroke="${I}" stroke-width="1.5"/><path d="M9.5 9.5a2.5 2.5 0 115 .5c-.5 1.5-2.5 1.5-2.5 3.5" stroke="${I}" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="12" cy="17" r="1.2" fill="${I}"/>`),
   S('replay', `<path d="M4 12a8 8 0 108-8H8" stroke="${I}" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M9 1L5 4l4 3z" fill="${I}"/><path d="M10 9l5 3-5 3z" fill="#c8452d"/>`),
+  S('fang', `<path d="M3 9l4-5 3 4h4l3-4 4 5-2 8c-2 3-5 4-7 4s-5-1-7-4z" fill="#5d5a66" stroke="${I}" stroke-width="1.5" stroke-linejoin="round"/><circle cx="9" cy="11" r="1.6" fill="#e9c35b"/><circle cx="15" cy="11" r="1.6" fill="#e9c35b"/><path d="M8 15l1.5 3 1.5-3m2 0l1.5 3 1.5-3" fill="#f3e9d2" stroke="${I}" stroke-linejoin="round"/>`),
 ].join('');
 
 let injected = false;
