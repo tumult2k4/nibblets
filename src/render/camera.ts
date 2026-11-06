@@ -4,7 +4,10 @@ import type { WorldState } from '../sim/state';
 import { heightAt } from '../sim/grid';
 import { CFG } from '../sim/config';
 
-/** Orbit camera with damping, zoom 6–90, pitch 25°–80°, terrain collision, fly-to and follow (§18.12). */
+/** Orbit camera with damping, zoom 6–90, pitch 25°–80°, terrain collision, fly-to and follow (§18.12); freer in photo mode. */
+const LIMITS = { play: { p0: 25, p1: 80, d0: 6, d1: 90, clear: 1.2 }, free: { p0: 4, p1: 86, d0: 2.5, d1: 140, clear: 0.35 } };
+const RAD = Math.PI / 180;
+
 export class OrbitCam {
   readonly cam: THREE.PerspectiveCamera;
   target = new THREE.Vector3();
@@ -19,6 +22,7 @@ export class OrbitCam {
   followId: number | null = null;
   autoOrbit = 0;
   shake = 0;
+  private lim = LIMITS.play;
 
   constructor(aspect: number, private s: () => WorldState) {
     this.cam = new THREE.PerspectiveCamera(45, aspect, 0.1, 900);
@@ -46,11 +50,18 @@ export class OrbitCam {
 
   orbit(dYaw: number, dPitch: number): void {
     this.goalYaw += dYaw;
-    this.goalPitch = clamp(this.goalPitch + dPitch, (25 * Math.PI) / 180, (80 * Math.PI) / 180);
+    this.goalPitch = clamp(this.goalPitch + dPitch, this.lim.p0 * RAD, this.lim.p1 * RAD);
   }
 
   zoom(factor: number): void {
-    this.goalDist = clamp(this.goalDist * factor, 6, 90);
+    this.goalDist = clamp(this.goalDist * factor, this.lim.d0, this.lim.d1);
+  }
+
+  /** Photo mode (P11.2): closer, lower and farther than in play; back within the play limits after. */
+  setFree(on: boolean): void {
+    this.lim = on ? LIMITS.free : LIMITS.play;
+    this.orbit(0, 0);
+    this.zoom(1);
   }
 
   flyTo(x: number, z: number): void {
@@ -72,7 +83,7 @@ export class OrbitCam {
     this.dist += (this.goalDist - this.dist) * k;
     const off = new THREE.Vector3(Math.cos(this.pitch) * Math.sin(this.yaw), Math.sin(this.pitch), Math.cos(this.pitch) * Math.cos(this.yaw)).multiplyScalar(this.dist);
     const pos = this.target.clone().add(off);
-    const minY = this.groundY(pos.x, pos.z) + 1.2;
+    const minY = this.groundY(pos.x, pos.z) + this.lim.clear;
     if (pos.y < minY) pos.y = minY;
     if (this.shake > 0) {
       this.shake = Math.max(0, this.shake - dt);

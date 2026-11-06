@@ -47,6 +47,7 @@ export function keyHandlers(app: App): KeyHandlers {
     director: () => inGame() && app.dircam.toggle(),
     codex: () => inGame() && panel('codex'),
     timeline: () => inGame() && panel('timeline'),
+    photo: () => (inGame() || app.photo.on) && app.photo.toggle(),
     help: () => app.openOverlay(st().overlay === 'help' ? null : 'help'),
     rotL: () => {}, rotR: () => {}, // continuous, handled in Input.frame
   };

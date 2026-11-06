@@ -270,3 +270,12 @@ body canvas { transition: filter .6s; }
 .help-row { display: flex; gap: 10px; align-items: center; margin: 4px 0; } .help-mouse, .help-keys { flex: none; width: 64px; display: flex; justify-content: center; gap: 2px; }
 .help-keygrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px 16px; font-size: .9em; }
 .possess-bar { position: absolute; top: 60px; left: 50%; transform: translateX(-50%); z-index: 14; display: flex; gap: 10px; align-items: center; padding: 6px 12px; max-width: min(720px, 90vw); font-size: .9em; border-color: #c8902e; }
+/* P11.2 photo mode: nothing but the picture and a bar that fades */
+body.photo-mode #ui > *, body.photo-mode .placelabel, body.photo-mode .speechbubble, body.photo-mode .skysign, body.photo-mode .castlabel, body.photo-mode .skullmark { display: none !important; }
+.photo-bar { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); z-index: 40; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center; padding: 8px 14px; max-width: calc(100vw - 32px); transition: opacity .6s; }
+.photo-bar.faded { opacity: 0; }
+.photo-bar.flash { box-shadow: 0 0 0 3px #fff; }
+.photo-ctl { display: flex; gap: 6px; align-items: center; font-size: .9em; }
+.photo-ctl.dim { opacity: .45; }
+.photo-ctl input { width: 90px; }
+@media (prefers-reduced-motion: reduce) { .photo-bar { transition: none; } }

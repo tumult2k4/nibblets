@@ -26,6 +26,7 @@ import { OrbitCam } from './camera';
 import { GodHand } from './godHand';
 import { pick, type Pick } from './picking';
 import { Rings } from './decals';
+import { PhotoMode } from './photoMode';
 import { seasonLook } from './seasons';
 import { BuildingViews } from './buildingView';
 import { airAt } from '../sim/temperature';
@@ -43,6 +44,8 @@ export class Renderer {
   readonly camera: OrbitCam;
   readonly hand = new GodHand();
   readonly rings = new Rings();
+  /** P11.2: photo mode's post pass (vignette, tilt-shift) */
+  readonly photo = new PhotoMode();
   readonly emotes = new Emotes();
   private moodCheck = 0;
   private terrainSeen = -1;
@@ -242,7 +245,11 @@ export class Renderer {
     this.ambientEmotes(dt);
     this.emotes.update(dt, (id) => this.goblins.headPos(id) ?? this.visitors.headPos(id), this.camera.dist);
     this.music.update(this.time, dt, (id) => this.goblins.headPos(id));
-    this.gl.render(this.scene, this.camera.cam);
+    if (!this.photo.on) return this.gl.render(this.scene, this.camera.cam);
+    const tools = [this.hand.group, this.hand.shadow, this.rings.group], shown = tools.map((o) => o.visible);
+    for (const o of tools) o.visible = false; // no hand, no selection rings in a photo
+    this.photo.render(this.gl, this.scene, this.camera.cam);
+    tools.forEach((o, i) => (o.visible = shown[i]!));
   }
 
   setTerrainLens(l: TerrainLens | null): void {

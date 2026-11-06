@@ -66,6 +66,10 @@ export class Input {
 
   private down(e: PointerEvent): void {
     this.canvas.focus();
+    if (this.ctx.game.renderer.photo.on) { // P11.2: in photo mode the left button turns the view too, and the hand rests
+      this.drag = { button: e.button === 0 ? 2 : e.button, x: e.clientX, y: e.clientY, moved: false };
+      return;
+    }
     if (e.button === 0 && this.spawning()) this.spawn.down(e);
     else if (e.button === 0 && this.casting()) this.cast.down(e);
     else if (e.button === 0 && this.brushing()) this.brush.down(e);
@@ -92,6 +96,7 @@ export class Input {
       else this.cam.pan(-dx * 0.1, -dy * 0.1);
       return;
     }
+    if (this.ctx.game.renderer.photo.on) return;
     if (this.spawning()) {
       this.spawn.move(e);
       return;

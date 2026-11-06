@@ -52,6 +52,8 @@ export const EN11 = {
   'possess.take': 'Possess: take this goblin over (Sandbox)', 'possess.release': 'Let go (Esc)',
   'possess.bar': 'You are {name}. Click: walk there · on an item: pick it up · on a bush: pick or chop · near a creature: fight. Esc lets go.',
   'mod.not_myself': 'I was not myself', 'replay.pause': 'Pause', 'replay.play': 'Play', 'replay.fast': 'Fast (64×)', 'replay.toEnd': 'Run to where the save was made', 'replay.progress': 'Day {day} of {of} · {n}/{cmds} commands',
+  'key.photo': 'Photo mode', 'photo.title': 'Photo mode', 'photo.tilt': 'Tilt-shift', 'photo.tiltTip': 'Blur above and below a band, for the look of a tiny model village',
+  'photo.focus': 'Focus', 'photo.vignette': 'Vignette', 'photo.save': 'Save PNG', 'photo.saving': 'Saving…', 'photo.exit': 'Leave', 'photo.hint': 'Drag to turn · wheel to zoom · Space runs time',
 };
 
 export const DE11: Record<keyof typeof EN11, string> = {
@@ -106,4 +108,6 @@ export const DE11: Record<keyof typeof EN11, string> = {
   'possess.take': 'Besetzen: diesen Goblin übernehmen (Sandkasten)', 'possess.release': 'Loslassen (Esc)',
   'possess.bar': 'Du bist {name}. Klick: dorthin gehen · auf einen Gegenstand: aufheben · auf einen Busch: pflücken oder fällen · bei einem Wesen: kämpfen. Esc lässt los.',
   'mod.not_myself': 'Ich war nicht ich selbst', 'replay.pause': 'Pause', 'replay.play': 'Abspielen', 'replay.fast': 'Schnell (64×)', 'replay.toEnd': 'Bis zum Speicherpunkt laufen', 'replay.progress': 'Tag {day} von {of} · {n}/{cmds} Befehle',
+  'key.photo': 'Fotomodus', 'photo.title': 'Fotomodus', 'photo.tilt': 'Tilt-Shift', 'photo.tiltTip': 'Unschärfe ober- und unterhalb eines Streifens, wie bei einem Miniaturdorf',
+  'photo.focus': 'Fokus', 'photo.vignette': 'Vignette', 'photo.save': 'PNG speichern', 'photo.saving': 'Speichert…', 'photo.exit': 'Verlassen', 'photo.hint': 'Ziehen zum Drehen · Mausrad zum Zoomen · Leertaste lässt die Zeit laufen',
 };

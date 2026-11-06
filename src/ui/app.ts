@@ -40,6 +40,7 @@ import { Timeline } from './components/timeline';
 import { Tips } from './components/tips';
 import { PossessBar } from './components/possessBar';
 import { deedsFrom } from './deedWatch';
+import { PhotoBar } from './components/photoBar';
 
 const LINE_MS = 1500;
 
@@ -60,6 +61,8 @@ export class App implements Ctx {
   dircam!: DirectorCam;
   /** P11.1: first-session tips */
   tips!: Tips;
+  /** P11.2: photo mode (F12) */
+  readonly photo: PhotoBar;
   /** P9.2: place names over the map */
   readonly places = new PlaceLabels(this);
   /** P9.2: what happened, by day, for the LLM layer's prompts (never read by the sim) */
@@ -80,6 +83,7 @@ export class App implements Ctx {
   constructor(public game: Game, readonly canvas: HTMLCanvasElement) {
     injectIcons();
     this.root = document.getElementById('ui')!;
+    this.photo = new PhotoBar(this);
     this.applySettings(this.store.state.settings);
     this.screens = new Screens(this);
     this.fx = new WorldFx(this);
@@ -134,6 +138,7 @@ export class App implements Ctx {
 
   private frame(dt: number): void {
     this.input.frame(dt);
+    this.photo.frame(dt);
     this.fx.frame(dt);
     this.places.frame();
     this.director.frame();
@@ -221,6 +226,7 @@ export class App implements Ctx {
 
   private escape(): void {
     const st = this.store.state;
+    if (this.photo.on) return this.photo.toggle(); // P11.2
     if (st.overlay) return this.screens.open(st.screen === 'title' ? null : null);
     if (st.screen === 'title') return;
     if (this.voice.wheel.isOpen) return this.voice.wheel.close();
