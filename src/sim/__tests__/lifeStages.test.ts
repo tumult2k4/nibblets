@@ -44,12 +44,13 @@ const kid = (w: World, x: number, y: number): Goblin => {
 const family = (w: World, p: Goblin, c: Goblin): void => { kinBond(w, c, p, 'parent'); kinBond(w, p, c, 'child'); };
 
 describe('life stages (P5.4)', () => {
-  it('only younglings need fun (×2); hatchlings tire three times as fast', () => {
+  it('younglings need fun (×2), grown-ups a little (P8.5), hatchlings none; hatchlings tire three times as fast', () => {
     const w = makeWorld({ size: 30 });
     const y = spawnGoblin(w, { ageDays: 8 }), a = spawnGoblin(w, { ageDays: 30 }), h = spawnGoblin(w, { ageDays: 1 });
     expect(y.lifeStage).toBe('youngling');
     expect(needDecay(y, 'fun', 'spring') * DAY).toBeCloseTo(CFG.goblin.decayPerDay.fun * 2, 3);
-    expect(needDecay(a, 'fun', 'spring')).toBe(0);
+    expect(needDecay(a, 'fun', 'spring') * DAY).toBeCloseTo(CFG.goblin.decayPerDay.fun * CFG.festivals.adultFun.mul, 3);
+    expect(needDecay(h, 'fun', 'spring')).toBe(0);
     expect(needDecay(h, 'energy', 'spring') / needDecay(a, 'energy', 'spring')).toBeCloseTo(L.hatchlingEnergyMul, 3);
   });
 

@@ -173,6 +173,7 @@ export class App implements Ctx {
     this.game.renderer.weatherFx.reduced = s.reducedMotion;
     this.game.renderer.wrathFx.reduced = s.reducedMotion;
     this.game.renderer.miracleFx.reduced = s.reducedMotion;
+    this.game.renderer.music.reducedMotion = s.reducedMotion;
   }
 
   t = t;

@@ -75,6 +75,13 @@ export const RECIPES: Record<RecipeId, RecipeDef> = {
   watchtower: { inputs: { wood: 8, rope: 2 }, station: 'site', building: 'watchtower', known: false, phase: 5, after: 'fence', skill: 'building' },
   // P6.5 (§14.3): a paste of glowcap and berries; the idea comes sooner while anyone is ill
   herbal_remedy: { inputs: { glowcap: 1, berry: 2 }, station: 'none', output: 'herbal_remedy', known: false, phase: 6, ticks: 150, skill: 'cooking', idea: 'glowcap' },
+  // P8.5 (§11.1): a drum (a hollow log with a skin of woven fiber), a bone flute, and a ring of stones to play in
+  drum: { inputs: { wood: 1, fiber: 1 }, station: 'none', output: 'drum', known: false, phase: 8, ticks: 150, skill: 'woodcraft', after: 'campfire' },
+  flute: { inputs: { bone: 1 }, station: 'none', output: 'flute', known: false, phase: 8, ticks: 120 },
+  music_circle: { inputs: { stone: 6 }, station: 'site', building: 'music_circle', known: false, phase: 8, skill: 'building', near: ['drum'] },
+  // P8.6 (§11.1): a shrine of piled stones (its trinket is laid on by the first to pray there), a painted totem pole
+  shrine: { inputs: { stone: 4 }, station: 'site', building: 'shrine', known: false, phase: 8, skill: 'building' },
+  totem: { inputs: { wood: 3, war_paint: 1 }, station: 'site', building: 'totem', known: false, phase: 8, skill: 'woodcraft' },
 };
 
 export const recipeDef = (id: RecipeId): RecipeDef | undefined => RECIPES[id];

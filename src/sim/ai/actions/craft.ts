@@ -20,6 +20,7 @@ import type { ItemStack, RecipeId } from '../../../shared/types';
 import type { Goblin } from '../../state';
 import type { World } from '../../world';
 import type { UtilityAction } from '../action';
+import { totemWantsPaint } from '../../shrine';
 
 const busy = (g: Goblin): number => Math.max(needUrgency(g.needs.hunger), needUrgency(g.needs.thirst), needUrgency(g.needs.energy));
 
@@ -104,7 +105,7 @@ export const Craft: UtilityAction = {
       const made = finishCraft(w, g, id);
       const k = made && isKilnRecipe(id) ? kilnFor(g, w) : null;
       if (k) kilnSpark(w, k);
-      if (made?.type === 'war_paint') applyPaint(w, g); // P7.5: put on as soon as it is mixed
+      if (made?.type === 'war_paint' && !totemWantsPaint(w, 1)) applyPaint(w, g); // P7.5: put on as soon as it is mixed (P8.6: unless the totem needs it)
       return made ? 'done' : 'failed';
     }
     const out = RECIPES[id]!.output;

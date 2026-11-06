@@ -32,14 +32,14 @@ export interface ItemStack {
 }
 
 /** Billboard emotes over a goblin's head (§P2.6). */
-export type Emote = 'question' | 'exclaim' | 'heart' | 'zzz' | 'idea' | 'sweat' | 'music' | 'anger' | 'sneeze' | 'sick' | 'tear';
+export type Emote = 'question' | 'exclaim' | 'heart' | 'zzz' | 'idea' | 'sweat' | 'music' | 'anger' | 'sneeze' | 'sick' | 'tear' | 'pray';
 export type PlantKind = 'apple_bush' | 'berry_bush' | 'tree' | 'flower';
 export type PlantStage = 'seed' | 'sprout' | 'sapling' | 'young' | 'mature' | 'old' | 'dead' | 'stump';
 export type BuildingType =
   | 'hut' | 'stone_hut' | 'longhouse' | 'campfire' | 'hearth' | 'fence' | 'gate'
   | 'storage_pit' | 'drying_rack' | 'grinding_stone' | 'workbench' | 'kiln'
   | 'watchtower' | 'shrine' | 'totem' | 'well' | 'garden_plot' | 'compost_heap'
-  | 'nursery' | 'graveyard_marker' | 'library_shelf' | 'music_circle' | 'bridge';
+  | 'nursery' | 'graveyard_marker' | 'library_shelf' | 'music_circle' | 'bridge' | 'temple';
 
 export type EnemyKind = 'gnasher' | 'bramblebeast' | 'night_wisp';
 export type DeathCause =
@@ -60,7 +60,8 @@ export type SkillId = 'forage' | 'woodcraft' | 'building' | 'mining' | 'crafting
 export type ChatTopic = 'weather' | 'food' | 'danger' | 'gossip' | 'a_person' | 'trinkets' | 'a_place' | 'the_dead' | 'festival' | 'complaint';
 export type BeliefId = string;
 export type PowerId = string;
-export type PrayerKind = string;
+export type PrayerKind =
+  | 'food' | 'water' | 'rain' | 'sun' | 'warmth' | 'healing' | 'protection' | 'child' | 'mate' | 'lost_item' | 'revenge' | 'forgiveness' | 'thanks';
 export type Tone = 'kind' | 'stern' | 'wrathful' | 'playful';
 export type WishIntent =
   | 'gather' | 'build' | 'plant' | 'guard' | 'fight' | 'hide' | 'avoid' | 'share_food' | 'stop'
@@ -184,19 +185,23 @@ export type SimEvent = BaseEvent &
     | { type: 'trinkets_inherited'; goblinId: ID; fromId: ID; count: number; at: Vec2 }
     | { type: 'glints_washed_up'; count: number }
     | { type: 'trinket_given'; goblinId: ID; toId: ID; trinket: TrinketKind; at: Vec2 }
-    | { type: 'festival'; kind: FestivalKind; phase: 'start' | 'end' }
+    | { type: 'festival'; kind: FestivalKind; phase: 'start' | 'end'; at?: Vec2; venueId?: ID | null; came?: number }
+    | { type: 'festival_speech'; goblinId: ID; at: Vec2 }
     | { type: 'chief_chosen'; goblinId: ID; previousId: ID | null }
     | { type: 'trade'; aId: ID; bId: ID; gave: ItemStack[]; got: ItemStack[] }
     | { type: 'clan_contact' | 'clan_raid' | 'clan_alliance'; clanA: ID; clanB: ID }
     | { type: 'place_named'; placeId: ID; name: string }
-    | { type: 'superstition_formed'; belief: BeliefId }
+    | { type: 'superstition_formed' | 'superstition_faded'; omen: string; luck: string; valence: number }
+    | { type: 'epithet_earned'; goblinId: ID; epithet: string; at: Vec2 }
     | { type: 'divine_act'; act: DivineActKind; targetId?: ID; witnessIds: ID[] }
     | { type: 'landed'; entityId: ID; damage: number; water: boolean }
     | { type: 'emote'; goblinId: ID; emote: Emote }
     | { type: 'god_spoke'; addressees: ID[]; tone: Tone; intents: WishIntent[]; source: 'voice' | 'sign' }
     | { type: 'first_voice'; goblinId: ID }
-    | { type: 'prayer'; prayerId: ID; goblinId: ID; kind: PrayerKind }
-    | { type: 'prayer_answered' | 'prayer_ignored'; prayerId: ID; goblinId: ID }
+    | { type: 'prayer'; prayerId: ID; goblinId: ID; kind: PrayerKind; targetId?: ID; desperate?: boolean }
+    | { type: 'group_prayer'; goblinId: ID; buildingId: ID }
+    | { type: 'offering'; goblinId: ID; buildingId: ID; item: string }
+    | { type: 'prayer_answered' | 'prayer_ignored'; prayerId: ID; goblinId: ID; kind: PrayerKind }
     | { type: 'wish_fulfilled' | 'wish_defied'; goblinId: ID; intent: WishIntent }
     | { type: 'converted'; goblinId: ID }
     | { type: 'shaman_chosen'; goblinId: ID; previousId: ID | null }

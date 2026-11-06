@@ -93,6 +93,9 @@ export const ITEM_DEFS: Partial<Record<ItemType, ItemDef>> = {
   star_stone: { stack: 1, weight: 0.2, value: 40 },
   // P6.5: a dose speeds an illness on its way (remedy.ts); it goes stale slowly
   herbal_remedy: { stack: 5, weight: 0.2, value: 6, decayDays: 6, shelfDays: 24 },
+  // P8.5 instruments (§11.1): kept by whoever plays them; a use is a tune played, and they can be mended at the bench
+  drum: { stack: 1, weight: 1, value: 6, uses: 40, breaksInto: { wood: 1 }, burnable: true },
+  flute: { stack: 1, weight: 0.2, value: 6, uses: 60 },
 };
 
 /** A Gift Tray slot: an item, or a sapling of a plant kind (Life tab, §P2.7). */

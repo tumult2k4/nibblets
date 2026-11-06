@@ -14,6 +14,7 @@ import { griefId } from '../../../sim/death';
 import { kinChip } from './socialTab';
 import { castProblem } from '../../../sim/god/cast';
 import { resurrectProblem } from '../../../sim/god/powers/miracles';
+import { withEpithet } from '../../notifyCulture';
 
 const DAY = CFG.time.dayTicks;
 
@@ -24,7 +25,7 @@ const when = (tick: number): string => {
 
 export function graveHead(gr: Grave, onClose: () => void): HTMLElement {
   return el('div.insp-head', {}, icon('skull', 'portrait'),
-    el('div', { style: 'flex:1' }, el('h2', { text: gr.epithet ? `${gr.name} ${gr.epithet}` : gr.name }),
+    el('div', { style: 'flex:1' }, el('h2', { text: withEpithet(gr.name, gr.epithet) }),
       el('div.sub', { text: t(`grave.state.${gr.state}`) }),
       el('button.btn', { onclick: onClose, 'data-tip': t('insp.close') }, icon('close'))));
 }

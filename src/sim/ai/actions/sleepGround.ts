@@ -3,18 +3,19 @@ import { visibleThreat } from './fight';
 import { q4 } from '../../../shared/math';
 import { perDay } from '../../time';
 import { needUrgency } from '../../goblin/needs';
-import { isNightNow } from '../considerations';
 import type { UtilityAction } from '../action';
 import type { Goblin } from '../../state';
 import type { World } from '../../world';
 import { hasBedroll } from '../../clothing';
 import { onWatch } from '../../leadership';
+import { hasTrait, sleepTime } from '../../goblin/traits';
 
 /** How much a goblin wants to sleep now: night/dusk pull plus tiredness (hatchlings nap more). */
 export function sleepScore(g: Goblin, w: World): number {
   const watch = onWatch(g, w) && g.activity.action === 'guard'; // P8.4: tonight's watch stays up at its post (until worn out)
-  const night = isNightNow(w) && !watch ? 0.62 : 0;
-  const dusk = w.clock.phase === 'dusk' && !watch ? 0.25 : 0;
+  const owl = hasTrait(g, 'night_owl'); // P8.7: its night is the morning
+  const night = sleepTime(g, w) && !watch ? 0.62 : 0;
+  const dusk = w.clock.phase === 'dusk' && !watch && !owl ? 0.25 : 0;
   const baby = g.lifeStage === 'hatchling' ? 0.2 : 0;
   return Math.min(1.1, Math.max(night, dusk) + 0.9 * needUrgency(g.needs.energy) + baby);
 }
@@ -40,7 +41,7 @@ export const SleepGround: UtilityAction = {
     }
     // a sleeping mat (P5.6) makes the night out half again as restful
     g.needs.energy = q4(Math.min(100, g.needs.energy + perDay(hasBedroll(g) ? CFG.goblin.sleepRestorePerDay.mat : CFG.goblin.sleepRestorePerDay.ground)));
-    if (g.needs.energy >= CFG.goblin.wakeEnergy && !isNightNow(w)) {
+    if (g.needs.energy >= CFG.goblin.wakeEnergy && !sleepTime(g, w)) {
       w.emit({ type: 'woke_up', goblinId: g.id, at: g.pos });
       return 'done';
     }

@@ -82,7 +82,8 @@ export type ActionId =
   | 'follow_wisp' | 'scatter' | 'chat' | 'comfort' | 'gift' | 'court' | 'lay_egg' | 'incubate_egg' | 'feed_child' | 'follow_parent'
   | 'play' | 'learn' | 'teach' | 'cut_grass' | 'pick_flowers' | 'process' | 'rest_sick' | 'tend_sick' | 'extinguish_fire' | 'escape_fire' | 'cull_blight'
   | 'bury_dead' | 'mourn' | 'hunt' | 'fish' | 'dig_clay' | 'cook_stew' | 'tend_compost' | 'spread_compost' | 'pave_path' | 'haul_to_stockpile'
-  | 'sulk' | 'binge' | 'wander_off' | 'hunt_trinket' | 'decorate' | 'prank' | 'steal' | 'apologize' | 'brawl' | 'judge' | 'exile';
+  | 'sulk' | 'binge' | 'wander_off' | 'hunt_trinket' | 'decorate' | 'prank' | 'steal' | 'apologize' | 'brawl' | 'judge' | 'exile'
+  | 'join_festival' | 'play_music' | 'dance' | 'pray';
 
 export interface ActivityState {
   action: ActionId;
@@ -105,10 +106,10 @@ export interface DivineWish {
 }
 export interface GodView {
   faith: number; love: number; fear: number; angryAtGod: boolean; wishes: DivineWish[];
-  /** when the anger at the god wears off (P4.8: 8 days after a loved one was harmed) */
-  angryUntil: number;
-  answeredPrayers: number; ignoredPrayers: number; lastVoiceTick: number;
-  petLoveToday: number; petDay: number;
+  /** when the anger at the god wears off (P4.8: 8 days after a loved one was harmed); P8.8: when it last saw the god at
+   * work (faith keeps), since when a need has been dire (desperate prayer) */
+  angryUntil: number; answeredPrayers: number; ignoredPrayers: number; lastVoiceTick: number;
+  petLoveToday: number; petDay: number; seenTick?: number; direSince?: number;
 }
 
 export interface MemoryEntry { kind: string; targetId?: ID; pos: Vec2; data: number; lastSeenTick: number; confidence: number }
@@ -127,8 +128,8 @@ export interface LineageEntry {
 }
 export interface DeedCounters {
   eaten: number; drank: number; harvested: number; planted: number; kills: number; builds: number; gifts: number; timesHeld: number; fights: number;
-  /** P8.3 mischief (optional, old saves load as is): thefts done and suffered, pranks pulled and suffered, brawls */
-  stolen?: number; robbed?: number; pranks?: number; pranked?: number; brawls?: number;
+  /** optional, old saves load as is: P8.3 thefts done and suffered, pranks pulled and suffered, brawls; P8.7 prayers, tunes, cooked meals, night watches */
+  stolen?: number; robbed?: number; pranks?: number; pranked?: number; brawls?: number; prayers?: number; tunes?: number; cooked?: number; watches?: number;
 }
 /** A wrong done (P8.3): whom, what, when, whether the victim knows who did it, and whether it was made right. */
 export interface Guilt {
@@ -175,8 +176,8 @@ export interface Goblin {
   moodLow?: number; moodHigh?: number; moodBreak?: MoodBreak; lastBreak?: number; lastInspired?: number;
   /** P8.3: wrongs it has done (thefts), for owning up */
   guilt?: Guilt[];
-  /** P8.4: sent out of the village by the chief until then */
-  exiledUntil?: number;
+  /** P8.4: sent out of the village by the chief until then; P8.7: its personality before life drifted it */
+  exiledUntil?: number; baseline?: Personality;
 }
 
 /** A mood break under way (§7.5): until when, and for wandering off where to. */
@@ -263,8 +264,8 @@ export interface VillageState {
   /** village policies (P6.5 hook; the chief sets them from its personality, P8.4): work ×, the night watch, festivals ×,
    * shrine first, quarantine, how strict about theft */
   policies?: { quarantine?: boolean; law?: number; work?: number; rota?: boolean; festivals?: number; shrine?: boolean };
-  /** P8.4: tonight's watch under a brave chief */
-  watch?: ID[];
+  /** P8.4: tonight's watch under a brave chief; P8.5 culture: festivals now and past (P8.6: beliefs) */
+  watch?: ID[]; culture?: import('./cultureState').Culture;
   /** village firsts already marked (P7.2: the first fish) */
   firsts?: string[];
   /** P7.5 stockpile zones (§12.3): materials are kept here, food (and everything else) at `stockpilePos` */

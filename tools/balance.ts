@@ -113,7 +113,7 @@ function runSeed(seed: number): Row {
   const econ = { fish: 0, casts: 0, clay: 0, cooked: 0, made: { fishing_rod: 0, bucket: 0, pot: 0 }, kilns: 0, kilnDay: -1 };
   const eaten: Record<string, number> = {};
   const md = { sum: 0, n: 0, breaks: { tantrum: 0, sulk: 0, binge: 0, wander_off: 0 } as Record<string, number>, inspired: 0, found: 0, given: 0 };
-  const soc = { theft: 0, seen: 0, pranks: 0, sorry: 0, brawls: 0, broken: 0, chiefs: 0, changes: 0, firstChief: -1, sentences: { return: 0, apology: 0, exile: 0 } };
+  const soc = { theft: 0, seen: 0, pranks: 0, sorry: 0, brawls: 0, broken: 0, chiefs: 0, changes: 0, firstChief: -1, sentences: { return: 0, apology: 0, exile: 0 }, fests: {} as Record<string, number>, came: 0, instruments: 0, built: {} as Record<string, number>, prayers: 0 };
   w.bus.subscribe((e) => {
     if (e.type === 'theft') { soc.theft++; if (e.witnessIds.length) soc.seen++; }
     if (e.type === 'prank') soc.pranks++;
@@ -121,6 +121,10 @@ function runSeed(seed: number): Row {
     if (e.type === 'brawl') { soc.brawls++; if (e.brokenUpBy !== undefined) soc.broken++; }
     if (e.type === 'chief_chosen') { soc.chiefs++; if (e.previousId !== null) soc.changes++; else soc.firstChief = Math.floor(e.tick / CFG.time.dayTicks); }
     if (e.type === 'justice') soc.sentences[e.sentence]++;
+    if (e.type === 'festival' && e.phase === 'end') { soc.fests[e.kind] = (soc.fests[e.kind] ?? 0) + 1; soc.came += e.came ?? 0; } // P8.5
+    if (e.type === 'item_crafted' && (e.item === 'drum' || e.item === 'flute')) soc.instruments++;
+    if (e.type === 'building_completed' && ['music_circle', 'shrine', 'totem'].includes(e.kind)) soc.built[e.kind] ??= Math.floor(e.tick / CFG.time.dayTicks); // P8.5–P8.6
+    if (e.type === 'emote' && e.emote === 'pray') soc.prayers++;
     if (e.type === 'trinket_found') md.found++;
     if (e.type === 'trinket_given') md.given++;
     if (e.type === 'mood_break') md.breaks[e.kind]!++;
@@ -249,7 +253,7 @@ function runSeed(seed: number): Row {
     rites: `${rites.buried}/${rites.mounds}/${rites.mourned}`,
     disasters: `${dis.flood}/${dis.drought}/${dis.blight} (culled ${dis.culled})/${dis.star}${dis.floodLost ? ` huts lost ${dis.floodLost}` : ''}`,
     econ: `${econ.fish}/${econ.casts} clay ${econ.clay} cooked ${econ.cooked} rods/buckets/pots ${econ.made.fishing_rod}/${econ.made.bucket}/${econ.made.pot} kilns ${econ.kilns}${econ.kilnDay < 0 ? '' : ' (day ' + econ.kilnDay + ')'}`,
-    society: `thefts ${soc.theft} (seen ${soc.seen}) pranks ${soc.pranks} sorry ${soc.sorry} brawls ${soc.brawls} (broken up ${soc.broken}) opinion ${avgOp.toFixed(1)} rep ${Math.min(0, ...w.s.goblins.map((g) => g.reputation)).toFixed(0)}..${Math.max(0, ...w.s.goblins.map((g) => g.reputation)).toFixed(0)} chiefs ${soc.chiefs} (changes ${soc.changes}, first day ${soc.firstChief}) justice ${Object.values(soc.sentences).join('/')}`,
+    society: `thefts ${soc.theft} (seen ${soc.seen}) pranks ${soc.pranks} sorry ${soc.sorry} brawls ${soc.brawls} (broken up ${soc.broken}) opinion ${avgOp.toFixed(1)} rep ${Math.min(0, ...w.s.goblins.map((g) => g.reputation)).toFixed(0)}..${Math.max(0, ...w.s.goblins.map((g) => g.reputation)).toFixed(0)} chiefs ${soc.chiefs} (changes ${soc.changes}, first day ${soc.firstChief}) justice ${Object.values(soc.sentences).join('/')} festivals ${Object.values(soc.fests).reduce((a, b) => a + b, 0)} ${JSON.stringify(soc.fests)} came ${soc.came} instruments ${soc.instruments} built ${JSON.stringify(soc.built)} prayers ${soc.prayers} beliefs ${w.s.village.culture?.formed ?? 0}/${w.s.village.culture?.faded ?? 0} [${(w.s.village.culture?.beliefs ?? []).map((b) => `${b.omen}>${b.luck}`).join(' ')}] epithets [${w.s.goblins.map((g) => g.epithet).filter(Boolean).join(' ')}] traits [${w.s.goblins.flatMap((g) => g.traits).join(' ')}]`,
     mood: `avg ${(md.sum / Math.max(1, md.n)).toFixed(0)} breaks ${Object.values(md.breaks).join('/')} inspired ${md.inspired} trinkets found/given/shelved ${md.found}/${md.given}/${w.s.buildings.reduce((k, b) => k + b.decoration.length, 0)}`,
     commons: `zone ${com.zoneDay < 0 ? '—' : 'day ' + com.zoneDay} hauled ${com.hauled} demand ${com.demand.map((d) => (d / Math.max(1, com.samples)).toFixed(2)).join('/')} cloaks/necklaces/paints ${Object.values(com.made).join('/')}`,
     garden: `heaps ${w.s.buildings.filter((b) => b.type === 'compost_heap' && b.buildProgress >= 1).length} plots ${w.s.buildings.filter((b) => b.type === 'garden_plot' && b.buildProgress >= 1).length} in ${w.s.plants.filter((p) => inGarden(w.s, p.pos)).length} compost ${gard.compost}/${gard.spread} paved ${w.s.tiles.filter((t) => t.paved).length} spans ${w.s.buildings.filter((b) => b.type === 'bridge' && b.buildProgress >= 1).length} worn@20 ${gard.worn20}`,

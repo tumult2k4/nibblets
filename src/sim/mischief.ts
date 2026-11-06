@@ -18,6 +18,7 @@ import { grantTrait } from './goblin/traits';
 import { addItem, canCarry, takeOne } from './inventory';
 import { isFood } from './items';
 import { carried, passTrinket, trinketValue } from './trinkets';
+import { drift } from './goblin/drift';
 
 const X = CFG.mischief, TH = X.theft, P = X.prank, A = X.apology, B = X.brawl, R = X.reputation, DAY = CFG.time.dayTicks;
 
@@ -106,6 +107,7 @@ export function theft(w: World, thief: Goblin, victim: Goblin | null, item: Item
     if (home) (home.data ??= {}).missing = (home.data.missing ?? 0) + 1; // found gone when it gets home
   }
   count(thief, 'stolen');
+  if (victim) drift(victim, 'robbed'); // P8.7: a little warier of others
   if (victim && count(victim, 'robbed') >= X.grudge.robbed) grantTrait(w, victim, 'grudge_holder');
   w.emit({ type: 'theft', thiefId: thief.id, victimId: victim?.id ?? null, ...(item ? { item } : {}), witnessIds: seen.map((o) => o.id), ...(t ? { trinket: t.kind } : {}), at: { ...at } });
 }

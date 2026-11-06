@@ -19,6 +19,7 @@ import { forceAction } from './ai/utility';
 import type { Biome, Vec2 } from '../shared/types';
 import type { Goblin, Tile } from './state';
 import type { World } from './world';
+import { noteStar } from './festivals';
 
 const D = CFG.disasters, W = CFG.world;
 const DAY = CFG.time.dayTicks, HOUR = CFG.god.hourTicks;
@@ -139,6 +140,7 @@ export function shootingStar(w: World, at: Vec2): void {
   s.terrainVersion += 1;
   spawnGroundItem(w, { type: 'star_stone', qty: 1 }, at);
   w.emit({ type: 'shooting_star', at: { ...at } });
+  noteStar(w, at); // P8.5: Starfall the evening after
   for (const g of s.goblins) if (!g.heldByGod && !g.airborne && dist(g.pos, at) <= S.lookRange && g.activity.action !== 'sleep_home' && g.activity.action !== 'sleep_ground') forceAction(g, w, 'look_up', at);
 }
 

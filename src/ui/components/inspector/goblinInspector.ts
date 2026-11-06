@@ -24,6 +24,7 @@ import { diseaseDef } from '../../../sim/disease';
 import { quarantined } from '../../../sim/quarantine';
 import { favoriteFood, isInspired } from '../../../sim/goblin/mood';
 import { isExiled, onWatch } from '../../../sim/leadership';
+import { withEpithet } from '../../notifyCulture';
 
 export const bar = (v: number, color = 'var(--moss)'): HTMLElement => el('div.bar', {}, el('i', { style: `width:${Math.max(0, Math.min(100, v))}%;background:${color}` }));
 const row = (label: string, v: number, shown: string, color?: string) =>
@@ -37,7 +38,7 @@ export function goblinHeader(g: Goblin, w: World, onFollow: () => void, onClose:
   const desc = describePersonality(g.personality).map((k) => t(`word.${k}`)).join(', ') || t('word.ordinary');
   return el('div.insp-head', {}, img,
     el('div', { style: 'flex:1' },
-      el('h2', { text: g.name + (g.epithet ? ` ${g.epithet}` : '') }),
+      el('h2', { text: withEpithet(g.name, g.epithet) }),
       g.role === 'chief' ? el('div.sub.badge', { text: t('role.chief') }) : null,
       el('div.sub', { text: t('insp.age', { stage: t(`stage.${g.lifeStage}`), age: seasons }) }),
       el('div.sub', { text: t('insp.descriptor', { d: desc }) }),
@@ -73,7 +74,7 @@ function woundsLine(g: Goblin): string {
   return parts.join(' · ');
 }
 
-const TRAIT_ICON: Record<string, string> = { veteran: 'spear', scarred: 'fang', green_thumb: 'leaf', orphan: 'heart', twin: 'egg', grudge_holder: 'curse', hoarder: 'gem' };
+const TRAIT_ICON: Record<string, string> = { veteran: 'spear', scarred: 'fang', green_thumb: 'leaf', orphan: 'heart', twin: 'egg', grudge_holder: 'curse', hoarder: 'gem', gourmand: 'bowl', night_owl: 'moon' };
 /** Acquired traits (§7.7, P5.7) with icons and what each does. */
 function traitList(g: Goblin): HTMLElement[] {
   if (!g.traits.length) return [el('div.sub', { text: t('insp.noLifeTraits') })];
@@ -106,11 +107,11 @@ function moodTags(g: Goblin, w: World): string[] {
 
 export function statusTab(g: Goblin, w: World): HTMLElement {
   const n = g.needs;
-  // fun counts for younglings only until pranks, music and festivals (P5.4); comfort and purpose are still stubs
-  const kid = g.lifeStage === 'youngling';
-  const live: NeedId[] = ['hunger', 'thirst', 'energy', 'warmth', 'safety', 'social', 'curiosity', ...(kid ? ['fun' as const] : [])];
+  // fun counts for all but hatchlings since music and festivals (P8.5); comfort and purpose are still stubs
+  const fun = g.lifeStage !== 'hatchling';
+  const live: NeedId[] = ['hunger', 'thirst', 'energy', 'warmth', 'safety', 'social', 'curiosity', ...(fun ? ['fun' as const] : [])];
   const needs = live.map((k) => row(t(`need.${k}`), n[k], String(Math.round(n[k])), needColor(n[k])));
-  const stubs = ([...(kid ? [] : ['fun' as const]), 'comfort', 'purpose'] as NeedId[]).map((k) => row(t(`need.${k}`), n[k], String(Math.round(n[k])), '#b5a98f'));
+  const stubs = ([...(fun ? [] : ['fun' as const]), 'comfort', 'purpose'] as NeedId[]).map((k) => row(t(`need.${k}`), n[k], String(Math.round(n[k])), '#b5a98f'));
   const tags = [t('insp.felt', { t: Math.round(feltTemperature(w, g)) })];
   if (isWet(w, g)) tags.push(t('insp.wet'));
   if (shelterOf(w, g)) tags.push(t('insp.sheltered'));

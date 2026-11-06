@@ -90,6 +90,7 @@ export function pickWatch(w: World): void {
     .filter((g) => g.lifeStage === 'adult' && !isExiled(g, w) && !g.heldByGod && !!bestWeapon(g) && g.needs.energy >= L.watch.minEnergy && g.health.hp > g.health.maxHp * 0.6)
     .sort((a, b) => b.personality.bravery - a.personality.bravery || a.id - b.id)
     .slice(0, P.watch).map((g) => g.id);
+  for (const id of w.s.village.watch) { const g = w.goblin(id)!; g.deeds.watches = (g.deeds.watches ?? 0) + 1; } // P8.7: toward the night owl
 }
 
 /** Elections in the morning, the watch at dusk, exiles home when their time is up. */

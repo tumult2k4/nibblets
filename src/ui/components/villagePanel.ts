@@ -7,6 +7,8 @@ import { STARTER_RECIPES } from '../../sim/recipes';
 import { knowName } from '../notify';
 import { foodStores } from '../../sim/spoilage';
 import { chiefOf } from '../../sim/leadership';
+import { festivalNow, nextFestival } from '../../sim/festivals';
+import { beliefText } from '../notifyCulture';
 import type { LifeStage } from '../../shared/types';
 
 const STAGES: LifeStage[] = ['hatchling', 'youngling', 'adult', 'elder'];
@@ -15,7 +17,8 @@ const cap = (x: string): string => x.charAt(0).toUpperCase() + x.slice(1);
 /**
  * Village panel (Y, §18.6 — P5.5 slice): name and god, goblins by life stage, and what the village knows beyond the
  * basics, each with how many know it (red when only one does: one death from being lost), plus what has been lost.
- * The chief and its policies (P8.4); beliefs and festivals join it later in P8.
+ * The chief and its policies (P8.4), the festivals: on now or next, and the last few held (P8.5); the village's beliefs,
+ * lucky (☀) or unlucky (☾) (P8.6).
  */
 export class VillagePanel implements Component {
   private root = el('div.villagepanel.panel.hidden');
@@ -49,6 +52,8 @@ export class VillagePanel implements Component {
     };
     const recipes = know.filter((k) => !k.fact), facts = know.filter((k) => k.fact);
     const chief = chiefOf(this.ctx.game.world), pol = s.village.policies ?? {};
+    const beliefs = s.village.culture?.beliefs ?? [];
+    const fest = festivalNow(this.ctx.game.world), next = nextFestival(this.ctx.game.world), held = (s.village.culture?.held ?? []).slice(-4).reverse();
     const policies = [pol.work && 'work', pol.rota && 'rota', pol.festivals && 'festivals', pol.shrine && 'shrine', pol.quarantine && 'quarantine',
       pol.law !== undefined && (pol.law < CFG.mischief.theft.law ? 'lax' : 'strict')].filter((x): x is string => !!x).map((k) => t(`policy.${k}`));
     this.body.replaceChildren(
@@ -58,6 +63,10 @@ export class VillagePanel implements Component {
       el('div.sub', { text: t('village.food', { n: Math.round(food.food), d: food.days.toFixed(1) }) }),
       el('h3', { text: chief ? t('village.chief', { name: chief.name }) : t('village.noChief') }), // P8.4
       el('div.sub', { text: `${t('village.policies')}: ${policies.join(' · ') || t('village.noPolicies')}` }),
+      el('h3', { text: t('village.festivals') }), el('div.sub', { text: fest ? t('village.festivalNow', { fest: cap(t(`fest.${fest.kind}`)) }) : t('village.nextFestival', { fest: t(`fest.${next[0]}`), day: next[1] + 1 }) }),
+      el('div.sub', { text: held.length ? held.map(([d, k, n]) => t('village.held', { fest: cap(t(`fest.${k}`)), day: d + 1, n })).join(' · ') : t('village.noneHeld') }),
+      el('h3', { text: t('village.beliefs') }), // P8.6
+      ...(beliefs.length ? beliefs.map((b) => el('div.vp-row', {}, el('span', { text: `${b.valence > 0 ? '☀' : '☾'} ${beliefText(b.omen, b.luck)}` }))) : [el('div.sub', { text: t('village.noBeliefs') })]),
       el('h3', { text: t('village.knowledge') }),
       el('div.sub', { text: t('village.basics', { list: STARTER_RECIPES.map((id) => t(`recipe.${id}`)).join(', ') }) }),
       ...(recipes.length ? recipes.map(row) : [el('div.sub', { text: t('village.nothing') })]),

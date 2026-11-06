@@ -8,6 +8,7 @@ import { q4 } from '../../shared/math';
 import { updateZones } from './zones';
 import { updateAnger } from './anger';
 import { resolvePending } from './powers/wrath';
+import type { FaithState } from './faithState';
 
 export type GameMode = 'sandbox' | 'divine' | 'observer';
 
@@ -40,6 +41,8 @@ export interface GodState {
   pending: PendingStrike[];
   /** P6.6 Sanctuary domes: enemies are kept out until `until` */
   sanctuaries: { pos: Vec2; r: number; until: number }[];
+  /** P8.8: prayers, news, offerings, the shaman's gathering (see faithState.ts) */
+  faith?: FaithState;
   /** counters used by divine deeds & stats */
   counts: { grabs: number; gentleSetDowns: number; drops: number; gifts: number; pets: number };
 }

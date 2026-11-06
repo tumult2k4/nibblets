@@ -10,7 +10,8 @@ import { dryingRackGeo, grindingStoneGeo, rackItems, storagePitGeo } from './fib
 import { gateGeo, kilnGeo, watchtowerGeo, workbenchGeo } from './stationMeshes';
 import { hearthGeo, longhouseGeo, nurseryGeo, wellGeo } from './settlementMeshes';
 import { bridgeGeo, compostHeapGeo, gardenPlotGeo } from './gardenMeshes';
-import { paintGroup, shelfGroup } from './trinketMeshes';
+import { offeringGroup, paintGroup, shelfGroup } from './trinketMeshes';
+import { SHRINE_TOP, musicCircleGeo, shrineGeo, totemGeo } from './cultureMeshes';
 
 const HS = CFG.world.heightScale;
 const WOOD = '#9a6b3f', THATCH = '#d4a94e', DARK = '#4a3420';
@@ -89,7 +90,7 @@ const MAKERS: Partial<Record<Building['type'], () => THREE.BufferGeometry>> = {
   grinding_stone: grindingStoneGeo, drying_rack: dryingRackGeo, storage_pit: storagePitGeo,
   workbench: workbenchGeo, watchtower: watchtowerGeo, gate: () => gateGeo(1), kiln: kilnGeo,
   hearth: hearthGeo, longhouse: longhouseGeo, well: wellGeo, nursery: nurseryGeo,
-  garden_plot: gardenPlotGeo, compost_heap: compostHeapGeo, bridge: () => bridgeGeo(),
+  garden_plot: gardenPlotGeo, compost_heap: compostHeapGeo, bridge: () => bridgeGeo(), music_circle: musicCircleGeo, shrine: shrineGeo, totem: totemGeo,
 };
 /** Finished-building geometry by type (huts P3.3, campfire P4.3, preservation P5.6, P5.7 stations). */
 function geoOf(type: Building['type']): THREE.BufferGeometry {
@@ -179,8 +180,9 @@ export class BuildingViews {
         const geo2 = rackItems(fresh || dried, !fresh);
         if (geo2) g.add(new THREE.Mesh(geo2, flatMat));
       }
-      if (b.decoration.length && (hut || b.type === 'longhouse')) // P8.2: the trinket shelf by the door
-        g.add(shelfGroup(b.decoration.map((id) => this.w.s.trinkets.find((t) => t.id === id)).filter((t): t is Trinket => !!t), b.type === 'longhouse'));
+      const shown = b.decoration.map((id) => this.w.s.trinkets.find((t) => t.id === id)).filter((t): t is Trinket => !!t);
+      if (shown.length && (hut || b.type === 'longhouse')) g.add(shelfGroup(shown, b.type === 'longhouse')); // P8.2: the trinket shelf by the door
+      if (shown.length && b.type === 'shrine' && b.buildProgress >= 1) g.add(offeringGroup(shown, SHRINE_TOP)); // P8.6: offerings on the slab
       if (hut && painted(b, this.w.s.tick)) g.add(paintGroup(b.id)); // P8.3: a prankster's handiwork
       if (!hut) return tag(g, b);
       const win = new THREE.Mesh(WINDOW, WINDOW_MAT);

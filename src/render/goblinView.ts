@@ -15,6 +15,7 @@ import { adornWearGeo } from './adornMeshes';
 import { flatMat } from './lowpoly';
 import type { Interp } from './interpolation';
 import { sickLook } from './sickLook';
+import { headExtras, playedInstrument } from './festivalPose';
 
 interface View {
   rig: GoblinRig; pheno: Phenotype; prop: THREE.Mesh | null; propType: string; held: THREE.Object3D | null; heldKey: string; blinkAt: number; walkPhase: number; zzz: THREE.Sprite | null;
@@ -279,7 +280,7 @@ export class GoblinViews {
   /** The right hand shows the tool for the current job (pick while mining, axe while chopping), else the held item. */
   private updateHeld(g: Goblin, v: View): void {
     const act = g.activity.action;
-    const job = act === 'mine' ? toolFor(g, 'mine').stack : act === 'chop' ? toolFor(g, 'chop').stack : null;
+    const job = act === 'mine' ? toolFor(g, 'mine').stack : act === 'chop' ? toolFor(g, 'chop').stack : playedInstrument(g); // P8.5: the drum or flute
     const s = job ?? g.equipped.hand;
     const key = s ? `${s.type}${s.fine ? '*' : ''}` : '';
     if (key === v.heldKey) return;
@@ -292,8 +293,8 @@ export class GoblinViews {
   /** Clothes on the body, neck and head, war paint on the face, a basket or rolled mat on the back. */
   private updateWear(g: Goblin, v: View): void {
     const back = (['basket', 'sleeping_mat'] as const).filter((t) => g.inventory.some((s) => s.type === t));
-    const paint = g.mood.modifiers.some((m) => m.id === 'war_paint');
-    const key = [g.equipped.body?.type, g.equipped.neck?.type, g.equipped.head?.type, paint, g.role, ...back].join(',');
+    const extras = headExtras(g, this.w); // war paint, the chief's headdress (P8.4), a Sprout Day crown (P8.5)
+    const key = [g.equipped.body?.type, g.equipped.neck?.type, g.equipped.head?.type, ...extras, '|', ...back].join(',');
     if (key === v.wearKey) return;
     v.wearKey = key;
     for (const m of v.wear) m.removeFromParent();
@@ -308,8 +309,7 @@ export class GoblinViews {
       v.wear.push(m);
     };
     for (const [s, parent] of [[g.equipped.body, v.rig.body], [g.equipped.neck, v.rig.body], [g.equipped.head, v.rig.head]] as const) put(s?.type, parent);
-    if (paint) put('war_paint_face', v.rig.head);
-    if (g.role === 'chief') put('chief_headdress', v.rig.head); // P8.4
+    for (const t of extras) put(t, v.rig.head);
     for (const t of back) put(t, v.rig.body);
   }
 

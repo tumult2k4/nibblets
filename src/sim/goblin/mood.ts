@@ -90,11 +90,11 @@ export function moodTarget(g: Goblin): number {
   // company (P5.1): loneliness weighs, good company lifts a little
   v += (n.social - 50) * CFG.social.moodMul;
   if (n.social < 15) v -= 10;
-  // children need to play (P5.4)
+  // children need to play (P5.4); grown-ups like a bit of fun, but it weighs lightly (P8.5)
   if (g.lifeStage === 'youngling') {
     v += (n.fun - 50) * CFG.social.moodMul;
     if (n.fun < 15) v -= 10;
-  }
+  } else if (g.lifeStage !== 'hatchling') v += (n.fun - 50) * CFG.festivals.adultFun.moodMul;
   // feeling unsafe is miserable too (P4.5)
   v += Math.min(0, n.safety - 50) * CFG.safety.moodMul;
   for (const m of g.mood.modifiers) v += m.amount;
@@ -134,7 +134,13 @@ export const favoriteFood = (g: Goblin): ItemType => FAVORITES[fnv1a(`fav:${g.id
 /** Eating its favorite: half a day of good cheer (not stacked). */
 export function ateFood(w: World, g: Goblin, t: ItemType): void {
   if (t === favoriteFood(g)) holdMood(w, g, 'favorite_food', M.favorite.amount, M.favorite.days * DAY);
+  // P8.7: cooked meals count toward the gourmand, who relishes them and turns its nose up at raw meat and fish
+  if (COOKED.has(t)) g.deeds.cooked = (g.deeds.cooked ?? 0) + 1;
+  if (!g.traits.includes('gourmand')) return;
+  if (COOKED.has(t)) holdMood(w, g, 'savoured', CFG.character.gourmand.savour, DAY / 2);
+  else if (t === 'meat' || t === 'fish') holdMood(w, g, 'raw_food', CFG.character.gourmand.raw, DAY / 2);
 }
+const COOKED: ReadonlySet<ItemType> = new Set(['stew', 'cooked_fish', 'cooked_meat']);
 
 /** True while `g` carries the spark of Inspiration (the god's gift, or a day of its own happiness, P8.1). */
 export const isInspired = (g: Goblin, w: World): boolean => g.mood.modifiers.some((m) => m.id === 'inspired' && m.expiresTick > w.s.tick);

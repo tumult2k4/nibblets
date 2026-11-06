@@ -36,6 +36,20 @@ const SHELF = merge([
   paint(new THREE.BoxGeometry(0.04, 0.34, 0.04).translate(0.27, 0.17, 0), '#6f5236', 0.05, 5),
 ]);
 
+/** The trinkets laid on a shrine's top slab (P8.6), at height `top`: two rows of three. */
+export function offeringGroup(ts: readonly Trinket[], top: number): THREE.Group {
+  const g = new THREE.Group();
+  g.name = 'offerings';
+  ts.slice(0, 6).forEach((t, i) => {
+    const m = new THREE.Mesh(trinketGeo(t), flatMat);
+    m.position.set(-0.13 + (i % 3) * 0.13, top, i < 3 ? 0.07 : -0.07);
+    m.rotation.y = (t.id * 1.3) % Math.PI;
+    m.scale.setScalar(1.3);
+    g.add(m);
+  });
+  return g;
+}
+
 /** The shelf with its trinkets in a row (up to six), set beside the door of a home. */
 export function shelfGroup(ts: readonly Trinket[], longhouse: boolean): THREE.Group {
   const g = new THREE.Group();

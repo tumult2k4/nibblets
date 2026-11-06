@@ -64,6 +64,9 @@ import { Apologize, Steal } from './actions/steal';
 import { Brawl } from './actions/brawl';
 import { Exile, Judge } from './actions/judge';
 import { EXILE_OK, policyWorkMul } from '../leadership';
+import { Dance, JoinFestival, PlayMusic } from './actions/festival';
+import { Pray } from './actions/pray';
+import { festivalWorkMul } from '../festivals';
 
 export const ACTIONS: Record<ActionId, UtilityAction> = {
   idle: Idle, wander: Wander, eat: Eat, harvest_fruit: HarvestFruit, pick_up: PickUp, drop: Drop,
@@ -82,7 +85,7 @@ export const ACTIONS: Record<ActionId, UtilityAction> = {
   tend_compost: TendCompost, spread_compost: SpreadCompost, pave_path: PavePath,
   haul_to_stockpile: HaulToStockpile, sulk: Sulk, binge: Binge, wander_off: WanderOff,
   hunt_trinket: HuntTrinket, decorate: Decorate, prank: Prank, steal: Steal, apologize: Apologize, brawl: Brawl,
-  judge: Judge, exile: Exile,
+  judge: Judge, exile: Exile, join_festival: JoinFestival, play_music: PlayMusic, dance: Dance, pray: Pray,
 };
 const CHOOSABLE = (Object.values(ACTIONS) as UtilityAction[]).filter((a) => !a.forced);
 
@@ -115,7 +118,7 @@ export function scoreActions(g: Goblin, w: World, noise = true, planned: ActionI
     if (base <= 0) continue;
     base *= demandMul(g, w.s, a.id); // §12.4: the village's shortfalls pull the industrious to the work that meets them
     const pw = personalityWeight(g.personality, a.id) * stageMul(g, a) * traitMul(g, a.id) // personality, life stage, traits
-      * (a.tags.includes('work') ? policyWorkMul(w) : 1); // P8.4: an industrious chief
+      * (a.tags.includes('work') ? policyWorkMul(w) * (a.tags.includes('food') ? 1 : festivalWorkMul(w)) : 1); // P8.4: an industrious chief; P8.5: no work at a festival (food aside)
     const mm = moodMul(g, a);
     const sk = skillFocus(g, a.id);
     const hy = g.activity.action === a.id && g.activity.status === 'running' ? CFG.goblin.hysteresis : 1;

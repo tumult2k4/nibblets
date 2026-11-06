@@ -8,6 +8,7 @@ import { FACTS } from '../sim/knowledge';
 import { towerOf } from '../sim/watch';
 import { mateOf } from '../sim/goblin/family';
 import { tileAt } from '../sim/grid';
+import { cultureNote } from './notifyCulture';
 
 const isFact = (id: string): boolean => (FACTS as readonly string[]).includes(id);
 /** A recipe's or a fact's display name. */
@@ -171,7 +172,7 @@ export function noteFor(e: SimEvent, w: World, names: Map<ID, string>): Note | n
       if (e.kind === 'bridge') return bridgeAcross(w, e.buildingId) ? { ...base, text: t('ev.bridge_built'), tier: 'notable', icon: 'hill' } : null;
       if (e.kind === 'grinding_stone' || e.kind === 'drying_rack' || e.kind === 'storage_pit' || e.kind === 'workbench' || e.kind === 'watchtower' || e.kind === 'kiln' || e.kind === 'well' || e.kind === 'nursery' || e.kind === 'compost_heap')
         return { ...base, text: t('ev.preserve_built', { building: t(`bld.${e.kind}`) }), tier: 'notable', icon: e.kind === 'workbench' ? 'gear' : e.kind === 'watchtower' ? 'eye' : e.kind === 'compost_heap' ? 'leaf' : 'bowl' };
-      return e.kind === 'hut' ? { ...base, text: t('ev.hut_built'), tier: 'notable', icon: 'hill' } : null;
+      return e.kind === 'hut' ? { ...base, text: t('ev.hut_built'), tier: 'notable', icon: 'hill' } : cultureNote(e, w, base, name);
     case 'building_destroyed':
       if (e.cause === 'bramblebeast')
         return e.kind === 'fence' ? { ...base, text: t('ev.beast_smashed_fence'), tier: 'info', icon: 'fang' }
@@ -291,6 +292,6 @@ export function noteFor(e: SimEvent, w: World, names: Map<ID, string>): Note | n
     case 'command_rejected':
       return { ...base, text: t('ev.rejected', { reason: t(`reason.${e.reason}`) }), tier: 'info', icon: 'close' };
     default:
-      return null;
+      return cultureNote(e, w, base, name); // P8.5–P8.6
   }
 }

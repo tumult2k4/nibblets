@@ -21,6 +21,8 @@ import { updateCommons } from './commons';
 import { updateTrinkets } from './trinkets';
 import { updateReputation } from './mischief';
 import { updateLeadership } from './leadership';
+import { updateFestivals } from './festivals';
+import { noteSign, updateSuperstitions } from './superstitions';
 import { updateWildfire } from './wildfire';
 import { updateClimate } from './climate';
 import { updateBlight } from './blight';
@@ -80,6 +82,7 @@ export class World {
 
   emit(e: SimEventInput): void {
     this.bus.emit({ ...e, tick: this.s.tick } as SimEvent);
+    noteSign(this, e); // omens and turns of luck for the superstitions (P8.6)
   }
 
   push(cmd: Command): void {
@@ -169,6 +172,8 @@ export class World {
     updateTrinkets(this); //  glints washed up after storms (P8.2)
     updateReputation(this); // reputation eases, old wrongs are let go (P8.3)
     updateLeadership(this); // chief, the night watch, exiles (P8.4)
+    updateFestivals(this); // the calendar, Starfall and merrymaking (P8.5)
+    updateSuperstitions(this); // beliefs from coincidence (P8.6)
     updateTraits(this); //    17b acquired traits (P5.7)
     if (s.tick % CFG.stats.sampleEvery === 0) sampleStats(this); // 20
     s.rngState = this.rng.state;

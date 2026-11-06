@@ -41,6 +41,13 @@ export function toolGeo(t: ItemType): THREE.BufferGeometry | null {
         paint(new THREE.CylinderGeometry(0.07, 0.07, 0.01, 7).translate(0, 0.005, 0), '#9c5f3e'),
         paint(new THREE.CylinderGeometry(0.082, 0.082, 0.008, 7).translate(0, 0.11, 0), '#6fa7c7'),
         paint(new THREE.TorusGeometry(0.085, 0.006, 3, 8, Math.PI).translate(0, 0.14, 0), '#a8894a')]);
+    // P8.5 instruments: a hollow-log drum with a pale woven skin and a lacing band; a bone flute with dark finger holes
+    case 'drum':
+      return merge([paint(new THREE.CylinderGeometry(0.085, 0.07, 0.13, 7).translate(0.12, 0.065, 0), '#8a5a34', 0.05),
+        paint(new THREE.CylinderGeometry(0.088, 0.088, 0.012, 7).translate(0.12, 0.134, 0), '#e8d9b0'),
+        paint(new THREE.TorusGeometry(0.083, 0.006, 3, 10).rotateX(Math.PI / 2).translate(0.12, 0.1, 0), '#c9b26a')]);
+    case 'flute':
+      return merge([shaft(0.3, 0.012, '#efe6cf'), ...[0.02, 0.06, 0.1].map((x) => paint(new THREE.SphereGeometry(0.006, 3, 2).translate(x, 0.024, 0), '#3a2e24'))]);
     default:
       return null;
   }

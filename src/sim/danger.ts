@@ -9,6 +9,7 @@ import type { Vec2 } from '../shared/types';
 import type { World } from './world';
 import { menaces } from './enemies/common';
 import { litFireNear } from './fire';
+import { totemNear } from './shrine';
 
 const D = CFG.danger;
 
@@ -31,6 +32,7 @@ export function dangerAt(w: World, p: Vec2): number {
   // the god's own wrath: dread after a strike, a biting swarm
   for (const z of w.s.god.zones) { const d = dist(z.pos, p); if (d < z.r) v += D.zone * (1 - d / z.r); }
   if (v > 0 && litFireNear(w, p, CFG.fire.lightRadius)) v *= 1 - D.fireCalm;
+  if (v > 0 && totemNear(w, p)) v *= 1 - CFG.beliefs.totem.calm; // P8.6: under the totem's eye
   // P6.6: under a Sanctuary's dome the fear mostly goes
   if (v > 0 && w.s.god.sanctuaries.some((z) => dist(z.pos, p) <= z.r)) v *= CFG.miracles.sanctuaryCalm;
   return v;

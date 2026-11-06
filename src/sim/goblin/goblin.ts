@@ -1,7 +1,7 @@
 import type { ID, Vec2 } from '../../shared/types';
 import type { Rng } from '../../shared/rng';
 import { allocId } from '../../shared/ids';
-import { q4 } from '../../shared/math';
+import { clamp, q4 } from '../../shared/math';
 import { CFG } from '../config';
 import type { Goblin, WorldState } from '../state';
 import type { Genome } from './genetics/genome';
@@ -42,11 +42,18 @@ export function createGoblin(s: WorldState, rng: Rng, o: SpawnOpts): Goblin {
     reputation: 0, traits: [],
     deeds: { eaten: 0, drank: 0, harvested: 0, planted: 0, kills: 0, builds: 0, gifts: 0, timesHeld: 0, fights: 0 },
     godView: {
-      faith: q4(20 + personality.piety * 30), love: 30, fear: 10, angryAtGod: false, angryUntil: 0, wishes: [],
+      faith: birthFaith(s, personality.piety, o.parents), love: 30, fear: 10, angryAtGod: false, angryUntil: 0, wishes: [],
       answeredPrayers: 0, ignoredPrayers: 0, lastVoiceTick: -1, petLoveToday: 0, petDay: -1,
     },
     role: 'none', heldByGod: false, lastDecisionTick: -1, airborne: null, lifespanDays, wetUntil: -1, lastEggTick: -1e9,
   };
+}
+
+/** Faith at birth (§17.4, P8.8): piety, and what the parents believe. */
+export function birthFaith(s: WorldState, piety: number, parents?: readonly ID[] | null): number {
+  const B = CFG.faith.birth, ps = parents ? s.goblins.filter((g) => parents.includes(g.id)) : [];
+  const mean = ps.length ? ps.reduce((a, g) => a + g.godView.faith, 0) / ps.length : 0;
+  return q4(clamp(B.base + piety * B.piety + B.parents * mean, 0, 100));
 }
 
 export function idleActivity(tick: number): Goblin['activity'] {

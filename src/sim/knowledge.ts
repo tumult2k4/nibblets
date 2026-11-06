@@ -20,6 +20,7 @@ import { stockCount } from './stockpile';
 import { atStore } from './commons';
 import { mushroomItem } from './ecology';
 import { nextSpan, wornTiles } from './roads';
+import { placeIdea } from './shrine';
 
 const K = CFG.knowledge;
 const PRESERVE_IDS: ReadonlySet<string> = new Set(['grinding_stone', 'drying_rack', 'storage_pit']);
@@ -90,6 +91,10 @@ function nearness(g: Goblin, w: World, id: RecipeId): { share: number; recalled:
   const kinds = [...inputs, ...(RECIPES[id]?.near ?? [])];
   let held = false, n = 0, recalled = 0;
   const idea = RECIPES[id]?.idea;
+  // a ring of stones to play in comes to mind while playing (P8.5), wherever the stones are
+  if (id === 'music_circle') return { share: g.activity.action === 'play_music' && g.activity.stage === 1 ? 1 : 0, recalled: 0 };
+  // P8.6: a shrine to a goblin with a trinket and some faith, a totem to one in war paint
+  if (id === 'shrine' || id === 'totem') return { share: placeIdea(g, w, id), recalled: 0 };
   const atStock = atStore(w.s, g.pos, K.stockReach);
   if (atStock && RECIPES[id]?.station === 'site') held = true;
   for (const t of kinds) {
@@ -130,7 +135,9 @@ export function discoveryChance(g: Goblin, w: World, id: RecipeId): number {
   // worn trails put a goblin in mind of paving them, water worth crossing of a bridge (P7.4)
   const BR = CFG.garden.bridge;
   const road = id === 'stone_path' ? (wornTiles(w.s).length >= BR.trails ? BR.ideaWith : BR.ideaWithout)
-    : id === 'bridge' ? (nextSpan(w.s) ? BR.ideaWith : BR.ideaWithout) : 1;
+    : id === 'bridge' ? (nextSpan(w.s) ? BR.ideaWith : BR.ideaWithout)
+    : id === 'music_circle' ? CFG.festivals.music.circleIdea
+    : id === 'shrine' ? CFG.beliefs.shrine.idea * (0.5 + g.personality.piety) : id === 'totem' ? CFG.beliefs.totem.idea : 1;
   return K.discoveryBase * (0.5 + g.personality.wanderlust) * (1 + K.skillMul * skill) * inspiration(g) * near * rot * ill * prey * road * K.memoryNear ** recalled;
 }
 

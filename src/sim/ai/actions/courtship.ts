@@ -22,6 +22,7 @@ import { nurseryNear, nurseryNest } from '../../settlement';
 import type { Building } from '../../state';
 import { charm } from '../../clothing';
 import { carried, passTrinket, trinketValue } from '../../trinkets';
+import { courtMul } from '../../festivals';
 
 const F = CFG.family, TR = CFG.trinkets;
 const DAY = CFG.time.dayTicks;
@@ -57,7 +58,7 @@ function reach(g: Goblin, o: Goblin, w: World): boolean | null {
 export const Court: UtilityAction = {
   id: 'court', tags: ['social'], minStage: 'adult', interruptible: (g) => g.activity.stage === 0,
   isAvailable: (g, w) => g.lifeStage === 'adult' && !pressed(g) && !!suitor(g, w),
-  score: (g, w) => F.courtScore[0] + F.courtScore[1] * attraction(g, suitor(g, w)!, w),
+  score: (g, w) => (F.courtScore[0] + F.courtScore[1] * attraction(g, suitor(g, w)!, w)) * courtMul(w), // ×2 the spring after Harvest Night (P8.5)
   start(g, w) {
     const o = suitor(g, w);
     if (!o) return false;

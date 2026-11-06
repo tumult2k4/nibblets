@@ -20,6 +20,7 @@ import { addItem, canCarry } from '../../inventory';
 import { carried, passTrinket, trinketValue } from '../../trinkets';
 import { makeAmends, openHomes, owed, rest, resting, temptable, temptation, theft } from '../../mischief';
 import { reach } from './kindness';
+import { beliefMul } from '../../superstitions';
 
 const TH = CFG.mischief.theft, A = CFG.mischief.apology, V = CFG.trinkets.value;
 
@@ -84,7 +85,7 @@ function take(g: Goblin, m: Mark, w: World, at: Vec2): boolean {
 export const Steal: UtilityAction = {
   id: 'steal', tags: ['fun'], minStage: 'youngling', interruptible: false, // once it has made up its mind, it goes through with it
   isAvailable: (g, w) => !thirsty(g) && !g.heldByGod && !resting(g, w, 'steal_rest') && !!stealMark(g, w),
-  score: (g, w) => q4(TH.score * (0.4 + stealMark(g, w)!.tempt)),
+  score: (g, w) => q4(TH.score * (0.4 + stealMark(g, w)!.tempt) * beliefMul(w, g, 'theft')),
   start(g, w) {
     const m = stealMark(g, w);
     if (!m) return false;

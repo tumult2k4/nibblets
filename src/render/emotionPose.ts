@@ -7,6 +7,7 @@
  */
 import type { Goblin } from '../sim/state';
 import type { GoblinRig } from './goblinMesh';
+import { festivalPose } from './festivalPose';
 
 const LYING = new Set(['sleep_ground', 'sleep_home', 'rest_sick', 'mourn', 'bury_dead', 'incubate_egg']);
 const STILL = new Set(['idle', 'wander', 'wander_off', 'look_up']);
@@ -14,6 +15,8 @@ const STILL = new Set(['idle', 'wander', 'wander_off', 'look_up']);
 export function emotionPose(g: Goblin, r: GoblinRig, t: number): number {
   const a = g.activity, act = a.action, ph = t + g.id * 1.7;
   if (LYING.has(act)) return 0;
+  const fest = festivalPose(g, r, t); // music, dancing and festivals (P8.5)
+  if (fest !== null) return fest;
   if (act === 'sulk' && a.stage === 1) { // sat down, arms crossed, chin on chest
     r.body.position.y = 0.05; r.legL.rotation.x = r.legR.rotation.x = -1.3;
     r.armL.rotation.x = r.armR.rotation.x = -1.25; r.armL.rotation.z = 0.95; r.armR.rotation.z = -0.95;

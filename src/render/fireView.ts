@@ -92,8 +92,9 @@ export class FireFx {
         this.fires.set(b.id, g);
         this.group.add(g);
       }
-      // a low fire burns small
-      const k = 0.55 + 0.45 * Math.min(1, (b.fuel ?? 0) / CFG.fire.ticksPerWood);
+      // a low fire burns small; the festival's fire is built up, Harvest Night's into a bonfire (P8.5)
+      const fest = s.village.culture?.festival, here = fest && fest.venueId === b.id && s.tick < fest.endTick;
+      const k = (0.55 + 0.45 * Math.min(1, (b.fuel ?? 0) / CFG.fire.ticksPerWood)) * (here ? (fest.kind === 'harvest_night' ? 2.2 : 1.4) : 1);
       flicker(g.children[0]!, t, b.id, k);
     }
     for (const [id, g] of this.fires) if (!seen.has(id)) { this.group.remove(g); this.fires.delete(id); }

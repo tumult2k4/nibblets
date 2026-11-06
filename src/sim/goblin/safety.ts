@@ -13,6 +13,7 @@ import { visionRadius } from '../ai/considerations';
 import { menaces } from '../enemies/common';
 import type { Goblin } from '../state';
 import type { World } from '../world';
+import { totemNear } from '../shrine';
 
 const S = CFG.safety;
 
@@ -30,6 +31,7 @@ export function safetyTarget(g: Goblin, w: World): number {
   let v = lit ? S.day : roof ? S.nightInside : S.nightOutside;
   if (roof) v += S.hut;
   if (litFireNear(w, g.pos, CFG.fire.lightRadius)) v += S.fire;
+  if (totemNear(w, g.pos)) v += CFG.beliefs.totem.safety; // P8.6
   if (bestWeapon(g)) v += S.armed;
   let friends = 0;
   for (const o of w.goblinHash.query(g.pos, S.friendRadius))

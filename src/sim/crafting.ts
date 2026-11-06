@@ -25,6 +25,7 @@ import { isKilnRecipe, kilnFor } from './kiln';
 import { foodStores } from './spoilage';
 import { benchFor } from './workbench';
 import { adornWant } from './adorn';
+import { instrumentWant, isInstrument } from './music';
 import type { SkillId } from '../shared/types';
 
 const C = CFG.crafting, E = CFG.economy;
@@ -91,6 +92,7 @@ export function craftWant(g: Goblin, w: World, item: ItemType): number {
   if (d.bedroll) return hasItem(g, item) ? 0 : FB.matWant * (g.homeId === null ? 1 : 0.2);
   if (item === 'rope') return FB.ropeWant * materialWanted(g, w, 'rope', FB.ropeTarget);
   if (item === REMEDY) return remedyWant(g, w);
+  if (isInstrument(item)) return instrumentWant(g, w); // P8.5
   return 0;
 }
 

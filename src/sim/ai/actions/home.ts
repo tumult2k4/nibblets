@@ -3,7 +3,6 @@ import { dist, q4 } from '../../../shared/math';
 import { perDay } from '../../time';
 import { needUrgency } from '../../goblin/needs';
 import { moveAlong, planPath } from '../../steering';
-import { isNightNow } from '../considerations';
 import { buildingDef, findSite, isComplete, missingMaterials, placeBlueprint, workSpot } from '../../buildings';
 import { sleepScore } from './sleepGround';
 import { pushGoal } from '../planner';
@@ -13,6 +12,7 @@ import type { World } from '../../world';
 import type { UtilityAction } from '../action';
 import { quarantined, sickHut } from '../../quarantine';
 import { noticeHome } from '../../mischief';
+import { sleepTime } from '../../goblin/traits';
 
 const H = CFG.homes;
 
@@ -158,7 +158,7 @@ export const SleepHome: UtilityAction = {
       w.emit({ type: 'fell_asleep', goblinId: g.id, at: g.pos });
     }
     g.needs.energy = q4(Math.min(100, g.needs.energy + perDay(CFG.goblin.sleepRestorePerDay.hut)));
-    if (g.needs.energy >= CFG.goblin.wakeEnergy && !isNightNow(w)) {
+    if (g.needs.energy >= CFG.goblin.wakeEnergy && !sleepTime(g, w)) { // P8.7: a night owl's night is the morning
       w.emit({ type: 'woke_up', goblinId: g.id, at: g.pos });
       return 'done';
     }

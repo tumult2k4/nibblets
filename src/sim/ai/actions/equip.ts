@@ -17,6 +17,7 @@ import { addMood } from '../../goblin/mood';
 function handValue(s: ItemStack | null, night: boolean): number {
   if (!s) return 0;
   if (s.type === 'torch') return night ? 100 : 0;
+  if (s.type === 'drum' || s.type === 'flute') return 0; // P8.5: an instrument stays in the pack until it is played
   return weaponDmg(s) * 2 + (isTool(s.type) ? 1 : 0);
 }
 

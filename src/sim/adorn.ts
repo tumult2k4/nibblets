@@ -11,6 +11,8 @@ import { addMood } from './goblin/mood';
 import { stockCount } from './stockpile';
 import type { Building, Goblin } from './state';
 import type { World } from './world';
+import { beliefMul } from './superstitions';
+import { totemWantsPaint } from './shrine';
 
 const A = CFG.commons.adorn, DAY = CFG.time.dayTicks;
 
@@ -36,7 +38,10 @@ export const threatened = (w: World): boolean => w.s.threat.alarms > 0 && w.s.th
 
 /** 0..1 want for war paint (brave goblins, while Gnashers are about) or a necklace (an empty neck, the brave first). */
 export function adornWant(g: Goblin, w: World, item: 'war_paint' | 'bone_necklace'): number {
-  if (item === 'war_paint') return painted(g, w) || !threatened(w) ? 0 : A.paintWant * (0.3 + g.personality.bravery);
+  if (item === 'war_paint') {
+    if (totemWantsPaint(w)) return A.paintWant; // P8.6: the totem waits on a pot of it
+    return painted(g, w) || !threatened(w) ? 0 : A.paintWant * (0.3 + g.personality.bravery) * beliefMul(w, g, 'war_paint');
+  }
   return g.equipped.neck || g.inventory.some((s) => s.type === item) ? 0 : A.necklaceWant * (0.4 + g.personality.bravery);
 }
 

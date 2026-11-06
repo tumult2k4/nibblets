@@ -8,6 +8,7 @@ import { makePlant } from './worldgen';
 import { spawnGroundItem } from './groundItems';
 import { rainingAt } from './weather';
 import { gardenMul, inGarden } from './garden';
+import { sproutMul } from './festivals';
 
 const P = CFG.plants;
 const GROW: PlantStage[] = ['seed', 'sprout', 'sapling', 'young'];
@@ -110,7 +111,7 @@ export function updatePlants(w: World): void {
       if (!isGrowing(p)) continue;
     }
     p.age = q4(p.age + dtDays);
-    const rate = hydrationCurve(p.hydration) * fertilityMul(t.fertility) * season * greenThumb(w, p.plantedBy) * gardenMul(w.s, p.pos);
+    const rate = hydrationCurve(p.hydration) * fertilityMul(t.fertility) * season * greenThumb(w, p.plantedBy) * gardenMul(w.s, p.pos) * sproutMul(w.s, p.pos);
     if (isGrowing(p)) {
       const days = P.stageDays[p.stage as keyof typeof P.stageDays] * (p.kind === 'tree' ? P.treeStageMul : 1);
       p.growth = q4(p.growth + (dtDays / days) * rate);

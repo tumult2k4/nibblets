@@ -31,6 +31,8 @@ import type { World } from '../../world';
 import type { UtilityAction } from '../action';
 import { gardenSite, gardensWanted } from '../../garden';
 import { nextSpan } from '../../roads';
+import { wantsMusicCircle } from '../../music';
+import { wantsShrine, wantsTotem } from '../../shrine';
 
 const F = CFG.fire;
 export const isDaytime = (c: Parameters<typeof daylight>[0]): boolean => daylight(c) > 0.5;
@@ -67,6 +69,10 @@ export function villageNeeds(w: World): BuildingType[] {
   if (wantsWell(w.s) && hasSite(w, 'well')) out.push('well');
   if (wantsNursery(w.s) && hasSite(w, 'nursery')) out.push('nursery');
   if (wantsLonghouse(w.s) && hasSite(w, 'longhouse')) out.push('longhouse');
+  if (wantsMusicCircle(w) && hasSite(w, 'music_circle')) out.push('music_circle'); // P8.5: once someone plays
+  // P8.6: a shrine (first of all under a pious chief), a totem once Gnashers have come
+  if (wantsShrine(w) && hasSite(w, 'shrine')) out.splice(w.s.village.policies?.shrine ? 0 : out.length, 0, 'shrine');
+  if (wantsTotem(w) && hasSite(w, 'totem')) out.push('totem');
   // P7.4: garden plots once the store holds a few days' food, a compost heap once there is one, the next bridge span
   const of = (t: BuildingType) => w.s.buildings.filter((b) => b.type === t), plots = of('garden_plot'), spans = of('bridge');
   if (plots.length < gardensWanted(w.s) && plots.every(isComplete) && foodStores(w.s).days >= CFG.garden.plot.planDays && hasSite(w, 'garden_plot')) out.push('garden_plot');
@@ -116,6 +122,8 @@ function siteFor(w: World, type: BuildingType): Vec2 | null {
   if (type === 'watchtower') return towerSite(w);
   if (type === 'garden_plot') return gardenSite(w);
   if (type === 'bridge') { const sp = nextSpan(w.s); return sp && { x: sp.tile.x + 0.5, y: sp.tile.y + 0.5 }; }
+  // P8.5/P8.6: the music circle, the shrine and the totem sit out with the stations, or wherever there is room
+  if (type === 'music_circle' || type === 'shrine' || type === 'totem') return findCommunalSite(w, type, STATION_RADIUS) ?? findSite(w, type, w.s.village.center);
   // stations (and from P7.5 the compost heap, which wants room near the store) sit a little further out than the fire
   return findCommunalSite(w, type, (STATIONS as readonly string[]).includes(type) || type === 'compost_heap' ? STATION_RADIUS : undefined);
 }

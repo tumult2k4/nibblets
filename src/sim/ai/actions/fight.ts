@@ -19,6 +19,7 @@ import type { ActionId, Enemy, Goblin } from '../../state';
 import type { World } from '../../world';
 import { braveryOf } from '../../adorn';
 import type { UtilityAction } from '../action';
+import { drift } from '../../goblin/drift';
 
 const C = CFG.combat;
 export const DANGER: ReadonlySet<ActionId> = new Set(['flee', 'attack', 'defend_village']);
@@ -120,6 +121,7 @@ function engageStart(g: Goblin, w: World, e: Enemy | null): boolean {
 function endFight(g: Goblin, w: World): void {
   if (g.activity.stage < 1) return;
   g.deeds.fights++;
+  drift(g, 'fought'); // P8.7: came through it, a little braver
   if (g.deeds.fights >= C.veteranFights) grantTrait(w, g, 'veteran');
 }
 

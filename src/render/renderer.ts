@@ -17,6 +17,7 @@ import { GlintViews } from './trinketMeshes';
 import { EggViews } from './eggView';
 import { GoblinViews } from './goblinView';
 import { Emotes } from './emotes';
+import { MusicFx } from './musicFx';
 import type { TerrainLens } from './terrainMesh';
 import type { SimEvent } from '../shared/types';
 import { Interp } from './interpolation';
@@ -58,6 +59,7 @@ export class Renderer {
   glints!: GlintViews;
   eggs!: EggViews;
   wrathFx!: WrathFx;
+  music!: MusicFx;
   miracleFx!: MiracleFx;
   readonly weatherFx = new WeatherFx();
   interp!: Interp;
@@ -108,9 +110,11 @@ export class Renderer {
     this.wrathFx.reduced = this.weatherFx.reduced;
     this.miracleFx = new MiracleFx(w, this.camera, this.water.mesh.material as THREE.Material);
     this.miracleFx.reduced = this.weatherFx.reduced;
+    this.music = new MusicFx(w); // P8.5 notes in the player's color
+    this.music.reducedMotion = this.weatherFx.reduced;
     this.goblins.outlines = this.settings.outlines;
     this.interp = new Interp(w);
-    this.worldGroup.add(this.terrain.group, this.water.mesh, this.props.group, this.buildings.group, this.mushrooms.group, this.goblins.group, this.weatherFx.group, this.fires.group, this.wildfire.group, this.enemies.group, this.wildlife.group, this.graves.group, this.eggs.group, this.glints.group, this.wrathFx.group, this.miracleFx.group);
+    this.worldGroup.add(this.terrain.group, this.water.mesh, this.props.group, this.buildings.group, this.mushrooms.group, this.goblins.group, this.weatherFx.group, this.fires.group, this.wildfire.group, this.enemies.group, this.wildlife.group, this.graves.group, this.eggs.group, this.glints.group, this.wrathFx.group, this.miracleFx.group, this.music.group);
     const c = w.s.village.center;
     this.camera.setTarget(c.x, c.y, true);
   }
@@ -232,6 +236,7 @@ export class Renderer {
     this.miracleFx.update(dt, this.time);
     this.ambientEmotes(dt);
     this.emotes.update(dt, (id) => this.goblins.headPos(id), this.camera.dist);
+    this.music.update(this.time, dt, (id) => this.goblins.headPos(id));
     this.gl.render(this.scene, this.camera.cam);
   }
 

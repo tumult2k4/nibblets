@@ -13,6 +13,10 @@ import { MOOD } from './cfg/mood';
 import { TRINKETS } from './cfg/trinkets';
 import { MISCHIEF } from './cfg/mischief';
 import { LEADERSHIP } from './cfg/leadership';
+import { FESTIVALS } from './cfg/festivals';
+import { BELIEFS } from './cfg/beliefs';
+import { CHARACTER } from './cfg/character';
+import { FAITH } from './cfg/faith';
 
 export const CFG = {
   tickHz: 10,
@@ -282,7 +286,7 @@ export const CFG = {
   health: HEALTH,
   /** P6.2–P6.3 fire, floods, drought, blight, shooting stars: see cfg/disasters.ts */
   disasters: DISASTERS,
-  death: DEATH, miracles: MIRACLES, wildlife: WILDLIFE, economy: ECONOMY, settlement: SETTLEMENT, garden: GARDEN, commons: COMMONS, mood: MOOD, trinkets: TRINKETS, mischief: MISCHIEF, leadership: LEADERSHIP,
+  death: DEATH, miracles: MIRACLES, wildlife: WILDLIFE, economy: ECONOMY, settlement: SETTLEMENT, garden: GARDEN, commons: COMMONS, mood: MOOD, trinkets: TRINKETS, mischief: MISCHIEF, leadership: LEADERSHIP, festivals: FESTIVALS, beliefs: BELIEFS, character: CHARACTER, faith: FAITH,
   llm: { diariesPerDay: 3, dialoguesPerDay: 4, barksPerDay: 6, tokensPerDay: 12000, rpm: 10, concurrency: 2, timeoutMs: 20000 },
   god: {
     startFavor: 50, maxFavorBase: 100, maxFavorPerBeliever: 15, believerFaith: 40, prayingFavorMul: 3,
@@ -291,7 +295,7 @@ export const CFG = {
     holdFearTicks: 600, petLovePerSec: 1, petLoveDailyCap: 10,
     faithDecayPerDay: 1, gossipFactor: 0.5, skepticFaith: 15, conversionChance: 0.3,
     wishBonus: 0.35, wishTicks: { voice: 3600, sign: 1800 }, maxWishes: 3, defianceBase: 0.25,
-    dependenceShare: 0.3, dependenceDrift: 0.002, prayerTicks: 3600, prayerAnswerRadius: 8,
+    dependenceShare: 0.3, prayerTicks: 3600, prayerAnswerRadius: 8,
     voiceCost: { single: 5, group: 10, all: 25 }, shamanVoiceDiscount: 0.4, voiceRateLimitMs: 10000,
     voiceMaxChars: 280, voiceTokensPerDay: 4000, interpreterTimeoutMs: 10000, overhearRadius: 8,
     tiers: [0, 3, 6, 10, 15], hourTicks: 150,

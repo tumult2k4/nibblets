@@ -43,8 +43,9 @@ export function needDecay(g: Goblin, need: NeedId, season: string, heatwave = fa
       // P5.1: × sociability; sleep pauses it
       return isSleeping(g) ? 0 : perDay(D.social) * (0.3 + 1.4 * g.personality.sociability);
     case 'fun':
-      // P5.4: younglings need play (×2); for grown-ups fun waits for pranks, music and festivals (P8–P9)
-      return g.lifeStage === 'youngling' && !isSleeping(g) ? perDay(D.fun) * CFG.life.funYoungMul : 0;
+      // P5.4: younglings need play (×2); P8.5: with music and festivals grown-ups want a little fun too
+      if (isSleeping(g) || g.lifeStage === 'hatchling') return 0;
+      return perDay(D.fun) * (g.lifeStage === 'youngling' ? CFG.life.funYoungMul : CFG.festivals.adultFun.mul);
     default:
       return 0;
   }

@@ -14,6 +14,7 @@ import { isWalkable, tileAt } from './grid';
 import { addMood } from './goblin/mood';
 import { isKin, opinionOf, relationOf } from './goblin/social';
 import { fnv1a } from '../shared/rng';
+import { drift } from './goblin/drift';
 
 const D = CFG.death;
 const DAY = CFG.time.dayTicks, HOUR = CFG.god.hourTicks;
@@ -57,6 +58,7 @@ export function grieve(w: World, dead: Goblin): void {
     const amount = q4(D.griefMood[0] + (D.griefMood[1] - D.griefMood[0]) * k);
     const days = D.griefDays[0] + (D.griefDays[1] - D.griefDays[0]) * k;
     addMood(w, o, griefId(dead.id), -amount, Math.round(days * DAY));
+    if (dead.parents?.includes(o.id)) drift(o, 'child_lost'); // P8.7: less brave, more pious
     w.emit({ type: 'grief', goblinId: o.id, deadId: dead.id, at: { ...o.pos } });
     w.emit({ type: 'emote', goblinId: o.id, emote: 'tear' });
   }
