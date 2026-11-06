@@ -10,9 +10,10 @@ import { DE9, EN9 } from './i18n.p9';
 import { DE9B, EN9B } from './i18n.p9b';
 import { DE9C, EN9C } from './i18n.p9c';
 import { DE10, EN10 } from './i18n.p10';
+import { DE11, EN11 } from './i18n.p11';
 
-const EN = { ...EN0, ...EN6, ...EN7, ...EN8, ...EN8B, ...EN8C, ...EN9, ...EN9B, ...EN9C, ...EN10 };
-const DE: Record<string, string> = { ...DE0, ...DE6, ...DE7, ...DE8, ...DE8B, ...DE8C, ...DE9, ...DE9B, ...DE9C, ...DE10 };
+const EN = { ...EN0, ...EN6, ...EN7, ...EN8, ...EN8B, ...EN8C, ...EN9, ...EN9B, ...EN9C, ...EN10, ...EN11 };
+const DE: Record<string, string> = { ...DE0, ...DE6, ...DE7, ...DE8, ...DE8B, ...DE8C, ...DE9, ...DE9B, ...DE9C, ...DE10, ...DE11 };
 
 export type Lang = 'en' | 'de';
 export type I18nKey = keyof typeof EN;

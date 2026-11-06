@@ -1,6 +1,7 @@
 import type { App } from './app';
 import { el } from './dom';
 import { onLangChange, t } from './i18n';
+import { CFG } from '../sim/config';
 import { World } from '../sim/world';
 import { createWorld, createWorldState, type WorldParams } from '../sim/newWorld';
 import { deserialize, loadWorld } from '../sim/save';
@@ -20,6 +21,8 @@ export class Screens {
   private layer = el('div', { style: 'position:absolute;inset:0;pointer-events:none;z-index:20' });
   private banner = el('div.replay-banner.panel.hidden', {});
   private replayTarget = 0;
+  private rpFill = el('div.rp-fill');
+  private rpText = el('span.sub.rp-text');
 
   constructor(private app: App) {
     app.root.append(this.layer, this.banner);
@@ -192,10 +195,12 @@ export class Screens {
     w.step = () => {
       while (i < log.length && log[i]!.tick === w.s.tick) w.queue.push(log[i++]!.cmd);
       const evs = step();
-      if (w.s.tick >= this.replayTarget && this.app.game.speedIdx) {
+      if (w.s.tick >= this.replayTarget && (this.app.game.speedIdx || this.app.game.uiSkipTo)) {
         this.app.game.speedIdx = 0;
+        this.app.game.uiSkipTo = 0;
         this.app.toast(t('replay.done'), 'notable');
       }
+      if (w.s.tick % 10 === 0) this.replayProgress(w.s.tick, i, log.length);
       return evs;
     };
     this.enterGame(w);
@@ -206,8 +211,20 @@ export class Screens {
     this.banner.classList.remove('hidden');
   }
 
+  /** The replay viewer's bar (P11.1 polish): pause, play, fast, to the end; how far it has got, in days and commands. */
   private renderBanner(): void {
-    this.banner.replaceChildren(el('b', { text: t('replay.banner') }), el('button.btn', { onclick: () => this.showTitle() }, t('replay.exit')));
+    const g = this.app.game, sp = (i: number, icon: string, tip: string) => el('button.btn', { text: icon, 'data-tip': t(tip), onclick: () => { g.uiSkipTo = 0; g.speedIdx = i; } });
+    this.banner.replaceChildren(el('b', { text: t('replay.banner') }),
+      sp(0, '⏸', 'replay.pause'), sp(1, '▶', 'replay.play'), sp(4, '⏩', 'replay.fast'),
+      el('button.btn', { text: '⏭', 'data-tip': t('replay.toEnd'), onclick: () => { g.speedIdx = 1; g.uiSkipTo = this.replayTarget; } }),
+      el('div.rp-bar', {}, this.rpFill), this.rpText,
+      el('button.btn', { onclick: () => this.showTitle() }, t('replay.exit')));
+  }
+
+  private replayProgress(tick: number, done: number, of: number): void {
+    const start = CFG.time.startTick, k = Math.min(1, (tick - start) / Math.max(1, this.replayTarget - start));
+    this.rpFill.style.width = `${Math.round(k * 100)}%`;
+    this.rpText.textContent = t('replay.progress', { day: Math.floor(tick / CFG.time.dayTicks) + 1, of: Math.floor(this.replayTarget / CFG.time.dayTicks) + 1, n: done, cmds: of });
   }
 
   private stopReplay(): void {

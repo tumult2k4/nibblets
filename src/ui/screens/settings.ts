@@ -3,6 +3,7 @@ import { t, type Lang } from '../i18n';
 import { overlay, field, select, checkbox } from './common';
 import type { Settings } from '../store';
 import { codeLabel, getKeys, resetKeys, setKey } from '../keys';
+import { resetTips } from '../components/tips';
 import { llmTab } from './llmSettings';
 
 type Tab = 'graphics' | 'gameplay' | 'controls' | 'access' | 'language' | 'llm';
@@ -65,7 +66,8 @@ export function settingsScreen(cur: Settings, gentle: boolean, apply: (s: Settin
         ...field(t('set.edgePan'), checkbox(s.edgePan, (v) => set('edgePan', v))),
         ...field(t('set.invert'), checkbox(s.invertOrbit, (v) => set('invertOrbit', v))),
         ...field(t('set.autopauseDeath'), checkbox(s.autopauseDeath, (v) => set('autopauseDeath', v))),
-        ...field(t('set.tooltipDelay'), num('tooltipDelay', 0, 1500, 50)));
+        ...field(t('set.tooltipDelay'), num('tooltipDelay', 0, 1500, 50)),
+        el('button.btn', { style: 'margin-top:8px', onclick: (e: Event) => { resetTips(); (e.target as HTMLButtonElement).disabled = true; } }, t('set.tips')));
     else if (tab === 'controls') content = controls();
     else if (tab === 'access')
       content = el('div.form', {},

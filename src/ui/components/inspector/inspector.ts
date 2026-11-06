@@ -44,7 +44,7 @@ export class Inspector implements Component {
     if (!st.openPanels.inspector) return;
     const w = this.ctx.game.world;
     const id = st.selection[0];
-    const sig = `${st.selectedKind}:${id}:${st.inspectorTab}:${st.settings.language}:${id !== undefined && st.selectedKind === 'goblin' ? w.goblin(id)?.lifeStage : ''}`;
+    const sig = `${st.selectedKind}:${id}:${st.inspectorTab}:${st.settings.language}:${id !== undefined && st.selectedKind === 'goblin' ? w.goblin(id)?.lifeStage : ''}:${w.s.god.possessedId ?? ''}`;
     const fresh = sig !== this.sig;
     this.sig = sig;
     const now = performance.now();
@@ -56,7 +56,9 @@ export class Inspector implements Component {
       if (fresh) {
         const family = () => this.ctx.store.set({ familyFocus: g.id, openPanels: { ...this.ctx.store.state.openPanels, family: true } });
         const journal = () => this.openJournal(g.id);
-        this.head.replaceChildren(goblinHeader(g, w, () => this.ctx.follow(g.id), () => this.ctx.select(null, []), family, journal));
+        const possess = w.s.god.mode === 'sandbox' && !this.ctx.readOnly() // P11.1
+          ? () => { this.ctx.push({ type: 'sandbox', op: { op: 'possess', goblinId: w.s.god.possessedId === g.id ? null : g.id } }); } : undefined;
+        this.head.replaceChildren(goblinHeader(g, w, () => this.ctx.follow(g.id), () => this.ctx.select(null, []), family, journal, possess));
         this.tabs.replaceChildren(...TABS.map((tab) => el(`button.btn${tab === st.inspectorTab ? '.on' : ''}`, { onclick: () => this.ctx.store.set({ inspectorTab: tab }) }, t(`insp.${tab}`))));
         if (st.selection.length > 1) this.tabs.prepend(el('span.badge', { text: `+${st.selection.length - 1}` }));
       }

@@ -135,6 +135,18 @@ function words(s: WorldState, self: ID, lang: Lang, key: string, ps: Record<stri
   return tIn(lang, key, out);
 }
 
+/** Nobody in particular: the onlooker the Director camera scores for (no bonds, no children). */
+const ONLOOKER = { id: -1, relationships: [], parents: null } as unknown as Goblin;
+
+/** How interesting an event is to an onlooker and what it is, in the third person ("Pipnok slew a Gnasher"), for
+ * the Director camera's cuts and captions (§18.12, P11.1); null if it is not worth a line. */
+export function interestOf(s: WorldState, e: SimEvent, lang: Lang): { score: number; text: string } | null {
+  const p = phrase(s, ONLOOKER, e);
+  if (!p) return null;
+  const text = words(s, -1, lang, p[1], p[2]);
+  return { score: p[0], text: text.charAt(0).toUpperCase() + text.slice(1) };
+}
+
 /** One event in `g`'s words ("I slew a Gnasher"), or null if it is not worth a line. */
 export function lineFor(s: WorldState, g: Goblin, e: SimEvent, lang: Lang): string | null {
   const p = phrase(s, g, e);

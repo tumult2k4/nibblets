@@ -50,6 +50,7 @@ import { updateWildlife } from './wildlife';
 import { updateClans } from './clans';
 import { updateVisitors } from './visitors';
 import { updateAllies } from './alliance';
+import { recordHistory } from './history';
 
 /**
  * The live world: plain-data state plus derived, rebuildable caches (rng object, spatial hashes,
@@ -189,6 +190,7 @@ export class World {
     if (s.tick % CFG.stats.sampleEvery === 0) sampleStats(this); // 20
     s.rngState = this.rng.state;
     const events = this.bus.flush(); // 21
+    recordHistory(s, events); //      22 the Timeline's markers (P11.1)
     if (t0) this.lastTickMs = performance.now() - t0;
     return events;
   }
@@ -202,7 +204,9 @@ export class World {
     this.goblinHash.rebuild(this.s.goblins);
     this.itemHash.rebuild(this.s.groundItems);
     this.s.rngState = this.rng.state;
-    return this.bus.flush();
+    const events = this.bus.flush();
+    recordHistory(this.s, events);
+    return events;
   }
 
   run(n: number): void {

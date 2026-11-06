@@ -47,7 +47,7 @@ function bornTo(g: Goblin, w: World): HTMLElement | null {
   return c ? el('div.sub', { text: t('goblin.born_to', { clan: c.name }) }) : null;
 }
 
-export function goblinHeader(g: Goblin, w: World, onFollow: () => void, onClose: () => void, onFamily: () => void, onJournal: () => void): HTMLElement {
+export function goblinHeader(g: Goblin, w: World, onFollow: () => void, onClose: () => void, onFamily: () => void, onJournal: () => void, onPossess?: () => void): HTMLElement {
   const ph = phenotypeOf({ genome: g.genome, ageDays: ageDays(g, w.s.tick), stage: g.lifeStage, hunger: 70, scars: g.health.scars });
   const img = el('img.portrait', { src: portraits.get(ph, g.id * 31 + 7), alt: g.name });
   const seasons = (ageDays(g, w.s.tick) / CFG.time.daysPerSeason).toFixed(1);
@@ -63,6 +63,7 @@ export function goblinHeader(g: Goblin, w: World, onFollow: () => void, onClose:
         el('button.btn', { onclick: onFollow, 'data-tip': t('insp.follow') }, icon('eye')),
         el('button.btn', { onclick: onFamily, 'data-tip': t('insp.familyTree') }, icon('egg')),
         el('button.btn', { onclick: onJournal, 'data-tip': t('insp.journal') }, icon('book')),
+        onPossess ? el(`button.btn${w.s.god.possessedId === g.id ? '.on' : ''}`, { onclick: onPossess, 'data-tip': t(w.s.god.possessedId === g.id ? 'possess.release' : 'possess.take'), text: '👁' }) : null,
         el('button.btn', { onclick: onClose, 'data-tip': t('insp.close') }, icon('close')))));
 }
 

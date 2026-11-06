@@ -21,6 +21,8 @@ export class Game {
   fps = 60;
   tickMs = 0;
   paused = false; // menu pause, independent of speed
+  /** P11.1: run flat out to this tick, outside the sim (the replay viewer's "to the end"; the sim's own skip is s.god.skipTo) */
+  uiSkipTo = 0;
 
   constructor(public world: World, public renderer: Renderer) {}
 
@@ -52,7 +54,7 @@ export class Game {
       const batch: SimEvent[] = [];
       let ms = 0;
       // Fast-Forward Day / Hasten Season (§17.5.2): run flat out until the target tick
-      const skipTo = this.world.s.god.skipTo ?? 0;
+      const skipTo = Math.max(this.world.s.god.skipTo ?? 0, this.uiSkipTo);
       const skipping = !this.paused && skipTo > this.world.s.tick;
       if (skipping) this.acc = Math.min(skipTo - this.world.s.tick, CFG.powers.skipPerFrame) * tickDur;
       const cap = skipping ? CFG.powers.skipPerFrame : MAX_TICKS_PER_FRAME;

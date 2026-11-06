@@ -4,6 +4,7 @@
  * every god act they are commands, so replays reproduce them.
  */
 import { q4 } from '../shared/math';
+import { possess, possessed, possessedAct, POSSESS_ACTS, type PossessAct } from './possess';
 import { allocId } from '../shared/ids';
 import type { BuildingType, EnemyKind, ID, PlantKind, PlantStage, Vec2, WeatherKind } from '../shared/types';
 import { CFG } from './config';
@@ -38,7 +39,10 @@ export type SandboxOp =
   | { op: 'breed'; aId: ID; bId: ID }
   | { op: 'edit_genome'; goblinId: ID; genome: Partial<Genome> }
   /** a village policy, until there is a chief to set it (P6.5 quarantine; P8 policies) */
-  | { op: 'set_policy'; policy: 'quarantine'; on: boolean };
+  | { op: 'set_policy'; policy: 'quarantine'; on: boolean }
+  /** P11.1 Possess: take a goblin over (null lets go), and have it act on what the player clicked */
+  | { op: 'possess'; goblinId: ID | null }
+  | { op: 'possessed_act'; act: PossessAct; pos: Vec2; targetId?: ID };
 
 /** The loci the genome editor may change on a living goblin: its looks, not its nature (§17.5.6). */
 export const COSMETIC_LOCI: readonly LocusId[] = ['skinHue', 'skinSat', 'skinLight', 'eyeHue', 'pattern', 'patternHueShift', 'earLength', 'earDroop', 'noseSize', 'tusks', 'albino'];
@@ -103,6 +107,11 @@ export function sandboxProblem(w: World, op: SandboxOp): string | null {
       return op.policy === 'quarantine' && typeof op.on === 'boolean' ? null : 'unknown_policy';
     case 'remove':
       return null;
+    case 'possess':
+      return op.goblinId === null || w.goblin(op.goblinId) ? null : 'missing_entity';
+    case 'possessed_act':
+      if (!possessed(w)) return 'not_possessing';
+      return POSSESS_ACTS.includes(op.act) && inside(w, op.pos) ? null : 'bad_target';
   }
 }
 
@@ -133,6 +142,8 @@ export function applySandbox(w: World, op: SandboxOp): void {
     }
     case 'set_weather': setWeather(w, op.kind); break;
     case 'set_policy': (s.village.policies ??= {})[op.policy] = op.on; break;
+    case 'possess': possess(w, op.goblinId); break;
+    case 'possessed_act': possessedAct(w, op.act, op.pos, op.targetId); break;
     case 'spawn_building': {
       const b = placeBlueprint(w, op.kind, { x: Math.round(op.pos.x), y: Math.round(op.pos.y) }, null);
       if (op.complete) completeBuilding(w, b, null);

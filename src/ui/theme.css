@@ -233,3 +233,40 @@ table.genome td { padding: 1px 4px; border-bottom: 1px solid rgba(0,0,0,.08); }
 body.rumbling canvas { filter: brightness(0.82) saturate(0.85); transition: filter .6s; }
 body canvas { transition: filter .6s; }
 .row.muted { opacity: 0.55; text-decoration: line-through; }
+
+/* P11.1: the Director camera's caption */
+.director-cap { position: absolute; bottom: 96px; left: 50%; transform: translateX(-50%); max-width: min(560px, 80vw); padding: 6px 14px; display: flex; gap: 8px; align-items: center; font-size: .95em; border-radius: 999px; pointer-events: none !important; }
+.director-tag { opacity: .8; }
+
+/* P11.1: the Codex and the Timeline */
+.codex { position: absolute; top: 76px; left: 392px; width: 380px; max-height: calc(100vh - 160px); overflow: auto; padding: 10px; z-index: 5; pointer-events: auto; }
+.codex h2, .timeline h2 { margin: 0; font-size: 1.2em; }
+.codex .sub { color: var(--ink-2); font-size: .85em; }
+.cx-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0; }
+.cx-row { display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; align-items: center; border-bottom: 1px dashed rgba(90, 60, 30, .15); }
+.cx-risk span:first-child { color: #b3412e; font-weight: 600; }
+.cx-torn { color: #8a6d5a; font-style: italic; text-decoration: line-through wavy rgba(138, 109, 90, .6); }
+.cx-unknown { color: rgba(60, 40, 20, .45); letter-spacing: 1px; }
+.cx-gene { margin: 6px 0; } .cx-strip { display: flex; height: 10px; border-radius: 4px; overflow: hidden; background: rgba(0, 0, 0, .06); }
+.cx-deeds { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.cx-deed { display: flex; gap: 8px; align-items: center; padding: 6px; border-radius: 10px; background: rgba(232, 182, 76, .18); }
+.cx-badge { width: 38px; height: 38px; flex: none; display: grid; place-items: center; font-size: 1.4em; border-radius: 10px; background: linear-gradient(135deg, #f5d27a, #c8902e); clip-path: polygon(50% 0, 100% 30%, 100% 75%, 50% 100%, 0 75%, 0 30%); }
+.cx-locked { background: rgba(0, 0, 0, .05); } .cx-locked .cx-badge { filter: grayscale(1); opacity: .45; }
+.timeline { position: absolute; left: 80px; right: 240px; bottom: 12px; padding: 8px 10px; z-index: 6; pointer-events: auto; }
+.timeline .vp-head { gap: 8px; } .tl-filters { display: flex; gap: 2px; flex: 1; justify-content: center; }
+.tl-cat { padding: 2px 6px; opacity: .45; } .tl-cat.on { opacity: 1; }
+.tl-strip { display: flex; gap: 2px; overflow-x: auto; padding-top: 6px; min-height: 92px; }
+.tl-day { flex: none; width: 30px; display: flex; flex-direction: column; justify-content: flex-end; border-left: 1px solid rgba(90, 60, 30, .12); }
+.tl-season { border-left: 2px solid rgba(90, 60, 30, .45); }
+.tl-marks { display: flex; flex-direction: column-reverse; align-items: center; gap: 1px; }
+.tl-mark { border: 0; background: none; padding: 0; font-size: 13px; line-height: 15px; cursor: pointer; }
+.tl-mark:hover { transform: scale(1.35); }
+.tl-label { text-align: center; font-size: .7em; color: var(--ink-2); }
+@media (max-width: 760px) { .codex { left: 8px; right: 8px; width: auto; } .timeline { left: 8px; right: 8px; } }
+.tip-card { position: absolute; left: 80px; bottom: 150px; width: 300px; padding: 8px 10px; z-index: 7; pointer-events: auto; }
+.tip-buttons { display: flex; gap: 6px; margin-top: 6px; justify-content: flex-end; }
+.rp-bar { width: 160px; height: 8px; border-radius: 4px; background: rgba(0, 0, 0, .15); overflow: hidden; } .rp-fill { height: 100%; width: 0; background: var(--gold); }
+.help-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; } @media (max-width: 760px) { .help-cols { grid-template-columns: 1fr; } }
+.help-row { display: flex; gap: 10px; align-items: center; margin: 4px 0; } .help-mouse, .help-keys { flex: none; width: 64px; display: flex; justify-content: center; gap: 2px; }
+.help-keygrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px 16px; font-size: .9em; }
+.possess-bar { position: absolute; top: 60px; left: 50%; transform: translateX(-50%); z-index: 14; display: flex; gap: 10px; align-items: center; padding: 6px 12px; max-width: min(720px, 90vw); font-size: .9em; border-color: #c8902e; }

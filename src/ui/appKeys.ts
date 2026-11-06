@@ -6,7 +6,7 @@ import type { KeyHandlers } from './input';
 export function keyHandlers(app: App): KeyHandlers {
   const st = () => app.store.state;
   const inGame = () => st().screen !== 'title' && !st().overlay;
-  const panel = (k: 'inspector' | 'feed' | 'debug' | 'village' | 'family' | 'sandbox' | 'stats' | 'prayers' | 'journal') => app.store.set({ openPanels: { ...st().openPanels, [k]: !st().openPanels[k] } });
+  const panel = (k: 'inspector' | 'feed' | 'debug' | 'village' | 'family' | 'sandbox' | 'stats' | 'prayers' | 'journal' | 'codex' | 'timeline') => app.store.set({ openPanels: { ...st().openPanels, [k]: !st().openPanels[k] } });
   const speed = (i: number) => () => inGame() && app.topBar.setSpeed(i);
   return {
     pause: () => inGame() && app.topBar.setSpeed(app.game.speedIdx === 0 ? 1 : 0),
@@ -44,6 +44,9 @@ export function keyHandlers(app: App): KeyHandlers {
     stats: () => inGame() && panel('stats'),
     journal: () => inGame() && (app.store.set({ journalFocus: st().selectedKind === 'goblin' ? st().selection[0] ?? null : st().journalFocus ?? null }), panel('journal')),
     sandbox: () => inGame() && !app.readOnly() && app.game.world.s.god.mode === 'sandbox' && panel('sandbox'),
+    director: () => inGame() && app.dircam.toggle(),
+    codex: () => inGame() && panel('codex'),
+    timeline: () => inGame() && panel('timeline'),
     help: () => app.openOverlay(st().overlay === 'help' ? null : 'help'),
     rotL: () => {}, rotR: () => {}, // continuous, handled in Input.frame
   };

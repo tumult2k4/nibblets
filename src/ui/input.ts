@@ -4,6 +4,7 @@ import { TrayDrag } from './tools/trayDrag';
 import { BrushTool } from './tools/brushTool';
 import { CastTool } from './tools/castTool';
 import { SpawnTool } from './tools/spawnTool';
+import { PossessTool } from './tools/possessTool';
 import { actionFor } from './keys';
 
 export interface KeyHandlers { [action: string]: () => void }
@@ -18,6 +19,7 @@ export class Input {
   readonly brush: BrushTool;
   readonly cast: CastTool;
   readonly spawn: SpawnTool;
+  readonly possess: PossessTool;
   private keysDown = new Set<string>();
   private drag: { button: number; x: number; y: number; moved: boolean } | null = null;
   private mouse = { x: 0, y: 0, inside: false };
@@ -29,6 +31,7 @@ export class Input {
     this.brush = new BrushTool(ctx);
     this.cast = new CastTool(ctx);
     this.spawn = new SpawnTool(ctx);
+    this.possess = new PossessTool(ctx);
     canvas.addEventListener('contextmenu', (e) => e.preventDefault());
     canvas.addEventListener('pointerdown', (e) => this.down(e));
     window.addEventListener('pointermove', (e) => this.move(e));
@@ -66,6 +69,7 @@ export class Input {
     if (e.button === 0 && this.spawning()) this.spawn.down(e);
     else if (e.button === 0 && this.casting()) this.cast.down(e);
     else if (e.button === 0 && this.brushing()) this.brush.down(e);
+    else if (e.button === 0 && this.possess.active()) { /* a click tells the possessed goblin what to do (on up) */ }
     else if (e.button === 0 && !this.tray.active) this.hand.down(e);
     this.drag = { button: e.button, x: e.clientX, y: e.clientY, moved: false };
   }
@@ -114,6 +118,7 @@ export class Input {
     if (this.drag?.button === 0 && this.spawning()) { /* placed on down */ }
     else if (this.drag?.button === 0 && this.casting()) this.cast.up();
     else if (this.drag?.button === 0 && this.brush.painting) this.brush.up();
+    else if (this.drag?.button === 0 && this.possess.active()) { if (Math.hypot(e.clientX - this.drag.x, e.clientY - this.drag.y) < 6 && e.target === this.canvas) this.possess.click(e); }
     else if (this.drag?.button === 0) this.hand.up(e);
     this.drag = null;
   }

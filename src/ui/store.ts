@@ -41,7 +41,7 @@ export interface UIState {
   selectedKind: EntityKind | null;
   hoveredId: ID | null;
   activeTool: ToolId;
-  openPanels: { inspector: boolean; feed: boolean; debug: boolean; flyout: boolean; tray: boolean; village: boolean; family?: boolean; sandbox?: boolean; stats?: boolean; prayers?: boolean; voice?: boolean; journal?: boolean };
+  openPanels: { inspector: boolean; feed: boolean; debug: boolean; flyout: boolean; tray: boolean; village: boolean; family?: boolean; sandbox?: boolean; stats?: boolean; prayers?: boolean; voice?: boolean; journal?: boolean; codex?: boolean; timeline?: boolean };
   /** Sandbox drawer (P5.9): its tab, and what a click on the ground places (null: nothing armed) */
   sandboxTab?: SandboxTab;
   spawn?: SpawnSpec | null;

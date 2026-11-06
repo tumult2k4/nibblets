@@ -108,7 +108,7 @@ const fighters = (w: World, e: Enemy, self: Goblin): number =>
   w.s.goblins.filter((o) => o !== self && DANGER.has(o.activity.action) && o.activity.action !== 'flee' && o.activity.targetId === e.id).length;
 const hpFrac = (g: Goblin): number => g.health.hp / g.health.maxHp;
 
-function engageStart(g: Goblin, w: World, e: Enemy | null): boolean {
+export function engageStart(g: Goblin, w: World, e: Enemy | null): boolean {
   if (!e) return false;
   const a = g.activity;
   a.targetId = e.id;

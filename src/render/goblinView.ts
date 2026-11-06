@@ -5,6 +5,7 @@ import type { Goblin } from '../sim/state';
 import { ageDays, isSleeping } from '../sim/goblin/goblin';
 import { express, phenotypeOf, type Phenotype } from '../sim/goblin/genetics/phenotype';
 import { buildGoblin, disposeRig, phenoBucket, type GoblinRig } from './goblinMesh';
+import { eyeGlow } from './possessFx';
 import { itemGeo } from './meshFactory';
 import { heldMesh } from './toolMeshes';
 import { flicker } from './fireView';
@@ -95,10 +96,9 @@ export class GoblinViews {
     const scale = v.pheno.scale * (this.sizeBoost ? Math.max(0.3, 1 + this.sizeBoost * (express(g.genome, 'adultSize') - 1)) : 1);
     r.root.position.set(p.x, p.z, p.y);
     r.root.scale.setScalar(scale);
-    // sim facing is atan2(dy, dx) in the x/y plane; mesh faces +Z
-    r.root.rotation.y = -p.facing + Math.PI / 2;
+    r.root.rotation.y = -p.facing + Math.PI / 2; // sim facing is atan2(dy, dx) in the x/y plane; mesh faces +Z
     r.belly.scale.set(v.pheno.belly, 1, v.pheno.belly);
-    r.eyeMat.emissiveIntensity = 0.15 + night * 0.85;
+    eyeGlow(r, this.w.s.god.possessedId === g.id, night); // P11.1: gold while possessed
     const speed = Math.hypot(g.velocity.x, g.velocity.y);
     const moving = speed > 0.01;
     const sleeping = isSleeping(g);

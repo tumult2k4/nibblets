@@ -40,6 +40,8 @@ export interface GodState {
   held: HeldState | null;
   /** Fast-Forward Day / Hasten Season: the game loop runs at full tilt until this tick (§17.5.2) */
   skipTo?: number;
+  /** P11.1 Possess (Sandbox): the goblin the player has taken over */
+  possessedId?: number | null;
   zones: AvoidZone[];
   pending: PendingStrike[];
   /** P6.6 Sanctuary domes: enemies are kept out until `until` */
