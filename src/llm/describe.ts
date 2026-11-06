@@ -32,9 +32,9 @@ export function knownNames(s: WorldState): string[] {
   return [...n];
 }
 
-/** How an answer is cleaned: no markdown, clamped, and no goblin named that the prompt did not name. */
+/** How an answer is cleaned: no markdown, clamped, and no goblin named that the request (system or prompt) did not name. */
 export function acceptFor(s: WorldState, req: LLMRequest, maxChars: number, keepLines = false): (t: string) => string | null {
-  const known = knownNames(s), allowed = known.filter((n) => mentions(req.prompt, n));
+  const known = knownNames(s), allowed = known.filter((n) => mentions(`${req.system}\n${req.prompt}`, n));
   return (t) => cleanOutput(t, { maxChars, known, allowed, keepLines });
 }
 

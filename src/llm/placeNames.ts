@@ -19,6 +19,9 @@ const WORDS: Record<NameLang, Record<PlaceCause, string[]>> = {
   de: { death: ['Trauer', 'Tränen', 'Still'], battle: ['Gnasher', 'Mut', 'Zahn'], discovery: ['Funken', 'Wunder', 'Glücks'], festival: ['Freuden', 'Tanz', 'Lieder'], star: ['Stern', 'Glimmer', 'Sternschnuppen'] },
 };
 
+/** A feature of the land in words: "Pond", "Teich". */
+export const featureWord = (f: PlaceFeature, lang: NameLang): string => FEATURE[lang][f];
+
 /** "Grubnok's" / "Grubnoks" (a name ending in an s sound takes just the apostrophe). */
 function possessive(name: string, lang: NameLang): string {
   const sibilant = /[sxzß]$/i.test(name);

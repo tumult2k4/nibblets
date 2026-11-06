@@ -8,9 +8,10 @@ import { DE8B, EN8B } from './i18n.p8b';
 import { DE8C, EN8C } from './i18n.p8c';
 import { DE9, EN9 } from './i18n.p9';
 import { DE9B, EN9B } from './i18n.p9b';
+import { DE9C, EN9C } from './i18n.p9c';
 
-const EN = { ...EN0, ...EN6, ...EN7, ...EN8, ...EN8B, ...EN8C, ...EN9, ...EN9B };
-const DE: Record<string, string> = { ...DE0, ...DE6, ...DE7, ...DE8, ...DE8B, ...DE8C, ...DE9, ...DE9B };
+const EN = { ...EN0, ...EN6, ...EN7, ...EN8, ...EN8B, ...EN8C, ...EN9, ...EN9B, ...EN9C };
+const DE: Record<string, string> = { ...DE0, ...DE6, ...DE7, ...DE8, ...DE8B, ...DE8C, ...DE9, ...DE9B, ...DE9C };
 
 export type Lang = 'en' | 'de';
 export type I18nKey = keyof typeof EN;
@@ -41,5 +42,7 @@ export function tIn(l: Lang, key: I18nKey | string, params?: Record<string, stri
 /** Keys missing from German (used by a unit test). */
 /** The god's name as the village says it: a template id (`@giver.kind`, P8.8) worded per language, or the Voice's own. */
 export const godNameText = (name: string | null): string => (name?.startsWith('@') ? t(`godname.${name.slice(1)}`) : name ?? '');
+/** The god's name as shown: the one a language model made the village's own (P9.7), else the shaman's, worded. */
+export const godTitle = (s: { god: { godName: string | null }; llm?: { godName?: { name: string } } }): string => s.llm?.godName?.name ?? godNameText(s.god.godName);
 
 export const missingGerman = (): string[] => Object.keys(EN).filter((k) => !(k in DE));

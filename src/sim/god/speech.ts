@@ -4,7 +4,8 @@
  * more the first time, and feels its tone; they look up, the fearful kneel, the loving dance, skeptics shrug. Each
  * addressee takes the intents as wishes as strong as its obedience, unless it defies them and shakes a fist at the
  * sky. A build wish marks out the building if none is waiting and gives the obedient a plan to build it; "stop" cuts
- * what the goblin was doing; "avoid" makes a place the addressees keep out of.
+ * what the goblin was doing; "avoid" makes a place the addressees keep out of. P9.7: a build wish with a spot ("near the
+ * pond") marks its blueprint out there; the Voice's words stay outside the sim, the event only carries their key.
  */
 import { CFG } from '../config';
 import { q2, q4 } from '../../shared/math';
@@ -12,7 +13,7 @@ import type { BuildingType, ID, ItemType, ParsedIntent, Tone, Vec2, WishTarget }
 import type { DivineWish, Goblin } from '../state';
 import type { World } from '../world';
 import { allocId } from '../../shared/ids';
-import { isComplete, placeBlueprint } from '../buildings';
+import { findSite, isComplete, placeBlueprint } from '../buildings';
 import { RECIPES } from '../recipes';
 import { pushGoal } from '../ai/planner';
 import { ACTIONS, forceAction, startAction } from '../ai/utility';
@@ -25,7 +26,7 @@ import { learn } from '../knowledge';
 
 const D = CFG.divine, G = CFG.god;
 
-export interface Speech { addressees: ID[] | 'all'; tone: Tone; intents: ParsedIntent[]; isQuestion: boolean; source: 'voice' | 'sign' }
+export interface Speech { addressees: ID[] | 'all'; tone: Tone; intents: ParsedIntent[]; isQuestion: boolean; source: 'voice' | 'sign'; textRef?: string }
 
 /** Building types a build wish may name: those built on a site whose recipe someone in the village knows. */
 export function wishBuildings(w: World): BuildingType[] {
@@ -95,7 +96,7 @@ function blueprintFor(w: World, t: WishTarget | undefined): ID | null {
   const type = t.value as BuildingType;
   const open = w.s.buildings.find((b) => b.type === type && !isComplete(b));
   if (open) return open.id;
-  const site = siteFor(w, type);
+  const site = (t.pos && findSite(w, type, t.pos)) || siteFor(w, type); // P9.7: "build a hut near the pond"
   return site ? placeBlueprint(w, type, site, null).id : null;
 }
 
@@ -149,5 +150,8 @@ export function applySpeech(w: World, c: Speech): void {
   }
   const avoid = c.intents.find((x) => x.intent === 'avoid');
   if (shun.length && avoid?.target?.pos) addZone(w, 'shun', avoid.target.pos, D.avoidR, G.wishTicks[c.source], shun);
-  w.emit({ type: 'god_spoke', addressees: to.map((g) => g.id), tone: c.tone, intents: c.intents.map((x) => x.intent), source: c.source, ...(to[0] ? { at: { ...to[0].pos } } : {}) });
+  w.emit({
+    type: 'god_spoke', addressees: to.map((g) => g.id), tone: c.tone, intents: c.intents.map((x) => x.intent), source: c.source, isQuestion: c.isQuestion,
+    ...(c.textRef ? { textRef: c.textRef } : {}), ...(to[0] ? { at: { ...to[0].pos } } : {}),
+  });
 }

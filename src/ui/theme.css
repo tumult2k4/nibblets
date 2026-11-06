@@ -226,3 +226,6 @@ table.genome td { padding: 1px 4px; border-bottom: 1px solid rgba(0,0,0,.08); }
 .jentry p { margin: 4px 0 0; font-family: 'Patrick Hand', 'Fredoka', sans-serif; font-size: 16px; line-height: 1.35; color: #3a2e22; }
 .jmock { color: var(--ink-2); font-weight: 400; cursor: help; }
 .speechbubble.typed { min-width: 24px; min-height: 1.2em; }
+/* P9.7: the heavens rumble while the Voice's words are understood */
+body.rumbling canvas { filter: brightness(0.82) saturate(0.85); transition: filter .6s; }
+body canvas { transition: filter .6s; }

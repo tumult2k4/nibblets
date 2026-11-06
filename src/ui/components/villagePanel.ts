@@ -1,6 +1,6 @@
 import { el } from '../dom';
 import { CFG } from '../../sim/config';
-import { godNameText, t } from '../i18n';
+import { godTitle, t } from '../i18n';
 import type { Ctx, Component } from '../ctx';
 import { villageKnowledge } from '../../sim/knowledge';
 import { STARTER_RECIPES } from '../../sim/recipes';
@@ -62,7 +62,7 @@ export class VillagePanel implements Component {
     const policies = [pol.work && 'work', pol.rota && 'rota', pol.festivals && 'festivals', pol.shrine && 'shrine', pol.quarantine && 'quarantine',
       pol.law !== undefined && (pol.law < CFG.mischief.theft.law ? 'lax' : 'strict')].filter((x): x is string => !!x).map((k) => t(`policy.${k}`));
     this.body.replaceChildren(
-      el('div.sub', { text: villageTitle(s) + (s.god.godName ? ' · ' + t('village.god', { name: godNameText(s.god.godName) }) : '') }),
+      el('div.sub', { text: villageTitle(s) + (s.god.godName ? ' · ' + t('village.god', { name: godTitle(s) }) : '') }),
       el('h3', { text: `${t('village.pop')}: ${s.goblins.length}` }),
       el('div.sub', { text: counts.map(([st, n]) => `${t(`stage.${st}`)} ${n}`).join(' · ') }),
       el('div.sub', { text: t('village.food', { n: Math.round(food.food), d: food.days.toFixed(1) }) }),

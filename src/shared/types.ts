@@ -71,7 +71,13 @@ export type WishIntent =
 export interface WishTarget { kind: 'item' | 'building' | 'entity' | 'place' | 'pos' | 'recipe' | 'action'; value: string | number; pos?: Vec2 }
 export interface ParsedIntent { intent: WishIntent; target?: WishTarget }
 /** A line in the Voice panel's log (annotation, outside the hashed state): the god's (goblinId null) or a goblin's reply. */
-export interface VoiceLine { tick: number; goblinId: ID | null; text: string; tone?: Tone; intents?: WishIntent[]; who?: string; defied?: boolean }
+export interface VoiceLine {
+  tick: number; goblinId: ID | null; text: string; tone?: Tone; intents?: WishIntent[]; who?: string; defied?: boolean;
+  /** P9.7: the god's own words, and how they were understood (a language model, or the keyword parser); a reply's source */
+  said?: string; how?: 'llm' | 'keywords'; source?: TextSource;
+}
+/** One exchange with the god, kept per goblin (P9.7, the last 30). */
+export interface GodTalk { tick: number; god: string; reply: string }
 /** LLM annotations (§19, P9.3): text written about the world, kept in `world.llm` and never read by the sim. */
 export type TextSource = 'llm' | 'mock';
 export interface JournalEntry {
@@ -212,7 +218,7 @@ export type SimEvent = BaseEvent &
     | { type: 'divine_act'; act: DivineActKind; targetId?: ID; witnessIds: ID[] }
     | { type: 'landed'; entityId: ID; damage: number; water: boolean }
     | { type: 'emote'; goblinId: ID; emote: Emote }
-    | { type: 'god_spoke'; addressees: ID[]; tone: Tone; intents: WishIntent[]; source: 'voice' | 'sign' }
+    | { type: 'god_spoke'; addressees: ID[]; tone: Tone; intents: WishIntent[]; source: 'voice' | 'sign'; isQuestion?: boolean; /** P9.7: the words, in `llm.speechText` */ textRef?: string }
     | { type: 'first_voice'; goblinId: ID }
     | { type: 'prayer'; prayerId: ID; goblinId: ID; kind: PrayerKind; targetId?: ID; desperate?: boolean }
     | { type: 'group_prayer'; goblinId: ID; buildingId: ID }

@@ -63,11 +63,11 @@ export function splitBook(text: string): { title: string | null; text: string } 
   return { title: title || null, text: (m ? ls.slice(1) : ls).join(' ') };
 }
 
-/** An answer to "name the village": one to three words of letters, at most 24 characters, not a goblin's name. */
-export function villageNameOf(t: string, known: readonly string[]): string | null {
+/** An answer to "name the village" (or the god, P9.7): one to `words` words of letters, at most `chars` characters, not a goblin's name. */
+export function villageNameOf(t: string, known: readonly string[], words = 3, chars: number = P.nameChars): string | null {
   const first = (t.split('\n').map((l) => l.trim()).find(Boolean) ?? '').replace(/^(?:name|village|dorf)\s*:\s*/i, '')
     .replace(/^["'“„«»*_]+|["'“”»«.!*_]+$/g, '').trim();
-  if (!first || first.length > P.nameChars || first.split(/\s+/).length > 3 || !/^\p{L}[\p{L}'’ -]*$/u.test(first)) return null;
+  if (!first || first.length > chars || first.split(/\s+/).length > words || !/^\p{L}[\p{L}'’ -]*$/u.test(first)) return null;
   const name = first.charAt(0).toUpperCase() + first.slice(1);
   return known.some((n) => n.toLowerCase() === name.toLowerCase()) ? null : name;
 }

@@ -1,5 +1,5 @@
 import { el, setText } from '../../dom';
-import { godNameText, t } from '../../i18n';
+import { godTitle, t } from '../../i18n';
 import type { Ctx, Component } from '../../ctx';
 import { bar, bodyTab, goblinHeader, inventoryTab, mindTab, statusTab } from './goblinInspector';
 import { CFG } from '../../../sim/config';
@@ -133,7 +133,7 @@ export class Inspector implements Component {
     const needs = (['hunger', 'thirst', 'energy', 'curiosity'] as const).map((k) => ({ k, v: avg(k) })).sort((a, b) => a.v - b.v).slice(0, 3);
     this.head.replaceChildren(el('h2', { text: t('insp.glance') }), el('div.sub', { text: villageTitle(s) }));
     const godLine = el('div.row');
-    setText(godLine, t('insp.glanceGod', { name: s.god.godName ? godNameText(s.god.godName) : t('insp.glanceUnnamed') }));
+    setText(godLine, t('insp.glanceGod', { name: s.god.godName ? godTitle(s) : t('insp.glanceUnnamed') }));
     const chief = chiefOf(w);
     const fest = festivalNow(w); // P8.5
     this.body.replaceChildren(godLine, el('div.row', { text: chief ? t('village.chief', { name: chief.name }) : t('village.noChief') }),

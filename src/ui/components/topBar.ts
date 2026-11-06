@@ -1,6 +1,6 @@
 import { el, setText } from '../dom';
 import { icon } from '../icons';
-import { godNameText, t } from '../i18n';
+import { godTitle, t } from '../i18n';
 import type { Ctx, Component } from '../ctx';
 import { SPEEDS } from '../../game';
 import { tipKey } from './tooltip';
@@ -105,7 +105,7 @@ export class TopBar implements Component {
     const s = w.s;
     const c = w.clock;
     setText(this.village, villageTitle(s));
-    this.village.dataset.tip = s.god.godName ? t('insp.glanceGod', { name: godNameText(s.god.godName) }) : t('insp.glance');
+    this.village.dataset.tip = s.god.godName ? t('insp.glanceGod', { name: godTitle(s) }) : t('insp.glance');
     const hh = Math.floor(c.hour), mm = Math.floor((c.hour % 1) * 60);
     setText(this.cal, `${t('top.day', { season: t(`season.${c.season}`), day: c.seasonDay + 1 })} · ${t('top.year', { year: c.year })} · ${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`);
     const wx = s.weather;

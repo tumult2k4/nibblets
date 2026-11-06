@@ -7,6 +7,7 @@
  */
 import './mocks';
 import { CultureWriter } from './culture';
+import { DivineVoice } from './voice';
 import { CFG } from '../sim/config';
 import type { ID, SimEvent, TextSource } from '../shared/types';
 import type { Goblin, WorldState } from '../sim/state';
@@ -34,6 +35,8 @@ export interface DirectorHooks {
   onPause?: () => void;
   /** the village has named itself (P9.5) */
   named?: (name: string) => void;
+  /** a model has named the god (P9.7) */
+  godNamed?: (name: string) => void;
   /** tests: a provider of their own instead of the settings' */
   provider?: () => LLMProvider;
 }
@@ -41,6 +44,8 @@ export interface DirectorHooks {
 export class LlmDirector {
   readonly sched: Scheduler;
   private readonly culture: CultureWriter;
+  /** the Divine Voice (P9.7): the Voice panel speaks through it */
+  readonly voice: DivineVoice;
   private cached: LLMProvider | null = null;
 
   constructor(private readonly log: EventLog, private readonly h: DirectorHooks) {
@@ -48,6 +53,7 @@ export class LlmDirector {
     this.sched = new Scheduler({
       settings: llmSettings, provider: () => this.provider(), tick: () => h.world().tick, ...(h.onPause ? { onPause: h.onPause } : {}),
     });
+    this.voice = new DivineVoice(this.sched, h.world);
     this.culture = new CultureWriter(log, this.sched, {
       world: h.world, lang: h.lang, say: (id, text, source) => this.spoke('bark', [{ goblinId: id, text }], source), ...(h.named ? { named: h.named } : {}),
     });
@@ -62,6 +68,7 @@ export class LlmDirector {
     const s = this.h.world();
     for (const e of evs) {
       this.culture.onEvent(s, e);
+      if (e.type === 'god_named') this.voice.nameGod(e, this.h.lang(), this.h.godNamed);
       if (e.type === 'day_started') this.diaries(s, e.day - 1);
       else if (e.type === 'chat') this.dialogue(s, e.aId, e.bId, e);
       else this.bark(s, e);
