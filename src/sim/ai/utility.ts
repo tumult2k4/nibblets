@@ -70,6 +70,7 @@ import { Pray } from './actions/pray';
 import { LeadPrayer, MakeOffering, ShakeFist } from './actions/devotions';
 import { festivalWorkMul } from '../festivals';
 import { ReadBook, WriteBook } from './actions/books';
+import { GreetVisitor, Trade, TradeWithTrader } from './actions/trade';
 
 export const ACTIONS: Record<ActionId, UtilityAction> = {
   idle: Idle, wander: Wander, eat: Eat, harvest_fruit: HarvestFruit, pick_up: PickUp, drop: Drop,
@@ -90,6 +91,7 @@ export const ACTIONS: Record<ActionId, UtilityAction> = {
   hunt_trinket: HuntTrinket, decorate: Decorate, prank: Prank, steal: Steal, apologize: Apologize, brawl: Brawl,
   judge: Judge, exile: Exile, join_festival: JoinFestival, play_music: PlayMusic, dance: Dance, pray: Pray, write_book: WriteBook, read_book: ReadBook,
   make_offering: MakeOffering, lead_prayer: LeadPrayer, shake_fist: ShakeFist,
+  trade: Trade, trade_visitor: TradeWithTrader, greet_visitor: GreetVisitor,
 };
 const CHOOSABLE = (Object.values(ACTIONS) as UtilityAction[]).filter((a) => !a.forced);
 

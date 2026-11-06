@@ -47,6 +47,8 @@ import { updateSpoilage } from './spoilage';
 import { updateRacks } from './preserve';
 import { updateTraits } from './goblin/traits';
 import { updateWildlife } from './wildlife';
+import { updateClans } from './clans';
+import { updateVisitors } from './visitors';
 
 /**
  * The live world: plain-data state plus derived, rebuildable caches (rng object, spatial hashes,
@@ -173,7 +175,9 @@ export class World {
     updateWildlife(this); //  14c P7.1: critters graze, perch, swim and flee
     updateSocial(this); //    16 social (P5.1); 15 combat runs inside act
     updateKnowledge(this); // 17 culture: discovery (P5.5)
-    updateCommons(this); //   18 village: zones and demand (P7.5); 19 clans
+    updateCommons(this); //   18 village: zones and demand (P7.5)
+    updateClans(this); //     19 the rival clans beyond the map (P10.1)
+    updateVisitors(this); //  19b their scouts and traders at the village (P10.2)
     updateTrinkets(this); //  glints washed up after storms (P8.2)
     updateReputation(this); // reputation eases, old wrongs are let go (P8.3)
     updateLeadership(this); // chief, the night watch, exiles (P8.4)

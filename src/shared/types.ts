@@ -47,10 +47,12 @@ export type DeathCause =
   | 'fire' | 'poison' | 'drowning' | 'divine';
 export type RecipeId = string;
 /** How a goblin came to know a recipe or fact (§15.1). */
-export type LearnVia = 'teach' | 'observe' | 'discovery' | 'experience' | 'book';
+export type LearnVia = 'teach' | 'observe' | 'discovery' | 'experience' | 'book' | 'trade';
 export type DiseaseId = string;
 export type TrinketKind = string;
 export type Rarity = 'common' | 'uncommon' | 'rare' | 'legendary';
+/** What changes hands in a trade (P10.2): a stack of things, a trinket (by kind or, from a trader, by rarity), a recipe taught. */
+export interface TradeGood { type?: ItemType; qty?: number; trinket?: string; recipe?: RecipeId }
 export type MoodBreakKind = 'tantrum' | 'sulk' | 'binge' | 'wander_off';
 export type FestivalKind = string;
 export type PrankKind = string;
@@ -211,7 +213,10 @@ export type SimEvent = BaseEvent &
     | { type: 'festival_speech'; goblinId: ID; at: Vec2 }
     | { type: 'chief_chosen'; goblinId: ID; previousId: ID | null }
     | { type: 'trade'; aId: ID; bId: ID; gave: ItemStack[]; got: ItemStack[] }
-    | { type: 'clan_contact' | 'clan_raid' | 'clan_alliance'; clanA: ID; clanB: ID }
+    | { type: 'clan_contact' | 'clan_raid' | 'clan_alliance'; clanA: ID; clanB: ID; /** an alliance broken (P10.1) */ ended?: boolean }
+    | { type: 'visitor_arrived' | 'visitor_left'; visitorId: ID; clanId: ID; kind: 'scout' | 'trader' }
+    /** P10.2: a deal with a visiting trader (`visitorId`) or between two goblins (`withId`) */
+    | { type: 'traded'; goblinId: ID; withId?: ID; visitorId?: ID; clanId?: ID; gave: TradeGood; got: TradeGood }
     | { type: 'place_named'; placeId: ID } // P9.2: worded by language where shown (llm/placeNames.ts)
     | { type: 'superstition_formed' | 'superstition_faded'; omen: string; luck: string; valence: number }
     | { type: 'epithet_earned'; goblinId: ID; epithet: string; at: Vec2 }

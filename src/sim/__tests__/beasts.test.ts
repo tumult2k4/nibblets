@@ -64,8 +64,9 @@ describe('Bramblebeast and Night Wisp (P4.7)', () => {
     e.path = [{ x: 21, y: 12 }];
     e.home = { x: 21, y: 12 };
     const evs = events(w);
-    for (let t = 0; t < 70; t++) { w.step(); fed(w); }
-    expect(dist(e.pos, g.pos)).toBeLessThan(B.scareRadius);
+    let near = Infinity;
+    for (let t = 0; t < 70; t++) { w.step(); fed(w); near = Math.min(near, dist(e.pos, g.pos)); }
+    expect(near).toBeLessThan(B.scareRadius); // it came close (the goblin may wander on) and did not bite
     expect(evs.some((x) => x.type === 'enemy_bit')).toBe(false);
     expect(canTakeOn(g, w, e)).toBe(false);
     expect(['attack', 'defend_village']).not.toContain(g.activity.action);

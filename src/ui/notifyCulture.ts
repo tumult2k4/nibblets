@@ -1,7 +1,8 @@
 /**
  * Feed notes for culture (P8.5–P8.8): festivals, the chief's speech, beliefs formed and faded, offerings at the
  * shrine and temple, the culture buildings finished, epithets earned; prayers in despair and answered, conversions,
- * the shaman, the group prayer, the god's name; P8.9 Divine mode's tiers and wishes kept or defied. Called from
+ * the shaman, the group prayer, the god's name; P8.9 Divine mode's tiers and wishes kept or defied; P10.1 the rival
+ * clans (`notifyClans.ts`). Called from
  * `noteFor` for the events it leaves to it.
  */
 import type { ID, SimEvent } from '../shared/types';
@@ -12,6 +13,7 @@ import { powersOfTier } from '../sim/god/tiers';
 import { placesOf } from '../sim/places';
 import { placeName as placeWords } from '../llm/placeNames';
 import { knowName } from './notify';
+import { clanNote } from './notifyClans';
 
 /** A name with its epithet (P8.7), worded for the language: "Grubnok the Brave", "Old Mogwick". */
 export const withEpithet = (name: string, epithet: string | null): string => (epithet ? t(`epithet.${epithet}`, { name }) : name);
@@ -79,6 +81,6 @@ export function cultureNote(e: SimEvent, w: World, base: { tick: number }, name:
     case 'wish_defied':
       return { ...base, id: e.goblinId, text: t('ev.wish_defied', { name: name(e.goblinId) }), tier: 'notable', icon: 'close' };
     default:
-      return null;
+      return clanNote(e, w, base); // P10.1
   }
 }

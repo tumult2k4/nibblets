@@ -124,7 +124,7 @@ describe('the wider economy (P7.2, §11.1–11.2)', () => {
     const h = spawnGoblin(w, { pos: { x: 6.5, y: 20.5 } });
     h.needs.hunger = 20;
     addItem(h, { type: 'fish', qty: 1 });
-    withCfg(E, { rawGutRot: 1 }, () => run(w, h, Eat));
+    withCfg(E, { rawGutRot: 100 }, () => run(w, h, Eat)); // sure, however hardy this goblin
     expect(h.health.disease?.id).toBe('gut_rot');
   });
 

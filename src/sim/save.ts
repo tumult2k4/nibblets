@@ -10,6 +10,7 @@ import { xpFor } from './goblin/skills';
 import { express } from './goblin/genetics/phenotype';
 import { q4 } from '../shared/math';
 import { lineageEntry } from './goblin/lineage';
+import { createRivals } from './clans';
 
 const BIOMES: Biome[] = ['meadow', 'forest', 'sand', 'rock', 'water', 'marsh', 'snow'];
 
@@ -163,6 +164,11 @@ export const MIGRATIONS: Record<number, Migration> = {
   19: (raw) => {
     Object.assign(raw.climate as Record<string, unknown>, { godFloods: [] });
     Object.assign(raw.god as Record<string, unknown>, { sanctuaries: [] });
+    return raw;
+  },
+  // P10.1 the rival clans beyond the map, met from a few days after loading
+  20: (raw) => {
+    raw.rivals = createRivals(raw as unknown as WorldState); // allocates their ids from the save's counter
     return raw;
   },
 };

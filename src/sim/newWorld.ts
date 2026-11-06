@@ -14,6 +14,7 @@ import type { Vec2 } from '../shared/types';
 import { World } from './world';
 import { registerLineage } from './goblin/family';
 import { seedWildlife } from './wildlife';
+import { createRivals } from './clans';
 
 export interface WorldParams {
   seed: number;
@@ -66,7 +67,7 @@ export function createWorldState(params: WorldParams): WorldState {
     tiles: generateTiles(p.seed, w, h, p.preset),
     goblins: [], eggs: [], trinkets: [], plants: [], rocks: [], grass: [], mushrooms: [], wildlife: [], groundItems: [],
     buildings: [], fires: [], climate: { rainHours: 0, rainDays: 0, dryDays: 0, flood: null, drought: null, godFloods: [] }, enemies: [], threat: { night: -1, spawnAt: [], alarms: 0, marks: [] }, graves: [], lineage: {}, places: [],
-    clans: [], village: { name: p.villageName, center: { x: w / 2, y: h / 2 }, chiefId: null, stockpile: [], stockpilePos: { x: w / 2, y: h / 2 }, fenceRing: 0 },
+    clans: [], rivals: [], village: { name: p.villageName, center: { x: w / 2, y: h / 2 }, chiefId: null, stockpile: [], stockpilePos: { x: w / 2, y: h / 2 }, fenceRing: 0 },
     god: newGodState(p.mode, p.gentle), commandLog: [],
     weather: { kind: 'clear', nextChangeTick: CFG.weather.transitionTicks, temperature: 14, windDir: 0, upcoming: 'clear', cells: [] },
     stats: { samples: [], deaths: {}, births: 0, eaten: 0, divineFood: 0 },
@@ -96,6 +97,7 @@ export function createWorldState(params: WorldParams): WorldState {
   seedClanRelations(frng, s.goblins);
   for (const g of s.goblins) { registerLineage(s, g); seedFacts(frng, g); }
   if (p.wildlife) seedWildlife(s, rng.fork('wildlife'));
+  s.rivals = createRivals(s); // P10.1: their own stream, forked from the seed
   s.rngState = rng.fork('sim').state;
   return s;
 }

@@ -15,6 +15,7 @@ import { believers, maxFavor } from '../../sim/god/favor';
 import type { LifeStage } from '../../shared/types';
 import { villageTitle } from '../../llm/store';
 import { inBooks } from '../../sim/books';
+import { clanSection } from './clanSection';
 
 const STAGES: LifeStage[] = ['hatchling', 'youngling', 'adult', 'elder'];
 const cap = (x: string): string => x.charAt(0).toUpperCase() + x.slice(1);
@@ -23,7 +24,8 @@ const cap = (x: string): string => x.charAt(0).toUpperCase() + x.slice(1);
  * Village panel (Y, §18.6 — P5.5 slice): name and god, goblins by life stage, and what the village knows beyond the
  * basics, each with how many know it (red when only one does: one death from being lost), plus what has been lost.
  * The chief and its policies (P8.4), the festivals: on now or next, and the last few held (P8.5); the village's beliefs,
- * lucky (☀) or unlucky (☾) (P8.6); the shaman, how the god seems (its alignment), believers and favor (P8.8).
+ * lucky (☀) or unlucky (☾) (P8.6); the shaman, how the god seems (its alignment), believers and favor (P8.8); the
+ * clans beyond the hills and how they stand with the village (P10.1).
  */
 export class VillagePanel implements Component {
   private root = el('div.villagepanel.panel.hidden');
@@ -73,6 +75,7 @@ export class VillagePanel implements Component {
       el('div.sub', { text: t('village.believers', { n: believers(w), all: s.goblins.length, f: Math.floor(s.god.favor), max: maxFavor(w) }) }),
       el('h3', { text: t('village.festivals') }), el('div.sub', { text: fest ? t('village.festivalNow', { fest: cap(t(`fest.${fest.kind}`)) }) : t('village.nextFestival', { fest: t(`fest.${next[0]}`), day: next[1] + 1 }) }),
       el('div.sub', { text: held.length ? held.map(([d, k, n]) => t('village.held', { fest: cap(t(`fest.${k}`)), day: d + 1, n })).join(' · ') : t('village.noneHeld') }),
+      ...clanSection(s), // P10.1
       el('h3', { text: t('village.beliefs') }), // P8.6
       ...(beliefs.length ? beliefs.map((b) => el('div.vp-row', {}, el('span', { text: `${b.valence > 0 ? '☀' : '☾'} ${beliefText(b.omen, b.luck)}` }))) : [el('div.sub', { text: t('village.noBeliefs') })]),
       el('h3', { text: t('village.knowledge') }),

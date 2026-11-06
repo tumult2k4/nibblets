@@ -48,10 +48,15 @@ if (process.argv.includes('--no-books')) {
   ACTIONS.read_book.isAvailable = () => false;
   (CFG.books.shelf as { pop: number }).pop = 999;
 }
+/** `--no-clans` (P10 check): a world without rival clans; `--frozen-clans`: they exist but never change or visit */
+if (process.argv.includes('--no-clans')) (CFG.clans as { count: [number, number] }).count = [0, 0];
+if (process.argv.includes('--frozen-clans')) (CFG.clans as { every: number }).every = 1e9;
 
 interface Row {
   /** deaths and everyone who lived there (founders + newcomers), for the control run's loss share */
   lost: number; residents: number;
+  /** P10.1: the rival clans at the end */
+  clans: string;
   seed: number; popMin: number; popAvg: number; popMax: number; popEnd: number; births: number;
   deaths: Record<string, number>; eaten: number; divineFood: number; starvationDays: number;
   hueDrift: number; tickMs: number; fails: string[];
@@ -129,6 +134,7 @@ function runSeed(seed: number): Row {
   const eaten: Record<string, number> = {};
   const md = { sum: 0, n: 0, breaks: { tantrum: 0, sulk: 0, binge: 0, wander_off: 0 } as Record<string, number>, inspired: 0, found: 0, given: 0 };
   const soc = { theft: 0, seen: 0, pranks: 0, sorry: 0, brawls: 0, broken: 0, chiefs: 0, changes: 0, firstChief: -1, sentences: { return: 0, apology: 0, exile: 0 }, fests: {} as Record<string, number>, came: 0, instruments: 0, built: {} as Record<string, number>, prayers: 0 };
+  const clanRaids: Record<number, number> = {};
   w.bus.subscribe((e) => {
     if (e.type === 'theft') { soc.theft++; if (e.witnessIds.length) soc.seen++; }
     if (e.type === 'prank') soc.pranks++;
@@ -136,6 +142,7 @@ function runSeed(seed: number): Row {
     if (e.type === 'brawl') { soc.brawls++; if (e.brokenUpBy !== undefined) soc.broken++; }
     if (e.type === 'chief_chosen') { soc.chiefs++; if (e.previousId !== null) soc.changes++; else soc.firstChief = Math.floor(e.tick / CFG.time.dayTicks); }
     if (e.type === 'justice') soc.sentences[e.sentence]++;
+    if (e.type === 'clan_raid') clanRaids[e.clanA] = (clanRaids[e.clanA] ?? 0) + 1; // P10.1
     if (e.type === 'festival' && e.phase === 'end') { soc.fests[e.kind] = (soc.fests[e.kind] ?? 0) + 1; soc.came += e.came ?? 0; } // P8.5
     if (e.type === 'item_crafted' && (e.item === 'drum' || e.item === 'flute')) soc.instruments++;
     if (e.type === 'building_completed' && ['music_circle', 'shrine', 'totem', 'temple', 'library_shelf'].includes(e.kind)) soc.built[e.kind] ??= Math.floor(e.tick / CFG.time.dayTicks); // P8.5–P8.6
@@ -283,6 +290,7 @@ function runSeed(seed: number): Row {
     bushes0, bushesEnd: bushCount(), planted: w.s.plants.filter((p) => p.plantedBy !== null).length, plantedMature, wood, stone, armed, fires, foes: `${foes.spawned}/${foes.stolen}/${foes.bites}/${foes.fled}/${foes.killed}/${foes.wounds}`, veterans: w.s.goblins.filter((g) => g.traits.includes('veteran')).length,
     housedAutumn, huts: w.s.buildings.filter((b) => (b.type === 'hut' || b.type === 'stone_hut') && b.buildProgress >= 1).length, weatherDeaths,
     rare: `${rare.beasts}/${rare.smashed} ${rare.wisps}/${rare.lured} ${rare.newcomers}`,
+    clans: w.s.rivals.map((c) => `${c.name} ${c.archetype} pop ${c.pop} food ${(c.store / Math.max(1, c.pop)).toFixed(1)}d fierce ${c.aggression.toFixed(2)} rel ${Math.round(c.relation)}${c.allied ? ' ally' : ''} met ${c.contact === null ? '—' : 'day ' + Math.floor(c.contact / 3600)} raids ${clanRaids[c.id] ?? 0}`).join('; '),
     fences: `${w.s.buildings.filter((b) => b.type === 'fence' && b.buildProgress >= 1).length}/${w.s.village.fenceRing ? ringTiles(w.s, w.s.village.fenceRing).length : 0}`,
   };
 }
@@ -291,7 +299,7 @@ const rows: Row[] = [];
 for (let i = 0; i < seedCount; i++) {
   const r = runSeed(firstSeed + i);
   rows.push(r);
-  console.log(`seed ${r.seed}: pop ${r.popEnd} (min ${r.popMin}, avg ${r.popAvg.toFixed(1)}, max ${r.popMax}) deaths ${JSON.stringify(r.deaths)} eaten ${r.eaten} god food ${r.divineFood} bushes ${r.bushes0}→${r.bushesEnd} plantedMature ${r.plantedMature} wood ${r.wood} stone/flint/sticks ${r.stone} armed ${r.armed} fires ${r.fires} gnashers/stolen/bites/fled/killed/wounds ${r.foes} veterans ${r.veterans} huts ${r.huts} fences ${r.fences} beasts/smashed wisps/lured newcomers ${r.rare} housed@autumn ${r.housedAutumn < 0 ? '—' : Math.round(r.housedAutumn * 100) + '%'} specialists ${r.specialists} friends ${r.friends} winterStarve ${r.winterStarve} winterDeaths ${r.winterDeaths} spoiled ${r.spoiled} mash/dried ${r.preserved} generations ${r.generations} hue ${r.hue} (drift ${r.hueDrift.toFixed(1)}°) ill [${r.ill}] tended ${r.tended} remedies ${r.remedies} wildfires [${r.wildfires}] floods/droughts/blight/stars ${r.disasters} buried/mounds/mourned ${r.rites} hunted ${r.wild} fished ${r.econ} settle [${r.settle}] garden [${r.garden}] commons [${r.commons}] mood [${r.mood}] society [${r.society}] ate [${r.foods}] recovered ${r.watch.recovered}/${r.watch.judged} (worst dip ${Math.round((1 - r.watch.worst) * 100)} %)${r.watch.misses.length ? ' [' + r.watch.misses.join('; ') + ']' : ''} tick ${r.tickMs.toFixed(3)}ms ${r.fails.length ? 'FAIL ' + r.fails.join(',') : 'ok'}`);
+  console.log(`seed ${r.seed}: pop ${r.popEnd} (min ${r.popMin}, avg ${r.popAvg.toFixed(1)}, max ${r.popMax}) deaths ${JSON.stringify(r.deaths)} eaten ${r.eaten} god food ${r.divineFood} bushes ${r.bushes0}→${r.bushesEnd} plantedMature ${r.plantedMature} wood ${r.wood} stone/flint/sticks ${r.stone} armed ${r.armed} fires ${r.fires} gnashers/stolen/bites/fled/killed/wounds ${r.foes} veterans ${r.veterans} huts ${r.huts} fences ${r.fences} beasts/smashed wisps/lured newcomers ${r.rare} housed@autumn ${r.housedAutumn < 0 ? '—' : Math.round(r.housedAutumn * 100) + '%'} specialists ${r.specialists} friends ${r.friends} winterStarve ${r.winterStarve} winterDeaths ${r.winterDeaths} spoiled ${r.spoiled} mash/dried ${r.preserved} generations ${r.generations} hue ${r.hue} (drift ${r.hueDrift.toFixed(1)}°) ill [${r.ill}] tended ${r.tended} remedies ${r.remedies} wildfires [${r.wildfires}] floods/droughts/blight/stars ${r.disasters} buried/mounds/mourned ${r.rites} hunted ${r.wild} fished ${r.econ} settle [${r.settle}] garden [${r.garden}] commons [${r.commons}] mood [${r.mood}] society [${r.society}] clans [${r.clans}] ate [${r.foods}] recovered ${r.watch.recovered}/${r.watch.judged} (worst dip ${Math.round((1 - r.watch.worst) * 100)} %)${r.watch.misses.length ? ' [' + r.watch.misses.join('; ') + ']' : ''} tick ${r.tickMs.toFixed(3)}ms ${r.fails.length ? 'FAIL ' + r.fails.join(',') : 'ok'}`);
 }
 const lines = [
   `# Balance report — ${days} days × ${seedCount} seeds${noCraft ? ' (control: no crafting)' : ''}${noPreserve ? ' (control: no preservation)' : ''}`,

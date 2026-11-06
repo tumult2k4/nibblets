@@ -21,10 +21,12 @@ import { FAITH } from './cfg/faith';
 import { DIVINE } from './cfg/divine';
 import { LLM } from './cfg/llm';
 import { PLACES } from './cfg/places';
+import { CLANS } from './cfg/clans';
+import { VISITORS } from './cfg/visitors';
 
 export const CFG = {
   tickHz: 10,
-  saveVersion: 20,
+  saveVersion: 21,
   time: { dayTicks: 3600, daysPerSeason: 8, moonCycleDays: 8, phases: { dawn: 0.05, day: 0.6, dusk: 0.7 }, startTick: 360 },
   world: {
     w: 128, h: 128, waterLevel: 0.3, sandBand: 0.03, rockLevel: 0.8, forestNoiseThreshold: 0.6,
@@ -290,7 +292,7 @@ export const CFG = {
   health: HEALTH,
   /** P6.2–P6.3 fire, floods, drought, blight, shooting stars: see cfg/disasters.ts */
   disasters: DISASTERS,
-  death: DEATH, miracles: MIRACLES, wildlife: WILDLIFE, economy: ECONOMY, settlement: SETTLEMENT, garden: GARDEN, commons: COMMONS, mood: MOOD, trinkets: TRINKETS, mischief: MISCHIEF, leadership: LEADERSHIP, festivals: FESTIVALS, beliefs: BELIEFS, character: CHARACTER, faith: FAITH, divine: DIVINE, llm: LLM, places: PLACES, books: BOOKS,
+  death: DEATH, miracles: MIRACLES, wildlife: WILDLIFE, economy: ECONOMY, settlement: SETTLEMENT, garden: GARDEN, commons: COMMONS, mood: MOOD, trinkets: TRINKETS, mischief: MISCHIEF, leadership: LEADERSHIP, festivals: FESTIVALS, beliefs: BELIEFS, character: CHARACTER, faith: FAITH, divine: DIVINE, llm: LLM, places: PLACES, books: BOOKS, clans: CLANS, visitors: VISITORS,
   god: {
     startFavor: 50, maxFavorBase: 100, maxFavorPerBeliever: 15, believerFaith: 40, prayingFavorMul: 3,
     offeringTrinketMul: 2, offeringFoodMul: 0.5, festivalFavor: 20, answeredPrayerFavor: 5,

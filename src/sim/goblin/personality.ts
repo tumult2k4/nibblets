@@ -31,6 +31,9 @@ export function personalityWeight(p: Personality, action: string): number {
     case 'chat':
     case 'comfort':
     case 'gift':
+    case 'greet_visitor':
+    case 'trade':
+    case 'trade_visitor':
       return 0.4 + 1.2 * p.sociability;
     case 'mourn':
       return 0.7 + 0.6 * p.sociability;
