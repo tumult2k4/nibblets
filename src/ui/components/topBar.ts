@@ -9,6 +9,8 @@ import { CFG } from '../../sim/config';
 import { keyLabel } from '../keys';
 import { WEATHER_KINDS } from '../../sim/weather';
 import type { WeatherKind } from '../../shared/types';
+import { maxFavor } from '../../sim/god/favor';
+import { MAX_TIER, tierNeeds } from '../../sim/god/tiers';
 
 const WEATHER_ICON: Record<WeatherKind, string> = {
   clear: 'sun', cloudy: 'cloud', fog: 'fog', rain: 'rain', storm: 'storm', snow: 'snow', blizzard: 'snow', heatwave: 'heat',
@@ -24,6 +26,10 @@ export class TopBar implements Component {
   private pop = el('span.stat');
   private food = el('span.stat');
   private faith = el('span.stat');
+  /** P8.9 Divine mode: the favor meter and tier progress */
+  private favor = el('span.favorbar.hidden');
+  private favorFill = el('span.fill');
+  private favorText = el('span.txt');
   private mode = el('span.badge.clickable', { onclick: () => this.toggleSandbox() });
   private speedBtns: HTMLButtonElement[] = [];
   private alerts = el('span.alert-count.hidden');
@@ -43,8 +49,9 @@ export class TopBar implements Component {
     });
     const bell = el('button.btn.iconbtn', { onclick: () => { this.alertCount = 0; this.ctx.store.set({ openPanels: { ...this.ctx.store.state.openPanels, feed: true } }); this.update(); } }, icon('bell'), this.alerts);
     bell.dataset.tip = t('top.alerts');
+    this.favor.append(this.favorFill, this.favorText);
     this.mode.dataset.tip = tipKey(t('sbx.title'), keyLabel('sandbox'));
-    this.root.append(menu, this.village, el('span.sep'), this.cal, this.weather, el('span.sep'), this.pop, this.food, this.faith, el('span.grow'), this.mode, speed, bell);
+    this.root.append(menu, this.village, el('span.sep'), this.cal, this.weather, el('span.sep'), this.pop, this.food, this.faith, this.favor, el('span.grow'), this.mode, speed, bell);
     parent.append(this.root, this.wxMenu);
     window.addEventListener('pointerdown', (e) => {
       if (!this.wxMenu.contains(e.target as Node) && !this.weather.contains(e.target as Node)) this.wxMenu.classList.add('hidden');
@@ -70,6 +77,20 @@ export class TopBar implements Component {
       onclick: () => { w.push({ type: 'sandbox', op: { op: 'set_weather', kind: k } }); this.wxMenu.classList.add('hidden'); },
     }, icon(WEATHER_ICON[k]), ` ${t(`weather.${k}`)}`)));
     this.wxMenu.classList.remove('hidden');
+  }
+
+  /** §18.2: favor out of its cap, the tier, and what the next tier needs (hover). */
+  private divineMeter(): void {
+    const w = this.ctx.game.world, g = w.s.god;
+    this.favor.classList.toggle('hidden', g.mode !== 'divine');
+    if (g.mode !== 'divine') return;
+    const max = maxFavor(w);
+    this.favorFill.style.width = `${Math.round(Math.min(1, g.favor / max) * 100)}%`;
+    setText(this.favorText, `${t('top.favor', { n: Math.floor(g.favor), max })} · ${t('top.tier', { n: g.tier })}`);
+    const needs = g.tier >= MAX_TIER ? null : tierNeeds(w, g.tier + 1);
+    const word = (x: NonNullable<typeof needs>[number]) => (x.kind === 'shrine' || x.kind === 'temple' ? t(`need.${x.kind}`) : t(`need.${x.kind}`, { have: x.have, need: x.need }))
+      + (x.have >= x.need ? ` ${t('need.ok')}` : '');
+    this.favor.dataset.tip = needs ? t('top.tierNext', { n: g.tier + 1, needs: needs.map(word).join(', ') }) : t('top.tierMax');
   }
 
   setSpeed(i: number): void {
@@ -115,7 +136,8 @@ export class TopBar implements Component {
     setText(this.food, t('top.food', { n: (nut / need).toFixed(1) }));
     const avgFaith = gs.length ? gs.reduce((a, g) => a + g.godView.faith, 0) / gs.length : 0;
     setText(this.faith, t('top.faith', { n: Math.round(avgFaith) }));
-    setText(this.mode, this.ctx.readOnly() ? t('replay.banner') : s.god.mode === 'observer' ? t('top.observer') : t('top.sandbox'));
+    setText(this.mode, this.ctx.readOnly() ? t('replay.banner') : s.god.mode === 'observer' ? t('top.observer') : s.god.mode === 'divine' ? t('top.divine') : t('top.sandbox'));
+    this.divineMeter();
     const sp = this.ctx.game.speedIdx;
     this.speedBtns.forEach((b, i) => b.classList.toggle('on', i === sp));
     this.alerts.classList.toggle('hidden', this.alertCount === 0);

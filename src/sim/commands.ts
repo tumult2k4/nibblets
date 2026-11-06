@@ -3,13 +3,15 @@ import { siteOk, spawnPlant } from './plants';
 import { tileAt } from './grid';
 import { divineAct } from './god/faith';
 import { TERRAFORM_POWERS, terraform, type TerraformPower } from './god/terraform';
-import type { ID, ItemType, PlantKind, Vec2, Vec3 } from '../shared/types';
+import type { ID, ItemType, ParsedIntent, PlantKind, Tone, Vec2, Vec3 } from '../shared/types';
 import { q2 } from '../shared/math';
 import { CFG } from './config';
 import type { World } from './world';
 import { flick, grab, holdMove, pet, poke, release, spawnGift } from './god/hand';
-import { cast, castProblem } from './god/cast';
-import { ITEM_DEFS, TOOLS_TIER } from './items';
+import { cast, castProblem, powerDef } from './god/cast';
+import { ITEM_DEFS, SAPLING_VALUE } from './items';
+import { afford, giftCost, giftTier, pay, strokeCost } from './god/tiers';
+import { applySpeech, quantizeSpeech, speechProblem } from './god/speech';
 import { applySandbox, sandboxProblem, type SandboxOp } from './sandbox';
 
 export type { SandboxOp } from './sandbox';
@@ -25,6 +27,7 @@ export type GodCommand =
   | { type: 'god_power'; power: TerraformPower; pos: Vec2; radius: number; option?: string }
   | { type: 'god_spawn_plant'; kind: PlantKind; pos: Vec2 }
   | { type: 'god_cast'; power: string; pos: Vec2; radius?: number; to?: Vec2; targetId?: ID; option?: string }
+  | { type: 'divine_speech'; addressees: ID[] | 'all'; tone: Tone; intents: ParsedIntent[]; isQuestion: boolean; source: 'voice' | 'sign'; textRef?: string }
   | { type: 'sandbox'; op: SandboxOp }
   | { type: 'set_mode'; mode: 'sandbox' | 'observer' };
 
@@ -53,6 +56,8 @@ export function quantize(cmd: Command): Command {
       return { ...cmd, pos: qv(cmd.pos), ...(cmd.radius !== undefined ? { radius: Math.round(cmd.radius) } : {}), ...(cmd.to ? { to: qv(cmd.to) } : {}) };
     case 'god_pet':
       return { ...cmd, ticks: Math.round(cmd.ticks) };
+    case 'divine_speech':
+      return { ...cmd, intents: quantizeSpeech(cmd.intents) };
     case 'sandbox':
       return 'pos' in cmd.op ? { ...cmd, op: { ...cmd.op, pos: qv(cmd.op.pos) } as SandboxOp } : cmd;
     default:
@@ -80,8 +85,7 @@ export function validate(w: World, cmd: Command): string | null {
       if (!ITEM_DEFS[cmd.item]) return 'unknown_item';
       if (cmd.qty < 1 || cmd.qty > CFG.god.maxGiftQty) return 'bad_quantity';
       if (cmd.pos.x < 0 || cmd.pos.y < 0 || cmd.pos.x >= s.size.w || cmd.pos.y >= s.size.h) return 'out_of_bounds';
-      if (ITEM_DEFS[cmd.item]!.tray === 'tools' && s.god.mode === 'divine' && s.god.tier < TOOLS_TIER) return 'locked';
-      return null;
+      return afford(w, giftTier(cmd.item), giftCost(cmd.item, cmd.qty)); // P8.9 Divine mode: tier and favor
     case 'god_pet':
     case 'god_poke':
       return needGoblin(cmd.goblinId) ?? (w.goblin(cmd.goblinId)!.heldByGod ? 'held' : null);
@@ -91,12 +95,14 @@ export function validate(w: World, cmd: Command): string | null {
     case 'god_spawn_plant': {
       const t = tileAt(s, cmd.pos.x, cmd.pos.y);
       if (!t || t.biome === 'water' || t.biome === 'rock' || !siteOk(w, cmd.pos, cmd.kind === 'flower' ? 0.6 : 1.2)) return 'bad_site';
-      return null;
+      return afford(w, CFG.divine.giftTier, SAPLING_VALUE);
     }
     case 'god_power':
       if (!(TERRAFORM_POWERS as readonly string[]).includes(cmd.power)) return 'unknown_power';
       if (cmd.pos.x < 0 || cmd.pos.y < 0 || cmd.pos.x >= s.size.w || cmd.pos.y >= s.size.h) return 'out_of_bounds';
-      return null;
+      return afford(w, powerDef(cmd.power)!.tier, strokeCost(w, powerDef(cmd.power)!, cmd.pos, cmd.radius));
+    case 'divine_speech':
+      return speechProblem(w, cmd);
     case 'god_cast':
       return castProblem(w, cmd.power, cmd.pos, cmd.to, cmd.targetId, cmd.option);
     case 'sandbox':
@@ -110,13 +116,15 @@ function apply(w: World, cmd: Command): void {
     case 'god_grab': grab(w, cmd.entityId); break;
     case 'god_hold_move': holdMove(w, cmd.pos, cmd.height); break;
     case 'god_release': release(w, cmd.pos, cmd.height, cmd.velocity); break;
-    case 'god_spawn_item': spawnGift(w, cmd.item, cmd.qty, cmd.pos); break;
+    case 'god_spawn_item': pay(w, giftCost(cmd.item, cmd.qty)); spawnGift(w, cmd.item, cmd.qty, cmd.pos); break;
     case 'god_pet': pet(w, w.goblin(cmd.goblinId)!, cmd.ticks); break;
     case 'god_poke': poke(w, w.goblin(cmd.goblinId)!); break;
     case 'god_flick': flick(w, w.goblin(cmd.goblinId)!, cmd.dir); break;
-    case 'god_power': terraform(w, cmd.power, cmd.pos, cmd.radius, cmd.option); break;
+    case 'god_power': pay(w, strokeCost(w, powerDef(cmd.power)!, cmd.pos, cmd.radius)); terraform(w, cmd.power, cmd.pos, cmd.radius, cmd.option); break;
+    case 'divine_speech': applySpeech(w, cmd); break;
     case 'god_cast': cast(w, cmd.power, cmd.pos, cmd.radius, cmd.to, cmd.targetId, cmd.option); break;
     case 'god_spawn_plant': {
+      pay(w, SAPLING_VALUE);
       spawnPlant(w, cmd.kind, cmd.pos, cmd.kind === 'flower' ? 'mature' : 'sapling', null);
       divineAct(w, 'gift', cmd.pos);
       break;

@@ -12,14 +12,14 @@ export const Scatter: UtilityAction = {
   isAvailable: () => false,
   score: () => 0,
   start(g, w) {
-    const z = zoneAt(w, g.pos);
+    const z = zoneAt(w, g.pos, g);
     const to = z ? exitPoint(w, g, z) : null;
     if (!to) return false;
     w.emit({ type: 'emote', goblinId: g.id, emote: 'exclaim' });
     return planPath(w, g, to);
   },
   step(g, w) {
-    if (moveAlong(w, g, CFG.powers.scatterMul) === 'arrived') return zoneAt(w, g.pos) ? 'failed' : 'done';
+    if (moveAlong(w, g, CFG.powers.scatterMul) === 'arrived') return zoneAt(w, g.pos, g) ? 'failed' : 'done';
     return 'running';
   },
 };

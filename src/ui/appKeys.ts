@@ -38,6 +38,7 @@ export function keyHandlers(app: App): KeyHandlers {
     feed: () => panel('feed'),
     village: () => inGame() && panel('village'),
     prayers: () => inGame() && panel('prayers'),
+    voice: () => inGame() && app.game.world.s.god.mode !== 'observer' && app.voice.toggle(),
     family: () => inGame() && (app.store.set({ familyFocus: null }), panel('family')),
     stats: () => inGame() && panel('stats'),
     sandbox: () => inGame() && !app.readOnly() && app.game.world.s.god.mode === 'sandbox' && panel('sandbox'),

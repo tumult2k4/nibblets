@@ -17,6 +17,7 @@ import { FESTIVALS } from './cfg/festivals';
 import { BELIEFS } from './cfg/beliefs';
 import { CHARACTER } from './cfg/character';
 import { FAITH } from './cfg/faith';
+import { DIVINE } from './cfg/divine';
 
 export const CFG = {
   tickHz: 10,
@@ -286,7 +287,7 @@ export const CFG = {
   health: HEALTH,
   /** P6.2–P6.3 fire, floods, drought, blight, shooting stars: see cfg/disasters.ts */
   disasters: DISASTERS,
-  death: DEATH, miracles: MIRACLES, wildlife: WILDLIFE, economy: ECONOMY, settlement: SETTLEMENT, garden: GARDEN, commons: COMMONS, mood: MOOD, trinkets: TRINKETS, mischief: MISCHIEF, leadership: LEADERSHIP, festivals: FESTIVALS, beliefs: BELIEFS, character: CHARACTER, faith: FAITH,
+  death: DEATH, miracles: MIRACLES, wildlife: WILDLIFE, economy: ECONOMY, settlement: SETTLEMENT, garden: GARDEN, commons: COMMONS, mood: MOOD, trinkets: TRINKETS, mischief: MISCHIEF, leadership: LEADERSHIP, festivals: FESTIVALS, beliefs: BELIEFS, character: CHARACTER, faith: FAITH, divine: DIVINE,
   llm: { diariesPerDay: 3, dialoguesPerDay: 4, barksPerDay: 6, tokensPerDay: 12000, rpm: 10, concurrency: 2, timeoutMs: 20000 },
   god: {
     startFavor: 50, maxFavorBase: 100, maxFavorPerBeliever: 15, believerFaith: 40, prayingFavorMul: 3,
@@ -298,7 +299,7 @@ export const CFG = {
     dependenceShare: 0.3, prayerTicks: 3600, prayerAnswerRadius: 8,
     voiceCost: { single: 5, group: 10, all: 25 }, shamanVoiceDiscount: 0.4, voiceRateLimitMs: 10000,
     voiceMaxChars: 280, voiceTokensPerDay: 4000, interpreterTimeoutMs: 10000, overhearRadius: 8,
-    tiers: [0, 3, 6, 10, 15], hourTicks: 150,
+    hourTicks: 150,
     holdHeight: { min: 1, max: 12, start: 3 }, replantHeight: 3, transplantShock: 0.6, eggBreakHeight: 2, itemBounce: 0.2,
     petMoodPerSec: 3, pokeMood: -2, flickDmg: 5, flickFear: 6, flickDist: 2, holdMoodPenalty: -10, holdFearGain: 5,
     lookUpTicks: 40, maxGiftQty: 20, spawnHeight: 9,

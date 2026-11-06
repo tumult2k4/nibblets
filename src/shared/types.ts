@@ -67,6 +67,11 @@ export type WishIntent =
   | 'gather' | 'build' | 'plant' | 'guard' | 'fight' | 'hide' | 'avoid' | 'share_food' | 'stop'
   | 'make_peace' | 'rest' | 'explore' | 'come_here' | 'worship' | 'celebrate' | 'teach' | 'tend'
   | 'court' | 'move_home' | 'eat' | 'leave_alone';
+/** What a wish is about (§17.6): an item to gather, a building (type or blueprint id), a goblin, a spot, a recipe; `action` is what `stop` stopped. */
+export interface WishTarget { kind: 'item' | 'building' | 'entity' | 'place' | 'pos' | 'recipe' | 'action'; value: string | number; pos?: Vec2 }
+export interface ParsedIntent { intent: WishIntent; target?: WishTarget }
+/** A line in the Voice panel's log (annotation, outside the hashed state): the god's (goblinId null) or a goblin's reply. */
+export interface VoiceLine { tick: number; goblinId: ID | null; text: string; tone?: Tone; intents?: WishIntent[]; who?: string; defied?: boolean }
 export type DivineActKind = PowerId | 'grab' | 'set_down' | 'drop' | 'throw' | 'pet' | 'poke' | 'flick' | 'gift';
 
 interface BaseEvent {
@@ -207,6 +212,7 @@ export type SimEvent = BaseEvent &
     | { type: 'shaman_chosen'; goblinId: ID; previousId: ID | null }
     | { type: 'god_named'; name: string }
     | { type: 'power_unlocked'; power: PowerId; tier: number }
+    | { type: 'tier_changed'; tier: number; from: number }
     | { type: 'command_rejected'; command: string; reason: string }
   );
 

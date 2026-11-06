@@ -22,7 +22,8 @@ export interface HeldState {
 }
 
 /** A patch the god made unbearable for a while (P4.8): `swarm` (biting bugs) or `dread` (after lightning or a meteor). */
-export interface AvoidZone { kind: 'swarm' | 'dread'; pos: Vec2; r: number; until: number }
+/** P8.9 `shun`: a place the god asked these goblins (`ids`) to avoid. */
+export interface AvoidZone { kind: 'swarm' | 'dread' | 'shun'; pos: Vec2; r: number; until: number; ids?: ID[] }
 /** A wrath strike still on its way down (the meteor's fall, P4.8). */
 export interface PendingStrike { power: string; pos: Vec2; r: number; at: number }
 
@@ -32,6 +33,8 @@ export interface GodState {
   favor: number;
   alignment: number;
   tier: number;
+  /** P8.9: since when the village's faith has earned less than `tier` (it locks again after CFG.divine.relockHours) */
+  tierLowSince?: number;
   cooldowns: Record<string, number>;
   godName: string | null;
   held: HeldState | null;

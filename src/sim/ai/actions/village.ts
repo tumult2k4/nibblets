@@ -119,7 +119,7 @@ export function hearthJob(g: Goblin, w: World): { home: Building; site: Vec2 } |
   return site ? { home, site } : null;
 }
 
-function siteFor(w: World, type: BuildingType): Vec2 | null {
+export function siteFor(w: World, type: BuildingType): Vec2 | null {
   if (type === 'fence') return fenceSites(w, 1)[0] ?? null;
   if (type === 'longhouse') return findSite(w, type, w.s.village.center);
   if (type === 'gate') return gateSite(w);

@@ -18,6 +18,7 @@ import { Minimap } from './components/minimap';
 import { DebugOverlay } from './components/debugOverlay';
 import { VillagePanel } from './components/villagePanel';
 import { PrayersPanel } from './components/prayersPanel';
+import { VoicePanel } from './components/voicePanel';
 import { StatsPanel } from './components/statsPanel';
 import { FamilyTree } from './components/familyTree';
 import { SandboxDrawer } from './components/sandbox/drawer';
@@ -40,13 +41,14 @@ export class App implements Ctx {
   feed!: Feed;
   tray!: GiftTray;
   minimap!: Minimap;
+  voice!: VoicePanel;
   private comps: Component[] = [];
   private hud = el('div', { style: 'position:absolute;inset:0;pointer-events:none' });
   private lastUpdate = 0;
   names = new Map<ID, string>();
   replayMode = false;
 
-  constructor(public game: Game, canvas: HTMLCanvasElement) {
+  constructor(public game: Game, readonly canvas: HTMLCanvasElement) {
     injectIcons();
     this.root = document.getElementById('ui')!;
     this.applySettings(this.store.state.settings);
@@ -78,7 +80,8 @@ export class App implements Ctx {
     this.tray = new GiftTray(this, (item, e) => this.input.tray.start(item, e));
     this.minimap = new Minimap(this);
     this.toolbar = new GodToolbar(this);
-    this.comps = [this.topBar, this.toolbar, new Inspector(this), this.feed, this.tray, this.minimap, new DebugOverlay(this), new VillagePanel(this), new PrayersPanel(this), new StatsPanel(this), new FamilyTree(this), new SandboxDrawer(this),
+    this.voice = new VoicePanel(this);
+    this.comps = [this.topBar, this.toolbar, new Inspector(this), this.feed, this.tray, this.minimap, new DebugOverlay(this), new VillagePanel(this), new PrayersPanel(this), this.voice, new StatsPanel(this), new FamilyTree(this), new SandboxDrawer(this),
       new QuickRing(this, {
         pickUp: (id) => this.push({ type: 'god_grab', entityId: id }),
         pet: (id) => this.push({ type: 'god_pet', goblinId: id, ticks: 30 }),
@@ -122,6 +125,8 @@ export class App implements Ctx {
       if (e.type === 'goblin_died' && this.store.state.settings.autopauseDeath) this.game.speedIdx = 0;
       if (e.type === 'day_started' && !this.replayMode) void this.screens.autosave();
       if (e.type === 'command_rejected') document.querySelector('.toolbar .btn.on')?.classList.add('shake');
+      if (e.type === 'god_spoke') this.voice.spoke(e); // P8.9: the sign in the sky, the replies
+      if (e.type === 'wish_fulfilled') this.voice.kept(e);
     }
   }
 
@@ -159,6 +164,7 @@ export class App implements Ctx {
     const st = this.store.state;
     if (st.overlay) return this.screens.open(st.screen === 'title' ? null : null);
     if (st.screen === 'title') return;
+    if (this.voice.wheel.isOpen) return this.voice.wheel.close();
     if (st.openPanels.tray || st.openPanels.flyout) return this.store.set({ activeTool: 'hand', openPanels: { ...st.openPanels, tray: false, flyout: false } });
     if (st.selection.length) return this.select(null, []);
     this.screens.open('pause');

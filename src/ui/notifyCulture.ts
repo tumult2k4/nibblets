@@ -1,12 +1,14 @@
 /**
  * Feed notes for culture (P8.5–P8.8): festivals, the chief's speech, beliefs formed and faded, offerings at the
  * shrine and temple, the culture buildings finished, epithets earned; prayers in despair and answered, conversions,
- * the shaman, the group prayer, the god's name. Called from `noteFor` for the events it leaves to it.
+ * the shaman, the group prayer, the god's name; P8.9 Divine mode's tiers and wishes kept or defied. Called from
+ * `noteFor` for the events it leaves to it.
  */
 import type { ID, SimEvent } from '../shared/types';
 import type { World } from '../sim/world';
 import type { Note } from './notify';
 import { getLang, godNameText, t } from './i18n';
+import { powersOfTier } from '../sim/god/tiers';
 
 /** A name with its epithet (P8.7), worded for the language: "Grubnok the Brave", "Old Mogwick". */
 export const withEpithet = (name: string, epithet: string | null): string => (epithet ? t(`epithet.${epithet}`, { name }) : name);
@@ -54,6 +56,15 @@ export function cultureNote(e: SimEvent, w: World, base: { tick: number }, name:
       return { ...base, id: e.goblinId, text: t('ev.group_prayer', { name: name(e.goblinId) }), tier: 'info', icon: 'sparkle' };
     case 'offering':
       return { ...base, id: e.goblinId, text: t('ev.offering_food', { name: name(e.goblinId), place: placeName(w.s.buildings.find((b) => b.id === e.buildingId)?.type ?? 'shrine') }), tier: 'info', icon: 'gift' };
+    case 'tier_changed': { // P8.9
+      if (e.tier < e.from) return { ...base, text: t('ev.tier_down', { n: e.tier }), tier: 'notable', icon: 'moon' };
+      const ps = Array.from({ length: e.tier - e.from }, (_, i) => powersOfTier(e.from + 1 + i)).flat().map((p) => t(`power.${p.id}`));
+      return { ...base, text: ps.length ? t('ev.tier_up', { n: e.tier, powers: ps.join(', ') }) : t('ev.tier_up_none', { n: e.tier }), tier: 'notable', icon: 'star' };
+    }
+    case 'wish_fulfilled':
+      return { ...base, id: e.goblinId, text: t('ev.wish_fulfilled', { name: name(e.goblinId), what: t(`intent.${e.intent}`) }), tier: 'info', icon: 'sparkle' };
+    case 'wish_defied':
+      return { ...base, id: e.goblinId, text: t('ev.wish_defied', { name: name(e.goblinId) }), tier: 'notable', icon: 'close' };
     default:
       return null;
   }

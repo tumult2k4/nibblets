@@ -39,6 +39,7 @@ import { SleepGround } from './actions/sleepGround';
 import { LookUp, Struggle } from './actions/divine';
 import type { Vec2 } from '../../shared/types';
 import { skillFocus } from '../goblin/skills';
+import { wishDone, wishScore } from '../god/wishes';
 import { Court, IncubateEgg, LayEgg } from './actions/courtship';
 import { FeedChild, FollowParent } from './actions/parenting';
 import { Learn, Play } from './actions/childhood';
@@ -117,6 +118,7 @@ export function scoreActions(g: Goblin, w: World, noise = true, planned: ActionI
     // §7.4 focus: the planner's chosen step gets ×1.5 and a floor so low-scoring steps (explore) still happen
     const fo = planned === a.id ? CFG.planner.focus : 1;
     if (fo > 1) base = Math.max(base, CFG.planner.floor);
+    base = wishScore(g, w, a.id, base); // P8.9: the god's wishes (§17.6) lift even what nobody needs done
     if (base <= 0) continue;
     base *= demandMul(g, w.s, a.id); // §12.4: the village's shortfalls pull the industrious to the work that meets them
     const pw = personalityWeight(g.personality, a.id) * stageMul(g, a) * traitMul(g, a.id) // personality, life stage, traits
@@ -206,6 +208,7 @@ export function act(w: World): void {
     if (res !== 'running') {
       g.activity.status = res;
       g.velocity = { x: 0, y: 0 };
+      if (res === 'done' && g.godView.wishes.length) wishDone(g, w, g.activity.action);
     }
   }
 }

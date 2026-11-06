@@ -5,13 +5,19 @@ import { moveAlong, planPath } from '../../steering';
 import { needUrgency } from '../../goblin/needs';
 import { addMood } from '../../goblin/mood';
 import type { UtilityAction } from '../action';
+import { calledTo } from '../../god/wishes';
 
-/** Stroll somewhere nearby; restores curiosity. Biased back toward the village when far away. */
+/** Stroll somewhere nearby; restores curiosity. Biased back toward the village when far away; to the god's spot when called. */
 export const Wander: UtilityAction = {
   id: 'wander', tags: ['fun'], minStage: 'hatchling', interruptible: true,
   isAvailable: () => true,
   score: (g) => 0.12 + 0.55 * needUrgency(g.needs.curiosity),
   start(g, w) {
+    const call = calledTo(g, w); // P8.9: the god said "come here"
+    if (call && planPath(w, g, call.target!.pos!)) {
+      g.activity.target = { ...call.target!.pos! };
+      return true;
+    }
     const c = w.s.village.center;
     const R = CFG.goblin.wanderRadius * (0.6 + g.personality.wanderlust);
     for (let i = 0; i < 8; i++) {

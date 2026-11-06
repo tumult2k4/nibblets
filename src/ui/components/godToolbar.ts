@@ -24,6 +24,7 @@ export class GodToolbar implements Component {
   private radiusInput: HTMLInputElement | null = null;
   private castLabel: HTMLElement | null = null;
   private castInput: HTMLInputElement | null = null;
+  private voiceBtn: HTMLButtonElement | null = null;
 
   constructor(private ctx: Ctx) {}
 
@@ -42,6 +43,10 @@ export class GodToolbar implements Component {
       this.btns.set(id, b);
       this.root.append(b);
     }
+    // P8.9: the Voice panel and its Sign wheel (§17.7.1)
+    this.voiceBtn = el('button.btn.iconbtn', { onclick: () => this.ctx.store.set({ openPanels: { ...this.ctx.store.state.openPanels, voice: !this.ctx.store.state.openPanels.voice } }) }, icon('voice'));
+    this.voiceBtn.dataset.tip = tipKey(t('tool.voiceTip'), keyLabel('voice'));
+    this.root.append(this.voiceBtn);
     const help = el('button.btn.iconbtn', { onclick: () => this.ctx.openOverlay('help') }, icon('help'));
     help.dataset.tip = tipKey(t('menu.help'), keyLabel('help'));
     this.root.append(el('div', { style: 'height:8px' }), help);
@@ -124,6 +129,8 @@ export class GodToolbar implements Component {
     this.root.classList.toggle('hidden', this.ctx.readOnly());
     const gentle = this.ctx.game.world.s.god.gentle;
     for (const [id, b] of this.btns) b.classList.toggle('on', st.activeTool === id);
+    this.voiceBtn?.classList.toggle('on', !!st.openPanels.voice);
+    this.voiceBtn?.classList.toggle('hidden', this.ctx.game.world.s.god.mode === 'observer');
     this.btns.get('wrath')?.classList.toggle('hidden', gentle); // §17.2 Gentle mode hides the Wrath category
     if (gentle && st.activeTool === 'wrath') this.choose('hand');
     const show = st.openPanels.flyout && !this.ctx.readOnly();

@@ -46,9 +46,10 @@ function altarFor(g: Goblin, w: World) {
   if (!devout(g) || !fit(g)) return null;
   return called(g, w) ?? (g.mood.modifiers.some((m) => m.id === 'prayed') ? null : nearestAltar(w, g.pos, P.range));
 }
-/** In despair, with no prayer open and no Gnasher in sight: it prays where it is. */
+/** In despair, with no prayer open, none in the last `desperateGapDays` and no Gnasher in sight: it prays where it is. */
 const despairing = (g: Goblin, w: World): boolean =>
-  !openPrayer(g, w) && !w.s.enemies.some((e) => dist(e.pos, g.pos) < F.prayer.safeDist) && desperate(g, w);
+  !openPrayer(g, w) && w.s.tick - lastPrayed(g) >= F.prayer.desperateGapDays * DAY
+  && !w.s.enemies.some((e) => dist(e.pos, g.pos) < F.prayer.safeDist) && desperate(g, w);
 
 export const Pray: UtilityAction = {
   id: 'pray', tags: ['divine'], minStage: 'youngling', interruptible: (g) => g.activity.stage === 0, // a prayer once begun is finished

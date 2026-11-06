@@ -6,6 +6,7 @@ import { writeFileSync } from 'node:fs';
 import { performance } from 'node:perf_hooks';
 import { createWorld } from '../src/sim/newWorld';
 import { faithTracker, tally } from './faithStats';
+import { GOD_PROFILES, godPlayer, type GodProfile } from './godProfiles';
 import { CFG } from '../src/sim/config';
 import { express } from '../src/sim/goblin/genetics/phenotype';
 import { hueDelta } from '../src/shared/math';
@@ -35,6 +36,9 @@ const forgetCrafts = (gs: Goblin[]): void => {
 };
 /** control run (P5 acceptance): nobody ever thinks of a grinding stone, drying rack or storage pit — winter should bite */
 const noPreserve = process.argv.includes('--no-preserve');
+/** P8.9: `--god kind|stern|wrathful` plays a Divine-mode world with a scripted god */
+const godArg = process.argv[process.argv.indexOf('--god') + 1] as GodProfile | undefined;
+const god = process.argv.includes('--god') && GOD_PROFILES.includes(godArg!) ? godArg! : null;
 if (noPreserve) (CFG.preserve as { enabled: boolean }).enabled = false;
 
 interface Row {
@@ -89,8 +93,9 @@ const meanHue = (hs: number[]): number => {
 };
 
 function runSeed(seed: number): Row {
-  const w = createWorld({ seed });
+  const w = createWorld({ seed, ...(god ? { mode: 'divine' as const } : {}) });
   const faithSummary = faithTracker(w); // P8.8
+  const playGod = god ? godPlayer(w, god, seed) : null;
   if (noCraft) forgetCrafts(w.s.goblins);
   const founders = w.s.goblins.length;
   const bushCount = () => w.s.plants.filter((p) => p.kind === 'apple_bush' && (p.stage === 'mature' || p.stage === 'old')).length;
@@ -189,6 +194,7 @@ function runSeed(seed: number): Row {
   };
   for (let t = 0; t < ticks; t++) {
     w.step();
+    playGod?.();
     watch.tick();
     if (w.s.tick === autumnEnd) housedAutumn = housedShare();
     if (w.s.tick === 20 * CFG.time.dayTicks) gard.worn20 = w.s.tiles.filter((t) => t.wear > 0.5).length;

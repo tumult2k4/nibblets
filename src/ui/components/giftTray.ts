@@ -3,6 +3,8 @@ import { icon, ITEM_ICON } from '../icons';
 import { t } from '../i18n';
 import type { Ctx, Component } from '../ctx';
 import { GIFT_TRAY, SAPLING_VALUE, TOOLS_TIER, TRAY_TABS, itemDef, saplingKind, type TrayEntry } from '../../sim/items';
+import { giftTier } from '../../sim/god/tiers';
+import { CFG } from '../../sim/config';
 
 export type TrayDragStart = (item: TrayEntry, e: PointerEvent) => void;
 
@@ -24,7 +26,8 @@ export class GiftTray implements Component {
 
   private sig(): string {
     const st = this.ctx.store.state;
-    return st.trayTab + st.settings.language + (this.toolsLocked() ? 'L' : '');
+    const g = this.ctx.game.world.s.god;
+    return st.trayTab + st.settings.language + (this.toolsLocked() ? 'L' : '') + (g.mode === 'divine' ? g.tier : '');
   }
   private toolsLocked(): boolean {
     const g = this.ctx.game.world.s.god;
@@ -42,8 +45,11 @@ export class GiftTray implements Component {
       const label = kind ? t(`tray.sapling.${kind}`) : t(`item.${item}`);
       const ic = kind ? 'leaf' : ITEM_ICON[item as keyof typeof ITEM_ICON] ?? 'gift';
       const cost = kind ? SAPLING_VALUE : itemDef(item as Exclude<TrayEntry, `sapling:${string}`>).value;
-      const s = el('div.slot', {}, el('span.k', { text: String(i + 1) }), icon(ic), el('span', { text: label }));
-      s.dataset.tip = `${label} · ${this.ctx.game.world.s.god.mode === 'sandbox' ? t('power.free') : t('power.cost', { n: cost })}`;
+      const god = this.ctx.game.world.s.god;
+      const need = kind ? CFG.divine.giftTier : giftTier(item as Exclude<TrayEntry, `sapling:${string}`>); // P8.9: Divine-mode tiers
+      const locked = god.mode === 'divine' && god.tier < need;
+      const s = el(`div.slot${locked ? '.locked' : ''}`, {}, el('span.k', { text: String(i + 1) }), icon(ic), el('span', { text: label }));
+      s.dataset.tip = `${label} · ${god.mode === 'sandbox' ? t('power.free') : locked ? t('power.tier', { n: need }) : t('power.cost', { n: cost })}`;
       s.addEventListener('pointerdown', (e) => {
         e.preventDefault();
         this.onDrag(item, e);

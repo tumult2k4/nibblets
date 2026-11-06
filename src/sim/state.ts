@@ -1,6 +1,6 @@
 /** Plain-data world state (§5). Everything here is serializable; no class instances. */
 import type {
-  Biome, BuildingType, ChatTopic, EnemyKind, ID, ItemStack, LifeStage, MoodBreakKind, PlantKind, PlantStage, Vec2, WeatherKind, Tone, WishIntent,
+  Biome, BuildingType, ChatTopic, EnemyKind, ID, ItemStack, LifeStage, MoodBreakKind, PlantKind, PlantStage, Vec2, WeatherKind, Tone, WishIntent, WishTarget,
 } from '../shared/types';
 import type { Genome } from './goblin/genetics/genome';
 import type { GodState } from './god/godState';
@@ -102,7 +102,7 @@ export interface ActivityState {
 }
 
 export interface DivineWish {
-  id: ID; intent: WishIntent; issuedTick: number; expiresTick: number; strength: number; source: 'voice' | 'sign';
+  id: ID; intent: WishIntent; issuedTick: number; expiresTick: number; strength: number; source: 'voice' | 'sign'; target?: WishTarget; defied?: boolean;
 }
 export interface GodView {
   faith: number; love: number; fear: number; angryAtGod: boolean; wishes: DivineWish[];
@@ -287,7 +287,7 @@ export interface StatsSeries {
   deathLog?: [number, string][];
 }
 
-export interface LlmAnnotations { journals: unknown[]; speechText: Record<string, string> }
+export interface LlmAnnotations { journals: unknown[]; speechText: Record<string, string>; voice?: import('../shared/types').VoiceLine[] }
 
 export interface LoggedCommand { tick: number; cmd: import('./commands').Command }
 

@@ -13,6 +13,7 @@ const SPRITE = [
   S('heart', `<path d="M12 20s-8-5-8-11a4 4 0 018-1 4 4 0 018 1c0 6-8 11-8 11z" fill="#e57a9a" stroke="${I}" stroke-width="1.5"/>`),
   S('poke', `<path d="M9 21v-9l-3-3a1.4 1.4 0 012-2l3 3V4a1.5 1.5 0 013 0v7l4 1c1 .3 2 1 2 2.5V21" fill="#f4e6d4" stroke="${I}" stroke-width="1.5" stroke-linejoin="round"/>`),
   S('up', `<path d="M12 4l7 8h-4v8H9v-8H5z" fill="#7fb3d5" stroke="${I}" stroke-width="1.5" stroke-linejoin="round"/>`),
+  S('voice', `<path d="M4 5h16v10H10l-4 4v-4H4z" fill="#f2d48a" stroke="${I}" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 9h8M8 12h5" stroke="${I}" stroke-width="1.5" stroke-linecap="round"/>`),
   S('close', `<path d="M6 6l12 12M18 6L6 18" stroke="${I}" stroke-width="2.5" stroke-linecap="round"/>`),
   S('hill', `<path d="M2 19l7-10 4 5 3-3 6 8z" fill="#8bb05a" stroke="${I}" stroke-width="1.5" stroke-linejoin="round"/>`),
   S('valley', `<path d="M2 7l7 10 4-5 3 3 6-8v12H2z" fill="#a98a5e" stroke="${I}" stroke-width="1.5" stroke-linejoin="round"/>`),

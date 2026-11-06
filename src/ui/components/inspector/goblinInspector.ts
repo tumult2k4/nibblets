@@ -26,6 +26,7 @@ import { favoriteFood, isInspired } from '../../../sim/goblin/mood';
 import { isExiled, onWatch } from '../../../sim/leadership';
 import { prayerText, withEpithet } from '../../notifyCulture';
 import { openPrayer } from '../../../sim/god/prayers';
+import { understood } from '../../mockReplies';
 
 /** Its prayer open now (P8.8): what it asks, and how long it has left. */
 function prayerLine(g: Goblin, w: World): HTMLElement | null {
@@ -166,6 +167,9 @@ export function mindTab(g: Goblin, w: World): HTMLElement {
     row(t('insp.fear'), v.fear, String(Math.round(v.fear)), 'var(--wrath)'),
     v.angryAtGod ? el('div.sub', { text: t('insp.angryAtGod'), style: 'color:var(--apple)' }) : null,
     prayerLine(g, w), // P8.8
+    ...v.wishes.filter((x) => x.expiresTick > w.s.tick).map((x) => el('div.sub', { // P8.9
+      text: t(x.defied ? 'insp.wishDefied' : 'insp.wish', { what: understood([{ intent: x.intent, ...(x.target && x.target.kind !== 'action' ? { target: x.target } : {}) }], 'kind').split(' · ')[0]!, n: Math.round(x.strength * 100) }),
+      style: x.defied ? 'color:var(--wrath)' : '' })),
     el('h3', { text: t('insp.deeds') }),
     el('div.sub', { text: t('insp.deedsLine', { e: g.deeds.eaten, d: g.deeds.drank, h: g.deeds.harvested, g: g.deeds.timesHeld }) }),
     el('div.sub', { text: t('insp.deedsLine2', { p: g.deeds.planted }) }),

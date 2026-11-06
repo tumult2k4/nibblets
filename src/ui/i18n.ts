@@ -5,9 +5,10 @@ import { DE6, EN6 } from './i18n.p6';
 import { DE7, EN7 } from './i18n.p7';
 import { DE8, EN8 } from './i18n.p8';
 import { DE8B, EN8B } from './i18n.p8b';
+import { DE8C, EN8C } from './i18n.p8c';
 
-const EN = { ...EN0, ...EN6, ...EN7, ...EN8, ...EN8B };
-const DE: Record<string, string> = { ...DE0, ...DE6, ...DE7, ...DE8, ...DE8B };
+const EN = { ...EN0, ...EN6, ...EN7, ...EN8, ...EN8B, ...EN8C };
+const DE: Record<string, string> = { ...DE0, ...DE6, ...DE7, ...DE8, ...DE8B, ...DE8C };
 
 export type Lang = 'en' | 'de';
 export type I18nKey = keyof typeof EN;

@@ -73,8 +73,8 @@ export function newWorldWizard(onStart: (p: WorldParams) => void, onCancel: () =
   };
 
   const rulesStep = () => el('div.form', {},
-    ...field(t('wiz.mode'), el('div', {}, select<'sandbox' | 'observer'>([['sandbox', t('mode.sandbox')], ['observer', t('mode.observer')]], p.mode as 'sandbox', (v) => (p.mode = v)),
-      el('div.sub', { text: t('mode.divineLater') }))),
+    ...field(t('wiz.mode'), el('div', {}, select<'sandbox' | 'divine' | 'observer'>([['sandbox', t('mode.sandbox')], ['divine', t('mode.divine')], ['observer', t('mode.observer')]], p.mode, (v) => (p.mode = v)),
+      el('div.sub', { text: t('mode.divineHint'), style: 'max-width:360px' }))),
     ...field(t('wiz.difficulty'), select<'cozy' | 'normal' | 'harsh'>([['cozy', t('diff.cozy')], ['normal', t('diff.normal')], ['harsh', t('diff.harsh')]], p.difficulty, (v) => (p.difficulty = v))),
     ...field(t('wiz.gentle'), checkbox(p.gentle, (v) => (p.gentle = v))),
     ...field(t('wiz.llm'), el('span.sub', { text: t('wiz.llmLater') })));

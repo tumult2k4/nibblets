@@ -1,11 +1,12 @@
 /**
  * Wrath zones (P4.8): a Swarm's biting bugs and the dread left by a lightning strike or a meteor. Any awake goblin out
  * in the open inside one drops what it is doing and scatters out of it (forced `scatter`); bugs also sting the mood.
- * Zones expire on their own; goblins under a roof are left alone.
+ * Zones expire on their own; goblins under a roof are left alone. P8.9: a place the god asked some goblins to avoid is
+ * a zone only they keep out of.
  */
 import { CFG } from '../config';
 import { dist, q4 } from '../../shared/math';
-import type { Vec2 } from '../../shared/types';
+import type { ID, Vec2 } from '../../shared/types';
 import type { Goblin } from '../state';
 import type { World } from '../world';
 import type { AvoidZone } from './godState';
@@ -13,17 +14,21 @@ import { isWalkable } from '../grid';
 import { shelterOf } from '../temperature';
 import { addMood } from '../goblin/mood';
 import { forceAction } from '../ai/utility';
+import { pressed } from './wishes';
 
 const PW = CFG.powers;
 
-export function addZone(w: World, kind: AvoidZone['kind'], pos: Vec2, r: number, ticks: number): void {
-  w.s.god.zones.push({ kind, pos: { x: q4(pos.x), y: q4(pos.y) }, r, until: w.s.tick + ticks });
+export function addZone(w: World, kind: AvoidZone['kind'], pos: Vec2, r: number, ticks: number, ids?: ID[]): void {
+  w.s.god.zones.push({ kind, pos: { x: q4(pos.x), y: q4(pos.y) }, r, until: w.s.tick + ticks, ...(ids ? { ids } : {}) });
 }
 
-/** The zone a point lies in (swarm first), or null. */
-export function zoneAt(w: World, p: Vec2): AvoidZone | null {
+/** The zone a point lies in (swarm first), or null; a shunned place (P8.9) only for the goblins asked to keep out. */
+export function zoneAt(w: World, p: Vec2, g?: Goblin): AvoidZone | null {
   let hit: AvoidZone | null = null;
-  for (const z of w.s.god.zones) if (dist(z.pos, p) <= z.r && (!hit || z.kind === 'swarm')) hit = z;
+  for (const z of w.s.god.zones) {
+    if (z.ids && (!g || !z.ids.includes(g.id))) continue;
+    if (dist(z.pos, p) <= z.r && (!hit || z.kind === 'swarm')) hit = z;
+  }
   return hit;
 }
 
@@ -47,8 +52,8 @@ export function updateZones(w: World): void {
   if (s.tick % 5 !== 0) return;
   for (const g of s.goblins) {
     if (g.heldByGod || g.airborne || g.activity.action === 'scatter') continue;
-    const z = zoneAt(w, g.pos);
-    if (!z || shelterOf(w, g)) continue;
+    const z = zoneAt(w, g.pos, g);
+    if (!z || shelterOf(w, g) || (z.kind === 'shun' && pressed(g))) continue; // a starving goblin goes where the food is
     if (z.kind === 'swarm') addMood(w, g, 'stung', PW.swarmMood, CFG.god.hourTicks * 2);
     forceAction(g, w, 'scatter');
   }
