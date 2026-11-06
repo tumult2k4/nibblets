@@ -22,6 +22,7 @@ import { VoicePanel } from './components/voicePanel';
 import { PlaceLabels } from './placeLabels';
 import { EventLog } from '../llm/eventLog';
 import { LlmDirector, type SpokenLine } from '../llm/director';
+import { earnDeed } from './deeds';
 import { VoiceFx } from './voiceFx';
 import { StatsPanel } from './components/statsPanel';
 import { FamilyTree } from './components/familyTree';
@@ -57,7 +58,8 @@ export class App implements Ctx {
   readonly speech = new VoiceFx(this);
   readonly director = new LlmDirector(this.log, { world: () => this.game.world.s, lang: getLang, say: (k, ls) => this.say(k, ls), onPause: () => this.llmPaused(),
     named: (name) => this.toast(t('village.named', { name }), 'notable'),
-    godNamed: (name) => this.toast(t('voice.godNamed', { name }), 'notable') });
+    godNamed: (name) => this.toast(t('voice.godNamed', { name }), 'notable'),
+    deed: (id, n) => { if (earnDeed(id, t(`deed.${id}.how`, n))) this.toast(`${t('deed.earned', { deed: t(`deed.${id}`) })} · ${t(`deed.${id}.how`, n)}`, 'notable'); } });
   private pauseToast = -Infinity;
   private comps: Component[] = [];
   private hud = el('div', { style: 'position:absolute;inset:0;pointer-events:none' });

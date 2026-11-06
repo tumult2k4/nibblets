@@ -13,10 +13,12 @@ export const LLM = {
   /** products (§19.4, P9.4): a dialogue needs both chatters to have had a day worth a line of `minScore` or one to
    * feel strongly (`minOpinion`) about the other; barks cool down an hour a goblin and are stale after `barkStale`
    * ticks; texts are clamped to these lengths. P9.5: a eulogy is spoken by the eldest goblin within `mournRange` tiles
-   * of the grave (else the eldest anywhere), from what the dead did in the last `memoryDays` days */
+   * of the grave (else the eldest anywhere), from what the dead did in the last `memoryDays` days. P9.8: a goblin of
+   * `devoutFaith` is devout in a prompt's words, and loves or fears the god from `feltGod` */
   products: {
     minScore: 5, minOpinion: 50, dialogueStale: 300, barkStale: 100, diaryChars: 800, barkChars: 90, lineChars: 80,
     bookChars: 900, titleChars: 48, eulogyChars: 480, chronicleChars: 1400, nameChars: 24, mournRange: 12, memoryDays: 8,
+    devoutFaith: 75, feltGod: 60,
   },
   /** where the providers listen by default */
   endpoints: { proxy: 'http://localhost:8787/complete', ollama: 'http://localhost:11434/api/generate', anthropic: 'https://api.anthropic.com/v1/messages' },

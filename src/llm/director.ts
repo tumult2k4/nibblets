@@ -2,11 +2,12 @@
  * The LLM products in play (§19.4, P9.4): watches the sim's events and asks the scheduler for diaries (at dawn, for
  * the goblins with the best yesterday), dialogue (a chat between two goblins with something to say) and barks (a
  * fight won, a discovery, a hatchling, a friend's death). Answers go into `world.llm` and, for speech, to the
- * bubbles. Books, eulogies, the chronicle and the village's name (P9.5) are `CultureWriter`'s. Only reads the world;
- * the sim never sees any of it.
+ * bubbles. Books, eulogies, the chronicle and the village's name (P9.5) are `CultureWriter`'s. A believer's diary,
+ * or the diary of one who spoke with the god that day, tells of the god (P9.8). Only reads the world; the sim never
+ * sees any of it.
  */
 import './mocks';
-import { CultureWriter } from './culture';
+import { CultureWriter, type CultureHooks } from './culture';
 import { DivineVoice } from './voice';
 import { CFG } from '../sim/config';
 import type { ID, SimEvent, TextSource } from '../shared/types';
@@ -14,7 +15,7 @@ import type { Goblin, WorldState } from '../sim/state';
 import type { Lang } from '../ui/i18n';
 import type { EventLog } from './eventLog';
 import { compactDay, lineFor, topOfDay } from './eventCompactor';
-import { acceptFor, goblinContext, relLabel } from './describe';
+import { acceptFor, godFacts, goblinContext, relLabel } from './describe';
 import { barkPrompt, dialoguePrompt, diaryPrompt, type BarkKind } from './prompts';
 import { parseDialogue } from './sanitize';
 import { Scheduler } from './scheduler';
@@ -37,6 +38,8 @@ export interface DirectorHooks {
   named?: (name: string) => void;
   /** a model has named the god (P9.7) */
   godNamed?: (name: string) => void;
+  /** a divine deed earned (P9.8: a book that speaks of the god) */
+  deed?: CultureHooks['deed'];
   /** tests: a provider of their own instead of the settings' */
   provider?: () => LLMProvider;
 }
@@ -56,6 +59,7 @@ export class LlmDirector {
     this.voice = new DivineVoice(this.sched, h.world);
     this.culture = new CultureWriter(log, this.sched, {
       world: h.world, lang: h.lang, say: (id, text, source) => this.spoke('bark', [{ goblinId: id, text }], source), ...(h.named ? { named: h.named } : {}),
+      ...(h.deed ? { deed: h.deed } : {}),
     });
   }
 
@@ -88,7 +92,7 @@ export class LlmDirector {
     for (const d of topOfDay(s, this.log, day, llmSettings().budgets.diaries, lang)) {
       const g = s.goblins.find((x) => x.id === d.goblinId);
       if (!g) continue;
-      const req = diaryPrompt(goblinContext(s, g, lang), d.lines, lang);
+      const req = diaryPrompt(goblinContext(s, g, lang), d.lines, lang, godFacts(s, g, lang, day));
       this.sched.enqueue({
         key: `diary:${g.id}:${day}`, product: 'diary', priority: d.score, req, accept: acceptFor(s, req, P.diaryChars),
         done: (text, source) => { const w = this.h.world(); addJournal(w, { kind: 'diary', goblinId: g.id, day, tick: w.tick, text, source }); },

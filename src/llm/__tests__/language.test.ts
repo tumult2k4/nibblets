@@ -1,21 +1,23 @@
 import { describe, expect, it } from 'vitest';
 import { makeWorld, spawnGoblin } from '../../sim/__tests__/helpers';
 import { registerLineage } from '../../sim/goblin/family';
-import { goblinContext } from '../describe';
+import { godFacts, goblinContext } from '../describe';
 import { MockProvider, type LLMRequest } from '../provider';
 import { barkPrompt, bookPrompt, chroniclePrompt, dialoguePrompt, diaryPrompt, eulogyPrompt, systemPrompt, villageNamePrompt } from '../prompts';
 import { contentLine } from '../culture';
 import { tIn, type Lang } from '../../ui/i18n';
 import '../director'; // registers the Mock's templates
 
-const ENGLISH = /\b(the|and|is|was|what|today|remember|take|we|you)\b/i;
+const ENGLISH = /\b(the|and|is|what|today|remember|take|we|you)\b/i; // not "was": German too
 const GERMAN = /\b(und|der|die|das|ist|heute|nimm|wir|ich|nicht)\b/i;
 
 /** Every product's prompt, built from one world in `lang`, the way the director builds them. */
 function requests(lang: Lang): LLMRequest[] {
   const w = makeWorld({ size: 32 }), a = spawnGoblin(w), b = spawnGoblin(w);
   for (const g of [a, b]) registerLineage(w.s, g);
-  const ca = goblinContext(w.s, a, lang), cb = goblinContext(w.s, b, lang);
+  a.godView.faith = 90;
+  w.s.god.godName = '@giver.kind';
+  const ca = goblinContext(w.s, a, lang), cb = goblinContext(w.s, b, lang), god = godFacts(w.s, a, lang)!;
   const line = `${tIn(lang, 'cx.tod.dusk')} — ${tIn(lang, 'cx.slew', { a: tIn(lang, 'cx.i'), enemy: tIn(lang, 'enemy.gnasher') })}`;
   return [
     diaryPrompt(ca, [line], lang),
@@ -25,6 +27,12 @@ function requests(lang: Lang): LLMRequest[] {
     eulogyPrompt(ca, { dead: b.name, epithet: '', age: 3, cause: tIn(lang, 'cause.old_age'), family: '', deeds: [line], rel: tIn(lang, 'cx.rel.friend') }, lang),
     chroniclePrompt(ca, { village: 'Toadmire', season: tIn(lang, 'season.spring'), year: 1, pop: [2, 2], hatched: 1, died: 1, built: 0, learned: 0, events: [`${tIn(lang, 'cx.day', { d: 2 })} — ${line.split(' — ')[1]}`], diaries: [] }, lang),
     villageNamePrompt([], ca.name, 3, lang),
+    // P9.8: the god in the stories
+    diaryPrompt(ca, [line], lang, { ...god, talk: ['…'] }),
+    diaryPrompt(ca, [line], lang, god),
+    bookPrompt(ca, [contentLine('club', lang)], lang, god),
+    chroniclePrompt(ca, { village: 'Toadmire', season: tIn(lang, 'season.spring'), year: 1, pop: [2, 2], hatched: 0, died: 0, built: 0, learned: 0, events: [], diaries: [],
+      god: { name: god.name, acts: 2, prayers: 5, answered: 1, spoke: 1, words: [] } }, lang),
   ];
 }
 

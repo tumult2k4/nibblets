@@ -2,11 +2,12 @@
  * Prompt templates (§19.5, P9.3): pure functions from a goblin's context and its compacted day to a request. The
  * instructions stay in English with "Write in {language}"; the facts are already worded in the game's language by
  * the compactor. Everything that came from the world passes `cleanInput` first (a village or goblin name the player
- * typed must not turn into instructions). Snapshot-tested.
+ * typed must not turn into instructions). P9.8: the god in the stories, for those who believe or spoke with it.
+ * Snapshot-tested.
  */
 import type { ChatTopic } from '../shared/types';
 import { tIn, type Lang } from '../ui/i18n';
-import type { GoblinContext } from './describe';
+import type { GodFacts, GoblinContext } from './describe';
 import type { LLMRequest } from './provider';
 import { cleanInput } from './sanitize';
 
@@ -36,9 +37,15 @@ function safe(c: GoblinContext): GoblinContext {
 
 const lines = (ls: readonly string[]): string[] => ls.map((l) => cleanInput(l, 160)).filter(Boolean);
 
-/** The diary prompt (§19.5): the goblin, then its day in at most eight lines. */
-export function diaryPrompt(ctx: GoblinContext, today: readonly string[], lang: Lang): LLMRequest {
-  const c = safe(ctx), day = lines(today);
+/** The god in a diary (P9.8): its name, the goblin's faith, and their words today. */
+function godLines(c: GoblinContext, god: GodFacts, talk: readonly string[]): string[] {
+  const name = cleanInput(god.name);
+  return [`The goblins' god: ${name}. ${c.name}'s faith: ${c80(god.view)}.`, ...(talk.length ? [`Words with ${name} today:`, ...talk] : [])];
+}
+
+/** The diary prompt (§19.5): the goblin, then its day in at most eight lines; the god, for a believer (P9.8). */
+export function diaryPrompt(ctx: GoblinContext, today: readonly string[], lang: Lang, god?: GodFacts | null): LLMRequest {
+  const c = safe(ctx), day = lines(today), talk = god ? lines(god.talk) : [];
   const prompt = [
     `Write ${c.name}'s diary entry for today, in first person, 40-90 words.`,
     `About ${c.name}: ${c.stage}, ${c.age} seasons old, ${c.sizeWord} and ${c.colorWord}. Personality: ${c.descriptor}.`,
@@ -46,10 +53,12 @@ export function diaryPrompt(ctx: GoblinContext, today: readonly string[], lang: 
     `Traits: ${c.traits}. Feeling: ${c.emotion}. Biggest worry: ${c.lowestNeed}.`,
     `Relationships: ${c.relationships.join('; ') || tIn(lang, 'cx.none')}.`,
     `Season: ${c.season}, weather: ${c.weather}. Chief: ${c.chief}.`,
+    ...(god ? godLines(c, god, talk) : []),
     'Today:',
     ...day,
   ].join('\n');
-  return { system: systemPrompt(lang), prompt, maxTokens: MAX_TOKENS.diary, product: 'diary', facts: { lang, name: c.name, emotion: c.emotion, season: c.season, weather: c.weather, lines: day } };
+  const facts = { lang, name: c.name, emotion: c.emotion, season: c.season, weather: c.weather, lines: day, ...(god ? { god: cleanInput(god.name), talk } : {}) };
+  return { system: systemPrompt(lang), prompt, maxTokens: MAX_TOKENS.diary, product: 'diary', facts };
 }
 
 export interface Speaker { ctx: GoblinContext; /** how this one sees the other: "best friend", "dislikes" */ sees: string; /** what is on its mind: its best line of the day */ news: string | null }
@@ -83,16 +92,17 @@ export function barkPrompt(ctx: GoblinContext, what: string, kind: BarkKind, lan
 }
 
 /** A book's title and page (§19.4): what it teaches, in its writer's voice. `contents` are worded already
- * ("Club: wood, stone"). The answer starts with "Title: …". */
-export function bookPrompt(ctx: GoblinContext, contents: readonly string[], lang: Lang): LLMRequest {
-  const c = safe(ctx), what = lines(contents);
+ * ("Club: wood, stone"). The answer starts with "Title: …". A believer may thank the god in it (P9.8). */
+export function bookPrompt(ctx: GoblinContext, contents: readonly string[], lang: Lang, god?: GodFacts | null): LLMRequest {
+  const c = safe(ctx), what = lines(contents), godName = god ? cleanInput(god.name) : '';
   const prompt = [
     `Write a little book that ${c.name} wrote for the village, in ${c.name}'s own voice.`,
     'First line: "Title: " and a short title of at most 6 words. Then one page of at most 120 words on how to make or know these things:',
     ...what,
     `About ${c.name}: ${c.stage}, ${c.descriptor}; feeling ${c.emotion}.`,
+    ...(god ? [`${c.name} believes in ${godName}, the goblins' god (faith: ${c80(god.view)}), and may thank ${godName} once.`] : []),
   ].join('\n');
-  return { system: systemPrompt(lang), prompt, maxTokens: MAX_TOKENS.book, product: 'book', facts: { lang, name: c.name, contents: what } };
+  return { system: systemPrompt(lang), prompt, maxTokens: MAX_TOKENS.book, product: 'book', facts: { lang, name: c.name, contents: what, ...(god ? { god: godName } : {}) } };
 }
 
 export interface EulogyFacts { dead: string; epithet: string; age: number; cause: string; family: string; deeds: readonly string[]; rel: string }
@@ -110,19 +120,29 @@ export function eulogyPrompt(speaker: GoblinContext, f: EulogyFacts, lang: Lang)
   return { system: systemPrompt(lang), prompt, maxTokens: MAX_TOKENS.eulogy, product: 'eulogy', facts: { lang, name: c.name, dead, epithet: f.epithet, cause: f.cause, deeds } };
 }
 
-export interface SeasonFacts { village: string; season: string; year: number; pop: [number, number]; hatched: number; died: number; built: number; learned: number; events: readonly string[]; diaries: readonly string[] }
+/** The god's season (P9.8): divine acts, prayers and the answered ones, how often it spoke, and some of its words. */
+export interface GodSeason { name: string; acts: number; prayers: number; answered: number; spoke: number; words: readonly string[] }
+export interface SeasonFacts {
+  village: string; season: string; year: number; pop: [number, number]; hatched: number; died: number; built: number; learned: number;
+  events: readonly string[]; diaries: readonly string[]; god?: GodSeason;
+}
 
 /** The season's chronicle (§19.4): one saga paragraph by the eldest goblin. */
 export function chroniclePrompt(chronicler: GoblinContext, f: SeasonFacts, lang: Lang): LLMRequest {
-  const c = safe(chronicler), village = cleanInput(f.village), ev = lines(f.events), di = lines(f.diaries);
+  const c = safe(chronicler), village = cleanInput(f.village), ev = lines(f.events), di = lines(f.diaries), g = f.god;
+  const godName = g ? cleanInput(g.name) : '', words = g ? lines(g.words) : [], busy = !!g && g.acts + g.prayers + g.spoke > 0;
   const prompt = [
     `${c.name}, the eldest goblin of ${village}, writes the chronicle of the ${f.season} of year ${f.year}: one saga paragraph of 120-200 words, in the chronicler's voice.`,
     `The season in numbers: ${f.pop[0]} goblins at its start, ${f.pop[1]} at its end; ${f.hatched} hatched, ${f.died} died; ${f.built} buildings finished; ${f.learned} new things worked out.`,
     'What happened:',
     ...(ev.length ? ev : [tIn(lang, 'cx.none')]),
     ...(di.length ? ['From the diaries:', ...di] : []),
+    ...(g && busy ? [`The god ${godName} this season: ${g.acts} divine acts; ${g.prayers} prayers, ${g.answered} of them answered; spoke to the goblins ${g.spoke} times.`] : []),
+    ...(words.length ? [`What ${godName} said:`, ...words] : []),
   ].join('\n');
-  return { system: systemPrompt(lang), prompt, maxTokens: MAX_TOKENS.chronicle, product: 'chronicle', facts: { lang, name: c.name, village, season: f.season, year: f.year, pop: f.pop, hatched: f.hatched, died: f.died, events: ev } };
+  const god = g && busy ? { god: { name: godName, acts: g.acts, prayers: g.prayers, answered: g.answered, spoke: g.spoke, words } } : {};
+  const facts = { lang, name: c.name, village, season: f.season, year: f.year, pop: f.pop, hatched: f.hatched, died: f.died, events: ev, ...god };
+  return { system: systemPrompt(lang), prompt, maxTokens: MAX_TOKENS.chronicle, product: 'chronicle', facts };
 }
 
 /** The village names itself (§19.4) when it reaches three huts. */

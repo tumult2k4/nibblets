@@ -1,7 +1,8 @@
 /**
  * The Mock's templates for diaries, dialogue and barks (§19.1 "works offline", P9.4, English and German): plain
  * goblin talk filled from the facts a prompt was built from (the day's lines, the names, the topic), picked by a
- * hash of the prompt, so the same day reads the same. Imported once by the director.
+ * hash of the prompt, so the same day reads the same; a believer's diary speaks of the god (P9.8). Imported once by
+ * the director.
  */
 import { registerMock } from './provider';
 
@@ -32,7 +33,10 @@ registerMock('diary', (r, pick: Pick) => {
   const body = lines.slice(-5).map((l) => sentence(l, g));
   const mood = feel ? (g ? `Ich bin ${feel}.` : `I feel ${feel}.`) : '';
   const quiet = g ? 'Nicht viel passiert. Ich habe gegessen und geschlafen.' : 'Not much happened. I ate and I slept.';
-  return [open.replace('{name}', String(f?.name ?? '')), ...(body.length ? body : [quiet]), mood, shut].filter(Boolean).join(' ');
+  const god = typeof f?.god === 'string' ? f.god : '', talked = ((f?.talk as unknown[] | undefined) ?? []).length > 0;
+  const God = cap(god), prayer = !god ? '' : talked ? (g ? `${God} hat heute mit mir gesprochen! Das merke ich mir.` : `${God} spoke to me today! I will remember it.`)
+    : pick(g ? ['', `${God} ist gut zu uns.`, `${God} passt auf uns auf.`] : ['', `I thank ${god}.`, `${God} watches over us.`]);
+  return [open.replace('{name}', String(f?.name ?? '')), ...(body.length ? body : [quiet]), mood, prayer, shut].filter(Boolean).join(' ');
 });
 
 const TOPIC_EN: Record<string, readonly string[]> = {

@@ -3,7 +3,8 @@
  * eulogy the eldest goblin at the grave speaks when the dead is buried (from what the dead did lately, its epithet
  * and its family), the chronicle of each season the eldest writes on the first day of the next (the season's top
  * events, its numbers and lines from real diaries), and the village's own name once it has three huts. Answers go
- * into the journals (`world.llm`); the sim never reads them.
+ * into the journals (`world.llm`); the sim never reads them. P9.8: a believer's book may thank the god (a book that
+ * speaks of the god earns the divine deed "A Book About You"), and the chronicle tells the god's season.
  */
 import './mocksCulture';
 import { CFG } from '../sim/config';
@@ -18,7 +19,7 @@ import type { Goblin, WorldState } from '../sim/state';
 import { tIn, type Lang } from '../ui/i18n';
 import type { EventLog, Logged } from './eventLog';
 import { pickLines } from './eventCompactor';
-import { acceptFor, goblinContext, knownNames, nameOf, relLabel } from './describe';
+import { acceptFor, godFacts, godNameIn, goblinContext, knownNames, mentionsGod, nameOf, relLabel } from './describe';
 import { placeName } from './placeNames';
 import { bookPrompt, chroniclePrompt, eulogyPrompt, villageNamePrompt } from './prompts';
 import { clamp } from './sanitize';
@@ -39,6 +40,8 @@ export interface CultureHooks {
   say?: (goblinId: ID, text: string, source: TextSource) => void;
   /** the village has named itself */
   named?: (name: string) => void;
+  /** a divine deed (§17.10) earned: a goblin wrote a book that speaks of the god (P9.8) */
+  deed?: (id: 'book_about_you', note: { name: string; title: string }) => void;
 }
 
 const range = (from: number, to: number): number[] => Array.from({ length: Math.max(0, to - from) }, (_, i) => from + i);
@@ -92,14 +95,15 @@ export class CultureWriter {
   private book(s: WorldState, e: Extract<SimEvent, { type: 'book_written' }>): void {
     const g = s.goblins.find((x) => x.id === e.goblinId);
     if (!g) return;
-    const lang = this.h.lang(), req = bookPrompt(goblinContext(s, g, lang), e.contents.map((id) => contentLine(id, lang)), lang);
+    const lang = this.h.lang(), req = bookPrompt(goblinContext(s, g, lang), e.contents.map((id) => contentLine(id, lang)), lang, godFacts(s, g, lang));
     const clean = acceptFor(s, req, P.bookChars, true);
     this.sched.enqueue({
       key: `book:${e.bookId}`, product: 'book', priority: PRIORITY.book, req,
       accept: (t) => { const c = clean(t); return c && splitBook(c).text ? c : null; },
       done: (text, source) => {
-        const w = this.h.world(), b = splitBook(text);
-        addJournal(w, { kind: 'book', goblinId: g.id, day: Math.floor(e.tick / DAY), tick: w.tick, text: b.text, title: b.title ?? tIn(lang, 'journal.untitled', { name: g.name }), source, ref: e.bookId });
+        const w = this.h.world(), b = splitBook(text), title = b.title ?? tIn(lang, 'journal.untitled', { name: g.name });
+        addJournal(w, { kind: 'book', goblinId: g.id, day: Math.floor(e.tick / DAY), tick: w.tick, text: b.text, title, source, ref: e.bookId });
+        if (mentionsGod(`${title}\n${b.text}`, godNameIn(w, lang))) this.h.deed?.('book_about_you', { name: g.name, title });
       },
     });
   }
@@ -140,10 +144,16 @@ export class CultureWriter {
     const diaries = journalsOf(s, null, 'diary').filter((j) => j.source === 'llm' && j.day >= from && j.day < day).slice(-3)
       .map((j) => `${nameOf(s, j.goblinId) ?? '?'}: ${firstSentence(j.text)}`);
     const season = tIn(lang, `season.${clock.season}`), village = llmOf(s).villageName?.name ?? s.village.name;
+    const spoke = logged.flatMap((l) => (l.e.type === 'god_spoke' ? [l.e] : []));
+    const god = {
+      name: godNameIn(s, lang), acts: count((l) => l.e.type === 'divine_act'), prayers: count((l) => l.e.type === 'prayer'),
+      answered: count((l) => l.e.type === 'prayer_answered'), spoke: spoke.length,
+      words: spoke.flatMap((e) => (e.textRef ? [llmOf(s).speechText[e.textRef] ?? ''] : [])).filter(Boolean).slice(-2).map((t) => clamp(t, 120)),
+    };
     const req = chroniclePrompt(goblinContext(s, c, lang), {
       village, season, year: clock.year, pop: [start, end], hatched, died,
       built: count((l) => l.e.type === 'building_completed'), learned: count((l) => l.e.type === 'recipe_discovered' && l.e.via === 'discovery'),
-      events: pickLines(s, this.log, c, days, 6, lang, (l) => l.e.type !== 'chat'), diaries,
+      events: pickLines(s, this.log, c, days, 6, lang, (l) => l.e.type !== 'chat'), diaries, god,
     }, lang);
     this.sched.enqueue({
       key: `chronicle:${from}`, product: 'chronicle', priority: PRIORITY.chronicle, req, accept: acceptFor(s, req, P.chronicleChars),

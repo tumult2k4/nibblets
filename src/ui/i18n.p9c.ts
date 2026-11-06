@@ -1,5 +1,6 @@
 /** Phase 9 strings for the Divine Voice (§17.7.2, P9.7): the Voice panel's text box, how words were understood,
- * what goblins remember when asked, and their answers. Merged by i18n.ts. */
+ * what goblins remember when asked, and their answers; P9.8: a goblin's faith in a prompt's words, divine deeds.
+ * Merged by i18n.ts. */
 export const EN9C = {
   'voice.speak': 'Speak', 'voice.placeholder': 'Speak as {god}…', 'voice.rumble': 'The heavens rumble…', 'voice.wait': 'The sky needs a breath ({n} s).',
   'voice.how.llm': 'read by the language model', 'voice.how.keywords': 'read from key words', 'voice.unnamed': 'the Big Sky', 'voice.godNamed': 'The goblins call their god {name}.',
@@ -9,6 +10,9 @@ export const EN9C = {
   'mem.at': 'at {place}', 'mem.near': 'near the village', 'mem.dir.n': 'north of the village', 'mem.dir.s': 'south of the village', 'mem.dir.e': 'east of the village',
   'mem.dir.w': 'west of the village', 'mem.today': 'today', 'mem.yesterday': 'yesterday', 'mem.days': '{n} days ago',
   'reply.answer': 'Grub! {what}!|{name} knows: {what}.|Hm hm. {what}, {god}!', 'reply.dunno': '{name} does not know, {god}.|Hm? {name} never saw.',
+  'cx.faith.devout': 'devout', 'cx.faith.believer': 'believes', 'cx.faith.unsure': 'not sure', 'cx.faith.doubter': 'doubts', 'cx.faith.loves': 'loves the god',
+  'cx.faith.fears': 'fears the god', 'cx.faith.angry': 'angry at the god',
+  'deed.earned': 'Divine deed: {deed}', 'deed.book_about_you': 'A Book About You', 'deed.book_about_you.how': '{name} wrote of you in “{title}”.',
 };
 
 export const DE9C: Record<keyof typeof EN9C, string> = {
@@ -20,4 +24,7 @@ export const DE9C: Record<keyof typeof EN9C, string> = {
   'mem.at': 'bei {place}', 'mem.near': 'nah beim Dorf', 'mem.dir.n': 'nördlich vom Dorf', 'mem.dir.s': 'südlich vom Dorf', 'mem.dir.e': 'östlich vom Dorf',
   'mem.dir.w': 'westlich vom Dorf', 'mem.today': 'heute', 'mem.yesterday': 'gestern', 'mem.days': 'vor {n} Tagen',
   'reply.answer': 'Grub! {what}!|{name} weiß: {what}.|Hm hm. {what}, {god}!', 'reply.dunno': '{name} weiß es nicht, {god}.|Hm? {name} hat nichts gesehen.',
+  'cx.faith.devout': 'fromm', 'cx.faith.believer': 'glaubt', 'cx.faith.unsure': 'unsicher', 'cx.faith.doubter': 'zweifelt', 'cx.faith.loves': 'liebt den Gott',
+  'cx.faith.fears': 'fürchtet den Gott', 'cx.faith.angry': 'zornig auf den Gott',
+  'deed.earned': 'Göttliche Tat: {deed}', 'deed.book_about_you': 'Ein Buch über dich', 'deed.book_about_you.how': '{name} schrieb über dich in „{title}“.',
 };
