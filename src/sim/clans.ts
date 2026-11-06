@@ -138,7 +138,8 @@ function tend(c: RivalClan, season: string, r: Rng): void {
   c.store = clamp(c.store + (c.pop * (y - 1)) / PER_DAY, 0, c.pop * C.storeDays);
   if (season !== 'winter' && c.store >= c.pop * C.fedDays && c.pop < C.popCap && r.chance((c.pop * C.birthPerDay) / PER_DAY)) {
     c.pop++;
-    const kid = meiosis(r.pick(c.pool), r.pick(c.pool), r);
+    const i = r.int(0, c.pool.length - 1), j = (i + r.int(1, c.pool.length - 1)) % c.pool.length; // two parents, never one twice
+    const kid = meiosis(c.pool[i]!, c.pool[j]!, r);
     c.pool[r.int(0, c.pool.length - 1)] = kid;
   }
   if (c.pop > C.popMin && r.chance((c.pop * (C.deathPerDay + (c.store <= 0 ? C.starvePerDay : 0))) / PER_DAY)) c.pop--;

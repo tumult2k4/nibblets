@@ -37,6 +37,6 @@ export const BUILDINGS = {
     temple: { cost: { stone: 12, wood: 6 } as Record<string, number>, footprint: 2, hp: 300, capacity: 0, storage: 0, labor: 6 },
   } as Record<string, { cost: Record<string, number>; footprint: number; hp: number; capacity: number; storage: number; labor?: number }>,
   buildRate: 0.002, skillBonus: 0.15, friendBonus: 1.3, workChunk: 300,
-  siteRadius: 14, maxSlope: 0.06, waterPref: [4, 10] as [number, number], hutSpacing: [3.6, 7] as [number, number],
+  siteRadius: 14, siteWiden: [1, 1.4, 1.8], maxSlope: 0.06, waterPref: [4, 10] as [number, number], hutSpacing: [3.6, 7] as [number, number],
   occupiedCost: 4,
 };

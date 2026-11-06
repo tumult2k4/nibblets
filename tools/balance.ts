@@ -2,7 +2,7 @@
  * Headless multi-seed balance runner (§20.4). P1 skeleton: population, deaths by cause, food, tick time.
  *   npm run balance -- --days 10 --seeds 5
  */
-import { writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { performance } from 'node:perf_hooks';
 import { createWorld } from '../src/sim/newWorld';
 import { faithTracker, tally } from './faithStats';
@@ -18,7 +18,7 @@ import { RECIPES } from '../src/sim/recipes';
 import { bestSkill } from '../src/sim/goblin/skills';
 import type { Goblin } from '../src/sim/state';
 import { generations } from '../src/sim/goblin/lineage';
-import { heterozygosity } from '../src/sim/goblin/genetics/genome';
+import { alleleBin, geneDiversity, heterozygosity, LOCUS_DEFS, type Genome, type LocusDef } from '../src/sim/goblin/genetics/genome';
 import { DisasterWatch, RECOVER, rateCheck, type WatchResult } from './disasterWatch';
 import { inGarden } from '../src/sim/garden';
 
@@ -29,6 +29,8 @@ const arg = (name: string, def: number): number => {
 const days = arg('days', 96);
 const seedCount = arg('seeds', 5);
 const firstSeed = arg('seed', 1);
+/** P10.4: `--dump dir` writes the founders' and the living's genomes at the end of each seed, for diversity checks */
+const dumpDir = process.argv.includes('--dump') ? process.argv[process.argv.indexOf('--dump') + 1] : null;
 /** control run (P4 acceptance): nobody can craft or knows any Phase 4 recipe, so no spears, campfire, torches or fences */
 const noCraft = process.argv.includes('--no-craft');
 if (noCraft) ACTIONS.craft.isAvailable = () => false;
@@ -58,7 +60,7 @@ interface Row {
   lost: number; residents: number;
   /** P10.1: the rival clans at the end; P10.4: goblins who married in (and had young), married out, allies' help, and the
    * living's mean heterozygosity and hue spread (the diversity an isolated village loses) */
-  clans: string; mig: string; migKids: boolean; het: number;
+  clans: string; mig: string; migKids: boolean; het: number; he: number; rich: number; novel: number;
   seed: number; popMin: number; popAvg: number; popMax: number; popEnd: number; births: number;
   deaths: Record<string, number>; eaten: number; divineFood: number; starvationDays: number;
   hueDrift: number; tickMs: number; fails: string[];
@@ -113,6 +115,7 @@ function runSeed(seed: number): Row {
   const playGod = god ? godPlayer(w, god, seed) : null;
   if (noCraft) forgetCrafts(w.s.goblins);
   const founders = w.s.goblins.length;
+  const founderGenomes = w.s.goblins.map((g) => g.genome); // P10.4: whose alleles are "new"
   const bushCount = () => w.s.plants.filter((p) => p.kind === 'apple_bush' && (p.stage === 'mature' || p.stage === 'old')).length;
   const bushes0 = bushCount();
   const hue0 = meanHue(w.s.goblins.map((g) => express(g.genome, 'skinHue')));
@@ -269,6 +272,12 @@ function runSeed(seed: number): Row {
   const gens = 1 + Math.max(0, ...generations(w.s).values());
   const migrants = new Set(mig.joined), kids = Object.values(w.s.lineage).filter((l) => l.parents?.some((p) => migrants.has(p))).length;
   const het = w.s.goblins.reduce((a, g) => a + heterozygosity(g.genome), 0) / Math.max(1, w.s.goblins.length);
+  const div = geneDiversity(w.s.goblins.map((g) => g.genome)), rich = rarefied(w.s.goblins.map((g) => g.genome), 8);
+  const mixed = w.s.goblins.filter((g) => w.s.lineage[g.id]?.parents?.some((p) => migrants.has(p)));
+  const novel = novelShare(founderGenomes, w.s.goblins.map((g) => g.genome));
+  if (dumpDir) mkdirSync(dumpDir, { recursive: true });
+  if (dumpDir) writeFileSync(`${dumpDir}/genomes_${seed}${process.argv.includes('--no-clans') ? '_iso' : ''}.json`, JSON.stringify({ seed, founders: founderGenomes, living: w.s.goblins.map((g) => ({ id: g.id, genome: g.genome, migrant: migrants.has(g.id), parents: w.s.lineage[g.id]?.parents ?? null })) }));
+  const mixedHet = mixed.length ? mixed.reduce((a, g) => a + heterozygosity(g.genome), 0) / mixed.length : NaN;
   const hues = w.s.goblins.map((g) => express(g.genome, 'skinHue')), hueMean = hues.length ? hues.reduce((a, h) => a + h, 0) / hues.length : 0;
   const hueSd = Math.sqrt(hues.reduce((a, h) => a + hueDelta(hueMean, h) ** 2, 0) / Math.max(1, hues.length));
   if (days >= 96 && !noPreserve && !noCraft && gens < 3) fails.push('generations<3');
@@ -307,10 +316,36 @@ function runSeed(seed: number): Row {
     housedAutumn, huts: w.s.buildings.filter((b) => (b.type === 'hut' || b.type === 'stone_hut') && b.buildProgress >= 1).length, weatherDeaths,
     rare: `${rare.beasts}/${rare.smashed} ${rare.wisps}/${rare.lured} ${rare.newcomers}`,
     clans: w.s.rivals.map((c) => `${c.name} ${c.archetype} pop ${c.pop} food ${(c.store / Math.max(1, c.pop)).toFixed(1)}d fierce ${c.aggression.toFixed(2)} rel ${Math.round(c.relation)}${c.allied ? ' ally' : ''} met ${c.contact === null ? '—' : 'day ' + Math.floor(c.contact / 3600)} raids ${clanRaids[c.id] ?? 0}`).join('; ') + ` | scouts ${trade.scouts} traders ${trade.traders} deals ${trade.deals} swaps ${trade.swaps} got {${tally(trade.got)}} gave {${tally(trade.gave)}} raids ${trade.raids} (food lost ${trade.lost}, raiders slain ${trade.slain}) gifts ${trade.gifts} defected ${trade.left}`,
-    mig: `joined ${mig.joined.length} (young ${kids}, living ${w.s.goblins.filter((g) => migrants.has(g.id)).length}) married out ${mig.out} helped ${mig.help} het ${het.toFixed(3)} hue sd ${hueSd.toFixed(1)}°`,
-    migKids: kids > 0, het,
+    mig: `joined ${mig.joined.length} (young ${kids}, living ${w.s.goblins.filter((g) => migrants.has(g.id)).length}) married out ${mig.out} helped ${mig.help} het ${het.toFixed(3)} (young of migrants ${mixedHet.toFixed(3)}) He ${div.he.toFixed(3)} alleles@8 ${rich.toFixed(2)} new alleles ${(novel * 100).toFixed(1)} % hue sd ${hueSd.toFixed(1)}°`,
+    migKids: kids > 0, het, he: div.he, rich, novel,
     fences: `${w.s.buildings.filter((b) => b.type === 'fence' && b.buildProgress >= 1).length}/${w.s.village.fenceRing ? ringTiles(w.s, w.s.village.fenceRing).length : 0}`,
   };
+}
+
+/** The share of the living's allele copies whose kind (binned as for diversity) no founder carried: new alleles,
+ * from mutation in an isolated village, from other stocks where goblins marry in. */
+function novelShare(founders: Genome[], living: Genome[]): number {
+  if (!living.length) return 0;
+  let novel = 0, all = 0;
+  for (const def of LOCUS_DEFS as readonly LocusDef[]) {
+    const had = new Set(founders.flatMap((g) => [alleleBin(def, g[def.key].a), alleleBin(def, g[def.key].b)]));
+    for (const g of living) for (const v of [g[def.key].a, g[def.key].b]) { all++; if (!had.has(alleleBin(def, v))) novel++; }
+  }
+  return novel / all;
+}
+
+/** Distinct alleles per locus in a sample of `n` of these genomes, averaged over 64 fixed samples (so villages of
+ * different sizes compare fairly). Its own little LCG: the balance tool must not touch the sim's random stream. */
+function rarefied(gs: Genome[], n: number): number {
+  if (gs.length <= n) return geneDiversity(gs).alleles;
+  let x = 12345, sum = 0;
+  const next = (): number => ((x = (x * 1103515245 + 12345) >>> 0) / 2 ** 32);
+  for (let k = 0; k < 64; k++) {
+    const pick = [...gs];
+    for (let i = pick.length - 1; i > 0; i--) { const j = Math.floor(next() * (i + 1)); [pick[i], pick[j]] = [pick[j]!, pick[i]!]; }
+    sum += geneDiversity(pick.slice(0, n)).alleles;
+  }
+  return sum / 64;
 }
 
 const rows: Row[] = [];
@@ -353,7 +388,7 @@ lines.push('', rates.line, recLine);
 console.log(rates.line);
 console.log(recLine);
 // P10 acceptance: goblins marry in from allied clans and have young (≥ 3 of 5 seeds); diversity against `--no-clans`
-const migLine = `Migration: ${rows.filter((r) => r.migKids).length}/${rows.length} seeds with a goblin who married in and had young; mean heterozygosity ${(rows.reduce((a, r) => a + r.het, 0) / rows.length).toFixed(3)}`;
+const migLine = `Migration: ${rows.filter((r) => r.migKids).length}/${rows.length} seeds with a goblin who married in and had young; mean heterozygosity ${(rows.reduce((a, r) => a + r.het, 0) / rows.length).toFixed(3)}, gene diversity ${(rows.reduce((a, r) => a + r.he, 0) / rows.length).toFixed(3)}, alleles per locus in 8 ${(rows.reduce((a, r) => a + r.rich, 0) / rows.length).toFixed(2)}, alleles not among the founders ${(rows.reduce((a, r) => a + r.novel, 0) / rows.length * 100).toFixed(1)} %`;
 lines.push('', migLine);
 console.log(migLine);
 writeFileSync('balance-report.md', lines.join('\n') + '\n');

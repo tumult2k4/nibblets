@@ -9,7 +9,7 @@ import { relate } from '../goblin/social';
 import { killEnemy } from '../combat';
 import { updateClans, type RivalClan } from '../clans';
 import { raiderDecide, sendRaiders, wantsRaid } from '../enemies/raider';
-import { giftClan } from '../ai/actions/envoy';
+import { giftClan, giftFood } from '../ai/actions/envoy';
 import { defectChance, maybeDefect } from '../migration';
 import { makeWorld, spawnGoblin } from './helpers';
 import type { Goblin } from '../state';
@@ -114,6 +114,23 @@ describe('raids, gifts and defectors (§16, P10.3)', () => {
     expect(c.store).toBeGreaterThan(0);
     expect(stockCount(w.s, 'dried_apple')).toBeLessThan(60);
     expect(giftClan(w)).toBeNull(); // one gift every few days
+  });
+
+  it('with no food to spare the chief gives goods instead; a clan warming toward an alliance gets one to seal it', () => {
+    const { w, c } = world(8, 10);
+    for (const o of w.s.rivals) o.relation = 35; // between the bands: no gift
+    expect(giftClan(w)).toBeNull();
+    c.relation = R.gift.seal + 5;
+    deposit(w.s, { type: 'pelt', qty: 20 });
+    const chief = spawnGoblin(w, { pos: { x: 15, y: 15 } });
+    chief.role = 'chief'; w.s.village.chiefId = chief.id;
+    expect(giftClan(w)).toBe(c);
+    expect(giftFood(w, c)?.type).toBe('pelt');
+    const rel = c.relation;
+    const evs = run(w, 6 * HOUR, () => c.lastGift !== undefined);
+    expect(evs.some((e) => e.type === 'clan_gift' && e.clanId === c.id && e.gave.type === 'pelt')).toBe(true);
+    expect(c.relation).toBeGreaterThan(rel);
+    expect(stockCount(w.s, 'pelt')).toBeGreaterThanOrEqual(CFG.visitors.keep); // never below what the store keeps
   });
 
   it('an exile may go over to the friendliest clan: it walks off the map and its genes join that clan', () => {

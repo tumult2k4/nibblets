@@ -1,3 +1,4 @@
+import type { ItemType } from '../../shared/types';
 /**
  * Raids by rival goblins, the chief's gifts, and exiles who go over to a clan (§16, P10.3), reached as CFG.raids
  * (the raider's fighting numbers also as CFG.enemies.raider).
@@ -16,8 +17,10 @@ export const RAIDS = {
   raid: -3, slain: -5,
   /** the chief's gift: to a clan under `below` every `everyDays` at most, `food` apples' worth (or the best spare
    * stack), warming it by value × `perValue` within [min, max]; worth more to a hungry clan. To a hostile clan the
-   * chief gives even when only `hostileKeep` days of food would be left: peace is worth more than a full store */
-  gift: { hostileKeep: 2, below: 30, everyDays: 4, food: 8, perValue: 0.5, min: 3, max: 12, hungryMul: 1.5, score: 0.36, hostileScore: 0.2, maxHours: 8 },
+   * chief gives even when only `hostileKeep` days of food would be left: peace is worth more than a full store. A clan
+   * from `seal` up, warming toward an alliance, is sent one too, to seal it. With no food to spare, goods of the kinds in
+   * `goods` (beyond what the store keeps), at least `minGoods` worth */
+  gift: { hostileKeep: 2, below: 30, seal: 45, minGoods: 6, goods: ['pelt', 'rope', 'flint', 'clay', 'fiber', 'stone', 'wood', 'bone'] as ItemType[], everyDays: 4, food: 8, perValue: 0.5, min: 3, max: 12, hungryMul: 1.5, score: 0.36, hostileScore: 0.2, maxHours: 8 },
   /** an exile whose time is up may go over to the clan that likes the village best instead of coming home */
   defect: { base: 0.15, wanderlust: 0.35, grudge: 0.25, mood: 0.2, friendly: 4, hostile: -4, missed: -8, missedDays: 2 },
 };

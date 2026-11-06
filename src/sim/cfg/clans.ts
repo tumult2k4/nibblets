@@ -27,5 +27,5 @@ export const CLANS = {
    * goblins lost on each side */
   rivalRaid: { fierce: 0.6, chance: 0.08, steal: 0.3, losses: [0, 1] as [number, number] },
   /** the gene pool kept per clan (each birth replaces one with a child of two) and the news kept per clan */
-  pool: 8, newsKept: 8,
+  pool: 12, newsKept: 8,
 };

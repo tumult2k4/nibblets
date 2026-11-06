@@ -44,6 +44,13 @@ export const mateOf = (g: Goblin, w: World): Goblin | undefined => {
   return r ? w.goblin(r.targetId) : undefined;
 };
 
+/** The one `g` was betrothed to when it married in (or was married into, P10.4), while both are free to wed. */
+export function betrothedOf(g: Goblin, w: World): Goblin | undefined {
+  const r = g.relationships.find((x) => x.match);
+  const o = r ? w.goblin(r.targetId) : undefined;
+  return o && o.lifeStage === 'adult' && !mateOf(g, w) && !mateOf(o, w) ? o : undefined;
+}
+
 /** A hut (complete or planned) that has a free bed for one more adult. */
 const roomyHome = (g: Goblin, w: World): boolean => {
   const b = g.homeId !== null ? w.s.buildings.find((x) => x.id === g.homeId) : undefined;
@@ -58,7 +65,8 @@ export function attraction(g: Goblin, o: Goblin, w: World): number {
   if (g.id === o.id || g.lifeStage !== 'adult' || o.lifeStage !== 'adult' || mateOf(g, w) || mateOf(o, w)) return 0;
   const op = relationOf(g, o.id)?.opinion ?? 0;
   if (op < CFG.social.mateThreshold || isCloseKin(w.s, g.id, o.id) || isKin(g, o)) return 0;
-  if (!roomyHome(g, w) && !roomyHome(o, w) && g.homeId !== o.homeId) return 0;
+  // a bed for two — but a betrothed pair weds first and finds a hut after (the newcomer comes with nothing)
+  if (!roomyHome(g, w) && !roomyHome(o, w) && g.homeId !== o.homeId && relationOf(g, o.id)?.match !== true) return 0;
   const dh = Math.abs(hueDelta(express(g.genome, 'skinHue'), express(o.genome, 'skinHue')));
   const wander = g.personality.wanderlust > 0.5;
   const looks = (wander ? dh >= F.hueFar : dh <= F.hueNear) ? F.looksMul : 1;

@@ -94,9 +94,9 @@ export interface ActivityState {
   path: Vec2[]; // remaining waypoints (tile centers)
   progress: number; // action-specific ticks
   stage: number; // action-specific sub-phase
-  /** what a conversation is about and how many lines it runs (P5.1 Chat) */
+  /** what a conversation is about and how many lines it runs (P5.1 Chat); `gift`: what the chief takes to a clan (P10.4) */
   topic?: ChatTopic;
-  count?: number;
+  count?: number; gift?: import('../shared/types').ItemType;
   /** the recipe or fact being taught (P5.5 Teach) */
   lesson?: string;
 }
@@ -117,8 +117,8 @@ export type RelationBond = 'none' | 'friend' | 'best_friend' | 'rival' | 'enemy'
 /** §13.1: how one goblin sees another (one-sided). */
 export interface Relation {
   targetId: ID; opinion: number; familiarity: number; bond: RelationBond; lastInteraction: number;
-  /** courtship (P5.3): welcome courtships in a row, and when last tried */
-  court?: number; courtTick?: number;
+  /** courtship (P5.3): welcome courtships in a row, and when last tried; `match`: betrothed by a marriage migration (P10.4) */
+  court?: number; courtTick?: number; match?: boolean;
 }
 /** §13.4 lineage book: everyone who ever lived, for kinship and the family tree (P5.3) */
 export interface LineageEntry {

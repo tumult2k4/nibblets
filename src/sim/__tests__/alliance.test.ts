@@ -6,8 +6,10 @@ import { deserialize, serialize, stateHash } from '../save';
 import { World } from '../world';
 import type { RivalClan } from '../clans';
 import { spawnVisitor, visitorsOf } from '../visitors';
-import { updateAllies } from '../alliance';
-import { inbreedMul } from '../goblin/family';
+import { joinVillage, updateAllies } from '../alliance';
+import { attraction, becomeMates, betrothedOf, inbreedMul } from '../goblin/family';
+import { placeBlueprint } from '../buildings';
+import { claim } from '../ai/actions/home';
 import { cloneGenome, heterozygosity, LOCUS_DEFS } from '../goblin/genetics/genome';
 import { spawnBramblebeast } from '../enemies/bramblebeast';
 import { DISCOVERABLE, knowers } from '../knowledge';
@@ -69,6 +71,28 @@ describe('alliances and marriage migration (§16, P10.4)', () => {
     expect(joined.matchId).toBe(single.id);
     expect(opinionOf(g, single.id)).toBeGreaterThanOrEqual(A.match);
     expect(opinionOf(single, g.id)).toBeGreaterThanOrEqual(A.match);
+  });
+
+  it('a newcomer is betrothed: to one nobody is promised to yet, with a bed by its match, courting without a spare bed', () => {
+    const { w, c } = world();
+    const a = spawnGoblin(w, { pos: { x: 15, y: 15 } }), b = spawnGoblin(w, { pos: { x: 16, y: 15 } });
+    a.personality.wanderlust = 0.9; b.personality.wanderlust = 0.1;
+    const kid = spawnGoblin(w, { pos: { x: 16, y: 16 }, ageDays: 4 });
+    const hut = placeBlueprint(w, 'hut', { x: 12, y: 12 }, a.id), full = placeBlueprint(w, 'hut', { x: 20, y: 12 }, b.id);
+    claim(w, a, hut); claim(w, b, full); claim(w, kid, full);
+    const join = (): Goblin => joinVillage(w, spawnVisitor(w, c, 'suitor')!)!;
+    const n1 = join(), n2 = join();
+    expect(betrothedOf(n1, w)).toBe(a);
+    expect(betrothedOf(n2, w)).toBe(b); // a is promised already
+    expect(n1.homeId).toBe(hut.id); // a free bed in a's hut
+    expect(n2.homeId).toBeNull();
+    expect(attraction(n2, b, w)).toBeGreaterThan(0); // no bed to spare on either side, yet they may court
+    const r = n2.relationships.find((x) => x.targetId === b.id)!;
+    r.match = false;
+    expect(attraction(n2, b, w)).toBe(0); // (as for anyone else)
+    r.match = true;
+    becomeMates(w, n1, a);
+    expect(betrothedOf(n1, w)).toBeUndefined();
   });
 
   it("an ally's suitors come now and then on its 10:00 update, while the village has someone to marry", () => {

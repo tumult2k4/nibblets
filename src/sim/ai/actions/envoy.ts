@@ -14,7 +14,7 @@ import type { UtilityAction } from '../action';
 import { moveAlong, planPath } from '../../steering';
 import { needUrgency } from '../../goblin/needs';
 import { addItem, removeItems } from '../../inventory';
-import { deposit, withdraw } from '../../stockpile';
+import { deposit, stockCount, withdraw } from '../../stockpile';
 import { isFood, itemDef } from '../../items';
 import { isExiled } from '../../leadership';
 import { knownRivals, shiftRelation, type RivalClan } from '../../clans';
@@ -26,20 +26,28 @@ const pressed = (g: Goblin): boolean => Math.max(needUrgency(g.needs.hunger), ne
 const GIFT_FOOD: ItemType[] = ['dried_apple', 'apple_mash', 'apple', 'berry', 'cooked_fish'];
 
 /** Food worth `G.food` apples that the village can spare, the best-keeping kind first. Peace with a hostile clan is
- * worth more than a full store: then the chief keeps only `G.hostileKeep` days back. */
+ * worth more than a full store: then the chief keeps only `G.hostileKeep` days back. With no food to spare, goods
+ * worth as much (P10.4): the dearest kind the store holds more of than it keeps, at least `G.minGoods` worth. */
 export function giftFood(w: World, c: RivalClan | null = giftClan(w)): ItemStack | null {
   const apple = itemDef('apple').nutrition ?? 1, hostile = !!c && c.relation <= CFG.clans.relation.hostile;
   for (const type of GIFT_FOOD) {
     const qty = Math.ceil((G.food * apple) / Math.max(1, itemDef(type).nutrition ?? apple));
     if (hostile ? canSpare(w.s, { type, qty }, G.hostileKeep) : canSpare(w.s, { type, qty })) return { type, qty };
   }
-  return null;
+  const worth = G.food * itemDef('apple').value;
+  let best: ItemStack | null = null, bv = 0;
+  for (const type of G.goods) {
+    const v = itemDef(type).value, qty = Math.min(Math.floor((stockCount(w.s, type) - CFG.visitors.keep) / 2), Math.ceil(worth / v)); // half the surplus at most
+    if (qty > 0 && qty * v >= G.minGoods && (v > bv || (v === bv && best && type < best.type))) { bv = v; best = { type, qty }; }
+  }
+  return best;
 }
 
-/** The clan the chief would send a gift to now: met, not allied, under `G.below`, none sent lately; the coldest. */
+/** The clan the chief would send a gift to now: met, not allied, under `G.below` (or near an alliance, from `G.seal`),
+ * none sent lately; the coldest. */
 export function giftClan(w: World): RivalClan | null {
   const t = w.s.tick;
-  return knownRivals(w.s).filter((c) => !c.allied && c.relation < G.below && t >= (c.lastGift ?? -Infinity) + G.everyDays * DAY)
+  return knownRivals(w.s).filter((c) => !c.allied && (c.relation < G.below || c.relation >= G.seal) && t >= (c.lastGift ?? -Infinity) + G.everyDays * DAY)
     .sort((a, b) => a.relation - b.relation || a.id - b.id)[0] ?? null;
 }
 
@@ -75,6 +83,7 @@ export const SendGift: UtilityAction = {
       const got = withdraw(w.s, f.type, f.qty), kept = addItem(g, { type: f.type, qty: got });
       if (kept < got) deposit(w.s, { type: f.type, qty: got - kept });
       if (!kept) return 'failed';
+      a.gift = f.type;
       a.stage = 1;
       a.progress = 0;
       a.path = [];
@@ -91,13 +100,13 @@ export const SendGift: UtilityAction = {
     }
     let value = 0, food = 0;
     for (const st of [...g.inventory]) {
-      if (!isFood(st.type)) continue;
+      if (!isFood(st.type) && st.type !== a.gift) continue;
       const n = removeItems(g, st.type, st.qty);
       value += goodsValue(w, null, { item: { type: st.type, qty: n } });
       food += (itemDef(st.type).nutrition ?? 0) * n;
       w.emit({ type: 'clan_gift', goblinId: g.id, clanId: c.id, gave: { type: st.type, qty: n }, at: { ...g.pos } });
     }
-    if (!food) return 'failed';
+    if (!value) return 'failed';
     const hungry = c.store < c.pop * CFG.clans.hungryDays;
     c.store += food / CFG.goblin.decayPerDay.hunger;
     c.lastGift = w.s.tick;

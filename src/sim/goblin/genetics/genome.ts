@@ -99,3 +99,26 @@ export function heterozygosity(g: Genome): number {
   }
   return het / LOCUS_DEFS.length;
 }
+
+/** The bin an allele falls in for diversity stats: 15° of hue, a tenth of a quantitative range, or the value itself. */
+export function alleleBin(def: LocusDef, v: number): number {
+  if (def.kind === 'hue') return Math.floor((((v % 360) + 360) % 360) / 15);
+  if (def.kind === 'discrete' || def.kind === 'recessive') return Math.round(v);
+  return Math.min(9, Math.max(0, Math.floor(((v - def.min) / (def.max - def.min)) * 10)));
+}
+
+/** A population's gene diversity (P10.4): Nei's expected heterozygosity (1 − Σp² over the binned alleles of each locus,
+ * averaged) and the mean number of distinct alleles per locus. Goblins who marry in from another stock raise both. */
+export function geneDiversity(gs: readonly Genome[]): { he: number; alleles: number } {
+  if (!gs.length) return { he: 0, alleles: 0 };
+  let he = 0, alleles = 0;
+  for (const def of LOCUS_DEFS as readonly LocusDef[]) {
+    const n = new Map<number, number>();
+    for (const g of gs) for (const v of [g[def.key].a, g[def.key].b]) { const b = alleleBin(def, v); n.set(b, (n.get(b) ?? 0) + 1); }
+    let sq = 0;
+    for (const k of n.values()) sq += (k / (2 * gs.length)) ** 2;
+    he += 1 - sq;
+    alleles += n.size;
+  }
+  return { he: he / LOCUS_DEFS.length, alleles: alleles / LOCUS_DEFS.length };
+}

@@ -14,13 +14,15 @@ import type { World } from './world';
 import { clockAt } from './time';
 import { createGoblin } from './goblin/goblin';
 import { express } from './goblin/genetics/phenotype';
-import { mateOf, registerLineage } from './goblin/family';
+import { betrothedOf, mateOf, registerLineage } from './goblin/family';
 import { relate } from './goblin/social';
 import { DISCOVERABLE, knowers } from './knowledge';
 import { killEnemy } from './combat';
 import { isExiled } from './leadership';
 import { shiftRelation, type RivalClan } from './clans';
 import { clanOf, doors, spawnVisitor, visitorsOf, walk, type Visitor } from './visitors';
+import { buildingDef } from './buildings';
+import { claim } from './ai/actions/home';
 
 const A = CFG.alliance, DAY = CFG.time.dayTicks;
 const grown = (g: Goblin): boolean => g.lifeStage === 'adult';
@@ -28,11 +30,14 @@ const grown = (g: Goblin): boolean => g.lifeStage === 'adult';
 /** Grown goblins of the village without a mate (and not on their way out). */
 const unmated = (w: World): Goblin[] => w.s.goblins.filter((g) => grown(g) && !mateOf(g, w) && w.s.leaving?.[g.id] === undefined);
 
-/** Who a newcomer of genome hue `hue` is matched with: the restless and those who look most unlike it first. */
+/** Who a newcomer of genome hue `hue` is matched with: the restless and those who look most unlike it first; never
+ * one already promised to an earlier newcomer, nor one with less than `matchDaysLeft` days before it grows old. */
 export function matchFor(w: World, hue: number, not: ID): Goblin | null {
   let best: Goblin | null = null, bs = -Infinity;
   for (const g of unmated(w)) {
-    if (g.id === not || isExiled(g, w)) continue;
+    if (g.id === not || isExiled(g, w) || betrothedOf(g, w)) continue;
+    const left = Math.min(CFG.goblin.stageDays.adultUntil, g.lifespanDays * 0.8) - (w.s.tick - g.bornTick) / DAY;
+    if (left < A.matchDaysLeft) continue; // not one about to grow old
     const sc = g.personality.wanderlust + Math.abs(hueDelta(express(g.genome, 'skinHue'), hue)) / 180 + g.personality.sociability * 0.3;
     if (sc > bs || (sc === bs && best && g.id < best.id)) { bs = sc; best = g; }
   }
@@ -60,7 +65,10 @@ export function joinVillage(w: World, v: Visitor): Goblin | null {
     const r = relate(a, b.id);
     r.opinion = Math.max(r.opinion, A.match);
     r.familiarity = Math.max(r.familiarity, A.matchFamiliarity);
+    r.match = true;
   }
+  const mh = m?.homeId != null ? s.buildings.find((b) => b.id === m.homeId) : undefined;
+  if (mh && mh.occupants.length < (buildingDef(mh.type)?.capacity ?? 0)) claim(w, g, mh); // a bed by its match, if there is one
   shiftRelation(w, c, A.married, 'married');
   w.emit({ type: 'goblin_joined', goblinId: g.id, clanId: c.id, recipes: brought, ...(m ? { matchId: m.id } : {}), at: { ...g.pos } });
   return g;
@@ -110,7 +118,7 @@ function sendHelp(w: World, c: RivalClan): void {
 /** On each allied clan's 10:00 update: a suitor, maybe; and maybe one of the village's restless goes to them. */
 function marriages(w: World, c: RivalClan): void {
   const s = w.s;
-  if (s.tick >= (c.nextSuitor ?? 0) && !visitorsOf(s).some((v) => v.kind === 'suitor') && unmated(w).length
+  if (s.tick >= (c.nextSuitor ?? 0) && !visitorsOf(s).some((v) => v.kind === 'suitor') && unmated(w).some((g) => !betrothedOf(g, w))
     && s.goblins.length < CFG.goblin.softCap && w.rng.chance(A.suitorPerDay)) {
     if (spawnVisitor(w, c, 'suitor')) c.nextSuitor = s.tick + A.suitorRestDays * DAY;
   }

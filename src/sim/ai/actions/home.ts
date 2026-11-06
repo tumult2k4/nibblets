@@ -6,7 +6,7 @@ import { moveAlong, planPath } from '../../steering';
 import { buildingDef, findSite, isComplete, missingMaterials, placeBlueprint, workSpot } from '../../buildings';
 import { sleepScore } from './sleepGround';
 import { pushGoal } from '../planner';
-import { leaveHome, mateOf } from '../../goblin/family';
+import { betrothedOf, leaveHome, mateOf } from '../../goblin/family';
 import type { Building, Goblin } from '../../state';
 import type { World } from '../../world';
 import type { UtilityAction } from '../action';
@@ -31,7 +31,7 @@ const freeBeds = (b: Building): number => (buildingDef(b.type)?.capacity ?? 0) -
 function freeHome(g: Goblin, w: World): Building | null {
   const m = mateOf(g, w), mh = m && homeOf(m, w);
   if (mh && mh.id !== g.homeId && freeBeds(mh) > 0) return mh;
-  const need = m ? 2 : 1;
+  const need = m || betrothedOf(g, w) ? 2 : 1; // a betrothed newcomer looks for a hut with room for two (P10.4)
   let best: Building | null = null, bestD = Infinity;
   for (const b of w.s.buildings) {
     if (b.id === g.homeId || freeBeds(b) < need) continue;

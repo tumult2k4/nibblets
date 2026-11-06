@@ -7,9 +7,10 @@ export const ALLIANCE = {
    * village has an unmated grown goblin, at most every `suitorRestDays` */
   suitorPerDay: 0.3, suitorRestDays: 4,
   /** how old the newcomer is (days), and how many recipes the village does not know it brings (at most) */
-  age: [22, 34] as [number, number], recipes: 2,
-  /** it comes with a match in mind: the two start with this much liking for each other (and know each other this well) */
-  match: 45, matchFamiliarity: 40,
+  age: [20, 30] as [number, number], recipes: 2,
+  /** it comes with a match in mind: the two start with this much liking for each other (past the mate line, so courting
+   * can begin) and know each other this well */
+  match: 65, matchFamiliarity: 60, matchDaysLeft: 12,
   /** an unmated, restless (wanderlust ≥ `leaveWanderlust`) grown goblin may go to marry into an allied clan: a day's chance */
   leavePerDay: 0.02, leaveWanderlust: 0.65,
   /** a marriage either way warms the clan */

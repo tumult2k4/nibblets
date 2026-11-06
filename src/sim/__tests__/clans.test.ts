@@ -60,11 +60,12 @@ describe('rival clans beyond the map (§16, P10.1)', () => {
     w.s.rivals = [c]; // alone: nobody to raid
     c.store = c.pop * 3;
     c.relation = -90;
-    const start = w.s.tick, pool = c.pool.map((g) => JSON.stringify(g)), pop = c.pop;
+    const start = w.s.tick, pool = c.pool.map((g) => JSON.stringify(g));
     withCfg(C.luck, { 0: 1, 1: 1 }, () => live(w, start, start + 3 * SEASON)); // spring, summer, autumn of average luck
     expect(c.store / c.pop).toBeGreaterThan(6);
-    withCfg(C, { birthPerDay: 0.2 }, () => live(w, start + 3 * SEASON - DAY, start + 3 * SEASON));
-    expect(c.pop).toBeGreaterThan(pop);
+    const before = c.pop;
+    withCfg(C, { birthPerDay: 1, deathPerDay: 0 }, () => live(w, start + 3 * SEASON - DAY, start + 3 * SEASON));
+    expect(c.pop).toBeGreaterThan(before);
     expect(c.pool.map((g) => JSON.stringify(g))).not.toEqual(pool); // births bred the pool
     const fed = c.pop;
     expect(c.relation).toBeGreaterThan(-75); // a slow drift (P10.4: alliances last)

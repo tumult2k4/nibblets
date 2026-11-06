@@ -79,10 +79,18 @@ const nearGraves = (s: WorldState, p: Vec2): boolean => {
  * spacing from other buildings (3–6), avoiding orchards, fertile soil and trails. Deterministic (hash tie-break).
  */
 export function findSite(w: World, type: BuildingType, near: Vec2): Vec2 | null {
+  // a crowded village builds farther out (P10 balance: couples went homeless for a month with no site within 14)
+  for (const k of B.siteWiden) {
+    const at = siteWithin(w, type, near, B.siteRadius * k);
+    if (at) return at;
+  }
+  return null;
+}
+
+function siteWithin(w: World, type: BuildingType, near: Vec2, R: number): Vec2 | null {
   const s = w.s;
   const def = buildingDef(type);
   if (!def) return null;
-  const R = B.siteRadius;
   const water: Vec2[] = [];
   const pad = R + B.waterPref[1] + 2;
   for (let y = Math.max(0, Math.floor(near.y - pad)); y < Math.min(s.size.h, near.y + pad); y++)
