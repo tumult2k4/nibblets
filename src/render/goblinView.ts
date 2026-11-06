@@ -293,14 +293,14 @@ export class GoblinViews {
   private updateWear(g: Goblin, v: View): void {
     const back = (['basket', 'sleeping_mat'] as const).filter((t) => g.inventory.some((s) => s.type === t));
     const paint = g.mood.modifiers.some((m) => m.id === 'war_paint');
-    const key = [g.equipped.body?.type, g.equipped.neck?.type, g.equipped.head?.type, paint, ...back].join(',');
+    const key = [g.equipped.body?.type, g.equipped.neck?.type, g.equipped.head?.type, paint, g.role, ...back].join(',');
     if (key === v.wearKey) return;
     v.wearKey = key;
     for (const m of v.wear) m.removeFromParent();
     v.wear = [];
     const hr = (v.pheno.headRatio * 0.8) / 2;
     const put = (t: Parameters<typeof adornWearGeo>[0] | undefined, parent: THREE.Object3D): void => {
-      const geo = t && (t === 'war_paint_face' ? adornWearGeo(t, hr) : wearGeo(t, hr) ?? adornWearGeo(t, hr));
+      const geo = t && (t === 'war_paint_face' || t === 'chief_headdress' ? adornWearGeo(t, hr) : wearGeo(t, hr) ?? adornWearGeo(t, hr));
       if (!geo) return;
       const m = new THREE.Mesh(geo, flatMat);
       m.castShadow = true;
@@ -309,6 +309,7 @@ export class GoblinViews {
     };
     for (const [s, parent] of [[g.equipped.body, v.rig.body], [g.equipped.neck, v.rig.body], [g.equipped.head, v.rig.head]] as const) put(s?.type, parent);
     if (paint) put('war_paint_face', v.rig.head);
+    if (g.role === 'chief') put('chief_headdress', v.rig.head); // P8.4
     for (const t of back) put(t, v.rig.body);
   }
 

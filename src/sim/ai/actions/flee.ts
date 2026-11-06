@@ -26,6 +26,7 @@ import type { World } from '../../world';
 import { braveryOf } from '../../adorn';
 import type { UtilityAction } from '../action';
 import { cowardice } from '../../mischief';
+import { onWatch } from '../../leadership';
 
 const C = CFG.combat;
 const child = (g: Goblin): boolean => g.lifeStage === 'hatchling' || g.lifeStage === 'youngling';
@@ -124,8 +125,9 @@ export const Guard: UtilityAction = {
   id: 'guard', tags: ['danger'], minStage: 'adult', interruptible: true,
   // a lookout up the tower needs sharp eyes, not a spear
   isAvailable: (g, w) => evening(w) && (!!bestWeapon(g) || !!freeTower(g, w)) && g.needs.energy > 35 && g.needs.hunger > 30 && g.needs.thirst > 30
-    && (g.activity.action === 'guard' || guardSlots(g, w)),
-  score: (g, w) => 0.22 + (w.s.enemies.some((e) => e.seen) ? 0.25 : 0) + (freeTower(g, w) ? 0.08 : 0),
+    && (g.activity.action === 'guard' || onWatch(g, w) || guardSlots(g, w)),
+  // P8.4: tonight's watch under a brave chief stands guard first, and till morning
+  score: (g, w) => 0.22 + (w.s.enemies.some((e) => e.seen) ? 0.25 : 0) + (freeTower(g, w) ? 0.08 : 0) + (onWatch(g, w) ? CFG.leadership.watch.scoreBonus : 0),
   start(g, w) {
     g.activity.target = post(g, w);
     g.activity.stage = 0;
@@ -133,7 +135,7 @@ export const Guard: UtilityAction = {
   },
   step(g, w) {
     const a = g.activity;
-    if (!evening(w) || g.needs.energy < 25 || w.s.tick - a.startedTick > C.guardTicks) return 'done';
+    if (!evening(w) || g.needs.energy < 25 || g.needs.hunger < 25 || g.needs.thirst < 25 || (w.s.tick - a.startedTick > C.guardTicks && !onWatch(g, w))) return 'done';
     if (a.stage === 0) {
       if (moveAlong(w, g) !== 'arrived') return 'running';
       a.stage = 1;

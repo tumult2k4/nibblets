@@ -21,9 +21,10 @@ export const MISCHIEF = {
     /** hearsay passed on in a chat: the listener thinks −8 of the thief */
     hearsayOpinion: -8,
   },
-  /** apologies: a thief that was caught and is sociable (≥ 0.5) goes to say sorry after half a day, within 4 days:
+  /** apologies: a thief that was caught and is sociable (≥ 0.5) goes to say sorry after half a day, within 4 days (or
+   * at once, whatever its nature, when the chief orders it, scored `ordered`):
    * gives the thing back if it still has it (else a gift), +15 opinion, and the grudge eases */
-  apology: { minSociability: 0.5, afterDays: 0.5, withinDays: 4, opinion: 15, score: 0.35, reputation: 2, range: 40, talkTicks: 30 },
+  apology: { minSociability: 0.5, afterDays: 0.5, withinDays: 4, opinion: 15, score: 0.35, ordered: 0.9, reputation: 2, range: 40, talkTicks: 30 },
   /** reputation (§13.6), −100..100, easing 2 % a day toward 0; building counts for all but homes and the many small
    * pieces (fence, gate, bridge spans), its +5 shared by the crew */
   reputation: { notCommunal: ['hut', 'stone_hut', 'fence', 'gate', 'bridge'] as readonly string[], communalBuild: 5, kill: 8, gift: 1, teach: 3, theft: -10, coward: -4, tantrum: -3, brawl: -3, prank: -1, decay: 0.02 },
@@ -31,8 +32,8 @@ export const MISCHIEF = {
    * knows (`wronged`, for two days unless it says sorry), come to blows when within 6 tiles, the brave sooner; fists every 20 ticks for 80, 3 damage, never below half health; both −10
    * mood and −10 opinion; a friend of either nearby may pull them apart */
   brawl: {
-    range: 6, score: 0.5, minAnger: 0.3, wronged: 0.4, restDays: 1, ticks: 80, every: 20, damage: 3, hpFloor: 0.5, bruiseChance: 0.15,
-    mood: -10, moodDays: 1, opinion: -10, breakUpRange: 6, breakUpChance: 0.35,
+    range: 6, score: 0.5, minAnger: 0.3, wronged: 0.4, restDays: 3, ticks: 80, every: 20, damage: 3, hpFloor: 0.5, bruiseChance: 0.15,
+    mood: -10, moodDays: 1, opinion: -5, breakUpRange: 6, breakUpChance: 0.35,
   },
   /** grudge holder (§7.7): robbed twice, or pranked four times */
   grudge: { robbed: 2, pranked: 4 },

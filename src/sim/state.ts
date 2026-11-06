@@ -82,7 +82,7 @@ export type ActionId =
   | 'follow_wisp' | 'scatter' | 'chat' | 'comfort' | 'gift' | 'court' | 'lay_egg' | 'incubate_egg' | 'feed_child' | 'follow_parent'
   | 'play' | 'learn' | 'teach' | 'cut_grass' | 'pick_flowers' | 'process' | 'rest_sick' | 'tend_sick' | 'extinguish_fire' | 'escape_fire' | 'cull_blight'
   | 'bury_dead' | 'mourn' | 'hunt' | 'fish' | 'dig_clay' | 'cook_stew' | 'tend_compost' | 'spread_compost' | 'pave_path' | 'haul_to_stockpile'
-  | 'sulk' | 'binge' | 'wander_off' | 'hunt_trinket' | 'decorate' | 'prank' | 'steal' | 'apologize' | 'brawl';
+  | 'sulk' | 'binge' | 'wander_off' | 'hunt_trinket' | 'decorate' | 'prank' | 'steal' | 'apologize' | 'brawl' | 'judge' | 'exile';
 
 export interface ActivityState {
   action: ActionId;
@@ -131,7 +131,11 @@ export interface DeedCounters {
   stolen?: number; robbed?: number; pranks?: number; pranked?: number; brawls?: number;
 }
 /** A wrong done (P8.3): whom, what, when, whether the victim knows who did it, and whether it was made right. */
-export interface Guilt { victimId: ID; item?: import('../shared/types').ItemType; trinketId?: ID; tick: number; known: boolean; settled?: boolean }
+export interface Guilt {
+  victimId: ID; item?: import('../shared/types').ItemType; trinketId?: ID; tick: number; known: boolean; settled?: boolean;
+  /** P8.4: the chief has ordered it put right (an apology owed whatever the thief's nature) */
+  ordered?: boolean;
+}
 
 /** Ballistic state of a held/thrown/dropped entity. z is absolute altitude in world units. */
 export interface Airborne {
@@ -171,6 +175,8 @@ export interface Goblin {
   moodLow?: number; moodHigh?: number; moodBreak?: MoodBreak; lastBreak?: number; lastInspired?: number;
   /** P8.3: wrongs it has done (thefts), for owning up */
   guilt?: Guilt[];
+  /** P8.4: sent out of the village by the chief until then */
+  exiledUntil?: number;
 }
 
 /** A mood break under way (§7.5): until when, and for wandering off where to. */
@@ -244,8 +250,8 @@ export interface WeatherState {
   upcoming: WeatherKind; cells: WeatherCell[];
 }
 export interface Clan { id: ID; name: string; archetype: string }
-/** `stockpile` is the shared village store (P2.3): a marked spot near the center where goblins pile things. */
-/** `fenceRing`: radius of the planned fence ring around the center, fixed when fencing starts (0 = none yet, P4.6). */
+/** `stockpile` is the shared village store (P2.3): a marked spot near the center where goblins pile things. `fenceRing`:
+ * radius of the planned fence ring around the center, fixed when fencing starts (0 = none yet, P4.6). */
 export interface VillageState {
   name: string; center: Vec2; chiefId: ID | null; stockpile: ItemStack[]; stockpilePos: Vec2; fenceRing: number;
   /** recipes and facts that died with their last knower (P5.5); rediscovery takes them off */
@@ -254,8 +260,11 @@ export interface VillageState {
   spoiled?: Partial<Record<import('../shared/types').ItemType, number>>;
   /** where the village lays its dead (P6.4), chosen at the first burial */
   graveyard?: Vec2 | null;
-  /** village policies (P6.5 hook; a chief sets them from P8, the sandbox drawer until then) */
-  policies?: { quarantine?: boolean; law?: number };
+  /** village policies (P6.5 hook; the chief sets them from its personality, P8.4): work ×, the night watch, festivals ×,
+   * shrine first, quarantine, how strict about theft */
+  policies?: { quarantine?: boolean; law?: number; work?: number; rota?: boolean; festivals?: number; shrine?: boolean };
+  /** P8.4: tonight's watch under a brave chief */
+  watch?: ID[];
   /** village firsts already marked (P7.2: the first fish) */
   firsts?: string[];
   /** P7.5 stockpile zones (§12.3): materials are kept here, food (and everything else) at `stockpilePos` */

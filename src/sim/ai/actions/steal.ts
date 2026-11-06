@@ -128,7 +128,7 @@ export const Apologize: UtilityAction = {
     const gu = owed(g, w), o = gu && w.goblin(gu.victimId);
     return !!o && !thirsty(g) && !g.heldByGod && !isSleeping(o) && !o.heldByGod && dist(o.pos, g.pos) <= A.range;
   },
-  score: (g) => q4(A.score * (0.5 + g.personality.sociability)),
+  score: (g, w) => (owed(g, w)?.ordered ? A.ordered : q4(A.score * (0.5 + g.personality.sociability))),
   start(g, w) {
     const gu = owed(g, w), o = gu && w.goblin(gu.victimId);
     if (!o) return false;

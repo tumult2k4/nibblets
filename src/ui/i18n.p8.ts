@@ -1,5 +1,16 @@
 /** Phase 8 strings (mood, society, faith), merged into the main tables by i18n.ts. */
 export const EN8 = {
+  'act.judge': 'Passing judgement', 'act.exile': 'Leaving the village (exiled)',
+  'ev.chief_chosen': '{name} is the new chief of the village!', 'ev.chief_first': 'The village has chosen its first chief: {name}.',
+  'ev.justice.return': 'Chief {chief} has ordered {name} to give back what they took from {other}.',
+  'ev.justice.apology': 'Chief {chief} has ordered {name} to make it up to {other}.',
+  'ev.justice.exile': 'Chief {chief} has sent {name} out of the village for two days.',
+  'ev.exile_ended': '{name} is back from exile.',
+  'role.chief': 'Chief', 'insp.exiled': 'In exile', 'insp.onWatch': 'On watch tonight', 'village.chief': 'Chief: {name}', 'village.noChief': 'No chief yet',
+  'village.policies': 'Policies', 'village.noPolicies': 'None to speak of',
+  'policy.work': 'Hard work (work ×1.1)', 'policy.rota': 'A night watch of two', 'policy.festivals': 'More festivals', 'policy.shrine': 'The shrine first',
+  'policy.quarantine': 'Quarantine for the sick', 'policy.lax': 'Lax about theft', 'policy.strict': 'Strict about theft',
+  'mod.made_chief': 'made chief', 'mod.judged': 'judged by the chief', 'mod.justice': 'justice done',
   'act.prank': 'Up to mischief', 'act.steal': 'Sneaking about', 'act.apologize': 'Saying sorry', 'act.brawl': 'Brawling',
   'ev.theft': '{name} pinched {item} from {other} while nobody was looking.', 'ev.theft_seen': '{name} was caught stealing {item} from {other}!',
   'ev.prank.hide_item': '{name} hid {other}\'s things as a prank.', 'ev.prank.scare_sleeper': '{name} jumped out at {other}, who was fast asleep.',
@@ -35,6 +46,17 @@ export const EN8 = {
 };
 
 export const DE8: Record<keyof typeof EN8, string> = {
+  'act.judge': 'Spricht Recht', 'act.exile': 'Verlässt das Dorf (verbannt)',
+  'ev.chief_chosen': '{name} ist der neue Häuptling des Dorfes!', 'ev.chief_first': 'Das Dorf hat seinen ersten Häuptling gewählt: {name}.',
+  'ev.justice.return': 'Häuptling {chief} verlangt, dass {name} {other} das Gestohlene zurückgibt.',
+  'ev.justice.apology': 'Häuptling {chief} verlangt, dass {name} es bei {other} wiedergutmacht.',
+  'ev.justice.exile': 'Häuptling {chief} hat {name} für zwei Tage aus dem Dorf verbannt.',
+  'ev.exile_ended': '{name} ist aus der Verbannung zurück.',
+  'role.chief': 'Häuptling', 'insp.exiled': 'In der Verbannung', 'insp.onWatch': 'Hält heute Nacht Wache', 'village.chief': 'Häuptling: {name}', 'village.noChief': 'Noch kein Häuptling',
+  'village.policies': 'Regeln', 'village.noPolicies': 'Keine besonderen',
+  'policy.work': 'Fleiß (Arbeit ×1,1)', 'policy.rota': 'Nachtwache zu zweit', 'policy.festivals': 'Mehr Feste', 'policy.shrine': 'Der Schrein zuerst',
+  'policy.quarantine': 'Quarantäne für Kranke', 'policy.lax': 'Nachsichtig bei Diebstahl', 'policy.strict': 'Streng bei Diebstahl',
+  'mod.made_chief': 'zum Häuptling gewählt', 'mod.judged': 'vom Häuptling verurteilt', 'mod.justice': 'Gerechtigkeit',
   'act.prank': 'Heckt Unfug aus', 'act.steal': 'Schleicht herum', 'act.apologize': 'Entschuldigt sich', 'act.brawl': 'Prügelt sich',
   'ev.theft': '{name} hat {other} heimlich etwas stibitzt: {item}.', 'ev.theft_seen': '{name} wurde beim Stehlen erwischt: {item} von {other}!',
   'ev.prank.hide_item': '{name} hat {other} zum Spaß etwas versteckt.', 'ev.prank.scare_sleeper': '{name} hat {other} im Schlaf erschreckt.',

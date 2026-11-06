@@ -117,6 +117,8 @@ export type SimEvent = BaseEvent &
     | { type: 'prank'; prankerId: ID; targetId: ID; kind: PrankKind; at?: Vec2 }
     | { type: 'brawl'; aId: ID; bId: ID; brokenUpBy?: ID; at: Vec2 }
     | { type: 'apology'; goblinId: ID; toId: ID; returned: boolean; at: Vec2 }
+    | { type: 'justice'; chiefId: ID; goblinId: ID; victimId: ID; sentence: 'return' | 'apology' | 'exile'; at: Vec2 }
+    | { type: 'exile_ended'; goblinId: ID; at: Vec2 }
     | { type: 'chat'; aId: ID; bId: ID; topic: ChatTopic }
     | { type: 'chat_line'; goblinId: ID; topic: ChatTopic }
     | { type: 'skill_up'; goblinId: ID; skill: SkillId; level: number }

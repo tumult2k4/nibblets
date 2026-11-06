@@ -11,6 +11,7 @@ import { buildingBody, buildingHead } from './buildingInspector';
 import { socialTab } from './socialTab';
 import { eggBody, eggHead } from './eggInspector';
 import { graveBody, graveHead } from './graveInspector';
+import { chiefOf } from '../../../sim/leadership';
 
 type Tab = 'status' | 'mind' | 'social' | 'body' | 'inventory';
 const TABS: Tab[] = ['status', 'mind', 'social', 'body', 'inventory'];
@@ -126,7 +127,8 @@ export class Inspector implements Component {
     this.head.replaceChildren(el('h2', { text: t('insp.glance') }), el('div.sub', { text: s.village.name }));
     const godLine = el('div.row');
     setText(godLine, t('insp.glanceGod', { name: s.god.godName ?? t('insp.glanceUnnamed') }));
-    this.body.replaceChildren(godLine, el('h3', { text: t('insp.glanceNeeds') }),
+    const chief = chiefOf(w);
+    this.body.replaceChildren(godLine, el('div.row', { text: chief ? t('village.chief', { name: chief.name }) : t('village.noChief') }), el('h3', { text: t('insp.glanceNeeds') }),
       ...needs.map((n) => el('div.row', {}, el('span.lbl', { text: t(`need.${n.k}`) }), bar(n.v), el('span.val', { text: String(Math.round(n.v)) }))),
       el('div.row', {}, el('span.lbl', { text: t('top.housed', { n: gs.filter((g) => g.homeId !== null && s.buildings.some((b) => b.id === g.homeId && b.buildProgress >= 1)).length, m: gs.length }) })),
       el('h3', { text: t('insp.stockpile') }),

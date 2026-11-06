@@ -62,6 +62,8 @@ import { DigClay } from './actions/digClay';
 import { Prank } from './actions/prank';
 import { Apologize, Steal } from './actions/steal';
 import { Brawl } from './actions/brawl';
+import { Exile, Judge } from './actions/judge';
+import { EXILE_OK, policyWorkMul } from '../leadership';
 
 export const ACTIONS: Record<ActionId, UtilityAction> = {
   idle: Idle, wander: Wander, eat: Eat, harvest_fruit: HarvestFruit, pick_up: PickUp, drop: Drop,
@@ -80,6 +82,7 @@ export const ACTIONS: Record<ActionId, UtilityAction> = {
   tend_compost: TendCompost, spread_compost: SpreadCompost, pave_path: PavePath,
   haul_to_stockpile: HaulToStockpile, sulk: Sulk, binge: Binge, wander_off: WanderOff,
   hunt_trinket: HuntTrinket, decorate: Decorate, prank: Prank, steal: Steal, apologize: Apologize, brawl: Brawl,
+  judge: Judge, exile: Exile,
 };
 const CHOOSABLE = (Object.values(ACTIONS) as UtilityAction[]).filter((a) => !a.forced);
 
@@ -104,13 +107,15 @@ export function scoreActions(g: Goblin, w: World, noise = true, planned: ActionI
     if (!stageAtLeast(g.lifeStage, a.minStage) || !a.isAvailable(g, w)) continue;
     // P8.1: no work, company or play on a break (finding itself food still counts)
     if (g.moodBreak && !a.tags.includes('food') && a.tags.some((t) => t === 'work' || t === 'social' || t === 'fun')) continue;
+    if ((g.exiledUntil ?? 0) > w.s.tick && !EXILE_OK.has(a.id)) continue; // P8.4: out there, it fends for itself
     let base = a.score(g, w);
     // §7.4 focus: the planner's chosen step gets ×1.5 and a floor so low-scoring steps (explore) still happen
     const fo = planned === a.id ? CFG.planner.focus : 1;
     if (fo > 1) base = Math.max(base, CFG.planner.floor);
     if (base <= 0) continue;
     base *= demandMul(g, w.s, a.id); // §12.4: the village's shortfalls pull the industrious to the work that meets them
-    const pw = personalityWeight(g.personality, a.id) * stageMul(g, a) * traitMul(g, a.id); // personality, life stage, traits
+    const pw = personalityWeight(g.personality, a.id) * stageMul(g, a) * traitMul(g, a.id) // personality, life stage, traits
+      * (a.tags.includes('work') ? policyWorkMul(w) : 1); // P8.4: an industrious chief
     const mm = moodMul(g, a);
     const sk = skillFocus(g, a.id);
     const hy = g.activity.action === a.id && g.activity.status === 'running' ? CFG.goblin.hysteresis : 1;

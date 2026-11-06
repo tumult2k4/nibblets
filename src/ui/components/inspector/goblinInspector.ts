@@ -23,6 +23,7 @@ import { MAX_LEVEL, SKILLS, skillLevel } from '../../../sim/goblin/skills';
 import { diseaseDef } from '../../../sim/disease';
 import { quarantined } from '../../../sim/quarantine';
 import { favoriteFood, isInspired } from '../../../sim/goblin/mood';
+import { isExiled, onWatch } from '../../../sim/leadership';
 
 export const bar = (v: number, color = 'var(--moss)'): HTMLElement => el('div.bar', {}, el('i', { style: `width:${Math.max(0, Math.min(100, v))}%;background:${color}` }));
 const row = (label: string, v: number, shown: string, color?: string) =>
@@ -37,6 +38,7 @@ export function goblinHeader(g: Goblin, w: World, onFollow: () => void, onClose:
   return el('div.insp-head', {}, img,
     el('div', { style: 'flex:1' },
       el('h2', { text: g.name + (g.epithet ? ` ${g.epithet}` : '') }),
+      g.role === 'chief' ? el('div.sub.badge', { text: t('role.chief') }) : null,
       el('div.sub', { text: t('insp.age', { stage: t(`stage.${g.lifeStage}`), age: seasons }) }),
       el('div.sub', { text: t('insp.descriptor', { d: desc }) }),
       el('div', { style: 'margin-top:4px;display:flex;gap:4px' },
@@ -97,6 +99,8 @@ function moodTags(g: Goblin, w: World): string[] {
   const tags = [t('insp.favorite', { item: t(`item.${favoriteFood(g)}`) })];
   if (g.moodBreak) tags.push(t('insp.onBreak', { kind: t(`break.${g.moodBreak.kind}`) }));
   if (isInspired(g, w)) tags.push(t('insp.inspired'));
+  if (isExiled(g, w)) tags.push(t('insp.exiled')); // P8.4
+  if (onWatch(g, w) && g.activity.action === 'guard') tags.push(t('insp.onWatch'));
   return tags;
 }
 

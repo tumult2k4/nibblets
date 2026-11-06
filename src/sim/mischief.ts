@@ -157,11 +157,11 @@ export function prankLanded(w: World, g: Goblin, o: Goblin, kind: string, at: Ve
 
 // ---------------------------------------------------------------- owning up
 
-/** A wrong `g` owes an apology for: known to the victim, not made right, half a day to four days old. */
+/** A wrong `g` owes an apology for: known to the victim, not made right, half a day to four days old (or ordered by the chief). */
 export function owed(g: Goblin, w: World): Guilt | undefined {
-  if (g.personality.sociability < A.minSociability) return undefined;
-  const t = w.s.tick;
-  return (g.guilt ?? []).find((gu) => gu.known && !gu.settled && t - gu.tick >= A.afterDays * DAY && t - gu.tick < A.withinDays * DAY && !!w.goblin(gu.victimId));
+  const t = w.s.tick, kind = g.personality.sociability >= A.minSociability;
+  return (g.guilt ?? []).find((gu) => gu.known && !gu.settled && !!w.goblin(gu.victimId)
+    && (gu.ordered || (kind && t - gu.tick >= A.afterDays * DAY && t - gu.tick < A.withinDays * DAY)));
 }
 
 /** Sorry: the thing back if `g` still has it (or food for food, or its least treasure), +15 opinion, the anger eased. */

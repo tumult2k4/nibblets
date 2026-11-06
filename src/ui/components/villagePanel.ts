@@ -1,10 +1,12 @@
 import { el } from '../dom';
+import { CFG } from '../../sim/config';
 import { t } from '../i18n';
 import type { Ctx, Component } from '../ctx';
 import { villageKnowledge } from '../../sim/knowledge';
 import { STARTER_RECIPES } from '../../sim/recipes';
 import { knowName } from '../notify';
 import { foodStores } from '../../sim/spoilage';
+import { chiefOf } from '../../sim/leadership';
 import type { LifeStage } from '../../shared/types';
 
 const STAGES: LifeStage[] = ['hatchling', 'youngling', 'adult', 'elder'];
@@ -13,7 +15,7 @@ const cap = (x: string): string => x.charAt(0).toUpperCase() + x.slice(1);
 /**
  * Village panel (Y, §18.6 — P5.5 slice): name and god, goblins by life stage, and what the village knows beyond the
  * basics, each with how many know it (red when only one does: one death from being lost), plus what has been lost.
- * Chief, policies, beliefs and festivals join it in P8.
+ * The chief and its policies (P8.4); beliefs and festivals join it later in P8.
  */
 export class VillagePanel implements Component {
   private root = el('div.villagepanel.panel.hidden');
@@ -46,11 +48,16 @@ export class VillagePanel implements Component {
         el('span.sub', { text: only ? t('village.onlyOne', { name: only.name }) : t('village.knowers', { n: k.knowers }) }));
     };
     const recipes = know.filter((k) => !k.fact), facts = know.filter((k) => k.fact);
+    const chief = chiefOf(this.ctx.game.world), pol = s.village.policies ?? {};
+    const policies = [pol.work && 'work', pol.rota && 'rota', pol.festivals && 'festivals', pol.shrine && 'shrine', pol.quarantine && 'quarantine',
+      pol.law !== undefined && (pol.law < CFG.mischief.theft.law ? 'lax' : 'strict')].filter((x): x is string => !!x).map((k) => t(`policy.${k}`));
     this.body.replaceChildren(
       el('div.sub', { text: s.village.name + (s.god.godName ? ' · ' + t('village.god', { name: s.god.godName }) : '') }),
       el('h3', { text: `${t('village.pop')}: ${s.goblins.length}` }),
       el('div.sub', { text: counts.map(([st, n]) => `${t(`stage.${st}`)} ${n}`).join(' · ') }),
       el('div.sub', { text: t('village.food', { n: Math.round(food.food), d: food.days.toFixed(1) }) }),
+      el('h3', { text: chief ? t('village.chief', { name: chief.name }) : t('village.noChief') }), // P8.4
+      el('div.sub', { text: `${t('village.policies')}: ${policies.join(' · ') || t('village.noPolicies')}` }),
       el('h3', { text: t('village.knowledge') }),
       el('div.sub', { text: t('village.basics', { list: STARTER_RECIPES.map((id) => t(`recipe.${id}`)).join(', ') }) }),
       ...(recipes.length ? recipes.map(row) : [el('div.sub', { text: t('village.nothing') })]),

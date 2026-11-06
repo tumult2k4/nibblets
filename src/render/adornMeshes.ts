@@ -1,6 +1,7 @@
 /**
  * P7.5 meshes: the fur cloak, bone necklace, war paint and ash as items, and as worn on a goblin (the cloak over the
- * shoulders and back, the necklace at the neck, the paint as stripes across the cheeks).
+ * shoulders and back, the necklace at the neck, the paint as stripes across the cheeks); the chief's feathered
+ * headdress (P8.4).
  */
 import * as THREE from 'three';
 import { merge, paint, wobble } from './lowpoly';
@@ -38,8 +39,8 @@ export function adornItemGeo(t: ItemType): THREE.BufferGeometry | null {
 
 const WEAR = new Map<string, THREE.BufferGeometry>();
 /** Worn: the cloak and necklace in body-group space, the paint in head space (`hr` = head radius). */
-export function adornWearGeo(t: ItemType | 'war_paint_face', hr: number): THREE.BufferGeometry | null {
-  const key = t === 'war_paint_face' ? `${t}:${hr.toFixed(2)}` : t;
+export function adornWearGeo(t: ItemType | 'war_paint_face' | 'chief_headdress', hr: number): THREE.BufferGeometry | null {
+  const key = t === 'war_paint_face' || t === 'chief_headdress' ? `${t}:${hr.toFixed(2)}` : t;
   const hit = WEAR.get(key);
   if (hit) return hit;
   let g: THREE.BufferGeometry | null = null;
@@ -56,6 +57,16 @@ export function adornWearGeo(t: ItemType | 'war_paint_face', hr: number): THREE.
         for (const dy of [0, -0.035])
           parts.push(paint(new THREE.BoxGeometry(hr * 0.42, 0.014, 0.01).rotateZ(s * 0.25).rotateY(s * 0.55).translate(s * hr * 0.5, -hr * 0.08 + dy, z * 0.86), RED));
       parts.push(paint(new THREE.BoxGeometry(0.018, hr * 0.35, 0.01).translate(0, hr * 0.45, z * 0.97), WHITE));
+      g = merge(parts);
+      break;
+    }
+    case 'chief_headdress': { // P8.4: a woven band and a fan of feathers standing up round the back of the head
+      const r = hr * 0.9, y = hr * 0.42, parts = [paint(new THREE.TorusGeometry(r, hr * 0.09, 4, 12).rotateX(Math.PI / 2).translate(0, y, 0), CORD)];
+      for (let i = 0; i < 7; i++) {
+        const a = -Math.PI / 2 + ((i - 3) / 3) * 1.25; // centred on the back (−z)
+        parts.push(paint(new THREE.OctahedronGeometry(hr * 0.22).scale(0.45, 1.9, 0.16).rotateY(-a + Math.PI / 2).rotateZ(Math.cos(a) * -0.35)
+          .rotateX(Math.sin(a) * 0.35).translate(Math.cos(a) * r, y + hr * 0.38, Math.sin(a) * r), [WHITE, RED, '#d9a441'][i % 3]!));
+      }
       g = merge(parts);
       break;
     }

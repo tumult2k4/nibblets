@@ -8,11 +8,13 @@ import type { UtilityAction } from '../action';
 import type { Goblin } from '../../state';
 import type { World } from '../../world';
 import { hasBedroll } from '../../clothing';
+import { onWatch } from '../../leadership';
 
 /** How much a goblin wants to sleep now: night/dusk pull plus tiredness (hatchlings nap more). */
 export function sleepScore(g: Goblin, w: World): number {
-  const night = isNightNow(w) ? 0.62 : 0;
-  const dusk = w.clock.phase === 'dusk' ? 0.25 : 0;
+  const watch = onWatch(g, w) && g.activity.action === 'guard'; // P8.4: tonight's watch stays up at its post (until worn out)
+  const night = isNightNow(w) && !watch ? 0.62 : 0;
+  const dusk = w.clock.phase === 'dusk' && !watch ? 0.25 : 0;
   const baby = g.lifeStage === 'hatchling' ? 0.2 : 0;
   return Math.min(1.1, Math.max(night, dusk) + 0.9 * needUrgency(g.needs.energy) + baby);
 }

@@ -94,6 +94,12 @@ export function noteFor(e: SimEvent, w: World, names: Map<ID, string>): Note | n
       return { ...base, id: e.aId, text: t(e.brokenUpBy !== undefined ? 'ev.brawl_broken' : 'ev.brawl', { name: name(e.aId), other: name(e.bId), third: name(e.brokenUpBy) }), tier: 'notable', icon: 'bolt' };
     case 'apology':
       return { ...base, id: e.goblinId, text: t(e.returned ? 'ev.apology_returned' : 'ev.apology', { name: name(e.goblinId), other: name(e.toId) }), tier: 'info', icon: 'heart' };
+    case 'chief_chosen':
+      return { ...base, id: e.goblinId, text: t(e.previousId === null ? 'ev.chief_first' : 'ev.chief_chosen', { name: name(e.goblinId) }), tier: 'notable', icon: 'star' };
+    case 'justice':
+      return { ...base, id: e.goblinId, text: t(`ev.justice.${e.sentence}`, { chief: name(e.chiefId), name: name(e.goblinId), other: name(e.victimId) }), tier: 'notable', icon: 'hand' };
+    case 'exile_ended':
+      return { ...base, id: e.goblinId, text: t('ev.exile_ended', { name: name(e.goblinId) }), tier: 'info', icon: 'goblin' };
     case 'glints_washed_up':
       return { ...base, text: t('ev.glints'), tier: 'info', icon: 'sparkle' };
     case 'trinket_found':
