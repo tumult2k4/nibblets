@@ -181,6 +181,8 @@ export function completeBuilding(w: World, b: Building, finisher: ID | null): vo
   b.storage = []; // construction materials are used up; the storage now belongs to the building
   if (b.type === 'campfire' || b.type === 'hearth') b.fuel = CFG.fire.startFuel; // lit with its kindling
   if (b.type === 'fence' || b.type === 'gate') w.s.terrainVersion += 1; // enemy (and, for a gate, goblin) paths change
+  if (b.type === 'bridge') setBridge(w, b, true);
+  if (b.type === 'garden_plot') levelFootprint(w, b); // P7.4: the bed is dug level
   for (const k of Object.keys(b.data ?? {})) {
     if (!k.startsWith('w')) continue;
     const g = w.goblin(Number(k.slice(1)));
@@ -223,9 +225,31 @@ export function workSpot(s: WorldState, b: Building, g: Goblin): Vec2 {
     const a = g.id * 2.39996 + (k * Math.PI) / 4;
     const p = { x: q4(b.pos.x + Math.cos(a) * r), y: q4(b.pos.y + Math.sin(a) * r) };
     const t = tileAt(s, p.x, p.y);
-    if (t?.walkable && t.occupiedBy === null) return p;
+    if (t?.walkable && (t.occupiedBy === null || t.bridge)) return p; // (a bridge span is built from the last one)
   }
   return { x: b.pos.x, y: b.pos.y + r };
+}
+
+/** Level the ground under a building and the land just round it to the footprint's mean height (never below the
+ * water line), so that its edges meet the bed. */
+function levelFootprint(w: World, b: Building): void {
+  const tiles = footprintTiles(b.pos, b.footprint.w).map((p) => tileAt(w.s, p.x, p.y)).filter((t) => !!t);
+  const h = q4(Math.max(CFG.world.waterLevel + 0.01, tiles.reduce((a, t) => a + t.height, 0) / tiles.length));
+  for (const p of footprintTiles(b.pos, b.footprint.w + 2)) {
+    const t = tileAt(w.s, p.x, p.y);
+    if (t && t.biome !== 'water' && t.biome !== 'rock') t.height = h;
+  }
+  w.s.terrainVersion += 1;
+}
+
+/** P7.4: a finished span makes its water tile walkable; a lost one takes that away (a goblin on it wades out). */
+function setBridge(w: World, b: Building, on: boolean): void {
+  const t = tileAt(w.s, b.pos.x, b.pos.y);
+  if (!t) return;
+  if (on) t.bridge = true;
+  else delete t.bridge;
+  t.walkable = on || t.biome !== 'water';
+  w.s.terrainVersion += 1;
 }
 
 /** Take a building off the map and free its footprint (no news: a fence post making way for a gate). */
@@ -233,6 +257,7 @@ export function removeBuilding(w: World, b: Building): boolean {
   const i = w.s.buildings.indexOf(b);
   if (i < 0) return false;
   w.s.buildings.splice(i, 1);
+  if (b.type === 'bridge') setBridge(w, b, false);
   markFootprint(w, b, null);
   return true;
 }

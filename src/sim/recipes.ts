@@ -47,6 +47,11 @@ export const RECIPES: Record<RecipeId, RecipeDef> = {
   well: { inputs: { stone: 8, rope: 2, bucket: 1 }, station: 'site', building: 'well', known: false, phase: 7, skill: 'building' },
   nursery: { inputs: { wood: 6, fiber: 4 }, station: 'site', building: 'nursery', known: false, phase: 7, skill: 'building' },
   pot: { inputs: { clay: 2, wood: 1 }, station: 'kiln', output: 'pot', known: false, phase: 7, ticks: 300, after: 'kiln', near: ['apple'] },
+  // P7.4: a fenced garden bed, a compost heap (once there is a garden), stone paths over the trails, bridge spans
+  garden_plot: { inputs: { wood: 2 }, station: 'site', building: 'garden_plot', known: false, phase: 7, skill: 'farming', near: ['apple_core'] },
+  compost_heap: { inputs: { wood: 3 }, station: 'site', building: 'compost_heap', known: false, phase: 7, skill: 'farming', near: ['apple_core'], after: 'garden_plot' },
+  stone_path: { inputs: { stone: 1 }, station: 'site', known: false, phase: 7, skill: 'building' },
+  bridge: { inputs: { wood: 4, rope: 1 }, station: 'site', building: 'bridge', known: false, phase: 7, skill: 'building' },
   // P7.1: a sling for hunting hoppers
   sling: { inputs: { fiber: 2, feather: 1 }, station: 'none', output: 'sling', known: false, phase: 7, ticks: 120 },
   // P5.6 fiber goods (§11.1): everyone grows up twisting rope and weaving baskets; the leaf cape is an idea to be had

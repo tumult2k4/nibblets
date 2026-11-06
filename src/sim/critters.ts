@@ -8,6 +8,7 @@ import { CFG } from './config';
 import { clamp, dist, q4 } from '../shared/math';
 import { tileAt } from './grid';
 import { enemyCanStand } from './fences';
+import { inGarden } from './garden';
 import { isNight } from './time';
 import { removePlant } from './plants';
 import { spawnGroundItem } from './groundItems';
@@ -21,7 +22,7 @@ const W = CFG.wildlife;
 export function canBe(w: World, kind: CritterKind, x: number, y: number): boolean {
   const s = w.s;
   if (x < 0.5 || y < 0.5 || x > s.size.w - 0.5 || y > s.size.h - 0.5) return false;
-  if (kind === 'hopper') return enemyCanStand(w, x, y) && tileAt(s, x, y)?.biome !== 'water';
+  if (kind === 'hopper') return enemyCanStand(w, x, y) && tileAt(s, x, y)?.biome !== 'water' && !inGarden(s, { x, y }); // P7.4: fenced beds
   if (kind === 'fish') return shallows(s, x, y);
   return true;
 }

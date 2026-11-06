@@ -22,11 +22,12 @@ export function gateTiles(s: WorldState): Set<number> {
 export function tileCost(s: WorldState, i: number): number {
   const t = s.tiles[i]!;
   let c = 1;
-  if (t.wear > 0.5) c *= 0.8;
+  if (t.paved) c *= CFG.garden.path.cost; // P7.4 stone paths
+  else if (t.wear > 0.5) c *= 0.8;
   if (t.biome === 'marsh') c *= 1.4;
   if (t.biome === 'forest') c *= 1.1;
   // walk around buildings unless heading inside; climb a fence only where there is no gate
-  if (t.occupiedBy !== null && !gateTiles(s).has(i)) c *= CFG.buildings.occupiedCost;
+  if (t.occupiedBy !== null && !t.bridge && !gateTiles(s).has(i)) c *= CFG.buildings.occupiedCost;
   return c;
 }
 

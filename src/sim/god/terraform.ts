@@ -24,7 +24,8 @@ export function rebiome(t: Tile): void {
   else if (t.height > W.rockLevel && t.biome !== 'snow') b = 'rock';
   else if (t.biome === 'rock' && t.height < W.rockLevel - 0.05) b = 'meadow';
   t.biome = b;
-  t.walkable = b !== 'water';
+  t.walkable = b !== 'water' || !!t.bridge;
+  if (b === 'water') delete t.paved;
 }
 
 /** Tiles under a round brush with linear falloff (1 at the center, 0 at the rim). */
@@ -163,7 +164,7 @@ export function updateWear(w: World): void {
     }
   if (s.tick % CFG.time.dayTicks === 0)
     for (const t of s.tiles) {
-      if (t.wear <= 0) continue;
+      if (t.wear <= 0 || t.paved) continue; // P7.4: a stone path does not wear away
       const before = t.wear > P.roadAt;
       t.wear = q4(Math.max(0, t.wear - P.decayPerDay));
       if (before !== t.wear > P.roadAt) s.terrainVersion += 1;

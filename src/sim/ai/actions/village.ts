@@ -27,11 +27,13 @@ import type { BuildingType, ItemType, Vec2 } from '../../../shared/types';
 import type { Building, Goblin } from '../../state';
 import type { World } from '../../world';
 import type { UtilityAction } from '../action';
+import { gardenSite, gardensWanted } from '../../garden';
+import { nextSpan } from '../../roads';
 
 const F = CFG.fire;
-const isDaytime = (c: Parameters<typeof daylight>[0]): boolean => daylight(c) > 0.5;
+export const isDaytime = (c: Parameters<typeof daylight>[0]): boolean => daylight(c) > 0.5;
 export const busy = (g: Goblin): number => Math.max(needUrgency(g.needs.hunger), needUrgency(g.needs.thirst), needUrgency(g.needs.energy));
-const othersDoing = (g: Goblin, w: World, id: string, targetId?: number): boolean =>
+export const othersDoing = (g: Goblin, w: World, id: string, targetId?: number): boolean =>
   w.s.goblins.some((o) => o.id !== g.id && o.activity.action === id && o.activity.status === 'running' && (targetId === undefined || o.activity.targetId === targetId));
 
 const PR = CFG.preserve;
@@ -63,6 +65,11 @@ export function villageNeeds(w: World): BuildingType[] {
   if (wantsWell(w.s) && hasSite(w, 'well')) out.push('well');
   if (wantsNursery(w.s) && hasSite(w, 'nursery')) out.push('nursery');
   if (wantsLonghouse(w.s) && hasSite(w, 'longhouse')) out.push('longhouse');
+  // P7.4: garden plots once the store holds a few days' food, a compost heap once there is one, the next bridge span
+  const of = (t: BuildingType) => w.s.buildings.filter((b) => b.type === t), plots = of('garden_plot'), spans = of('bridge');
+  if (plots.length < gardensWanted(w.s) && plots.every(isComplete) && foodStores(w.s).days >= CFG.garden.plot.planDays && hasSite(w, 'garden_plot')) out.push('garden_plot');
+  if (plots.length && !of('compost_heap').length && hasSite(w, 'compost_heap')) out.push('compost_heap');
+  if (spans.length < CFG.garden.bridge.maxSpans && spans.every(isComplete) && nextSpan(w.s)) out.push('bridge');
   return out;
 }
 
@@ -105,6 +112,8 @@ function siteFor(w: World, type: BuildingType): Vec2 | null {
   if (type === 'longhouse') return findSite(w, type, w.s.village.center);
   if (type === 'gate') return gateSite(w);
   if (type === 'watchtower') return towerSite(w);
+  if (type === 'garden_plot') return gardenSite(w);
+  if (type === 'bridge') { const sp = nextSpan(w.s); return sp && { x: sp.tile.x + 0.5, y: sp.tile.y + 0.5 }; }
   return findCommunalSite(w, type, (STATIONS as readonly string[]).includes(type) ? STATION_RADIUS : undefined);
 }
 const onRing = (t: BuildingType | null): boolean => t === 'fence' || t === 'gate';
@@ -131,7 +140,9 @@ export const PlanBuilding: UtilityAction = {
     const site = type && siteFor(w, type);
     if (!site) return false;
     g.activity.target = site;
-    return planPath(w, g, onRing(type) ? site : { x: site.x + 0.9, y: site.y + 0.3 });
+    // (a bridge is marked out from the bank)
+    const sp = type === 'bridge' ? nextSpan(w.s) : null;
+    return planPath(w, g, sp ? { x: sp.from.x + 0.5, y: sp.from.y + 0.5 } : onRing(type) ? site : { x: site.x + 0.9, y: site.y + 0.3 });
   },
   step(g, w) {
     if (moveAlong(w, g) !== 'arrived') return 'running';
@@ -161,7 +172,10 @@ export const PlanBuilding: UtilityAction = {
     const site = siteFor(w, type);
     if (!site) return 'failed';
     if (type === 'gate') placeGate(w, site);
-    else placeBlueprint(w, type, site, null);
+    else {
+      const axis = type === 'bridge' ? (nextSpan(w.s)?.axis ?? 0) : 0; // (before the span is marked out)
+      placeBlueprint(w, type, site, null).rotation = axis;
+    }
     return 'done';
   },
 };

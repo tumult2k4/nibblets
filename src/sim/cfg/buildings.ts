@@ -23,6 +23,10 @@ export const BUILDINGS = {
     longhouse: { cost: { wood: 20, stone: 8, rope: 4 } as Record<string, number>, footprint: 3, hp: 260, capacity: 8, storage: 10, labor: 1.2 },
     well: { cost: { stone: 8, rope: 2, bucket: 1 } as Record<string, number>, footprint: 1, hp: 160, capacity: 0, storage: 0, labor: 1.5 },
     nursery: { cost: { wood: 6, fiber: 4 } as Record<string, number>, footprint: 2, hp: 70, capacity: 0, storage: 0, labor: 2 },
+    // P7.4 (§11.1): a fenced 3×3 bed (the labor is the digging), a compost heap, one plank span of a bridge
+    garden_plot: { cost: { wood: 2 } as Record<string, number>, footprint: 3, hp: 60, capacity: 0, storage: 0, labor: 1.5 },
+    compost_heap: { cost: { wood: 3 } as Record<string, number>, footprint: 1, hp: 50, capacity: 0, storage: 12, labor: 3 },
+    bridge: { cost: { wood: 4, rope: 1 } as Record<string, number>, footprint: 1, hp: 120, capacity: 0, storage: 0, labor: 2 },
   } as Record<string, { cost: Record<string, number>; footprint: number; hp: number; capacity: number; storage: number; labor?: number }>,
   buildRate: 0.002, skillBonus: 0.15, friendBonus: 1.3, workChunk: 300,
   siteRadius: 14, maxSlope: 0.06, waterPref: [4, 10] as [number, number], hutSpacing: [3.6, 7] as [number, number],

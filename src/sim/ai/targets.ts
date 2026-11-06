@@ -7,6 +7,7 @@ import { CFG } from '../config';
 import { isGrowing, siteOk } from '../plants';
 import { wellSpot, wells } from '../settlement';
 import type { ID, Vec2 } from '../../shared/types';
+import { freeGardenBed } from '../garden';
 
 const FAR = 48;
 
@@ -77,6 +78,9 @@ export function nearestShores(g: Goblin, w: World, k: number): Vec2[] {
 export function findPlantingSite(g: Goblin, w: World): Vec2 | null {
   const C = CFG.plants;
   const home = w.s.village.center;
+  // P7.4: a free bed in a garden plot first
+  const bed = freeGardenBed(w, g.pos, (p) => claimedSite(w, p, g.id));
+  if (bed) return bed;
   let best: Vec2 | null = null;
   let bestD = Infinity;
   for (let i = 0; i < 14; i++) {

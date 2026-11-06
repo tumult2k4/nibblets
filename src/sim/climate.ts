@@ -120,7 +120,7 @@ function startDrought(w: World): void {
 
 function endDrought(w: World): void {
   const s = w.s, d = s.climate.drought!;
-  for (const i of d.tiles) { const t = s.tiles[i]!; t.biome = 'water'; t.walkable = false; }
+  for (const i of d.tiles) { const t = s.tiles[i]!; t.biome = 'water'; t.walkable = !!t.bridge; }
   s.climate.drought = null;
   s.terrainVersion += 1;
   // anything that wandered onto the old shallows wades back out

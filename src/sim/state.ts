@@ -16,6 +16,10 @@ export interface Tile {
   snow: number;
   /** P6.2: ash left by a fire, 1 fresh .. fading to 0 (absent when none) */
   ash?: number;
+  /** P7.4: a stone path (§10.4): cheaper to walk, never wears away */
+  paved?: boolean;
+  /** P7.4: a finished bridge span over this water tile (§10.5): walkable */
+  bridge?: boolean;
 }
 
 /** Floods and droughts (§14.4, P6.3): a flood keeps each drowned tile's old biome to give it back. */
@@ -77,7 +81,7 @@ export type ActionId =
   | 'mine' | 'craft' | 'equip' | 'plan_building' | 'tend_fire' | 'flee' | 'attack' | 'defend_village' | 'guard' | 'repair_building'
   | 'follow_wisp' | 'scatter' | 'chat' | 'comfort' | 'gift' | 'court' | 'lay_egg' | 'incubate_egg' | 'feed_child' | 'follow_parent'
   | 'play' | 'learn' | 'teach' | 'cut_grass' | 'pick_flowers' | 'process' | 'rest_sick' | 'tend_sick' | 'extinguish_fire' | 'escape_fire' | 'cull_blight'
-  | 'bury_dead' | 'mourn' | 'hunt' | 'fish' | 'dig_clay' | 'cook_stew';
+  | 'bury_dead' | 'mourn' | 'hunt' | 'fish' | 'dig_clay' | 'cook_stew' | 'tend_compost' | 'spread_compost' | 'pave_path';
 
 export interface ActivityState {
   action: ActionId;

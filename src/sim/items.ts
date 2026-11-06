@@ -55,6 +55,8 @@ export const ITEM_DEFS: Partial<Record<ItemType, ItemDef>> = {
   flint: { stack: 10, weight: 1, value: 5, tray: 'materials' },
   fiber: { stack: 20, weight: 0.3, value: 2, burnable: true, tray: 'materials' },
   clay: { stack: 10, weight: 2, value: 2, tray: 'materials' },
+  // P7.4: what a compost heap makes of cores, leaves and rot; spread on the soil (§8.3)
+  compost: { stack: 10, weight: 1, value: 2, tray: 'life' },
   rope: { stack: 10, weight: 0.5, value: 4, burnable: true, tray: 'materials' },
   // P7.1 wildlife drops: bones and pelts from hoppers, feathers from chirps (a flushed chirp, a moult, a sling)
   bone: { stack: 10, weight: 0.3, value: 2, tray: 'materials' },

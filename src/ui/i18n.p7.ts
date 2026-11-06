@@ -13,6 +13,12 @@ export const EN7 = {
   'bld.hearth': 'Hearth', 'bld.longhouse': 'Longhouse', 'bld.well': 'Well', 'bld.nursery': 'Nursery', 'act.cook_stew': 'Cooking stew',
   'ev.hearth_built': '{name}\'s home has a hearth now.', 'ev.longhouse_built': 'The village raised a longhouse. Eight can sleep under its roof.',
   'ev.first_stew': '{name} cooked the village\'s first stew.',
+  'item.compost': 'Compost', 'recipe.garden_plot': 'Garden plot', 'recipe.compost_heap': 'Compost heap', 'recipe.stone_path': 'Stone path', 'recipe.bridge': 'Bridge',
+  'bld.garden_plot': 'Garden plot', 'bld.compost_heap': 'Compost heap', 'bld.bridge': 'Bridge',
+  'act.tend_compost': 'Taking waste to the compost', 'act.spread_compost': 'Spreading compost', 'act.pave_path': 'Paving a path',
+  'ev.garden_built': 'The village fenced off a garden plot. Whatever grows in it is safe from hoppers.',
+  'ev.first_path': '{name} laid the first stones of a path along a well-worn trail.',
+  'ev.bridge_built': 'A bridge now spans the water.',
 };
 
 export const DE7: Record<keyof typeof EN7, string> = {
@@ -29,4 +35,10 @@ export const DE7: Record<keyof typeof EN7, string> = {
   'bld.hearth': 'Herd', 'bld.longhouse': 'Langhaus', 'bld.well': 'Brunnen', 'bld.nursery': 'Kinderstube', 'act.cook_stew': 'Kocht Eintopf',
   'ev.hearth_built': '{name}s Heim hat jetzt einen Herd.', 'ev.longhouse_built': 'Das Dorf hat ein Langhaus errichtet. Acht finden darin Platz zum Schlafen.',
   'ev.first_stew': '{name} hat den ersten Eintopf des Dorfes gekocht.',
+  'item.compost': 'Kompost', 'recipe.garden_plot': 'Gartenbeet', 'recipe.compost_heap': 'Komposthaufen', 'recipe.stone_path': 'Steinweg', 'recipe.bridge': 'Brücke',
+  'bld.garden_plot': 'Gartenbeet', 'bld.compost_heap': 'Komposthaufen', 'bld.bridge': 'Brücke',
+  'act.tend_compost': 'Bringt Abfall zum Kompost', 'act.spread_compost': 'Verteilt Kompost', 'act.pave_path': 'Pflastert einen Weg',
+  'ev.garden_built': 'Das Dorf hat ein Gartenbeet eingezäunt. Was darin wächst, ist vor Hopplern sicher.',
+  'ev.first_path': '{name} hat die ersten Steine eines Weges auf einen ausgetretenen Pfad gelegt.',
+  'ev.bridge_built': 'Eine Brücke führt jetzt über das Wasser.',
 };

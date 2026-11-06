@@ -7,6 +7,7 @@ import { tileAt } from './grid';
 import { makePlant } from './worldgen';
 import { spawnGroundItem } from './groundItems';
 import { rainingAt } from './weather';
+import { gardenMul, inGarden } from './garden';
 
 const P = CFG.plants;
 const GROW: PlantStage[] = ['seed', 'sprout', 'sapling', 'young'];
@@ -31,7 +32,7 @@ const greenThumb = (w: World, by: number | null): number =>
 
 export function siteOk(w: World, pos: Vec2, minGap = 1.2, ignoreId?: ID): boolean {
   const t = tileAt(w.s, pos.x, pos.y);
-  if (!t || !t.walkable || t.biome === 'water' || t.biome === 'rock' || t.biome === 'sand' || t.occupiedBy !== null) return false;
+  if (!t || !t.walkable || t.biome === 'water' || t.biome === 'rock' || t.biome === 'sand' || (t.occupiedBy !== null && !inGarden(w.s, pos))) return false;
   for (const p of w.plantHash.query(pos, minGap + 0.5))
     if (p.id !== ignoreId && Math.hypot(p.pos.x - pos.x, p.pos.y - pos.y) < minGap && p.kind !== 'flower') return false;
   return true;
@@ -109,7 +110,7 @@ export function updatePlants(w: World): void {
       if (!isGrowing(p)) continue;
     }
     p.age = q4(p.age + dtDays);
-    const rate = hydrationCurve(p.hydration) * fertilityMul(t.fertility) * season * greenThumb(w, p.plantedBy);
+    const rate = hydrationCurve(p.hydration) * fertilityMul(t.fertility) * season * greenThumb(w, p.plantedBy) * gardenMul(w.s, p.pos);
     if (isGrowing(p)) {
       const days = P.stageDays[p.stage as keyof typeof P.stageDays] * (p.kind === 'tree' ? P.treeStageMul : 1);
       p.growth = q4(p.growth + (dtDays / days) * rate);

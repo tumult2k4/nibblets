@@ -7,6 +7,7 @@ import { fenceSites } from '../sim/fences';
 import { FACTS } from '../sim/knowledge';
 import { towerOf } from '../sim/watch';
 import { mateOf } from '../sim/goblin/family';
+import { tileAt } from '../sim/grid';
 
 const isFact = (id: string): boolean => (FACTS as readonly string[]).includes(id);
 /** A recipe's or a fact's display name. */
@@ -19,6 +20,21 @@ const fenceJustClosed = (w: World): boolean =>
 export interface Note { text: string; tier: 'info' | 'notable' | 'critical'; at?: Vec2; id?: ID; tick: number; icon: string }
 
 /** Turn sim events into player-facing notifications (§18.9). Returns null for routine events. */
+/** P7.4: this span finishes a crossing (land, or a finished span, at both ends along its axis). */
+function bridgeAcross(w: World, id: number): boolean {
+  const b = w.s.buildings.find((x) => x.id === id);
+  if (!b) return false;
+  const ax = b.rotation === 1 ? { x: 0, y: 1 } : { x: 1, y: 0 };
+  for (const s of [-1, 1]) {
+    for (let k = 1; ; k++) {
+      const t = tileAt(w.s, b.pos.x + ax.x * s * k, b.pos.y + ax.y * s * k);
+      if (!t || (t.biome === 'water' && !t.bridge)) return false;
+      if (t.biome !== 'water') break;
+    }
+  }
+  return true;
+}
+
 export function noteFor(e: SimEvent, w: World, names: Map<ID, string>): Note | null {
   const name = (id?: ID) => (id !== undefined ? names.get(id) ?? w.goblin(id)?.name ?? '?' : '?');
   const foe = (id: ID) => t(`enemy.${w.s.enemies.find((x) => x.id === id)?.kind ?? 'gnasher'}`);
@@ -121,8 +137,10 @@ export function noteFor(e: SimEvent, w: World, names: Map<ID, string>): Note | n
         return owner != null ? { ...base, id: owner, text: t('ev.hearth_built', { name: name(owner) }), tier: 'info', icon: 'heat' } : null;
       }
       if (e.kind === 'longhouse') return { ...base, text: t('ev.longhouse_built'), tier: 'notable', icon: 'hill' };
-      if (e.kind === 'grinding_stone' || e.kind === 'drying_rack' || e.kind === 'storage_pit' || e.kind === 'workbench' || e.kind === 'watchtower' || e.kind === 'kiln' || e.kind === 'well' || e.kind === 'nursery')
-        return { ...base, text: t('ev.preserve_built', { building: t(`bld.${e.kind}`) }), tier: 'notable', icon: e.kind === 'workbench' ? 'gear' : e.kind === 'watchtower' ? 'eye' : 'bowl' };
+      if (e.kind === 'garden_plot') return { ...base, text: t('ev.garden_built'), tier: 'notable', icon: 'leaf' };
+      if (e.kind === 'bridge') return bridgeAcross(w, e.buildingId) ? { ...base, text: t('ev.bridge_built'), tier: 'notable', icon: 'hill' } : null;
+      if (e.kind === 'grinding_stone' || e.kind === 'drying_rack' || e.kind === 'storage_pit' || e.kind === 'workbench' || e.kind === 'watchtower' || e.kind === 'kiln' || e.kind === 'well' || e.kind === 'nursery' || e.kind === 'compost_heap')
+        return { ...base, text: t('ev.preserve_built', { building: t(`bld.${e.kind}`) }), tier: 'notable', icon: e.kind === 'workbench' ? 'gear' : e.kind === 'watchtower' ? 'eye' : e.kind === 'compost_heap' ? 'leaf' : 'bowl' };
       return e.kind === 'hut' ? { ...base, text: t('ev.hut_built'), tier: 'notable', icon: 'hill' } : null;
     case 'building_destroyed':
       if (e.cause === 'bramblebeast')
@@ -197,6 +215,8 @@ export function noteFor(e: SimEvent, w: World, names: Map<ID, string>): Note | n
       return e.killed ? { ...base, id: e.goblinId, text: t('ev.hunted', { name: name(e.goblinId) }), tier: 'info', icon: 'fang' } : null;
     case 'food_cooked':
       return e.first ? { ...base, id: e.goblinId, text: t('ev.first_stew', { name: name(e.goblinId) }), tier: 'notable', icon: 'bowl' } : null;
+    case 'path_paved':
+      return e.first ? { ...base, id: e.goblinId, text: t('ev.first_path', { name: name(e.goblinId) }), tier: 'notable', icon: 'hill' } : null;
     case 'fish_caught':
       return e.first ? { ...base, id: e.goblinId, text: t('ev.first_fish', { name: name(e.goblinId) }), tier: 'notable', icon: 'fish' } : null;
     case 'blight_culled':

@@ -14,7 +14,7 @@ import { lineageEntry } from './goblin/lineage';
 const BIOMES: Biome[] = ['meadow', 'forest', 'sand', 'rock', 'water', 'marsh', 'snow'];
 
 /** Tiles are stored column-wise to keep saves small enough for localStorage. */
-interface PackedTiles { n: number; height: number[]; biome: number[]; fertility: number[]; moisture: number[]; wear: number[]; snow: number[]; occ: (number | null)[]; ash?: number[] }
+interface PackedTiles { n: number; height: number[]; biome: number[]; fertility: number[]; moisture: number[]; wear: number[]; snow: number[]; occ: (number | null)[]; ash?: number[]; road?: number[] }
 
 function packTiles(tiles: Tile[]): PackedTiles {
   return {
@@ -23,6 +23,7 @@ function packTiles(tiles: Tile[]): PackedTiles {
     fertility: tiles.map((t) => t.fertility), moisture: tiles.map((t) => t.moisture),
     wear: tiles.map((t) => t.wear), snow: tiles.map((t) => t.snow), occ: tiles.map((t) => t.occupiedBy),
     ash: tiles.map((t) => t.ash ?? 0),
+    road: tiles.map((t) => (t.bridge ? 2 : t.paved ? 1 : 0)),
   };
 }
 function unpackTiles(p: PackedTiles): Tile[] {
@@ -31,9 +32,11 @@ function unpackTiles(p: PackedTiles): Tile[] {
     const biome = BIOMES[p.biome[i]!]!;
     const t: Tile = {
       height: p.height[i]!, biome, fertility: p.fertility[i]!, moisture: p.moisture[i]!,
-      walkable: biome !== 'water', wear: p.wear[i]!, occupiedBy: p.occ[i] ?? null, snow: p.snow[i]!,
+      walkable: biome !== 'water' || p.road?.[i] === 2, wear: p.wear[i]!, occupiedBy: p.occ[i] ?? null, snow: p.snow[i]!,
     };
     if (p.ash?.[i]) t.ash = p.ash[i]!;
+    if (p.road?.[i] === 1) t.paved = true;
+    if (p.road?.[i] === 2) t.bridge = true;
     out.push(t);
   }
   return out;

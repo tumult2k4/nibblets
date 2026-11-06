@@ -18,6 +18,7 @@ import { addMood } from './goblin/mood';
 import { countItem } from './inventory';
 import { stockCount } from './stockpile';
 import { mushroomItem } from './ecology';
+import { nextSpan, wornTiles } from './roads';
 
 const K = CFG.knowledge;
 const PRESERVE_IDS: ReadonlySet<string> = new Set(['grinding_stone', 'drying_rack', 'storage_pit']);
@@ -125,7 +126,11 @@ export function discoveryChance(g: Goblin, w: World, id: RecipeId): number {
   const prey = id === 'sling' && w.s.wildlife.some((c) => c.kind === 'hopper' && dist(c.pos, g.pos) <= HU.ideaRange) ? HU.ideaNear
     // and a fish leaping by the shore, of a rod (P7.2)
     : id === 'fishing_rod' && w.s.wildlife.some((c) => c.kind === 'fish' && dist(c.pos, g.pos) <= FI.ideaRange) ? FI.ideaNear : 1;
-  return K.discoveryBase * (0.5 + g.personality.wanderlust) * (1 + K.skillMul * skill) * inspiration(g) * near * rot * ill * prey * K.memoryNear ** recalled;
+  // worn trails put a goblin in mind of paving them, water worth crossing of a bridge (P7.4)
+  const BR = CFG.garden.bridge;
+  const road = id === 'stone_path' ? (wornTiles(w.s).length >= BR.trails ? BR.ideaWith : BR.ideaWithout)
+    : id === 'bridge' ? (nextSpan(w.s) ? BR.ideaWith : BR.ideaWithout) : 1;
+  return K.discoveryBase * (0.5 + g.personality.wanderlust) * (1 + K.skillMul * skill) * inspiration(g) * near * rot * ill * prey * road * K.memoryNear ** recalled;
 }
 
 /** §6 step 12b: once an in-game hour per goblin (staggered), a roll to discover something new. */

@@ -12,6 +12,7 @@ import { isComplete } from './buildings';
 import type { ItemStack, ItemType } from '../shared/types';
 import type { Building, WorldState } from './state';
 import type { World } from './world';
+import { rotToHeap } from './garden';
 
 const R = CFG.preserve;
 
@@ -80,8 +81,14 @@ export function updateSpoilage(w: World): void {
   const days = R.spoilEvery / CFG.time.dayTicks;
   const lost: Partial<Record<ItemType, number>> = (s.village.spoiled ??= {});
   const mul = stockRotMul(s);
-  for (const st of s.village.stockpile) tally(lost, st.type, rotStack(st, days, mul.get(st) ?? 1));
+  let heap = 0;
+  for (const st of s.village.stockpile) {
+    const k = rotStack(st, days, mul.get(st) ?? 1);
+    tally(lost, st.type, k);
+    heap += k;
+  }
   s.village.stockpile = s.village.stockpile.filter((x) => x.qty > 0);
+  if (heap > 0) rotToHeap(w, heap); // P7.4: what rots in the store goes on the compost heap
   for (const b of s.buildings) {
     if (!b.storage.length) continue;
     // apples on a rack that is drying are drying, not rotting

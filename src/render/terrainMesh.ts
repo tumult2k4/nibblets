@@ -29,6 +29,10 @@ const snowBucket = (v: number): number => (v < 0.05 ? 0 : Math.min(5, Math.ceil(
 /** P6.2 ash in 5 steps (0 none) */
 const ashBucket = (v?: number): number => (!v ? 0 : Math.min(5, Math.ceil(v * 5)));
 const ASH = new THREE.Color('#4a4642');
+/** P7.4 stone paths: grey cobbles, a little uneven tile to tile */
+const COBBLE = new THREE.Color('#a39d8f');
+/** Wear in tenths, 10 for a paved tile (what the renderer can see change). */
+const wearBucket = (t: { wear: number; paved?: boolean }): number => (t.paved ? 10 : Math.min(9, Math.floor(t.wear * 10)));
 
 const BIOME_IDX: Record<string, number> & Record<'meadow', number> = { meadow: 0, forest: 1, sand: 2, rock: 3, water: 4, marsh: 5, snow: 6 };
 const L_LOW = new THREE.Color('#9a4a2a'), L_MID = new THREE.Color('#e8cf62'), L_HIGH = new THREE.Color('#2f9e3a');
@@ -135,7 +139,7 @@ export class TerrainMesh {
     this.s.tiles.forEach((t, i) => {
       h[i] = t.height;
       b[i] = (BIOME_IDX[t.biome] ?? 0);
-      w[i] = Math.min(9, Math.floor(t.wear * 10));
+      w[i] = wearBucket(t);
       f[i] = Math.min(15, Math.floor(t.fertility * 10));
       sn[i] = snowBucket(t.snow) + 8 * ashBucket(t.ash);
     });
@@ -152,7 +156,7 @@ export class TerrainMesh {
     const dirty = new Set<string>();
     const W = s.size.w;
     s.tiles.forEach((t, i) => {
-      const wb = Math.min(9, Math.floor(t.wear * 10));
+      const wb = wearBucket(t);
       const fb = Math.min(15, Math.floor(t.fertility * 10));
       const sb = snowBucket(t.snow) + 8 * ashBucket(t.ash);
       if (h[i] === t.height && b[i] === (BIOME_IDX[t.biome] ?? 0) && w[i] === wb && sn[i] === sb && (f[i] === fb || this.lens !== 'fertility')) return;
@@ -192,7 +196,8 @@ export class TerrainMesh {
         c.copy(pal[t.biome]);
         if (t.biome === 'water') c.copy(pal.sand).lerp(pal.water, 0.5);
         if (slope > 0.9 && t.biome !== 'water') c.lerp(pal.rock, Math.min(0.6, (slope - 0.9) * 0.8));
-        if (t.wear > 0.2) c.lerp(DIRT, Math.min(0.8, t.wear));
+        if (t.paved) c.copy(COBBLE).multiplyScalar(0.86 + ((x + y) & 1) * 0.1 + jitter(x, y, 13) * 0.3);
+        else if (t.wear > 0.2) c.lerp(DIRT, Math.min(0.8, t.wear));
         if (t.ash) c.lerp(ASH, ashBucket(t.ash) * 0.15);
         if (t.snow > 0.05 && t.biome !== 'water') c.lerp(SNOW_WHITE, Math.min(0.95, snowBucket(t.snow) / 5 + 0.15));
         if (this.lens === 'temperature') { if (this.tempAt) tempColor(c, this.tempAt(x + 0.5, y + 0.5)); }

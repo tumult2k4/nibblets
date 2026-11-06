@@ -93,7 +93,7 @@ export const ITEM_ICON: Record<string, string> = {
   spear: 'spear', stone_spear: 'spear', club: 'club', stone_axe: 'axe', pick: 'pick',
   // P5.6 fiber goods and preserves
   rope: 'fiber', basket: 'bowl', sleeping_mat: 'fiber', loincloth: 'fiber', leaf_cape: 'leaf', leaves: 'leaf', flower: 'sparkle', flower_crown: 'sparkle',
-  dried_apple: 'apple', torch: 'heat', star_stone: 'gem', herbal_remedy: 'leaf',
+  dried_apple: 'apple', torch: 'heat', star_stone: 'gem', herbal_remedy: 'leaf', compost: 'leaf',
   // P7.1 wildlife
   meat: 'bowl', cooked_meat: 'bowl', bone: 'stick', feather: 'leaf', pelt: 'fiber', sling: 'fiber',
   // P7.2 fishing and the kiln

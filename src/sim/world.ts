@@ -16,6 +16,7 @@ import { updateWeather } from './weather';
 import { updateStorms } from './storms';
 import { updateEcology } from './ecology';
 import { updateFires } from './fire';
+import { updateCompost } from './garden';
 import { updateWildfire } from './wildfire';
 import { updateClimate } from './climate';
 import { updateBlight } from './blight';
@@ -132,6 +133,7 @@ export class World {
     updateGroundItems(this); // 7 (+ airborne items)
     updateSpoilage(this); //  7b stored and carried food rots (P5.6)
     updateRacks(this); //     7c drying racks dry (P5.6)
+    updateCompost(this); //   7d compost heaps turn waste into compost (P7.4)
     // 8 eggs: updateEggs (step 10b); the P4.7 newcomers are gone since P5.4
     updateGod(this); //       8b
     this.goblinHash.rebuild(s.goblins);

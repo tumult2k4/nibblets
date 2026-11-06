@@ -9,6 +9,7 @@ import { campfireGeo } from './fireView';
 import { dryingRackGeo, grindingStoneGeo, rackItems, storagePitGeo } from './fiberMeshes';
 import { gateGeo, kilnGeo, watchtowerGeo, workbenchGeo } from './stationMeshes';
 import { hearthGeo, longhouseGeo, nurseryGeo, wellGeo } from './settlementMeshes';
+import { bridgeGeo, compostHeapGeo, gardenPlotGeo } from './gardenMeshes';
 
 const HS = CFG.world.heightScale;
 const WOOD = '#9a6b3f', THATCH = '#d4a94e', DARK = '#4a3420';
@@ -87,6 +88,7 @@ const MAKERS: Partial<Record<Building['type'], () => THREE.BufferGeometry>> = {
   grinding_stone: grindingStoneGeo, drying_rack: dryingRackGeo, storage_pit: storagePitGeo,
   workbench: workbenchGeo, watchtower: watchtowerGeo, gate: () => gateGeo(1), kiln: kilnGeo,
   hearth: hearthGeo, longhouse: longhouseGeo, well: wellGeo, nursery: nurseryGeo,
+  garden_plot: gardenPlotGeo, compost_heap: compostHeapGeo, bridge: () => bridgeGeo(),
 };
 /** Finished-building geometry by type (huts P3.3, campfire P4.3, preservation P5.6, P5.7 stations). */
 function geoOf(type: Building['type']): THREE.BufferGeometry {
@@ -158,9 +160,11 @@ export class BuildingViews {
 
   private build(b: Building, fenceMask: number): THREE.Group {
     const g = new THREE.Group();
-    g.position.set(b.pos.x, heightAt(this.w.s, b.pos) * HS, b.pos.y);
-    const fence = b.type === 'fence', ring = fence || b.type === 'gate';
-    g.rotation.y = ring ? 0 : (b.rotation * Math.PI) / 2 + ((b.id * 0.37) % 0.6) - 0.3; // rails line up with the grid
+    // (a bridge span stands at the water line)
+    g.position.set(b.pos.x, (b.type === 'bridge' ? Math.max(heightAt(this.w.s, b.pos), CFG.world.waterLevel) : heightAt(this.w.s, b.pos)) * HS, b.pos.y);
+    const fence = b.type === 'fence', ring = fence || b.type === 'gate', grid = b.type === 'bridge' || b.type === 'garden_plot';
+    // rails, beds and spans line up with the grid
+    g.rotation.y = ring ? 0 : grid ? (b.rotation * Math.PI) / 2 : (b.rotation * Math.PI) / 2 + ((b.id * 0.37) % 0.6) - 0.3;
     g.userData = { buildingId: b.id };
     const geo = geoOf(b.type);
     const hut = b.type === 'hut' || b.type === 'stone_hut';
