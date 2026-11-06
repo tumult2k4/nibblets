@@ -7,6 +7,7 @@ import { Props } from './props';
 import { MushroomViews } from './mushroomView';
 import { WeatherFx } from './weatherFx';
 import { WrathFx } from './wrathFx';
+import { MiracleFx } from './miracleFx';
 import { FireFx } from './fireView';
 import { WildfireFx } from './wildfireView';
 import { EnemyViews } from './enemyView';
@@ -53,6 +54,7 @@ export class Renderer {
   graves!: GraveViews;
   eggs!: EggViews;
   wrathFx!: WrathFx;
+  miracleFx!: MiracleFx;
   readonly weatherFx = new WeatherFx();
   interp!: Interp;
   sky: SkyLights;
@@ -98,9 +100,11 @@ export class Renderer {
     this.eggs = new EggViews(w);
     this.wrathFx = new WrathFx(w, this.weatherFx, (id) => this.goblinWorldPos(id));
     this.wrathFx.reduced = this.weatherFx.reduced;
+    this.miracleFx = new MiracleFx(w, this.camera, this.water.mesh.material as THREE.Material);
+    this.miracleFx.reduced = this.weatherFx.reduced;
     this.goblins.outlines = this.settings.outlines;
     this.interp = new Interp(w);
-    this.worldGroup.add(this.terrain.group, this.water.mesh, this.props.group, this.buildings.group, this.mushrooms.group, this.goblins.group, this.weatherFx.group, this.fires.group, this.wildfire.group, this.enemies.group, this.graves.group, this.eggs.group, this.wrathFx.group);
+    this.worldGroup.add(this.terrain.group, this.water.mesh, this.props.group, this.buildings.group, this.mushrooms.group, this.goblins.group, this.weatherFx.group, this.fires.group, this.wildfire.group, this.enemies.group, this.graves.group, this.eggs.group, this.wrathFx.group, this.miracleFx.group);
     const c = w.s.village.center;
     this.camera.setTarget(c.x, c.y, true);
   }
@@ -217,6 +221,7 @@ export class Renderer {
     this.graves.update();
     this.eggs.update(dt, this.wrathFx.reduced);
     this.wrathFx.update(dt, alpha);
+    this.miracleFx.update(dt, this.time);
     this.ambientEmotes(dt);
     this.emotes.update(dt, (id) => this.goblins.headPos(id), this.camera.dist);
     this.gl.render(this.scene, this.camera.cam);
@@ -229,6 +234,7 @@ export class Renderer {
   /** Event-driven emotes (§P2.6); the renderer only reads events, it never changes the sim. */
   onEvents(evs: SimEvent[]): void {
     this.wrathFx.onEvents(evs);
+    this.miracleFx.onEvents(evs);
     for (const e of evs) {
       if (e.type === 'emote') this.emotes.show(e.goblinId, e.emote);
       else if (e.type === 'chat_line') this.emotes.showTopic(e.goblinId, e.topic);

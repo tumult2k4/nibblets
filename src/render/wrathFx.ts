@@ -21,7 +21,9 @@ interface Sky { strike(at: THREE.Vector3): void; flash(k: number): void }
 const disc = new THREE.CircleGeometry(1, 20).rotateX(-Math.PI / 2);
 const ring = new THREE.RingGeometry(0.9, 1, 48).rotateX(-Math.PI / 2);
 const ball = new THREE.IcosahedronGeometry(1, 0);
-const GIFT_GLOW: Record<string, string> = { blessing: '#ffe08a', inspiration: '#fff6c8', fertility: '#ffb3c8', shiny_gift: '#9ee8ff' };
+const GIFT_GLOW: Record<string, string> = { blessing: '#ffe08a', inspiration: '#fff6c8', fertility: '#ffb3c8', shiny_gift: '#9ee8ff', healing_touch: '#ffd45e' };
+/** P6.6: a sickly puff where the Plague strikes and over a blighted patch */
+const ILL_PUFF: Record<string, [string, number]> = { plague: ['#7fae3a', 1.6], blight: ['#7a5a2e', 3.2] };
 const flame = new THREE.ConeGeometry(0.22, 0.9, 5).translate(0, 0.45, 0);
 const fade = (color: string, opacity: number, additive = false) => new THREE.MeshBasicMaterial({
   color, transparent: true, opacity, depthWrite: false, ...(additive ? { blending: THREE.AdditiveBlending } : {}),
@@ -115,6 +117,13 @@ export class WrathFx {
         const s = new THREE.Mesh(ring, fade(GIFT_GLOW[e.act]!, 0.85, true));
         s.position.set(x, gy + 0.08, y);
         this.burst('shock', s, 0.9, 2.2);
+      } else if (ILL_PUFF[e.act]) {
+        const [color, size] = ILL_PUFF[e.act]!;
+        const p = new THREE.Mesh(ball, fade(color, 0.6));
+        p.position.set(x, gy + 0.7, y);
+        this.burst('puff', p, 1.6, size);
+      } else if (e.act === 'vision') {
+        this.sky.flash(0.35);
       } else if (e.act === 'summon_gnashers' || e.act === 'summon_bramblebeast') {
         const p = new THREE.Mesh(ball, fade('#4a2f66', 0.75));
         p.position.set(x, gy + 0.8, y);
