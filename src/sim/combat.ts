@@ -22,6 +22,7 @@ import type { World } from './world';
 import { gainXp, skillLevel } from './goblin/skills';
 import { diseaseWorkMul } from './disease';
 import { giveTrinket, rollRarity } from './trinkets';
+import { addReputation } from './mischief';
 
 const C = CFG.combat;
 
@@ -87,7 +88,7 @@ export function killEnemy(w: World, e: Enemy, killer: Goblin | null): void {
   const drops: [ItemType, number][] = [...Object.entries(CFG.enemies.drops[e.kind] ?? {})] as [ItemType, number][];
   if (e.carrying) drops.push([e.carrying.type, e.carrying.qty]);
   drops.forEach(([type, qty], k) => spawnGroundItem(w, { type, qty }, { x: q4(e.pos.x + 0.3 * Math.cos(k * 2.1)), y: q4(e.pos.y + 0.3 * Math.sin(k * 2.1)) }));
-  if (killer) killer.deeds.kills++;
+  if (killer) { killer.deeds.kills++; addReputation(killer, CFG.mischief.reputation.kill); }
   if (killer && w.rng.chance(CFG.trinkets.enemyDrop)) giveTrinket(w, killer, rollRarity(w)); // P8.2: its little hoard
   foughtTogether(w, e, e.mode === 'attack' ? e.targetId : null);
   w.emit({ type: 'enemy_killed', enemyId: e.id, kind: e.kind, killerId: killer?.id ?? null, at: e.pos });

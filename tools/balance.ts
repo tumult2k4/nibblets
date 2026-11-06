@@ -74,6 +74,8 @@ interface Row {
   commons: string;
   /** P8.1–P8.2: mean mood, breaks (tantrum/sulk/binge/wander), inspirations, trinkets found / given / on shelves */
   mood: string;
+  /** P8.3: thefts (witnessed), pranks, apologies, brawls (broken up), mean opinion at the end, lowest/highest reputation */
+  society: string;
 }
 
 function control0(): boolean { return noCraft || noPreserve; }
@@ -110,7 +112,12 @@ function runSeed(seed: number): Row {
   const econ = { fish: 0, casts: 0, clay: 0, cooked: 0, made: { fishing_rod: 0, bucket: 0, pot: 0 }, kilns: 0, kilnDay: -1 };
   const eaten: Record<string, number> = {};
   const md = { sum: 0, n: 0, breaks: { tantrum: 0, sulk: 0, binge: 0, wander_off: 0 } as Record<string, number>, inspired: 0, found: 0, given: 0 };
+  const soc = { theft: 0, seen: 0, pranks: 0, sorry: 0, brawls: 0, broken: 0 };
   w.bus.subscribe((e) => {
+    if (e.type === 'theft') { soc.theft++; if (e.witnessIds.length) soc.seen++; }
+    if (e.type === 'prank') soc.pranks++;
+    if (e.type === 'apology') soc.sorry++;
+    if (e.type === 'brawl') { soc.brawls++; if (e.brokenUpBy !== undefined) soc.broken++; }
     if (e.type === 'trinket_found') md.found++;
     if (e.type === 'trinket_given') md.given++;
     if (e.type === 'mood_break') md.breaks[e.kind]!++;
@@ -200,6 +207,8 @@ function runSeed(seed: number): Row {
   const totalDeaths = Object.values(deaths).reduce((a, b) => a + b, 0);
   const hue1 = w.s.goblins.length ? meanHue(w.s.goblins.map((g) => express(g.genome, 'skinHue'))) : hue0;
   const fails: string[] = [];
+  const ops = w.s.goblins.flatMap((g) => g.relationships.map((x) => x.opinion)), avgOp = ops.reduce((a, b) => a + b, 0) / Math.max(1, ops.length);
+  if (days >= 20 && ops.length && avgOp <= 0) fails.push('opinion<=0');
   if (w.s.goblins.length === 0) fails.push('extinction');
   if (popMax > 3 * CFG.goblin.softCap) fails.push('overpopulation');
   if (totalDeaths > 0 && (deaths.starvation ?? 0) / totalDeaths > 0.2) fails.push('starvation>20%');
@@ -237,6 +246,7 @@ function runSeed(seed: number): Row {
     rites: `${rites.buried}/${rites.mounds}/${rites.mourned}`,
     disasters: `${dis.flood}/${dis.drought}/${dis.blight} (culled ${dis.culled})/${dis.star}${dis.floodLost ? ` huts lost ${dis.floodLost}` : ''}`,
     econ: `${econ.fish}/${econ.casts} clay ${econ.clay} cooked ${econ.cooked} rods/buckets/pots ${econ.made.fishing_rod}/${econ.made.bucket}/${econ.made.pot} kilns ${econ.kilns}${econ.kilnDay < 0 ? '' : ' (day ' + econ.kilnDay + ')'}`,
+    society: `thefts ${soc.theft} (seen ${soc.seen}) pranks ${soc.pranks} sorry ${soc.sorry} brawls ${soc.brawls} (broken up ${soc.broken}) opinion ${avgOp.toFixed(1)} rep ${Math.min(0, ...w.s.goblins.map((g) => g.reputation)).toFixed(0)}..${Math.max(0, ...w.s.goblins.map((g) => g.reputation)).toFixed(0)}`,
     mood: `avg ${(md.sum / Math.max(1, md.n)).toFixed(0)} breaks ${Object.values(md.breaks).join('/')} inspired ${md.inspired} trinkets found/given/shelved ${md.found}/${md.given}/${w.s.buildings.reduce((k, b) => k + b.decoration.length, 0)}`,
     commons: `zone ${com.zoneDay < 0 ? '—' : 'day ' + com.zoneDay} hauled ${com.hauled} demand ${com.demand.map((d) => (d / Math.max(1, com.samples)).toFixed(2)).join('/')} cloaks/necklaces/paints ${Object.values(com.made).join('/')}`,
     garden: `heaps ${w.s.buildings.filter((b) => b.type === 'compost_heap' && b.buildProgress >= 1).length} plots ${w.s.buildings.filter((b) => b.type === 'garden_plot' && b.buildProgress >= 1).length} in ${w.s.plants.filter((p) => inGarden(w.s, p.pos)).length} compost ${gard.compost}/${gard.spread} paved ${w.s.tiles.filter((t) => t.paved).length} spans ${w.s.buildings.filter((b) => b.type === 'bridge' && b.buildProgress >= 1).length} worn@20 ${gard.worn20}`,
@@ -258,7 +268,7 @@ const rows: Row[] = [];
 for (let i = 0; i < seedCount; i++) {
   const r = runSeed(firstSeed + i);
   rows.push(r);
-  console.log(`seed ${r.seed}: pop ${r.popEnd} (min ${r.popMin}, max ${r.popMax}) deaths ${JSON.stringify(r.deaths)} eaten ${r.eaten} bushes ${r.bushes0}→${r.bushesEnd} plantedMature ${r.plantedMature} wood ${r.wood} stone/flint/sticks ${r.stone} armed ${r.armed} fires ${r.fires} gnashers/stolen/bites/fled/killed/wounds ${r.foes} veterans ${r.veterans} huts ${r.huts} fences ${r.fences} beasts/smashed wisps/lured newcomers ${r.rare} housed@autumn ${r.housedAutumn < 0 ? '—' : Math.round(r.housedAutumn * 100) + '%'} specialists ${r.specialists} friends ${r.friends} winterStarve ${r.winterStarve} winterDeaths ${r.winterDeaths} spoiled ${r.spoiled} mash/dried ${r.preserved} generations ${r.generations} hue ${r.hue} (drift ${r.hueDrift.toFixed(1)}°) ill [${r.ill}] tended ${r.tended} remedies ${r.remedies} wildfires [${r.wildfires}] floods/droughts/blight/stars ${r.disasters} buried/mounds/mourned ${r.rites} hunted ${r.wild} fished ${r.econ} settle [${r.settle}] garden [${r.garden}] commons [${r.commons}] mood [${r.mood}] ate [${r.foods}] recovered ${r.watch.recovered}/${r.watch.judged} (worst dip ${Math.round((1 - r.watch.worst) * 100)} %)${r.watch.misses.length ? ' [' + r.watch.misses.join('; ') + ']' : ''} tick ${r.tickMs.toFixed(3)}ms ${r.fails.length ? 'FAIL ' + r.fails.join(',') : 'ok'}`);
+  console.log(`seed ${r.seed}: pop ${r.popEnd} (min ${r.popMin}, max ${r.popMax}) deaths ${JSON.stringify(r.deaths)} eaten ${r.eaten} bushes ${r.bushes0}→${r.bushesEnd} plantedMature ${r.plantedMature} wood ${r.wood} stone/flint/sticks ${r.stone} armed ${r.armed} fires ${r.fires} gnashers/stolen/bites/fled/killed/wounds ${r.foes} veterans ${r.veterans} huts ${r.huts} fences ${r.fences} beasts/smashed wisps/lured newcomers ${r.rare} housed@autumn ${r.housedAutumn < 0 ? '—' : Math.round(r.housedAutumn * 100) + '%'} specialists ${r.specialists} friends ${r.friends} winterStarve ${r.winterStarve} winterDeaths ${r.winterDeaths} spoiled ${r.spoiled} mash/dried ${r.preserved} generations ${r.generations} hue ${r.hue} (drift ${r.hueDrift.toFixed(1)}°) ill [${r.ill}] tended ${r.tended} remedies ${r.remedies} wildfires [${r.wildfires}] floods/droughts/blight/stars ${r.disasters} buried/mounds/mourned ${r.rites} hunted ${r.wild} fished ${r.econ} settle [${r.settle}] garden [${r.garden}] commons [${r.commons}] mood [${r.mood}] society [${r.society}] ate [${r.foods}] recovered ${r.watch.recovered}/${r.watch.judged} (worst dip ${Math.round((1 - r.watch.worst) * 100)} %)${r.watch.misses.length ? ' [' + r.watch.misses.join('; ') + ']' : ''} tick ${r.tickMs.toFixed(3)}ms ${r.fails.length ? 'FAIL ' + r.fails.join(',') : 'ok'}`);
 }
 const lines = [
   `# Balance report — ${days} days × ${seedCount} seeds${noCraft ? ' (control: no crafting)' : ''}${noPreserve ? ' (control: no preservation)' : ''}`,

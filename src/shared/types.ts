@@ -113,8 +113,10 @@ export type SimEvent = BaseEvent &
     | { type: 'goal_abandoned'; goblinId: ID; goal: string }
     | { type: 'goblin_died'; goblinId: ID; cause: DeathCause }
     | { type: 'gift_given'; fromId: ID; toId: ID; item: ItemType }
-    | { type: 'theft'; thiefId: ID; victimId: ID | null; item: ItemType; witnessIds: ID[] }
-    | { type: 'prank'; prankerId: ID; targetId: ID; kind: PrankKind }
+    | { type: 'theft'; thiefId: ID; victimId: ID | null; item?: ItemType; witnessIds: ID[]; trinket?: TrinketKind; at?: Vec2 }
+    | { type: 'prank'; prankerId: ID; targetId: ID; kind: PrankKind; at?: Vec2 }
+    | { type: 'brawl'; aId: ID; bId: ID; brokenUpBy?: ID; at: Vec2 }
+    | { type: 'apology'; goblinId: ID; toId: ID; returned: boolean; at: Vec2 }
     | { type: 'chat'; aId: ID; bId: ID; topic: ChatTopic }
     | { type: 'chat_line'; goblinId: ID; topic: ChatTopic }
     | { type: 'skill_up'; goblinId: ID; skill: SkillId; level: number }

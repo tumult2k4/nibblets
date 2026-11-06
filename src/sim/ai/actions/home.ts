@@ -12,6 +12,7 @@ import type { Building, Goblin } from '../../state';
 import type { World } from '../../world';
 import type { UtilityAction } from '../action';
 import { quarantined, sickHut } from '../../quarantine';
+import { noticeHome } from '../../mischief';
 
 const H = CFG.homes;
 
@@ -153,6 +154,7 @@ export const SleepHome: UtilityAction = {
     if (a.stage === 1) {
       if (--a.progress > 0) return 'running';
       a.stage = 2;
+      noticeHome(w, g, b); // P8.3: something gone, a mushroom in the bed, paint on the walls
       w.emit({ type: 'fell_asleep', goblinId: g.id, at: g.pos });
     }
     g.needs.energy = q4(Math.min(100, g.needs.energy + perDay(CFG.goblin.sleepRestorePerDay.hut)));

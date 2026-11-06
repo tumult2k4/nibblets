@@ -13,6 +13,7 @@ import { addMood } from './mood';
 import type { ItemType, MoodBreakKind, Vec2 } from '../../shared/types';
 import type { Goblin } from '../state';
 import type { World } from '../world';
+import { addReputation } from '../mischief';
 
 const B = CFG.mood.breaks, I = CFG.mood.inspire, DAY = CFG.time.dayTicks;
 export const BREAKS: readonly MoodBreakKind[] = ['tantrum', 'sulk', 'binge', 'wander_off'];
@@ -75,6 +76,7 @@ export function startBreak(w: World, g: Goblin, kind: MoodBreakKind): void {
   w.emit({ type: 'emote', goblinId: g.id, emote: EMOTE[kind] });
   if (kind === 'tantrum') {
     const item = tantrum(w, g);
+    addReputation(g, CFG.mischief.reputation.tantrum);
     w.emit({ type: 'mood_break', goblinId: g.id, kind, ...(item ? { item } : {}), at: { ...g.pos } });
     addMood(w, g, 'vented', B.relief.tantrum, DAY / 2);
     return;

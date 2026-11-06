@@ -19,12 +19,14 @@ import { addSocial, adjustOpinion, isKin, mutual, opinionOf, relationOf } from '
 import { weatherAt } from '../../weather';
 import { airAt } from '../../temperature';
 import { dangerAt } from '../../danger';
+import { heardOfTheft } from '../../mischief';
 
 const S = CFG.social;
 const DAY = CFG.time.dayTicks;
 /** What a goblin can be pulled away from to listen. */
 const FREE: ReadonlySet<ActionId> = new Set(['idle', 'wander', 'warm_up']);
-const SHAREABLE = new Set(['fruit_plant', 'water', 'rock', 'mushroom', 'place']);
+/** P8.3: who was seen stealing travels too (hearsay) */
+const SHAREABLE = new Set(['fruit_plant', 'water', 'rock', 'mushroom', 'place', 'thief']);
 
 const awake = (g: Goblin): boolean => !g.heldByGod && !g.airborne && g.activity.action !== 'sleep_home' && g.activity.action !== 'sleep_ground';
 const pressed = (g: Goblin): boolean => Math.max(needUrgency(g.needs.hunger), needUrgency(g.needs.thirst), needUrgency(g.needs.energy)) > 0.5;
@@ -52,7 +54,7 @@ export function chatPartner(g: Goblin, w: World): Goblin | null {
 /** Memories `g` knows and `o` doesn't, most useful (confident) first. */
 function news(g: Goblin, o: Goblin): Goblin['memory'] {
   return g.memory
-    .filter((m) => SHAREABLE.has(m.kind) && m.confidence > 0.3 && !o.memory.some((x) => x.kind === m.kind && (m.targetId !== undefined ? x.targetId === m.targetId : dist(x.pos, m.pos) < CFG.memory.mergeDist)))
+    .filter((m) => SHAREABLE.has(m.kind) && m.confidence > 0.3 && !(m.kind === 'thief' && m.targetId === o.id) && !o.memory.some((x) => x.kind === m.kind && (m.targetId !== undefined ? x.targetId === m.targetId : dist(x.pos, m.pos) < CFG.memory.mergeDist)))
     .sort((a, b) => b.confidence - a.confidence)
     .slice(0, S.gossipShare);
 }
@@ -113,6 +115,7 @@ function conclude(g: Goblin, o: Goblin, w: World, t: ChatTopic): void {
     // second-hand knowledge: a little less sure, and as stale as the teller's
     for (const m of news(g, o)) {
       remember(o, w, m.kind as Parameters<typeof remember>[2], m.pos, m.data, m.targetId);
+      if (m.kind === 'thief') heardOfTheft(w, o, m.targetId!, m.data);
       const got = o.memory.find((x) => x.kind === m.kind && dist(x.pos, m.pos) < 0.01);
       if (got) { got.confidence = q4(m.confidence * S.gossipConfidence); got.lastSeenTick = m.lastSeenTick; }
     }

@@ -19,6 +19,7 @@ import { updateFires } from './fire';
 import { updateCompost } from './garden';
 import { updateCommons } from './commons';
 import { updateTrinkets } from './trinkets';
+import { updateReputation } from './mischief';
 import { updateWildfire } from './wildfire';
 import { updateClimate } from './climate';
 import { updateBlight } from './blight';
@@ -165,6 +166,7 @@ export class World {
     updateKnowledge(this); // 17 culture: discovery (P5.5)
     updateCommons(this); //   18 village: zones and demand (P7.5); 19 clans
     updateTrinkets(this); //  glints washed up after storms (P8.2)
+    updateReputation(this); // reputation eases, old wrongs are let go (P8.3)
     updateTraits(this); //    17b acquired traits (P5.7)
     if (s.tick % CFG.stats.sampleEvery === 0) sampleStats(this); // 20
     s.rngState = this.rng.state;

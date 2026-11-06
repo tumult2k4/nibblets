@@ -17,6 +17,7 @@ import { isSleeping } from '../../goblin/goblin';
 import { gainXp, skillSpeed } from '../../goblin/skills';
 import { isKin, mutual, opinionOf } from '../../goblin/social';
 import { knowers, knowsAny, learn, teachable } from '../../knowledge';
+import { addReputation } from '../../mischief';
 
 const K = CFG.knowledge;
 const DAY = CFG.time.dayTicks;
@@ -96,6 +97,7 @@ export const Teach: UtilityAction = {
     if (++a.progress < lessonTicks(g, o)) return 'running';
     learn(w, o, a.lesson!, 'teach', g.id);
     gainXp(w, g, 'teaching', CFG.skills.xp.teach);
+    addReputation(g, CFG.mischief.reputation.teach);
     mutual(w, g, o, 2);
     addMood(w, g, 'taught', K.teachMood, Math.round(K.teachCooldownDays * DAY));
     w.emit({ type: 'emote', goblinId: o.id, emote: 'idea' });

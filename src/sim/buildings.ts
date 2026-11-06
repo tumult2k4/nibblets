@@ -14,6 +14,7 @@ import { spawnGroundItem } from './groundItems';
 import { gainXp, skillLevel } from './goblin/skills';
 import { RECIPES } from './recipes';
 import { observe } from './knowledge';
+import { addReputation } from './mischief';
 
 const B = CFG.buildings;
 
@@ -188,10 +189,12 @@ export function completeBuilding(w: World, b: Building, finisher: ID | null): vo
   if (b.type === 'fence' || b.type === 'gate') w.s.terrainVersion += 1; // enemy (and, for a gate, goblin) paths change
   if (b.type === 'bridge') setBridge(w, b, true);
   if (b.type === 'garden_plot') levelFootprint(w, b); // P7.4: the bed is dug level
-  for (const k of Object.keys(b.data ?? {})) {
-    if (!k.startsWith('w')) continue;
+  const crew = Object.keys(b.data ?? {}).filter((k) => k.startsWith('w'));
+  const credit = CFG.mischief.reputation.notCommunal.includes(b.type) ? 0 : CFG.mischief.reputation.communalBuild / Math.max(1, crew.length);
+  for (const k of crew) {
     const g = w.goblin(Number(k.slice(1)));
     if (g) g.deeds.builds += 1;
+    if (g && credit) addReputation(g, credit); // P8.3: built for all, the credit shared by the crew
     delete b.data![k];
   }
   w.emit({ type: 'building_completed', buildingId: b.id, kind: b.type, ...(finisher !== null ? { goblinId: finisher } : {}), at: b.pos });

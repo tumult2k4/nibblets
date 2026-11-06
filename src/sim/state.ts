@@ -82,7 +82,7 @@ export type ActionId =
   | 'follow_wisp' | 'scatter' | 'chat' | 'comfort' | 'gift' | 'court' | 'lay_egg' | 'incubate_egg' | 'feed_child' | 'follow_parent'
   | 'play' | 'learn' | 'teach' | 'cut_grass' | 'pick_flowers' | 'process' | 'rest_sick' | 'tend_sick' | 'extinguish_fire' | 'escape_fire' | 'cull_blight'
   | 'bury_dead' | 'mourn' | 'hunt' | 'fish' | 'dig_clay' | 'cook_stew' | 'tend_compost' | 'spread_compost' | 'pave_path' | 'haul_to_stockpile'
-  | 'sulk' | 'binge' | 'wander_off' | 'hunt_trinket' | 'decorate';
+  | 'sulk' | 'binge' | 'wander_off' | 'hunt_trinket' | 'decorate' | 'prank' | 'steal' | 'apologize' | 'brawl';
 
 export interface ActivityState {
   action: ActionId;
@@ -125,7 +125,13 @@ export interface LineageEntry {
   /** P5.8 (save v14): clan, true skin color [h, s, l] and recessive allele counts, for the family tree */
   clan?: ID; skin?: [number, number, number]; rec?: Record<string, number>;
 }
-export interface DeedCounters { eaten: number; drank: number; harvested: number; planted: number; kills: number; builds: number; gifts: number; timesHeld: number; fights: number }
+export interface DeedCounters {
+  eaten: number; drank: number; harvested: number; planted: number; kills: number; builds: number; gifts: number; timesHeld: number; fights: number;
+  /** P8.3 mischief (optional, old saves load as is): thefts done and suffered, pranks pulled and suffered, brawls */
+  stolen?: number; robbed?: number; pranks?: number; pranked?: number; brawls?: number;
+}
+/** A wrong done (P8.3): whom, what, when, whether the victim knows who did it, and whether it was made right. */
+export interface Guilt { victimId: ID; item?: import('../shared/types').ItemType; trinketId?: ID; tick: number; known: boolean; settled?: boolean }
 
 /** Ballistic state of a held/thrown/dropped entity. z is absolute altitude in world units. */
 export interface Airborne {
@@ -163,6 +169,8 @@ export interface Goblin {
   /** P8.1 mood (§7.5): since when mood has been past the break line (or the inspiration line); the break under way;
    * when the last break and the last spark of inspiration came */
   moodLow?: number; moodHigh?: number; moodBreak?: MoodBreak; lastBreak?: number; lastInspired?: number;
+  /** P8.3: wrongs it has done (thefts), for owning up */
+  guilt?: Guilt[];
 }
 
 /** A mood break under way (§7.5): until when, and for wandering off where to. */
@@ -247,7 +255,7 @@ export interface VillageState {
   /** where the village lays its dead (P6.4), chosen at the first burial */
   graveyard?: Vec2 | null;
   /** village policies (P6.5 hook; a chief sets them from P8, the sandbox drawer until then) */
-  policies?: { quarantine?: boolean };
+  policies?: { quarantine?: boolean; law?: number };
   /** village firsts already marked (P7.2: the first fish) */
   firsts?: string[];
   /** P7.5 stockpile zones (§12.3): materials are kept here, food (and everything else) at `stockpilePos` */

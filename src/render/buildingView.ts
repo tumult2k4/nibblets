@@ -10,7 +10,7 @@ import { dryingRackGeo, grindingStoneGeo, rackItems, storagePitGeo } from './fib
 import { gateGeo, kilnGeo, watchtowerGeo, workbenchGeo } from './stationMeshes';
 import { hearthGeo, longhouseGeo, nurseryGeo, wellGeo } from './settlementMeshes';
 import { bridgeGeo, compostHeapGeo, gardenPlotGeo } from './gardenMeshes';
-import { shelfGroup } from './trinketMeshes';
+import { paintGroup, shelfGroup } from './trinketMeshes';
 
 const HS = CFG.world.heightScale;
 const WOOD = '#9a6b3f', THATCH = '#d4a94e', DARK = '#4a3420';
@@ -104,7 +104,8 @@ const POOL = new THREE.CircleGeometry(0.55, 10).rotateX(-Math.PI / 2).scale(1, 1
 const POOL_MAT = new THREE.MeshBasicMaterial({ color: '#ffb347', transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false });
 
 const progressBucket = (b: Building) => (b.buildProgress >= 1 ? 10 : Math.floor(b.buildProgress * 10));
-const sigOf = (b: Building, fenceMask = 0) => `${b.type}:${progressBucket(b)}:${b.storage.map((s) => s.qty).join('.')}:${fenceMask}:${b.decoration.join('.')}`;
+const painted = (b: Building, tick: number): boolean => (b.data?.painted ?? 0) > tick;
+const sigOf = (b: Building, tick: number, fenceMask = 0) => `${b.type}:${progressBucket(b)}:${b.storage.map((s) => s.qty).join('.')}:${fenceMask}:${b.decoration.join('.')}:${painted(b, tick) ? 1 : 0}`;
 
 /** Read-only building views: translucent ghosts for blueprints, scaffolds while building, finished huts. */
 export class BuildingViews {
@@ -128,7 +129,7 @@ export class BuildingViews {
     for (const b of this.w.s.buildings) {
       seen.add(b.id);
       const mask = ringed(b) ? this.fenceMask(b, posts) : 0;
-      const sig = sigOf(b, mask);
+      const sig = sigOf(b, this.w.s.tick, mask);
       const v = this.views.get(b.id);
       if (v && v.sig === sig) continue;
       if (v) this.group.remove(v.obj);
@@ -180,6 +181,7 @@ export class BuildingViews {
       }
       if (b.decoration.length && (hut || b.type === 'longhouse')) // P8.2: the trinket shelf by the door
         g.add(shelfGroup(b.decoration.map((id) => this.w.s.trinkets.find((t) => t.id === id)).filter((t): t is Trinket => !!t), b.type === 'longhouse'));
+      if (hut && painted(b, this.w.s.tick)) g.add(paintGroup(b.id)); // P8.3: a prankster's handiwork
       if (!hut) return tag(g, b);
       const win = new THREE.Mesh(WINDOW, WINDOW_MAT);
       win.add(new THREE.Mesh(POOL, POOL_MAT));

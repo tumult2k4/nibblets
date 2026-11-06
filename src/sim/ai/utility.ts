@@ -59,6 +59,9 @@ import { Binge, Sulk, WanderOff } from './actions/moodBreak';
 import { Decorate, HuntTrinket } from './actions/trinkets';
 import { demandMul } from '../commons';
 import { DigClay } from './actions/digClay';
+import { Prank } from './actions/prank';
+import { Apologize, Steal } from './actions/steal';
+import { Brawl } from './actions/brawl';
 
 export const ACTIONS: Record<ActionId, UtilityAction> = {
   idle: Idle, wander: Wander, eat: Eat, harvest_fruit: HarvestFruit, pick_up: PickUp, drop: Drop,
@@ -76,7 +79,7 @@ export const ACTIONS: Record<ActionId, UtilityAction> = {
   cull_blight: CullBlight, bury_dead: BuryDead, mourn: Mourn, hunt: Hunt, fish: Fish, dig_clay: DigClay, cook_stew: CookStew,
   tend_compost: TendCompost, spread_compost: SpreadCompost, pave_path: PavePath,
   haul_to_stockpile: HaulToStockpile, sulk: Sulk, binge: Binge, wander_off: WanderOff,
-  hunt_trinket: HuntTrinket, decorate: Decorate,
+  hunt_trinket: HuntTrinket, decorate: Decorate, prank: Prank, steal: Steal, apologize: Apologize, brawl: Brawl,
 };
 const CHOOSABLE = (Object.values(ACTIONS) as UtilityAction[]).filter((a) => !a.forced);
 

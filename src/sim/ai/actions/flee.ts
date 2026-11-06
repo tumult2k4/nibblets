@@ -25,6 +25,7 @@ import type { Building, Goblin } from '../../state';
 import type { World } from '../../world';
 import { braveryOf } from '../../adorn';
 import type { UtilityAction } from '../action';
+import { cowardice } from '../../mischief';
 
 const C = CFG.combat;
 const child = (g: Goblin): boolean => g.lifeStage === 'hatchling' || g.lifeStage === 'youngling';
@@ -74,6 +75,7 @@ export const Flee: UtilityAction = {
     if (!from) return false;
     const spot = refuge(g, w, from);
     if (!spot) return false;
+    cowardice(w, g); // P8.3: armed and running while others fight
     g.activity.target = spot;
     g.activity.targetId = e?.id ?? null;
     g.activity.stage = 0;

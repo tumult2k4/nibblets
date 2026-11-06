@@ -1,5 +1,14 @@
 /** Phase 8 strings (mood, society, faith), merged into the main tables by i18n.ts. */
 export const EN8 = {
+  'act.prank': 'Up to mischief', 'act.steal': 'Sneaking about', 'act.apologize': 'Saying sorry', 'act.brawl': 'Brawling',
+  'ev.theft': '{name} pinched {item} from {other} while nobody was looking.', 'ev.theft_seen': '{name} was caught stealing {item} from {other}!',
+  'ev.prank.hide_item': '{name} hid {other}\'s things as a prank.', 'ev.prank.scare_sleeper': '{name} jumped out at {other}, who was fast asleep.',
+  'ev.prank.mushroom_bed': '{name} slipped a mushroom into {other}\'s bed.', 'ev.prank.paint_hut': '{name} daubed {other}\'s hut with berry juice.',
+  'ev.brawl': '{name} and {other} came to blows.', 'ev.brawl_broken': '{name} and {other} came to blows until {third} pulled them apart.',
+  'ev.apology': '{name} said sorry to {other}.', 'ev.apology_returned': '{name} said sorry to {other} and gave it back.',
+  'insp.reputation': 'Reputation {n}', 'insp.misdeeds': 'stole {s} · was robbed {r} · pranks {p} · brawls {b}',
+  'mod.robbed': 'robbed', 'mod.pranked': 'pranked', 'mod.prank_fun': 'a good prank', 'mod.mushroom_bed': 'a mushroom in the bed',
+  'mod.painted_home': 'paint on the walls', 'mod.brawled': 'a brawl',
   'act.hunt_trinket': 'Looking for shiny things', 'act.decorate': 'Putting trinkets on the shelf',
   'ev.trinket_given': '{name} gave {other} a {trinket}.', 'ev.trinkets_inherited': '{name} has the trinkets {dead} left behind.',
   'ev.glints': 'The storm washed something shiny up on the shore.',
@@ -26,6 +35,15 @@ export const EN8 = {
 };
 
 export const DE8: Record<keyof typeof EN8, string> = {
+  'act.prank': 'Heckt Unfug aus', 'act.steal': 'Schleicht herum', 'act.apologize': 'Entschuldigt sich', 'act.brawl': 'Prügelt sich',
+  'ev.theft': '{name} hat {other} heimlich etwas stibitzt: {item}.', 'ev.theft_seen': '{name} wurde beim Stehlen erwischt: {item} von {other}!',
+  'ev.prank.hide_item': '{name} hat {other} zum Spaß etwas versteckt.', 'ev.prank.scare_sleeper': '{name} hat {other} im Schlaf erschreckt.',
+  'ev.prank.mushroom_bed': '{name} hat {other} einen Pilz ins Bett gelegt.', 'ev.prank.paint_hut': '{name} hat die Hütte von {other} mit Beerensaft bemalt.',
+  'ev.brawl': '{name} und {other} haben sich geprügelt.', 'ev.brawl_broken': '{name} und {other} haben sich geprügelt, bis {third} sie getrennt hat.',
+  'ev.apology': '{name} hat sich bei {other} entschuldigt.', 'ev.apology_returned': '{name} hat sich bei {other} entschuldigt und es zurückgegeben.',
+  'insp.reputation': 'Ruf {n}', 'insp.misdeeds': 'stahl {s} · bestohlen {r} · Streiche {p} · Prügeleien {b}',
+  'mod.robbed': 'bestohlen', 'mod.pranked': 'reingelegt', 'mod.prank_fun': 'ein gelungener Streich', 'mod.mushroom_bed': 'ein Pilz im Bett',
+  'mod.painted_home': 'Farbe an der Wand', 'mod.brawled': 'eine Prügelei',
   'act.hunt_trinket': 'Sucht nach Glänzendem', 'act.decorate': 'Stellt Schätze aufs Regal',
   'ev.trinket_given': '{name} hat {other} etwas geschenkt: {trinket}.', 'ev.trinkets_inherited': '{name} erbt die Schätze von {dead}.',
   'ev.glints': 'Der Sturm hat etwas Glänzendes ans Ufer gespült.',

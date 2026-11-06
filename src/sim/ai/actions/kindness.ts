@@ -17,6 +17,7 @@ import { addSocial, adjustOpinion, isKin, opinionOf } from '../../goblin/social'
 import { addItem, takeOne } from '../../inventory';
 import { isFood, itemDef } from '../../items';
 import { spawnGroundItem } from '../../groundItems';
+import { addReputation } from '../../mischief';
 
 const S = CFG.social;
 const DAY = CFG.time.dayTicks;
@@ -153,6 +154,7 @@ export const Gift: UtilityAction = {
     addSocial(o, S.giftSocial);
     addMood(w, g, 'gave_gift', 2, DAY / 2);
     g.deeds.gifts++;
+    addReputation(g, CFG.mischief.reputation.gift);
     w.emit({ type: 'gift_given', fromId: g.id, toId: o.id, item: got.type, at: { ...o.pos } });
     w.emit({ type: 'emote', goblinId: o.id, emote: 'heart' });
     return 'done';

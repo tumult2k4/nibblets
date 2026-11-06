@@ -51,6 +51,24 @@ export function shelfGroup(ts: readonly Trinket[], longhouse: boolean): THREE.Gr
   return g;
 }
 
+const SPLOTCH = new THREE.SphereGeometry(0.11, 6, 4);
+const PAINT_MAT = new THREE.MeshLambertMaterial({ color: '#8e2a4a', flatShading: true });
+const SPOTS = [0.3, 0.9, 2.15, 2.75, 3.9];
+
+/** Berry juice daubed on a hut's walls by a prankster (P8.3): a few flat splotches round the front. */
+export function paintGroup(id: number): THREE.Group {
+  const g = new THREE.Group();
+  for (let i = 0; i < 5; i++) {
+    const a = SPOTS[i]! + ((id * 0.7 + i) % 1) * 0.25, y = 0.25 + ((id + i * 3) % 4) * 0.12; // (the door, at π/2, is left clean)
+    const m = new THREE.Mesh(SPLOTCH, PAINT_MAT);
+    m.position.set(Math.cos(a) * 1.0, y, Math.sin(a) * 1.0);
+    m.scale.set(1.5, 0.9 + (i % 2) * 0.5, 0.12);
+    m.lookAt(0, y, 0);
+    g.add(m);
+  }
+  return g;
+}
+
 const GLINT_GEO = new THREE.OctahedronGeometry(0.07);
 const GLINT_MAT = new THREE.MeshBasicMaterial({ color: '#fff1b0', transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false, fog: false });
 

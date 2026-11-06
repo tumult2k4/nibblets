@@ -84,6 +84,16 @@ export function noteFor(e: SimEvent, w: World, names: Map<ID, string>): Note | n
       return { ...base, id: e.goblinId, text: t('ev.trinket_given', { name: name(e.goblinId), other: name(e.toId), trinket: t(`trinket.${e.trinket}`) }), tier: 'notable', icon: 'gem' };
     case 'trinkets_inherited':
       return { ...base, id: e.goblinId, text: t('ev.trinkets_inherited', { name: name(e.goblinId), dead: name(e.fromId) }), tier: 'info', icon: 'gem' };
+    case 'theft': {
+      const item = e.item ? t(`item.${e.item}`) : e.trinket ? t(`trinket.${e.trinket}`) : '?';
+      return { ...base, id: e.thiefId, text: t(e.witnessIds.length ? 'ev.theft_seen' : 'ev.theft', { name: name(e.thiefId), other: name(e.victimId ?? undefined), item }), tier: 'notable', icon: 'hand' };
+    }
+    case 'prank':
+      return { ...base, id: e.prankerId, text: t(`ev.prank.${e.kind}`, { name: name(e.prankerId), other: name(e.targetId) }), tier: 'info', icon: 'poke' };
+    case 'brawl':
+      return { ...base, id: e.aId, text: t(e.brokenUpBy !== undefined ? 'ev.brawl_broken' : 'ev.brawl', { name: name(e.aId), other: name(e.bId), third: name(e.brokenUpBy) }), tier: 'notable', icon: 'bolt' };
+    case 'apology':
+      return { ...base, id: e.goblinId, text: t(e.returned ? 'ev.apology_returned' : 'ev.apology', { name: name(e.goblinId), other: name(e.toId) }), tier: 'info', icon: 'heart' };
     case 'glints_washed_up':
       return { ...base, text: t('ev.glints'), tier: 'info', icon: 'sparkle' };
     case 'trinket_found':
