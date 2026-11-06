@@ -1,7 +1,9 @@
 import * as THREE from 'three';
 import { flatMat } from './lowpoly';
-import { itemGeo } from './meshFactory';
-import type { ItemType } from '../shared/types';
+import { itemGeo, palletGeo } from './meshFactory';
+import { isMaterial } from '../sim/commons';
+import type { ItemStack, ItemType, Vec2 } from '../shared/types';
+import type { VillageState } from '../sim/state';
 
 const hash = (n: number): number => {
   let h = Math.imul(n ^ 0x9e3779b9, 0x85ebca6b);
@@ -23,4 +25,25 @@ export function pile(type: ItemType, qty: number, seed: number): THREE.Group {
     g.add(m);
   }
   return g;
+}
+
+/** The village store (P2.3): a plank pallet with a small pile per stored item type; from P7.5 the materials lie on a second pallet at their zone. */
+export function stockpileGroup(v: VillageState, ground: (x: number, y: number) => number): THREE.Group {
+  const all = new THREE.Group(), mp = v.materialPos;
+  const zone = (at: Vec2, stacks: ItemStack[]): void => {
+    const g = new THREE.Group();
+    const base = new THREE.Mesh(palletGeo(), flatMat);
+    base.receiveShadow = true;
+    g.add(base);
+    stacks.forEach((st, i) => {
+      const m = pile(st.type, Math.min(st.qty, 8), i * 31 + 5);
+      m.position.set(((i % 3) - 1) * 0.55, 0.06, (Math.floor(i / 3) - 0.5) * 0.55);
+      g.add(m);
+    });
+    g.position.set(at.x, ground(at.x, at.y), at.y);
+    all.add(g);
+  };
+  zone(v.stockpilePos, mp ? v.stockpile.filter((st) => !isMaterial(st.type)) : v.stockpile);
+  if (mp) zone(mp, v.stockpile.filter((st) => isMaterial(st.type)));
+  return all;
 }

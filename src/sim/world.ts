@@ -17,6 +17,7 @@ import { updateStorms } from './storms';
 import { updateEcology } from './ecology';
 import { updateFires } from './fire';
 import { updateCompost } from './garden';
+import { updateCommons } from './commons';
 import { updateWildfire } from './wildfire';
 import { updateClimate } from './climate';
 import { updateBlight } from './blight';
@@ -160,7 +161,8 @@ export class World {
     updateSanctuaries(this); // 14b P6.6: domes keep enemies out
     updateWildlife(this); //  14c P7.1: critters graze, perch, swim and flee
     updateSocial(this); //    16 social (P5.1); 15 combat runs inside act
-    updateKnowledge(this); // 17 culture: discovery (P5.5); 18 village, 19 clans
+    updateKnowledge(this); // 17 culture: discovery (P5.5)
+    updateCommons(this); //   18 village: zones and demand (P7.5); 19 clans
     updateTraits(this); //    17b acquired traits (P5.7)
     if (s.tick % CFG.stats.sampleEvery === 0) sampleStats(this); // 20
     s.rngState = this.rng.state;

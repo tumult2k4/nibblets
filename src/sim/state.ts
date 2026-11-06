@@ -81,7 +81,7 @@ export type ActionId =
   | 'mine' | 'craft' | 'equip' | 'plan_building' | 'tend_fire' | 'flee' | 'attack' | 'defend_village' | 'guard' | 'repair_building'
   | 'follow_wisp' | 'scatter' | 'chat' | 'comfort' | 'gift' | 'court' | 'lay_egg' | 'incubate_egg' | 'feed_child' | 'follow_parent'
   | 'play' | 'learn' | 'teach' | 'cut_grass' | 'pick_flowers' | 'process' | 'rest_sick' | 'tend_sick' | 'extinguish_fire' | 'escape_fire' | 'cull_blight'
-  | 'bury_dead' | 'mourn' | 'hunt' | 'fish' | 'dig_clay' | 'cook_stew' | 'tend_compost' | 'spread_compost' | 'pave_path';
+  | 'bury_dead' | 'mourn' | 'hunt' | 'fish' | 'dig_clay' | 'cook_stew' | 'tend_compost' | 'spread_compost' | 'pave_path' | 'haul_to_stockpile';
 
 export interface ActivityState {
   action: ActionId;
@@ -240,7 +240,13 @@ export interface VillageState {
   policies?: { quarantine?: boolean };
   /** village firsts already marked (P7.2: the first fish) */
   firsts?: string[];
+  /** P7.5 stockpile zones (§12.3): materials are kept here, food (and everything else) at `stockpilePos` */
+  materialPos?: Vec2;
+  /** P7.5 village demand (§12.4), 0..1 each, recomputed every 300 ticks */
+  demand?: Demand;
 }
+
+export interface Demand { food: number; weapons: number; housing: number; repair: number }
 
 export interface StatsSample { tick: number; pop: number; food: number; avgHunger: number; avgFaith: number }
 export interface StatsSeries { samples: StatsSample[]; deaths: Record<string, number>; births: number; eaten: number; divineFood: number; spoiled?: number }

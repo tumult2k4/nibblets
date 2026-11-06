@@ -14,6 +14,8 @@ import { HAND_RECIPES, RECIPES } from '../../recipes';
 import { chooseCraft, craftTicks, finishCraft, missingInputs, spareStock } from '../../crafting';
 import { atBench, benchFor, mend, mendInputs, shortOf, wornGear } from '../../workbench';
 import { isKilnRecipe, kilnFor, kilnSpark } from '../../kiln';
+import { fetchPos } from '../../commons';
+import { applyPaint } from '../../adorn';
 import type { ItemStack, RecipeId } from '../../../shared/types';
 import type { Goblin } from '../../state';
 import type { World } from '../../world';
@@ -55,7 +57,7 @@ function toWork(g: Goblin, w: World, id: RecipeId, mending: boolean, extra = 0):
     a.stage = 2;
     return true;
   }
-  if (mending && !bench) return false;
+  if ((mending || RECIPES[id]!.station === 'workbench') && !bench) return false;
   a.stage = 1;
   a.progress = workTicks(g, w, id, mending) + extra;
   return true;
@@ -74,7 +76,7 @@ export const Craft: UtilityAction = {
     a.count = c.mend ? 1 : 0;
     if (!needs(g, c.id, c.mend).length) return toWork(g, w, c.id, c.mend);
     a.stage = 0;
-    const sp = w.s.village.stockpilePos;
+    const sp = fetchPos(w.s, needs(g, c.id, c.mend).map((x) => x.type));
     return dist(g.pos, sp) < 0.9 || planPath(w, g, sp);
   },
   step(g, w) {
@@ -102,6 +104,7 @@ export const Craft: UtilityAction = {
       const made = finishCraft(w, g, id);
       const k = made && isKilnRecipe(id) ? kilnFor(g, w) : null;
       if (k) kilnSpark(w, k);
+      if (made?.type === 'war_paint') applyPaint(w, g); // P7.5: put on as soon as it is mixed
       return made ? 'done' : 'failed';
     }
     const out = RECIPES[id]!.output;

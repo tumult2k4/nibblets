@@ -5,6 +5,7 @@ import { needUrgency } from '../../goblin/needs';
 import { moveAlong, planPath } from '../../steering';
 import { distanceFalloff } from '../considerations';
 import { deposit, stockCount, withdraw } from '../../stockpile';
+import { fetchPos } from '../../commons';
 import { addLabor, blueprints, inFlight, missingMaterials, workSpot } from '../../buildings';
 import type { ItemType } from '../../../shared/types';
 import type { Building, Goblin } from '../../state';
@@ -52,7 +53,7 @@ export const DeliverMaterial: UtilityAction = {
     a.progress = 0;
     if (job.fromStock) {
       a.stage = 0;
-      return planPath(w, g, w.s.village.stockpilePos);
+      return planPath(w, g, fetchPos(w.s, missingMaterials(job.b).map((m) => m.type)));
     }
     a.stage = 2;
     return planPath(w, g, workSpot(w.s, job.b, g));

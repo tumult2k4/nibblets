@@ -8,6 +8,7 @@ import { findGroundItem } from '../targets';
 import type { UtilityAction } from '../action';
 import { stickWanted, woodWanted } from '../wants';
 import { gear } from '../../tools';
+import { worn } from '../../clothing';
 import type { Goblin, GroundItem } from '../../state';
 import type { World } from '../../world';
 import { giveTrinket } from '../../trinkets';
@@ -17,7 +18,7 @@ const wantItem = (g: Goblin) => (it: GroundItem) => {
   const t = it.stack.type;
   if (t === 'star_stone') return true; // P6.3: everyone wants the star stone, and it goes in no bag
   if (!canCarry(g, t)) return false;
-  if (isGear(t)) return g.lifeStage === 'adult' && !gear(g).some((s) => s.type === t) && g.equipped.body?.type !== t && g.equipped.head?.type !== t;
+  if (isGear(t)) return g.lifeStage === 'adult' && !gear(g).some((s) => s.type === t) && !worn(g).some((s) => s.type === t);
   return t === 'apple_core' ? g.needs.hunger < 30 : isFood(t) ? g.needs.hunger < 92 : true;
 };
 

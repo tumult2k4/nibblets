@@ -23,6 +23,8 @@ import { isInspired } from './goblin/mood';
 import { REMEDY, remedyWant } from './remedy';
 import { isKilnRecipe, kilnFor } from './kiln';
 import { foodStores } from './spoilage';
+import { benchFor } from './workbench';
+import { adornWant } from './adorn';
 import type { SkillId } from '../shared/types';
 
 const C = CFG.crafting, E = CFG.economy;
@@ -51,7 +53,7 @@ export function missingInputs(g: Goblin, id: RecipeId): ItemStack[] {
 
 /** Can the goblin gather every input from its pack plus the spare stock? */
 export const canSupply = (g: Goblin, w: World, id: RecipeId): boolean =>
-  (!isKilnRecipe(id) || !!kilnFor(g, w)) && missingInputs(g, id).every((m) => spareStock(w, m.type) >= m.qty);
+  (!isKilnRecipe(id) || !!kilnFor(g, w)) && (RECIPES[id]?.station !== 'workbench' || !!benchFor(g, w)) && missingInputs(g, id).every((m) => spareStock(w, m.type) >= m.qty);
 
 /** 0..1: how much this goblin would like one more `item` (weapons: a better one than it has; tools: one per job). */
 /** How many of `item` the village has: carried, held and in store. */
@@ -83,6 +85,7 @@ export function craftWant(g: Goblin, w: World, item: ItemType): number {
     const gain = wearValue(item) - bodyWarmth(g);
     return gain > 0 ? FB.clothesWant * Math.min(1, gain / 4) * coldMul(w.clock.season) : 0;
   }
+  if (item === 'war_paint' || item === 'bone_necklace') return adornWant(g, w, item);
   if (d.wear?.slot === 'head') return g.equipped.head || hasItem(g, item) ? 0 : FB.crownWant * (0.5 + g.personality.sociability);
   if (d.bag) return hasItem(g, item) ? 0 : FB.basketWant;
   if (d.bedroll) return hasItem(g, item) ? 0 : FB.matWant * (g.homeId === null ? 1 : 0.2);

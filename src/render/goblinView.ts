@@ -11,6 +11,7 @@ import { flicker } from './fireView';
 import { toolFor } from '../sim/tools';
 import { isGear } from '../sim/items';
 import { wearGeo } from './fiberMeshes';
+import { adornWearGeo } from './adornMeshes';
 import { flatMat } from './lowpoly';
 import type { Interp } from './interpolation';
 import { sickLook } from './sickLook';
@@ -288,25 +289,26 @@ export class GoblinViews {
     if (v.held) v.rig.hand.add(v.held);
   }
 
-  /** Clothes on the body and head, a basket or rolled mat on the back. */
+  /** Clothes on the body, neck and head, war paint on the face, a basket or rolled mat on the back. */
   private updateWear(g: Goblin, v: View): void {
     const back = (['basket', 'sleeping_mat'] as const).filter((t) => g.inventory.some((s) => s.type === t));
-    const key = [g.equipped.body?.type, g.equipped.head?.type, ...back].join(',');
+    const paint = g.mood.modifiers.some((m) => m.id === 'war_paint');
+    const key = [g.equipped.body?.type, g.equipped.neck?.type, g.equipped.head?.type, paint, ...back].join(',');
     if (key === v.wearKey) return;
     v.wearKey = key;
     for (const m of v.wear) m.removeFromParent();
     v.wear = [];
     const hr = (v.pheno.headRatio * 0.8) / 2;
-    const put = (t: Parameters<typeof wearGeo>[0] | undefined, parent: THREE.Object3D): void => {
-      const geo = t && wearGeo(t, hr);
+    const put = (t: Parameters<typeof adornWearGeo>[0] | undefined, parent: THREE.Object3D): void => {
+      const geo = t && (t === 'war_paint_face' ? adornWearGeo(t, hr) : wearGeo(t, hr) ?? adornWearGeo(t, hr));
       if (!geo) return;
       const m = new THREE.Mesh(geo, flatMat);
       m.castShadow = true;
       parent.add(m);
       v.wear.push(m);
     };
-    put(g.equipped.body?.type, v.rig.body);
-    put(g.equipped.head?.type, v.rig.head);
+    for (const [s, parent] of [[g.equipped.body, v.rig.body], [g.equipped.neck, v.rig.body], [g.equipped.head, v.rig.head]] as const) put(s?.type, parent);
+    if (paint) put('war_paint_face', v.rig.head);
     for (const t of back) put(t, v.rig.body);
   }
 

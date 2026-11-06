@@ -54,6 +54,8 @@ import { Fish } from './actions/fish';
 import { CookStew } from './actions/stew';
 import { SpreadCompost, TendCompost } from './actions/compost';
 import { PavePath } from './actions/pave';
+import { HaulToStockpile } from './actions/haul';
+import { demandMul } from '../commons';
 import { DigClay } from './actions/digClay';
 
 export const ACTIONS: Record<ActionId, UtilityAction> = {
@@ -71,6 +73,7 @@ export const ACTIONS: Record<ActionId, UtilityAction> = {
   rest_sick: RestSick, tend_sick: TendSick, extinguish_fire: ExtinguishFire, escape_fire: EscapeFire,
   cull_blight: CullBlight, bury_dead: BuryDead, mourn: Mourn, hunt: Hunt, fish: Fish, dig_clay: DigClay, cook_stew: CookStew,
   tend_compost: TendCompost, spread_compost: SpreadCompost, pave_path: PavePath,
+  haul_to_stockpile: HaulToStockpile,
 };
 const CHOOSABLE = (Object.values(ACTIONS) as UtilityAction[]).filter((a) => !a.forced);
 
@@ -98,6 +101,7 @@ export function scoreActions(g: Goblin, w: World, noise = true, planned: ActionI
     const fo = planned === a.id ? CFG.planner.focus : 1;
     if (fo > 1) base = Math.max(base, CFG.planner.floor);
     if (base <= 0) continue;
+    base *= demandMul(g, w.s, a.id); // §12.4: the village's shortfalls pull the industrious to the work that meets them
     const pw = personalityWeight(g.personality, a.id) * stageMul(g, a) * traitMul(g, a.id); // personality, life stage, traits
     const mm = moodMul(g, a);
     const sk = skillFocus(g, a.id);

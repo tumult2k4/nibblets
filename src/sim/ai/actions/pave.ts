@@ -11,6 +11,7 @@ import { deposit, stockCount, withdraw } from '../../stockpile';
 import { gainXp, skillSpeed } from '../../goblin/skills';
 import { knows } from '../../recipes';
 import { pave, paveRun, paveWanted } from '../../roads';
+import { storePos } from '../../commons';
 import { busy, isDaytime, othersDoing } from './village';
 import type { Goblin } from '../../state';
 import type { World } from '../../world';
@@ -29,7 +30,7 @@ function next(g: Goblin, w: World): StepResult {
   if (!p) {
     a.stage = 3;
     if (countItem(g, 'stone') <= 0) return 'done';
-    return planPath(w, g, w.s.village.stockpilePos) ? 'running' : 'done';
+    return planPath(w, g, storePos(w.s, 'stone')) ? 'running' : 'done';
   }
   Object.assign(a, { stage: 1, target: { x: p.x + 0.5, y: p.y + 0.5 }, progress: 0 });
   return planPath(w, g, a.target!) ? 'running' : 'failed';
@@ -41,7 +42,8 @@ export const PavePath: UtilityAction = {
   score: (g) => P.score * (0.6 + 0.4 * g.personality.industry) * (1 - busy(g)),
   start(g, w) {
     g.activity.stage = 0;
-    return dist(g.pos, w.s.village.stockpilePos) < 0.9 || planPath(w, g, w.s.village.stockpilePos);
+    const sp = storePos(w.s, 'stone');
+    return dist(g.pos, sp) < 0.9 || planPath(w, g, sp);
   },
   step(g, w) {
     const a = g.activity;

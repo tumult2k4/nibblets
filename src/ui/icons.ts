@@ -98,4 +98,6 @@ export const ITEM_ICON: Record<string, string> = {
   meat: 'bowl', cooked_meat: 'bowl', bone: 'stick', feather: 'leaf', pelt: 'fiber', sling: 'fiber',
   // P7.2 fishing and the kiln
   cooked_fish: 'fish', fishing_rod: 'fish', bucket: 'clay', pot: 'clay',
+  // P7.5 adornments
+  fur_cloak: 'fiber', bone_necklace: 'stick', war_paint: 'fang', ash: 'stone',
 };

@@ -94,6 +94,7 @@ export function noteFor(e: SimEvent, w: World, names: Map<ID, string>): Note | n
     case 'rock_mined':
       return e.flint ? { ...base, id: e.goblinId, text: t('ev.flint', { name: name(e.goblinId) }), tier: 'info', icon: 'flint' } : null;
     case 'item_crafted':
+      if (e.item === 'war_paint') return { ...base, id: e.goblinId, text: t('ev.war_paint', { name: name(e.goblinId) }), tier: 'info', icon: 'fang' };
       return { ...base, id: e.goblinId, text: t(e.fine ? 'ev.craftedFine' : 'ev.crafted', { name: name(e.goblinId), item: t(`item.${e.item}`) }), tier: e.fine ? 'notable' : 'info', icon: ITEM_ICON[e.item] ?? 'gift' };
     case 'tool_broken':
       return { ...base, id: e.goblinId, text: t('ev.tool_broken', { name: name(e.goblinId), item: t(`item.${e.item}`) }), tier: 'info', icon: ITEM_ICON[e.item] ?? 'gift' };
@@ -215,6 +216,8 @@ export function noteFor(e: SimEvent, w: World, names: Map<ID, string>): Note | n
       return e.killed ? { ...base, id: e.goblinId, text: t('ev.hunted', { name: name(e.goblinId) }), tier: 'info', icon: 'fang' } : null;
     case 'food_cooked':
       return e.first ? { ...base, id: e.goblinId, text: t('ev.first_stew', { name: name(e.goblinId) }), tier: 'notable', icon: 'bowl' } : null;
+    case 'zone_marked':
+      return { ...base, text: t('ev.zone_marked'), tier: 'info', icon: 'wood' };
     case 'path_paved':
       return e.first ? { ...base, id: e.goblinId, text: t('ev.first_path', { name: name(e.goblinId) }), tier: 'notable', icon: 'hill' } : null;
     case 'fish_caught':

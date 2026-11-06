@@ -9,7 +9,8 @@ import { distanceFalloff } from '../considerations';
 import { deposit, stockFood, withdraw } from '../../stockpile';
 import { blueprints, buildingDef, isComplete, missingMaterials } from '../../buildings';
 import { bedSpot, homeOf } from './home';
-import type { ItemStack, ItemType } from '../../../shared/types';
+import { storePos } from '../../commons';
+import type { ItemStack, ItemType, Vec2 } from '../../../shared/types';
 import type { Building, Goblin } from '../../state';
 import type { World } from '../../world';
 import type { StepResult, UtilityAction } from '../action';
@@ -24,10 +25,12 @@ function storable(g: Goblin, w: World): ItemStack[] {
   return g.inventory.filter((s) => (isGear(s.type) || s.type === 'redcap' ? false : !isFood(s.type) ? !wanted.has(s.type) : s.type !== 'apple_core' && food > CFG.plants.stockFoodKeep + 1));
 }
 
+const sameSpot = (a: Vec2, b: Vec2 | null): boolean => !b || (a.x === b.x && a.y === b.y);
+
 function walkTo(g: Goblin, w: World): StepResult | null {
   const a = g.activity;
   if (a.stage === 0) {
-    if (a.targetId === null && dist(g.pos, w.s.village.stockpilePos) < 0.9) a.path = [];
+    if (a.targetId === null && dist(g.pos, a.target ?? w.s.village.stockpilePos) < 0.9) a.path = [];
     if (moveAlong(w, g) !== 'arrived') return 'running';
     a.stage = 1;
     a.progress = CFG.goblin.pickupTicks;
@@ -56,7 +59,10 @@ export const StoreItem: UtilityAction = {
     const home = pantry(g, w);
     const onlyFood = storable(g, w).every((st) => isFood(st.type));
     g.activity.targetId = home && onlyFood ? home.id : null;
-    return planPath(w, g, home && onlyFood ? bedSpot(home, g) : w.s.village.stockpilePos);
+    // P7.5: to the zone where the first stack is kept (the rest of that kind goes there too, the others on a later trip)
+    const zone = storePos(w.s, storable(g, w)[0]!.type);
+    g.activity.target = { ...zone };
+    return planPath(w, g, home && onlyFood ? bedSpot(home, g) : zone);
   },
   step(g, w) {
     const r = walkTo(g, w);
@@ -67,6 +73,7 @@ export const StoreItem: UtilityAction = {
     let kept = 0;
     for (const st of [...g.inventory]) {
       if (st.type === 'apple_core' || st.type === 'redcap' || isGear(st.type)) continue; // gear stays with its user
+      if (!sameSpot(storePos(w.s, st.type), g.activity.target)) continue; // kept at the other zone
       let qty = st.qty;
       if (isFood(st.type)) {
         const keep = Math.min(qty, Math.max(0, keepFood - kept));
@@ -91,6 +98,7 @@ export const TakeItem: UtilityAction = {
   start(g, w) {
     const home = homeFood(g, w);
     g.activity.targetId = home?.id ?? null;
+    g.activity.target = { ...w.s.village.stockpilePos };
     return planPath(w, g, home ? bedSpot(home, g) : w.s.village.stockpilePos);
   },
   step(g, w) {

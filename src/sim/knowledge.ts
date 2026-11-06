@@ -17,6 +17,7 @@ import { skillLevel } from './goblin/skills';
 import { addMood } from './goblin/mood';
 import { countItem } from './inventory';
 import { stockCount } from './stockpile';
+import { atStore } from './commons';
 import { mushroomItem } from './ecology';
 import { nextSpan, wornTiles } from './roads';
 
@@ -89,7 +90,7 @@ function nearness(g: Goblin, w: World, id: RecipeId): { share: number; recalled:
   const kinds = [...inputs, ...(RECIPES[id]?.near ?? [])];
   let held = false, n = 0, recalled = 0;
   const idea = RECIPES[id]?.idea;
-  const atStock = dist(g.pos, w.s.village.stockpilePos) <= K.stockReach;
+  const atStock = atStore(w.s, g.pos, K.stockReach);
   if (atStock && RECIPES[id]?.station === 'site') held = true;
   for (const t of kinds) {
     if (countItem(g, t) > 0) { held ||= inputs.includes(t); n++; }

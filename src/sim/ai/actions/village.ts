@@ -12,6 +12,8 @@ import { addItem, countItem, removeItems } from '../../inventory';
 import { needUrgency } from '../../goblin/needs';
 import { moveAlong, planPath } from '../../steering';
 import { deposit, withdraw } from '../../stockpile';
+import { storePos } from '../../commons';
+import { takeAsh } from '../../adorn';
 import { buildingDef, findCommunalSite, findSite, isComplete, placeBlueprint, startUpgrade, workSpot } from '../../buildings';
 import { hearthOf, hearthSite, isHome, wantsLonghouse, wantsNursery, wantsWell } from '../../settlement';
 import { fenceSites, ringRadius, wantsFence } from '../../fences';
@@ -114,7 +116,8 @@ function siteFor(w: World, type: BuildingType): Vec2 | null {
   if (type === 'watchtower') return towerSite(w);
   if (type === 'garden_plot') return gardenSite(w);
   if (type === 'bridge') { const sp = nextSpan(w.s); return sp && { x: sp.tile.x + 0.5, y: sp.tile.y + 0.5 }; }
-  return findCommunalSite(w, type, (STATIONS as readonly string[]).includes(type) ? STATION_RADIUS : undefined);
+  // stations (and from P7.5 the compost heap, which wants room near the store) sit a little further out than the fire
+  return findCommunalSite(w, type, (STATIONS as readonly string[]).includes(type) || type === 'compost_heap' ? STATION_RADIUS : undefined);
 }
 const onRing = (t: BuildingType | null): boolean => t === 'fence' || t === 'gate';
 
@@ -221,7 +224,7 @@ export const TendFire: UtilityAction = {
       return planPath(w, g, { x: q4(b.pos.x + 0.8), y: q4(b.pos.y + 0.4) });
     }
     a.stage = 0;
-    return planPath(w, g, w.s.village.stockpilePos);
+    return planPath(w, g, storePos(w.s, src.item));
   },
   step(g, w) {
     const a = g.activity;
@@ -253,6 +256,8 @@ export const TendFire: UtilityAction = {
       removeItems(g, item, k);
       used += k;
     }
+    const ash = takeAsh(b); // the old ash is carried off (for war paint, P7.5)
+    if (ash > 0) addItem(g, { type: 'ash', qty: ash });
     if (used > 0) w.emit({ type: 'fire_tended', goblinId: g.id, buildingId: b.id, wood: used });
     return used > 0 ? 'done' : 'failed';
   },

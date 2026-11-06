@@ -52,6 +52,10 @@ export const RECIPES: Record<RecipeId, RecipeDef> = {
   compost_heap: { inputs: { wood: 3 }, station: 'site', building: 'compost_heap', known: false, phase: 7, skill: 'farming', near: ['apple_core'], after: 'garden_plot' },
   stone_path: { inputs: { stone: 1 }, station: 'site', known: false, phase: 7, skill: 'building' },
   bridge: { inputs: { wood: 4, rope: 1 }, station: 'site', building: 'bridge', known: false, phase: 7, skill: 'building' },
+  // P7.5: a fur cloak sewn at the workbench, a bone necklace, war paint
+  fur_cloak: { inputs: { pelt: 2, rope: 1 }, station: 'workbench', output: 'fur_cloak', known: false, phase: 7, ticks: 200, after: 'workbench' },
+  bone_necklace: { inputs: { bone: 3, rope: 1 }, station: 'none', output: 'bone_necklace', known: false, phase: 7, ticks: 150 },
+  war_paint: { inputs: { ash: 1, berry: 1 }, station: 'none', output: 'war_paint', known: false, phase: 7, ticks: 40 },
   // P7.1: a sling for hunting hoppers
   sling: { inputs: { fiber: 2, feather: 1 }, station: 'none', output: 'sling', known: false, phase: 7, ticks: 120 },
   // P5.6 fiber goods (§11.1): everyone grows up twisting rope and weaving baskets; the leaf cape is an idea to be had
@@ -77,7 +81,7 @@ export const recipeDef = (id: RecipeId): RecipeDef | undefined => RECIPES[id];
 /** What every goblin knows from the start. */
 export const STARTER_RECIPES: readonly RecipeId[] = Object.keys(RECIPES).filter((id) => RECIPES[id]!.known);
 export const knows = (g: Goblin, id: RecipeId): boolean => g.knownRecipes.includes(id);
-/** Recipes the Craft action makes: by hand anywhere, or fired at a kiln (P7.2). */
-export const HAND_RECIPES: readonly RecipeId[] = Object.keys(RECIPES).filter((id) => RECIPES[id]!.station === 'none' || RECIPES[id]!.station === 'kiln');
+/** Recipes the Craft action makes: by hand anywhere, fired at a kiln (P7.2), or sewn at a workbench (P7.5). */
+export const HAND_RECIPES: readonly RecipeId[] = Object.keys(RECIPES).filter((id) => ['none', 'kiln', 'workbench'].includes(RECIPES[id]!.station));
 /** The hand recipe that makes `item`, if any. */
 export const recipeFor = (item: ItemType): RecipeId | undefined => HAND_RECIPES.find((id) => RECIPES[id]!.output === item);

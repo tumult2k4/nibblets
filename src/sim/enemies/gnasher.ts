@@ -22,6 +22,7 @@ import { shelterOf } from '../temperature';
 import { eggHut, guarded, loseEgg } from '../eggs';
 import { witnessFact } from '../knowledge';
 import { hasTrait } from '../goblin/traits';
+import { fearMul } from '../adorn';
 
 const E = CFG.enemies;
 const G = E.gnasher;
@@ -52,7 +53,7 @@ export function crowdAround(w: World, e: Enemy): number {
   let n = 0;
   for (const o of w.goblinHash.query(e.pos, E.crowdRadius)) {
     if (!awake(o) || o.lifeStage !== 'adult' || dist(o.pos, e.pos) > E.crowdRadius) continue;
-    n += (bestWeapon(o) || torchLit(o, w) ? 1 : E.unarmedCrowd) * (hasTrait(o, 'scarred') ? CFG.traits.scarredCrowd : 1);
+    n += (bestWeapon(o) || torchLit(o, w) ? 1 : E.unarmedCrowd) * (hasTrait(o, 'scarred') ? CFG.traits.scarredCrowd : 1) * fearMul(o);
   }
   return n;
 }
@@ -80,7 +81,7 @@ function retreat(w: World, e: Enemy, from: Vec2): void {
 function nearestLone(w: World, e: Enemy): Goblin | null {
   let best: Goblin | null = null, bd: number = E.sightRange;
   for (const g of w.goblinHash.query(e.pos, E.sightRange)) {
-    const d = dist(g.pos, e.pos) * (hasTrait(g, 'scarred') ? CFG.traits.scarredShun : 1); // a scarred face puts it off
+    const d = dist(g.pos, e.pos) * (hasTrait(g, 'scarred') ? CFG.traits.scarredShun : 1) * fearMul(g); // a scarred face (or a necklace of bones) puts it off
     if (d < bd && isLone(w, g) && !scareAt(w, g.pos)) { bd = d; best = g; }
   }
   return best;

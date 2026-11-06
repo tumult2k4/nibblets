@@ -71,7 +71,7 @@ export function gardenSite(w: World): Vec2 | null {
   for (let y = Math.floor(c.y - r1); y <= c.y + r1; y++)
     for (let x = Math.floor(c.x - r1); x <= c.x + r1; x++) {
       const pos = { x: x + 0.5, y: y + 0.5 }, d = dist(pos, c);
-      if (d < r0 || d > r1 || dist(pos, s.village.stockpilePos) < 3.5) continue;
+      if (d < r0 || d > r1 || dist(pos, s.village.stockpilePos) < 3.5 || (s.village.materialPos && dist(pos, s.village.materialPos) < 3.5)) continue;
       if (!siteTilesOk(s, pos, 3) || !bedClear(w, pos)) continue;
       let fert = 0, ok = true;
       for (const p of footprintTiles(pos, 3)) {

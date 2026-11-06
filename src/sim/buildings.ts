@@ -91,7 +91,7 @@ export function findSite(w: World, type: BuildingType, near: Vec2): Vec2 | null 
       const pos = { x, y };
       const dc = dist(pos, near);
       if (dc > R || !siteTilesOk(s, pos, def.footprint)) continue;
-      if (dist(pos, s.village.stockpilePos) < 2.5 || nearGraves(s, pos)) continue;
+      if (nearStore(s, pos, 2.5) || nearGraves(s, pos)) continue;
       let score = -dc * 0.05;
       let nearestB = Infinity;
       for (const b of s.buildings) nearestB = Math.min(nearestB, dist(b.pos, pos));
@@ -115,6 +115,10 @@ export function findSite(w: World, type: BuildingType, near: Vec2): Vec2 | null 
   return best;
 }
 
+/** Too close to the store's pallets (P7.5: the material zone too) for a building. */
+const nearStore = (s: WorldState, pos: Vec2, r: number): boolean =>
+  dist(pos, s.village.stockpilePos) < r || (!!s.village.materialPos && dist(pos, s.village.materialPos) < r);
+
 /** A communal site (§10.1 "near the center"): the closest clear spot to the village center, a little apart from the rest. */
 export function findCommunalSite(w: World, type: BuildingType, R: number = CFG.fire.communalRadius): Vec2 | null {
   const s = w.s, def = buildingDef(type), c = s.village.center;
@@ -124,7 +128,7 @@ export function findCommunalSite(w: World, type: BuildingType, R: number = CFG.f
     for (let x = Math.ceil(c.x - R); x <= c.x + R; x++) {
       const pos = { x, y };
       if (dist(pos, c) > R || !siteTilesOk(s, pos, def.footprint) || !siteClear(w, pos, def.footprint)) continue;
-      if (dist(pos, s.village.stockpilePos) < 2.5 || nearGraves(s, pos)) continue;
+      if (nearStore(s, pos, 2.5) || nearGraves(s, pos)) continue;
       if (s.buildings.some((b) => dist(b.pos, pos) < CFG.fire.communalSpacing + b.footprint.w / 2)) continue;
       const score = -dist(pos, c) + (fnv1a(`${x},${y}`, s.seed) % 1000) / 1e5;
       if (score > bestScore) { bestScore = score; best = pos; }

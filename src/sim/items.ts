@@ -15,7 +15,7 @@ export interface ItemDef {
   /** a hunting tool (P7.1 sling): damage and range of a throw at a critter; it is no weapon in a fight */
   hunt?: { dmg: number; range: number };
   /** clothing (P5.6): worn on the body or head; warmth °C, courtship charm, wet penalty × wetMul */
-  wear?: { slot: 'body' | 'head'; warmth?: number; armor?: number; charm?: number; wetMul?: number };
+  wear?: { slot: 'body' | 'head' | 'neck'; warmth?: number; armor?: number; charm?: number; wetMul?: number; /** P7.5: × in the crowd a Gnasher fears */ fear?: number };
   /** a basket: extra pack slots while carried (P5.6) */
   bag?: number;
   /** a sleeping mat: sleeping out on it rests like a mat, not bare ground (P5.6) */
@@ -81,6 +81,12 @@ export const ITEM_DEFS: Partial<Record<ItemType, ItemDef>> = {
   loincloth: { stack: 1, weight: 0.3, value: 4, wear: { slot: 'body', warmth: 2 }, burnable: true },
   leaf_cape: { stack: 1, weight: 0.4, value: 6, wear: { slot: 'body', warmth: 4, wetMul: 0.5 }, burnable: true },
   flower_crown: { stack: 1, weight: 0.1, value: 4, wear: { slot: 'head', charm: CFG.fiber.crownCharm } },
+  // P7.5 (§11.1): a fur cloak from two pelts, a necklace of hopper bones that Gnashers don't like the look of, and war
+  // paint of ash and berry juice, put on as soon as it is mixed (adorn.ts); ash is what a fireplace leaves of its wood
+  fur_cloak: { stack: 1, weight: 0.8, value: 12, wear: { slot: 'body', warmth: CFG.commons.adorn.cloakWarmth }, burnable: true },
+  bone_necklace: { stack: 1, weight: 0.2, value: 8, wear: { slot: 'neck', fear: CFG.commons.adorn.necklaceFear } },
+  war_paint: { stack: 5, weight: 0.1, value: 3 },
+  ash: { stack: 20, weight: 0.1, value: 1 },
   // flowers: for crowns (P5.6) and courtship gifts
   flower: { stack: 10, weight: 0.1, decayDays: 2, shelfDays: 3, value: 1 },
   // P6.3: where a star fell; whoever picks it up keeps it as a legendary trinket

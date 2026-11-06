@@ -2,6 +2,7 @@ import { CFG } from '../../config';
 import { addItem, countItem } from '../../inventory';
 import { moveAlong, planPath } from '../../steering';
 import { deposit, stockCount, withdraw } from '../../stockpile';
+import { storePos } from '../../commons';
 import type { Goblin } from '../../state';
 import type { UtilityAction } from '../action';
 import type { Goal } from '../planner';
@@ -23,7 +24,7 @@ export const GatherForGoal: UtilityAction = {
     return !!goal && countItem(g, goal.item) < goal.qty && stockCount(w.s, goal.item) > 0;
   },
   score: () => 0.3,
-  start: (g, w) => planPath(w, g, w.s.village.stockpilePos),
+  start: (g, w) => planPath(w, g, storePos(w.s, obtainGoal(g)?.item ?? 'wood')),
   step(g, w) {
     const a = g.activity;
     if (a.stage === 0) {

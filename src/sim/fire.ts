@@ -10,6 +10,7 @@ import { isNight } from './time';
 import { isComplete } from './buildings';
 import { weatherAt } from './weather';
 import { wearTool } from './tools';
+import { addAsh } from './adorn';
 import type { Vec2 } from '../shared/types';
 import type { Building, Goblin } from './state';
 import type { World } from './world';
@@ -63,6 +64,7 @@ export function addFuel(b: Building, item: FuelItem, n: number): number {
   const room = Math.floor((F.maxFuel - (b.fuel ?? 0)) / per);
   const k = Math.max(0, Math.min(n, room));
   b.fuel = (b.fuel ?? 0) + k * per;
+  if (k > 0) addAsh(b, item === 'wood' ? k : 0, item === 'stick' ? k : 0); // P7.5: what burns leaves ash
   return k;
 }
 

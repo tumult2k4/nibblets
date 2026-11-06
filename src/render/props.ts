@@ -4,8 +4,8 @@ import type { Plant, Rock } from '../sim/state';
 import { CFG } from '../sim/config';
 import { heightAt } from '../sim/grid';
 import { flatMat } from './lowpoly';
-import { pile } from './piles';
-import { berryGeo, palletGeo, appleGeo, berryBushGeo, bushGeo, flowerGeo, grassGeo, rockGeo, saplingGeo, seedMoundGeo, sproutGeo, stumpGeo, treeGeo } from './meshFactory';
+import { pile, stockpileGroup } from './piles';
+import { berryGeo, appleGeo, berryBushGeo, bushGeo, flowerGeo, grassGeo, rockGeo, saplingGeo, seedMoundGeo, sproutGeo, stumpGeo, treeGeo } from './meshFactory';
 import { PROP_COLORS } from './palette';
 import { seasonLook, type SeasonLook } from './seasons';
 import { clockAt } from '../sim/time';
@@ -287,26 +287,17 @@ export class Props {
     this.held.rotation.z = Math.sin(performance.now() / 300) * 0.15;
   }
 
-  /** The village stockpile: a plank pallet with one small pile per stored item type. */
+  /** The village store: a plank pallet with one small pile per stored item type; from P7.5 the materials on a second pallet at their zone. */
   private updateStockpile(): void {
-    const v = this.w.s.village;
-    const sig = `${v.stockpilePos.x},${v.stockpilePos.y}:` + v.stockpile.map((x) => `${x.type}${Math.min(x.qty, 8)}`).join(',');
+    const v = this.w.s.village, mp = v.materialPos;
+    const sig = `${v.stockpilePos.x},${v.stockpilePos.y},${mp?.x},${mp?.y}:` + v.stockpile.map((x) => `${x.type}${Math.min(x.qty, 8)}`).join(',');
     if (sig === this.stockSig) return;
     this.stockSig = sig;
     if (this.stock) this.group.remove(this.stock);
-    const g = new THREE.Group();
-    const base = new THREE.Mesh(palletGeo(), flatMat);
-    base.receiveShadow = true;
-    g.add(base);
-    v.stockpile.forEach((st, i) => {
-      const m = pile(st.type, Math.min(st.qty, 8), i * 31 + 5);
-      m.position.set(((i % 3) - 1) * 0.55, 0.06, (Math.floor(i / 3) - 0.5) * 0.55);
-      g.add(m);
-    });
-    g.position.set(v.stockpilePos.x, this.ground(v.stockpilePos.x, v.stockpilePos.y), v.stockpilePos.y);
-    g.userData = { kind: 'stockpile' };
-    this.stock = g;
-    this.group.add(g);
+    const all = stockpileGroup(v, this.ground.bind(this));
+    all.userData = { kind: 'stockpile' };
+    this.stock = all;
+    this.group.add(all);
   }
 
   itemMeshes(): THREE.Object3D[] {

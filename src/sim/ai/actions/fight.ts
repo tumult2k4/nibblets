@@ -17,6 +17,7 @@ import { isKin } from '../../goblin/social';
 import { grantTrait } from '../../goblin/traits';
 import type { ActionId, Enemy, Goblin } from '../../state';
 import type { World } from '../../world';
+import { braveryOf } from '../../adorn';
 import type { UtilityAction } from '../action';
 
 const C = CFG.combat;
@@ -73,12 +74,12 @@ export function kinAttacker(g: Goblin, w: World): Enemy | null {
 
 /** Bravery, ×1.5 while its own egg or child is threatened: fierce parents (§13.3, P5.4). */
 export const courage = (g: Goblin, w: World): number =>
-  Math.min(1, g.personality.bravery * (kinAttacker(g, w) ? CFG.life.parentBravery : 1));
+  Math.min(1, braveryOf(g, w) * (kinAttacker(g, w) ? CFG.life.parentBravery : 1));
 
 export function panics(g: Goblin, w: World): boolean {
   if (kinAttacker(g, w)) return false;
   if (g.health.hp < C.panicHp * g.health.maxHp && !isVeteran(g)) return true;
-  return g.needs.safety < C.panicSafety && g.personality.bravery < C.panicBravery && !isVeteran(g);
+  return g.needs.safety < C.panicSafety && braveryOf(g, w) < C.panicBravery && !isVeteran(g);
 }
 
 /** Who to go for: whoever bites kin, then whoever bites anyone, then the nearest. */

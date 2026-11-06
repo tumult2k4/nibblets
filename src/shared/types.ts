@@ -161,6 +161,7 @@ export type SimEvent = BaseEvent &
     | { type: 'compost_ready'; buildingId: ID; qty: number }
     | { type: 'compost_spread'; goblinId: ID }
     | { type: 'path_paved'; goblinId: ID; tiles: number; first?: boolean }
+    | { type: 'zone_marked'; zone: 'materials' }
     // P6.6 powers: the ground shakes, the god's flood, a goblin back from the grave, one brought forth in a beam of light
     | { type: 'earthquake'; r: number }
     | { type: 'god_flood'; tiles: number; r: number }

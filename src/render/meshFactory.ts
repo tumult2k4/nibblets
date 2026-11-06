@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { merge, paint, wobble } from './lowpoly';
 import { PROP_COLORS as P } from './palette';
+import { adornItemGeo } from './adornMeshes';
 import type { ItemType } from '../shared/types';
 import { toolGeo } from './toolMeshes';
 import { fiberItemGeo } from './fiberMeshes';
@@ -93,7 +94,7 @@ export function itemGeo(t: ItemType): THREE.BufferGeometry {
     case 'star_stone': g = merge([paint(new THREE.OctahedronGeometry(0.09).scale(1, 1.3, 1).translate(0, 0.1, 0), '#bfe4ff'), paint(new THREE.TetrahedronGeometry(0.05).translate(0.05, 0.05, 0.03), '#f6e7a4')]); break;
     case 'stew':
     case 'apple_mash': g = merge([paint(new THREE.CylinderGeometry(0.1, 0.07, 0.08, 6).translate(0, 0.04, 0), '#8a6a4a'), paint(new THREE.CylinderGeometry(0.085, 0.085, 0.01, 6).translate(0, 0.08, 0), t === 'stew' ? '#b5642f' : '#e3c070')]); break;
-    default: g = fiberItemGeo(t) ?? toolGeo(t) ?? paint(new THREE.BoxGeometry(0.14, 0.14, 0.14).translate(0, 0.07, 0), '#c8a060');
+    default: g = fiberItemGeo(t) ?? adornItemGeo(t) ?? toolGeo(t) ?? paint(new THREE.BoxGeometry(0.14, 0.14, 0.14).translate(0, 0.07, 0), '#c8a060');
   }
   ITEM_GEOS.set(t, g);
   return g;

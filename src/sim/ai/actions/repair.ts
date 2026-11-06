@@ -9,6 +9,7 @@ import type { ItemType } from '../../../shared/types';
 import { addItem, countItem, removeItems } from '../../inventory';
 import { moveAlong, planPath } from '../../steering';
 import { deposit, withdraw } from '../../stockpile';
+import { storePos } from '../../commons';
 import { isComplete, workSpot } from '../../buildings';
 import { spareStock } from '../../crafting';
 import { workMul } from '../../combat';
@@ -55,7 +56,7 @@ export const RepairBuilding: UtilityAction = {
       return planPath(w, g, workSpot(w.s, b, g));
     }
     a.stage = 0;
-    return planPath(w, g, w.s.village.stockpilePos);
+    return planPath(w, g, storePos(w.s, repairItem(b)));
   },
   step(g, w) {
     const a = g.activity;

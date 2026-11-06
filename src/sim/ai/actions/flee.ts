@@ -23,6 +23,7 @@ import { guestSpot } from './shelter';
 import { DANGER, kinAttacker, panics, visibleThreat } from './fight';
 import type { Building, Goblin } from '../../state';
 import type { World } from '../../world';
+import { braveryOf } from '../../adorn';
 import type { UtilityAction } from '../action';
 
 const C = CFG.combat;
@@ -65,7 +66,7 @@ export const Flee: UtilityAction = {
   score(g, w) {
     if (child(g) || panics(g, w)) return 1.1;
     const fear = 1 - g.needs.safety / 100;
-    return (0.25 + 0.75 * fear) * (1 - g.personality.bravery) * (bestWeapon(g) ? 0.5 : 1);
+    return (0.25 + 0.75 * fear) * (1 - braveryOf(g, w)) * (bestWeapon(g) ? 0.5 : 1);
   },
   start(g, w) {
     const e = visibleThreat(g, w);

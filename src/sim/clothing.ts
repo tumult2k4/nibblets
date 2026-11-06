@@ -1,15 +1,15 @@
 /**
- * Clothes and carried goods (§11.1, P5.6): a loincloth (+2 °C) or leaf cape (+4 °C, rain's wet penalty halved) on the
- * body, a flower crown on the head (charm in courtship, a little cheer). A basket in the pack adds 4 slots; a
- * sleeping mat makes a night outdoors as restful as on a mat. `Equip` puts on whatever is better than what is worn.
+ * Clothes and carried goods (§11.1, P5.6): a loincloth (+2 °C), leaf cape (+4 °C, rain's wet penalty halved) or, from
+ * P7.5, a fur cloak (+9 °C) on the body, a flower crown on the head (charm in courtship, a little cheer), a bone
+ * necklace round the neck. A basket in the pack adds 4 slots; a sleeping mat makes a night outdoors as restful as on a mat. `Equip` puts on whatever is better than what is worn.
  */
 import { itemDef } from './items';
 import type { ItemStack, ItemType } from '../shared/types';
 import type { Goblin } from './state';
 
-export type WearSlot = 'body' | 'head';
+export type WearSlot = 'body' | 'head' | 'neck';
 
-const worn = (g: Goblin): ItemStack[] => [g.equipped.body, g.equipped.head].filter((s): s is ItemStack => !!s);
+export const worn = (g: Goblin): ItemStack[] => [g.equipped.body, g.equipped.neck, g.equipped.head].filter((s): s is ItemStack => !!s);
 
 /** °C of warmth from clothes (fine ones half again). */
 export const clothingWarmth = (g: Goblin): number =>
@@ -25,7 +25,7 @@ export const wetMul = (g: Goblin): number => worn(g).reduce((m, s) => Math.min(m
 export function wearValue(t: ItemType | undefined, fine = false): number {
   const w = t ? itemDef(t).wear : undefined;
   if (!w) return 0;
-  return (w.warmth ?? 0) * (fine ? 1.5 : 1) + (w.charm ?? 0) * 10 + (w.wetMul !== undefined ? 1 - w.wetMul : 0);
+  return (w.warmth ?? 0) * (fine ? 1.5 : 1) + (w.charm ?? 0) * 10 + (w.wetMul !== undefined ? 1 - w.wetMul : 0) + ((w.fear ?? 1) - 1) * 4;
 }
 
 export const slotOf = (t: ItemType): WearSlot | null => itemDef(t).wear?.slot ?? null;
@@ -55,7 +55,7 @@ export function putOn(g: Goblin, s: ItemStack): void {
 
 /** Wears or carries one of these already. */
 export const hasItem = (g: Goblin, t: ItemType): boolean =>
-  g.equipped.body?.type === t || g.equipped.head?.type === t || g.inventory.some((s) => s.type === t);
+  worn(g).some((s) => s.type === t) || g.inventory.some((s) => s.type === t);
 
 /** The best warmth the goblin wears or carries for its body. */
 export function bodyWarmth(g: Goblin): number {

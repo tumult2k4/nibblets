@@ -19,6 +19,11 @@ export const EN7 = {
   'ev.garden_built': 'The village fenced off a garden plot. Whatever grows in it is safe from hoppers.',
   'ev.first_path': '{name} laid the first stones of a path along a well-worn trail.',
   'ev.bridge_built': 'A bridge now spans the water.',
+  'item.fur_cloak': 'Fur cloak', 'item.bone_necklace': 'Bone necklace', 'item.war_paint': 'War paint', 'item.ash': 'Ash',
+  'recipe.fur_cloak': 'Fur cloak', 'recipe.bone_necklace': 'Bone necklace', 'recipe.war_paint': 'War paint',
+  'act.haul_to_stockpile': 'Hauling to the store',
+  'ev.zone_marked': 'The village has set aside a corner for wood, stone and the like, apart from the food.',
+  'ev.war_paint': '{name} painted their face for battle.',
 };
 
 export const DE7: Record<keyof typeof EN7, string> = {
@@ -41,4 +46,9 @@ export const DE7: Record<keyof typeof EN7, string> = {
   'ev.garden_built': 'Das Dorf hat ein Gartenbeet eingezäunt. Was darin wächst, ist vor Hopplern sicher.',
   'ev.first_path': '{name} hat die ersten Steine eines Weges auf einen ausgetretenen Pfad gelegt.',
   'ev.bridge_built': 'Eine Brücke führt jetzt über das Wasser.',
+  'item.fur_cloak': 'Fellumhang', 'item.bone_necklace': 'Knochenkette', 'item.war_paint': 'Kriegsbemalung', 'item.ash': 'Asche',
+  'recipe.fur_cloak': 'Fellumhang', 'recipe.bone_necklace': 'Knochenkette', 'recipe.war_paint': 'Kriegsbemalung',
+  'act.haul_to_stockpile': 'Trägt zum Lager',
+  'ev.zone_marked': 'Das Dorf hat eine Ecke für Holz, Stein und dergleichen abgeteilt, getrennt vom Essen.',
+  'ev.war_paint': '{name} hat sich das Gesicht für den Kampf bemalt.',
 };
