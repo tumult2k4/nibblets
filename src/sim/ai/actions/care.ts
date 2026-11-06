@@ -18,7 +18,8 @@ import { needUrgency } from '../../goblin/needs';
 import { addSocial, adjustOpinion, isKin, opinionOf } from '../../goblin/social';
 import { isComplete } from '../../buildings';
 import { isSick, sickness } from '../../disease';
-import { countItem } from '../../inventory';
+import { addItem, countItem, foodStack, takeOne } from '../../inventory';
+import { consume } from './eat';
 import { REMEDY, dose, fetchRemedy, needsRemedy, remedyInStore } from '../../remedy';
 import { apartSpot, quarantined, sickHut } from '../../quarantine';
 import { bedSpot, homeOf } from './home';
@@ -52,7 +53,9 @@ function lieDown(g: Goblin, w: World): void {
 export const RestSick: UtilityAction = {
   id: 'rest_sick', tags: ['rest'], minStage: 'hatchling', interruptible: true,
   isAvailable: (g) => !g.heldByGod && ailing(g),
-  score: (g, w) => Math.max(sickness(g)?.rest ?? 0, hurt(g) ? H.restHurt : 0, quarantined(g, w) ? H.quarantineRest : 0),
+  // P11.5: hunger gets the sick up (feverish goblins once starved lying beside a full store)
+  score: (g, w) => Math.max(sickness(g)?.rest ?? 0, hurt(g) ? H.restHurt : 0, quarantined(g, w) ? H.quarantineRest : 0)
+    * (foodStack(g) || g.needs.hunger >= H.feedPatientBelow ? 1 : 1 - H.hungryRest * Math.min(1, needUrgency(g.needs.hunger))),
   start(g, w) {
     const a = g.activity;
     a.progress = H.restTicks;
@@ -142,6 +145,9 @@ export const TendSick: UtilityAction = {
     if (++a.progress < H.tendTicks) return 'running';
     o.health.tendedUntil = w.s.tick + H.tendDays * DAY;
     if (countItem(g, REMEDY) > 0) dose(w, o, g);
+    // P11.5: and a bite for a hungry patient with none, from the carer's own pack (fed by hand if its pack is full)
+    const bite = o.needs.hunger < H.feedPatientBelow && !foodStack(o) ? takeOne(g, (x) => x === foodStack(g)) : null;
+    if (bite) { if (!addItem(o, bite)) consume(o, w, bite); w.emit({ type: 'gift_given', fromId: g.id, toId: o.id, item: bite.type, at: { ...o.pos } }); }
     adjustOpinion(w, o, g, H.tendOpinionGain);
     adjustOpinion(w, g, o, 2);
     addSocial(g, 10);

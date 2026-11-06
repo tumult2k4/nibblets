@@ -7,8 +7,9 @@ import { FeedChild, FollowParent } from '../ai/actions/parenting';
 import { relate, relationOf } from '../goblin/social';
 import { completeBuilding, placeBlueprint } from '../buildings';
 import { claim } from '../ai/actions/home';
-import { deposit } from '../stockpile';
-import { countItem } from '../inventory';
+import { deposit, stockCount } from '../stockpile';
+import { TakeItem } from '../ai/actions/stockpile';
+import { countItem, slotCount } from '../inventory';
 import { clockAt } from '../time';
 import { setWeather } from '../weather';
 import { deserialize, serialize } from '../save';
@@ -228,6 +229,26 @@ describe('Parents and hatchlings (P5.3)', () => {
     expect(FollowParent.isAvailable(kid, w)).toBe(true);
     run(w, kid, FollowParent, 800);
     expect(Math.hypot(kid.pos.x - a.pos.x, kid.pos.y - a.pos.y)).toBeLessThanOrEqual(F.followDist);
+  });
+
+  it('a full pack: no fetching for a child (it once dropped the store on the ground), but eating at the store (P11.5)', () => {
+    const w = makeWorld();
+    at(w, 2);
+    const [a, b] = couple(w);
+    becomeMates(w, a, b);
+    const kid = hatch(w, layEggs(w, a, b, { x: 14, y: 14 })[0]!);
+    w.rebuildCaches();
+    kid.needs.hunger = 20;
+    deposit(w.s, { type: 'apple', qty: 3 });
+    const junk = ['stone', 'stick', 'fiber', 'clay', 'flint', 'wood', 'rope', 'bone'] as const;
+    a.inventory = junk.slice(0, slotCount(a)).map((type) => ({ type, qty: 1 }));
+    expect(FeedChild.isAvailable(a, w)).toBe(false);
+    a.needs.hunger = 10;
+    expect(TakeItem.isAvailable(a, w)).toBe(true);
+    expect(run(w, a, TakeItem)).toBe('done');
+    expect(a.needs.hunger).toBeCloseTo(10 + CFG.food.apple, 3);
+    expect(stockCount(w.s, 'apple')).toBe(2);
+    expect(w.s.groundItems.filter((x) => x.stack.type === 'apple')).toHaveLength(0);
   });
 
   it('v10 saves gain a lineage, egg incubation and an egg cooldown', () => {

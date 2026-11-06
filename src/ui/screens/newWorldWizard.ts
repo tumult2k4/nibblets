@@ -10,6 +10,7 @@ import { ageDays } from '../../sim/goblin/goblin';
 import { portraits } from '../../render/portraits';
 import { BIOME_COLORS } from '../../render/palette';
 import { LOCUS_DEFS } from '../../sim/goblin/genetics/genome';
+import { llmSettings, setLlmSettings } from '../../llm/settings';
 
 /** New World wizard (§18.3): World / Founders / Rules with live previews. */
 export function newWorldWizard(onStart: (p: WorldParams) => void, onCancel: () => void): HTMLElement {
@@ -77,7 +78,8 @@ export function newWorldWizard(onStart: (p: WorldParams) => void, onCancel: () =
       el('div.sub', { text: t('mode.divineHint'), style: 'max-width:360px' }))),
     ...field(t('wiz.difficulty'), select<'cozy' | 'normal' | 'harsh'>([['cozy', t('diff.cozy')], ['normal', t('diff.normal')], ['harsh', t('diff.harsh')]], p.difficulty, (v) => (p.difficulty = v))),
     ...field(t('wiz.gentle'), checkbox(p.gentle, (v) => (p.gentle = v))),
-    ...field(t('wiz.llm'), el('span.sub', { text: t('wiz.llmLater') })));
+    ...field(t('wiz.llm'), el('div', {}, checkbox(llmSettings().enabled, (v) => setLlmSettings({ ...llmSettings(), enabled: v })),
+      el('div.sub', { text: t('wiz.llmHint', { p: t(`llm.p.${llmSettings().provider}`) }), style: 'max-width:360px' }))));
 
   const render = () => {
     const names = [t('wiz.world'), t('wiz.founders'), t('wiz.rules')];

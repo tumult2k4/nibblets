@@ -12,11 +12,10 @@ import { faceToward, moveAlong, planPath } from '../../steering';
 import { needUrgency } from '../../goblin/needs';
 import { addSocial, adjustOpinion } from '../../goblin/social';
 import { nearestParent } from '../../goblin/family';
-import { addItem, foodStack, takeOne } from '../../inventory';
+import { addItem, canCarry, foodStack, takeOne } from '../../inventory';
 import { isFood, itemDef } from '../../items';
 import { sicken } from './eat';
-import { stockFood, withdraw } from '../../stockpile';
-import { spawnGroundItem } from '../../groundItems';
+import { deposit, stockFood, withdraw } from '../../stockpile';
 import { claimedByOther } from '../claims';
 
 const F = CFG.family;
@@ -37,7 +36,8 @@ export function hungryChild(g: Goblin, w: World): Goblin | null {
   return best;
 }
 
-const hasFood = (g: Goblin, w: World): boolean => !!foodStack(g) || !!stockFood(w.s);
+// P11.5: a parent with no room in its pack once dropped the whole store on the ground, a bite a try
+const hasFood = (g: Goblin, w: World): boolean => !!foodStack(g) || (!!stockFood(w.s) && canCarry(g, stockFood(w.s)!.type));
 
 export const FeedChild: UtilityAction = {
   id: 'feed_child', tags: ['food'], minStage: 'adult', interruptible: (g) => g.activity.stage !== 2,
@@ -62,7 +62,7 @@ export const FeedChild: UtilityAction = {
       if (!f) return 'failed';
       const type: ItemType = f.type;
       if (!withdraw(w.s, type, 1)) return 'failed';
-      if (!addItem(g, { type, qty: 1 })) { spawnGroundItem(w, { type, qty: 1 }, g.pos); return 'failed'; }
+      if (!addItem(g, { type, qty: 1 })) { deposit(w.s, { type, qty: 1 }); return 'failed'; }
       a.stage = 1;
       a.target = { ...c.pos };
       if (!planPath(w, g, c.pos)) return 'failed';

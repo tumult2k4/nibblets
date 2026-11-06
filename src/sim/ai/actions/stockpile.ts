@@ -1,11 +1,12 @@
 import { CFG } from '../../config';
 import { dist } from '../../../shared/math';
-import { addItem, canCarry, countItem, foodStack, slotCount } from '../../inventory';
+import { addItem, canCarry, countItem, foodStack } from '../../inventory';
 import { isFood, isGear } from '../../items';
 import { HAND_RECIPES, RECIPES } from '../../recipes';
 import { needUrgency } from '../../goblin/needs';
 import { moveAlong, planPath } from '../../steering';
 import { distanceFalloff } from '../considerations';
+import { consume } from './eat';
 import { deposit, stockFood, withdraw } from '../../stockpile';
 import { blueprints, buildingDef, isComplete, missingMaterials } from '../../buildings';
 import { bedSpot, homeOf } from './home';
@@ -94,9 +95,8 @@ export const StoreItem: UtilityAction = {
 /** Fetch food from the stockpile when hungry and the pockets are empty. */
 export const TakeItem: UtilityAction = {
   id: 'take_item', tags: ['food'], minStage: 'youngling', interruptible: true,
-  // (only with room in the pack: a pocket full of cores once had a starving goblin trying the store all day, P8.2)
-  isAvailable: (g, w) => g.needs.hunger < 70 && !foodStack(g) && (g.inventory.length < slotCount(g) || canCarry(g, stockFood(w.s)?.type ?? 'apple'))
-    && (!!stockFood(w.s) || !!homeFood(g, w)),
+  // (a pack too full to carry food home in eats at the store: packs full of gear once starved goblins by it, P11.5)
+  isAvailable: (g, w) => g.needs.hunger < 70 && !foodStack(g) && (!!stockFood(w.s) || !!homeFood(g, w)),
   score: (g, w) => (0.06 + 1.1 * needUrgency(g.needs.hunger)) * distanceFalloff(dist(g.pos, homeFood(g, w)?.pos ?? w.s.village.stockpilePos), 40),
   start(g, w) {
     const home = homeFood(g, w);
@@ -110,7 +110,7 @@ export const TakeItem: UtilityAction = {
     const home = g.activity.targetId !== null ? homeFood(g, w) : null;
     if (home) {
       const st = home.storage.find((x) => isFood(x.type) && x.qty > 0)!;
-      const got = addItem(g, { type: st.type, qty: Math.min(2, st.qty) });
+      const got = canCarry(g, st.type) ? addItem(g, { type: st.type, qty: Math.min(2, st.qty) }) : (consume(g, w, { type: st.type, qty: 1 }), 1);
       st.qty -= got;
       home.storage = home.storage.filter((x) => x.qty > 0);
       return got > 0 ? 'done' : 'failed';
@@ -118,6 +118,11 @@ export const TakeItem: UtilityAction = {
     const f = stockFood(w.s);
     if (!f) return 'failed';
     const type = f.type;
+    if (!canCarry(g, type)) {
+      if (withdraw(w.s, type, 1) < 1) return 'failed';
+      consume(g, w, { type, qty: 1 });
+      return 'done';
+    }
     const n = withdraw(w.s, type, 2);
     const got = addItem(g, { type, qty: n });
     if (got < n) deposit(w.s, { type, qty: n - got });

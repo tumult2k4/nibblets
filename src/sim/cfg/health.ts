@@ -48,6 +48,8 @@ export const HEALTH = {
   tendOpinion: 20, tendRange: 24, tendTicks: 150, tendDays: 1, tendOpinionGain: 4, tendBase: 0.32,
   /** RestSick lies down for this long (then decides again); injured goblins under this share of hp rest too */
   restTicks: 300, restHurtBelow: 0.5, restHurt: 0.3,
+  /** P11.5: under `feedPatientBelow` hunger (with no food on it) rest counts up to `hungryRest` less, and a carer hands the patient a bite */
+  hungryRest: 0.6, feedPatientBelow: 50,
   /** how often a sick goblin sneezes or retches (ticks, on average) */
   emoteEvery: 400,
   /** P6.5 herbal remedy: a dose makes the illness run its course ×remedyMul as fast and its mortality ×remedyMortality;

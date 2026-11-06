@@ -37,8 +37,12 @@ function eatStep(g: Goblin, w: World, pick: () => ItemStack | undefined): StepRe
   if (g.activity.progress > 0) return 'running';
   const st = pick();
   if (!st) return 'failed';
-  const rotten = (st.rot ?? 0) >= CFG.health.rottenAt; // the unit about to go off (P6.1 gut rot)
-  const one = takeOne(g, (s) => s === st)!;
+  consume(g, w, takeOne(g, (s) => s === st)!, (st.rot ?? 0) >= CFG.health.rottenAt); // the unit about to go off (P6.1 gut rot)
+  return 'done';
+}
+
+/** One bite of `one` (already out of the pack, or straight from the store or a friend's hand): its food and its effects. */
+export function consume(g: Goblin, w: World, one: ItemStack, rotten = false): void {
   const nut = (itemDef(one.type).nutrition ?? 0) * (g.lifeStage === 'hatchling' ? 0.5 : 1);
   g.needs.hunger = q4(Math.min(100, g.needs.hunger + nut));
   g.deeds.eaten += 1;
@@ -65,7 +69,6 @@ function eatStep(g: Goblin, w: World, pick: () => ItemStack | undefined): StepRe
     if (!keep || addItem(g, { type: 'apple_core', qty: 1 }) === 0)
       spawnGroundItem(w, { type: 'apple_core', qty: 1 }, { x: g.pos.x, y: g.pos.y });
   }
-  return 'done';
 }
 
 const begin = (g: Goblin): boolean => {
