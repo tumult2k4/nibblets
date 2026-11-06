@@ -11,7 +11,7 @@ export type WeatherKind = 'clear' | 'cloudy' | 'fog' | 'rain' | 'storm' | 'snow'
 
 export type ItemType =
   | 'apple' | 'apple_core' | 'apple_mash' | 'dried_apple' | 'mushroom' | 'glowcap' | 'redcap'
-  | 'berry' | 'fish' | 'cooked_fish' | 'stew' | 'egg_shell'
+  | 'berry' | 'fish' | 'cooked_fish' | 'meat' | 'cooked_meat' | 'stew' | 'egg_shell'
   | 'wood' | 'stick' | 'leaves' | 'stone' | 'flint' | 'fiber' | 'clay' | 'bone' | 'feather' | 'pelt' | 'flower' | 'ash' | 'compost'
   | 'spear' | 'stone_spear' | 'club' | 'sling' | 'stone_axe' | 'pick' | 'fishing_rod' | 'bucket'
   | 'loincloth' | 'leaf_cape' | 'fur_cloak' | 'bone_necklace' | 'flower_crown' | 'war_paint'
@@ -150,6 +150,9 @@ export type SimEvent = BaseEvent &
     | { type: 'blight_started'; plantId: ID }
     | { type: 'blight_culled'; goblinId: ID; plantId: ID }
     | { type: 'shooting_star' }
+    // P7.1 wildlife: a hopper brought down with a sling (or a throw that missed), a hopper at a planted sprout
+    | { type: 'critter_hunted'; goblinId: ID; critterId: ID; kind: string; hit: boolean; killed: boolean }
+    | { type: 'sprout_nibbled'; plantId: ID; critterId: ID }
     // P6.6 powers: the ground shakes, the god's flood, a goblin back from the grave, one brought forth in a beam of light
     | { type: 'earthquake'; r: number }
     | { type: 'god_flood'; tiles: number; r: number }

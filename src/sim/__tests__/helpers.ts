@@ -17,7 +17,7 @@ export interface TestWorldOpts { seed?: number; size?: number; goblins?: number;
  */
 export function makeWorld(o: TestWorldOpts = {}): World {
   const size = o.size ?? 24;
-  const s = createWorldState({ seed: o.seed ?? 1, size, founders: o.goblins ?? 0 });
+  const s = createWorldState({ seed: o.seed ?? 1, size, founders: o.goblins ?? 0, wildlife: false });
   if (o.flat !== false) {
     const tiles: Tile[] = [];
     for (let y = 0; y < size; y++)

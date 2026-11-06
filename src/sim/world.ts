@@ -37,6 +37,7 @@ import { updateKnowledge } from './knowledge';
 import { updateSpoilage } from './spoilage';
 import { updateRacks } from './preserve';
 import { updateTraits } from './goblin/traits';
+import { updateWildlife } from './wildlife';
 
 /**
  * The live world: plain-data state plus derived, rebuildable caches (rng object, spatial hashes,
@@ -125,7 +126,7 @@ export class World {
     updateClimate(this); //   3b floods, droughts, shooting stars (P6.3)
     updatePlants(this); //    4
     updateBlight(this); //    4b blight spreads among apple bushes (P6.3)
-    updateEcology(this); //   5 ecology: mushrooms, fallen sticks (wildlife P7)
+    updateEcology(this); //   5 ecology: mushrooms, fallen sticks, grass (wildlife: 14c)
     updateFires(this); //     6 campfires burn down, torches burn
     updateWildfire(this); //  6b wildfires spread and burn out; storms throw lightning (P6.2)
     updateGroundItems(this); // 7 (+ airborne items)
@@ -155,6 +156,7 @@ export class World {
     updateWear(this); //      13b path wear (§P2.7)
     enemiesAct(this); //      14 enemies.act
     updateSanctuaries(this); // 14b P6.6: domes keep enemies out
+    updateWildlife(this); //  14c P7.1: critters graze, perch, swim and flee
     updateSocial(this); //    16 social (P5.1); 15 combat runs inside act
     updateKnowledge(this); // 17 culture: discovery (P5.5); 18 village, 19 clans
     updateTraits(this); //    17b acquired traits (P5.7)

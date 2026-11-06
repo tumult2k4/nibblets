@@ -3,6 +3,8 @@ import { CFG } from '../config';
 import { missingMaterials } from '../buildings';
 import { countItem } from '../inventory';
 import { stockCount } from '../stockpile';
+import { foodStores } from '../spoilage';
+import { needUrgency } from '../goblin/needs';
 import type { ItemType } from '../../shared/types';
 import type { Goblin } from '../state';
 import type { World } from '../world';
@@ -19,3 +21,10 @@ export const stickWanted = (g: Goblin, w: World): number => materialWanted(g, w,
 /** Stone, or flint (a by-product of mining) when that runs short. */
 export const stoneWanted = (g: Goblin, w: World): number =>
   Math.max(materialWanted(g, w, 'stone', CFG.mining.stoneTarget), 0.6 * materialWanted(g, w, 'flint', CFG.mining.flintTarget));
+
+/** P7.1: how much the village wants what a hopper gives: meat while the food in store runs short, else a little. */
+export function huntWant(g: Goblin, w: World): number {
+  const H = CFG.wildlife.hunt;
+  const food = Math.min(1, Math.max(0, 1 - foodStores(w.s).days / H.days));
+  return Math.max(food, H.wantFood * needUrgency(g.needs.hunger), 0.25);
+}

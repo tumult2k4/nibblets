@@ -12,6 +12,8 @@ export interface ItemDef {
   uses?: number;
   breaksInto?: Partial<Record<ItemType, number>>;
   weapon?: { dmg: number; range: number };
+  /** a hunting tool (P7.1 sling): damage and range of a throw at a critter; it is no weapon in a fight */
+  hunt?: { dmg: number; range: number };
   /** clothing (P5.6): worn on the body or head; warmth °C, courtship charm, wet penalty × wetMul */
   wear?: { slot: 'body' | 'head'; warmth?: number; armor?: number; charm?: number; wetMul?: number };
   /** a basket: extra pack slots while carried (P5.6) */
@@ -40,6 +42,9 @@ export const ITEM_DEFS: Partial<Record<ItemType, ItemDef>> = {
   redcap: { stack: 10, weight: 0.4, nutrition: F.redcap, decayDays: 4, shelfDays: 4, value: 0, poison: CFG.knowledge.redcapDmg },
   fish: { stack: 5, weight: 1, nutrition: F.fish, decayDays: 2, shelfDays: 1, value: 3, tray: 'food' },
   stew: { stack: 3, weight: 1.5, nutrition: F.stew, decayDays: 2, shelfDays: 2, value: 6, tray: 'food' },
+  // P7.1: a hopper brought down; raw meat keeps a day and a half (cooked from P7.2)
+  meat: { stack: 5, weight: 0.8, nutrition: F.meat, decayDays: 2, shelfDays: 1.5, value: 3, tray: 'food' },
+  cooked_meat: { stack: 5, weight: 0.7, nutrition: F.cooked_meat, decayDays: 3, shelfDays: 3, value: 4, tray: 'food' },
   wood: { stack: 10, weight: 2, value: 3, burnable: true, tray: 'materials' },
   stick: { stack: 20, weight: 0.5, value: 1, burnable: true, tray: 'materials' },
   // leaves fall when bushes and trees are chopped (P5.6); they wilt, but slowly
@@ -49,9 +54,14 @@ export const ITEM_DEFS: Partial<Record<ItemType, ItemDef>> = {
   fiber: { stack: 20, weight: 0.3, value: 2, burnable: true, tray: 'materials' },
   clay: { stack: 10, weight: 2, value: 2, tray: 'materials' },
   rope: { stack: 10, weight: 0.5, value: 4, burnable: true, tray: 'materials' },
+  // P7.1 wildlife drops: bones and pelts from hoppers, feathers from chirps (a flushed chirp, a moult, a sling)
+  bone: { stack: 10, weight: 0.3, value: 2, tray: 'materials' },
+  feather: { stack: 20, weight: 0.05, value: 2, decayDays: 6, burnable: true },
+  pelt: { stack: 5, weight: 0.6, value: 5, decayDays: 10, burnable: true },
   // tools & weapons (§11.1/§11.3): one per slot; a use = one finished job (tree felled, stone mined) or one hit
   spear: { stack: 1, weight: 2, value: 6, weapon: { dmg: CFG.combat.spear, range: 1.5 }, uses: 25, breaksInto: { stick: 1 }, tray: 'tools' },
   stone_spear: { stack: 1, weight: 2, value: 10, weapon: { dmg: CFG.combat.stone_spear, range: 1.5 }, uses: 35, breaksInto: { stick: 1 } },
+  sling: { stack: 1, weight: 0.3, value: 6, hunt: { dmg: CFG.wildlife.huntDmg, range: CFG.wildlife.hunt.range }, uses: 30, breaksInto: { fiber: 1 }, burnable: true, tray: 'tools' },
   club: { stack: 1, weight: 3, value: 8, weapon: { dmg: CFG.combat.club, range: 1.1 }, uses: 40, breaksInto: { stone: 1 }, tray: 'tools' },
   stone_axe: { stack: 1, weight: 2, value: 10, tool: { chopMul: 2, fells: true }, uses: 15, breaksInto: { stick: 1 }, tray: 'tools' },
   // a torch burns one use per in-game hour of night in the hand and leaves nothing behind

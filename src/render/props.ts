@@ -40,7 +40,7 @@ function geoFor(kind: Plant['kind'], k: GeoKey): THREE.BufferGeometry {
   return g;
 }
 /** Per-instance size: young plants are smaller, trees/flowers vary more. */
-function plantScale(p: Plant): number {
+export function plantScale(p: Plant): number {
   const r = hash(p.id);
   const base = p.kind === 'tree' ? 0.8 + r * 0.6 : p.kind === 'flower' ? 0.8 + r * 0.5 : 0.85 + r * 0.3;
   if (p.stage === 'young') return base * (p.kind === 'tree' ? 0.4 : 0.6) * (1 + p.growth * 0.4);

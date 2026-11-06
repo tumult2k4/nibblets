@@ -37,6 +37,8 @@ export const RECIPES: Record<RecipeId, RecipeDef> = {
   fence: { inputs: { wood: 1 }, station: 'site', building: 'fence', known: true, phase: 4 },
   stone_hut: { inputs: { stone: 6 }, station: 'upgrade', building: 'stone_hut', known: false, phase: 4 },
   torch: { inputs: { stick: 1, fiber: 1 }, station: 'none', output: 'torch', known: false, phase: 4, ticks: 60 },
+  // P7.1: a sling for hunting hoppers
+  sling: { inputs: { fiber: 2, feather: 1 }, station: 'none', output: 'sling', known: false, phase: 7, ticks: 120 },
   // P5.6 fiber goods (§11.1): everyone grows up twisting rope and weaving baskets; the leaf cape is an idea to be had
   rope: { inputs: { fiber: 3 }, station: 'none', output: 'rope', known: true, phase: 5, ticks: 60 },
   basket: { inputs: { fiber: 3 }, station: 'none', output: 'basket', known: true, phase: 5, ticks: 90 },

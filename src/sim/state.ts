@@ -77,7 +77,7 @@ export type ActionId =
   | 'mine' | 'craft' | 'equip' | 'plan_building' | 'tend_fire' | 'flee' | 'attack' | 'defend_village' | 'guard' | 'repair_building'
   | 'follow_wisp' | 'scatter' | 'chat' | 'comfort' | 'gift' | 'court' | 'lay_egg' | 'incubate_egg' | 'feed_child' | 'follow_parent'
   | 'play' | 'learn' | 'teach' | 'cut_grass' | 'pick_flowers' | 'process' | 'rest_sick' | 'tend_sick' | 'extinguish_fire' | 'escape_fire' | 'cull_blight'
-  | 'bury_dead' | 'mourn';
+  | 'bury_dead' | 'mourn' | 'hunt';
 
 export interface ActivityState {
   action: ActionId;
@@ -191,6 +191,16 @@ export interface DangerMark { pos: Vec2; tick: number; weight: number }
 
 export interface Rock { id: ID; pos: Vec2; size: 1 | 2 | 3; stoneLeft: number; flintChance: number }
 export interface GrassPatch { id: ID; pos: Vec2; density: number }
+/**
+ * A critter (§8.4, P7.1): hoppers graze and nibble sprouts, chirps perch and eat fruit, fish swim, glimmerflies drift
+ * over the marsh at night. `z` is height above the ground (a flying chirp, a hovering fly); `fed` 0..1 is its belly.
+ */
+export interface Critter {
+  id: ID; kind: CritterKind; pos: Vec2; z: number; heading: number; hp: number; fed: number;
+  mode: 'idle' | 'move' | 'eat' | 'flee' | 'perch';
+  goal: Vec2 | null; targetId: ID | null; until: number;
+}
+export type CritterKind = 'hopper' | 'chirp' | 'fish' | 'glimmerfly';
 export interface Mushroom { id: ID; pos: Vec2; kind: 'brown' | 'glowcap' | 'redcap'; age: number }
 export interface GroundItem { id: ID; pos: Vec2; stack: ItemStack; droppedTick: number; airborne: Airborne | null; reservedBy: ID | null }
 /** An egg (§13.3): `warmth` is its current warmth 0..1, `incubation` warm ticks minus cold ticks (hatch at 2 days). */
@@ -242,7 +252,7 @@ export interface WorldState {
   fires: Fire[];
   /** P6.3: rain hours today, rainy and dry days in a row, and the flood or drought under way (tiles it changed) */
   climate: Climate;
-  wildlife: unknown[]; groundItems: GroundItem[]; buildings: Building[]; enemies: Enemy[];
+  wildlife: Critter[]; groundItems: GroundItem[]; buildings: Building[]; enemies: Enemy[];
   /** spawn director: last budgeted night, queued spawn ticks, enemies spotted so far (drives fencing), and recent
    * danger marks (sightings, bites, thefts, smashes, deaths) for the danger lens (P4.8) */
   threat: { night: number; spawnAt: number[]; alarms: number; marks: DangerMark[]; /** P5.7 tower warning: until when, and where the threat was seen */ warnUntil?: number; warnAt?: Vec2 };

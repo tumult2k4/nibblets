@@ -79,6 +79,12 @@ export function itemGeo(t: ItemType): THREE.BufferGeometry {
     case 'clay': g = paint(new THREE.IcosahedronGeometry(0.1, 0).scale(1, 0.6, 1).translate(0, 0.06, 0), '#b8734e'); break;
     // P6.5: a little leaf-wrapped bundle tied with fibre, a glowcap peeping out
     case 'herbal_remedy': g = merge([paint(new THREE.IcosahedronGeometry(0.07, 0).scale(1, 0.7, 1.2).translate(0, 0.05, 0), '#5e8f3a'), paint(new THREE.TorusGeometry(0.06, 0.008, 3, 8).rotateX(Math.PI / 2).translate(0, 0.05, 0), '#c9b27a'), paint(new THREE.SphereGeometry(0.025, 5, 3).translate(0.02, 0.1, 0.02), '#7fd6e0')]); break;
+    // P7.1 wildlife: meat, a bone, a feather, a folded pelt, a sling
+    case 'meat': case 'cooked_meat': g = merge([paint(new THREE.IcosahedronGeometry(0.08, 0).scale(1.3, 0.6, 1).translate(0, 0.05, 0), t === 'meat' ? '#c45a54' : '#8a4a2a', 0.05), paint(new THREE.CylinderGeometry(0.015, 0.015, 0.14, 4).rotateZ(Math.PI / 2).translate(0.1, 0.05, 0), '#efe6d2')]); break;
+    case 'bone': g = merge([paint(new THREE.CylinderGeometry(0.018, 0.018, 0.22, 4).rotateZ(Math.PI / 2).translate(0, 0.03, 0), '#ede4cf'), ...[-0.11, 0.11].map((x) => paint(new THREE.IcosahedronGeometry(0.03, 0).translate(x, 0.03, 0), '#ede4cf'))]); break;
+    case 'feather': g = merge([paint(new THREE.ConeGeometry(0.035, 0.22, 4).scale(1, 1, 0.2).rotateZ(Math.PI / 2).translate(0, 0.02, 0), '#5f86b3'), paint(new THREE.CylinderGeometry(0.005, 0.005, 0.26, 3).rotateZ(Math.PI / 2).translate(0, 0.025, 0), '#e9dfc9')]); break;
+    case 'pelt': g = paint(wobble(new THREE.BoxGeometry(0.26, 0.04, 0.2, 2, 1, 2).translate(0, 0.02, 0), 0.02, 7), '#9c8670', 0.06); break;
+    case 'sling': g = merge([paint(new THREE.TorusGeometry(0.08, 0.008, 3, 10).rotateX(Math.PI / 2).translate(0, 0.01, 0), '#c9b26a'), paint(new THREE.SphereGeometry(0.03, 5, 3).scale(1.3, 0.6, 1).translate(0.08, 0.015, 0), '#8a6a4a')]); break;
     case 'star_stone': g = merge([paint(new THREE.OctahedronGeometry(0.09).scale(1, 1.3, 1).translate(0, 0.1, 0), '#bfe4ff'), paint(new THREE.TetrahedronGeometry(0.05).translate(0.05, 0.05, 0.03), '#f6e7a4')]); break;
     case 'stew':
     case 'apple_mash': g = merge([paint(new THREE.CylinderGeometry(0.1, 0.07, 0.08, 6).translate(0, 0.04, 0), '#8a6a4a'), paint(new THREE.CylinderGeometry(0.085, 0.085, 0.01, 6).translate(0, 0.08, 0), t === 'stew' ? '#b5642f' : '#e3c070')]); break;

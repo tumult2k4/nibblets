@@ -12,7 +12,7 @@ import { missingMaterials } from './buildings';
 import { spawnGroundItem } from './groundItems';
 import { HAND_RECIPES, RECIPES, knows } from './recipes';
 import { bestWeapon, gear, weaponDmg } from './tools';
-import { materialWanted, stoneWanted, woodWanted } from './ai/wants';
+import { huntWant, materialWanted, stoneWanted, woodWanted } from './ai/wants';
 import { bodyWarmth, hasItem, wearValue } from './clothing';
 import type { ItemStack, ItemType, RecipeId } from '../shared/types';
 import type { Goblin } from './state';
@@ -58,6 +58,8 @@ export function craftWant(g: Goblin, w: World, item: ItemType): number {
     if (d.weapon.dmg <= cur) return 0;
     return (C.weaponWant + C.braveryWant * g.personality.bravery) * ((d.weapon.dmg - cur) / MAX_DMG);
   }
+  // P7.1: one sling each for the hunters (more while food runs short)
+  if (d.hunt) return gear(g).some((s) => s.type === item) ? 0 : CFG.wildlife.hunt.slingWant * huntWant(g, w);
   if (d.tool) {
     if (gear(g).some((s) => s.type === item)) return 0;
     if (d.tool.mineMul) return C.toolWant * stoneWanted(g, w);

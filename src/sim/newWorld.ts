@@ -13,6 +13,7 @@ import { isWalkable, tileAt } from './grid';
 import type { Vec2 } from '../shared/types';
 import { World } from './world';
 import { registerLineage } from './goblin/family';
+import { seedWildlife } from './wildlife';
 
 export interface WorldParams {
   seed: number;
@@ -26,6 +27,8 @@ export interface WorldParams {
   /** "Reroll founders" in the wizard bumps this */
   founderSalt?: number;
   difficulty?: 'cozy' | 'normal' | 'harsh';
+  /** P7.1: critters at the start (tests turn them off and add their own) */
+  wildlife?: boolean;
 }
 
 /** Everything needed to rebuild the world at tick 0 (used by replay). */
@@ -44,6 +47,7 @@ export function resolveParams(p: WorldParams): GenParams {
     villageName: p.villageName ?? villageNameFor(seedRng),
     founderSalt: p.founderSalt ?? 0,
     difficulty: p.difficulty ?? 'normal',
+    wildlife: p.wildlife ?? true,
   };
 }
 
@@ -91,6 +95,7 @@ export function createWorldState(params: WorldParams): WorldState {
   }
   seedClanRelations(frng, s.goblins);
   for (const g of s.goblins) { registerLineage(s, g); seedFacts(frng, g); }
+  if (p.wildlife) seedWildlife(s, rng.fork('wildlife'));
   s.rngState = rng.fork('sim').state;
   return s;
 }

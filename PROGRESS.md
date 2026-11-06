@@ -1,5 +1,5 @@
 # Nibblets progress
-Current: Phase 7 — P7.1 wildlife
+Current: Phase 7 — P7.2 fishing, cooking, clay
 ## Done
 - [x] P1.1 scaffold: Vite + strict TS, ESLint flat config with sim architecture rules, Prettier, Vitest, scripts
 - [x] P1.2 shared/: math, ids, mulberry32 Rng with fork(label), typed EventBus
@@ -67,9 +67,11 @@ Current: Phase 7 — P7.1 wildlife
 ### Phase 6 acceptance
 - [x] Disease, fire and Resurrect tests green (disease, remedy, wildfire, climate, death and miracles tests)
 - [x] Balance 96 days × 5 seeds (`DisasterWatch` in the balance runner): disasters at their configured rates over all seeds (observed/expected: shooting stars 12/13.5, lightning strikes 158/162, blight outbreaks 13/18.9, floods 19/20, droughts 1/1); every village back to ≥ 70 % of its population a season after every disaster on 5/5 seeds (134 disasters judged, worst dip 25 %)
+- [x] P7.1 wildlife: hoppers (graze grass, nibble sprouts and saplings, bolt from goblins, kept out by fences), chirps (fly between trees, eat fruit, peck seeds in winter, roost at night, drop feathers when flushed or moulting), fish in the shallows (leaping now and then), glimmerflies over the marsh at night drawn to glowcaps; populations capped by their food, breeding while fed, starving without, drifting back in when thinned; sling (2 fiber + feather; discovered, sooner with a hopper about) and `Hunt` (stalk, aim, throw by combat skill; a hopper leaves meat, a bone and a pelt); raw meat as food; critter rigs and item meshes; hunting notes
 ## Next
-- [ ] Phase 7 — settlement and advanced economy
+- [ ] P7.2 fishing (rod, spots, `Fish`), cooking at the campfire; clay digging, kiln, bucket, pots
 ## Notes / known issues
+- Balance (64 days × 5 seeds, after P7.1): slings worked out on 3 seeds (days 10, 14, 26), 28–55 hoppers brought down there (meat eaten 24–40 times); hoppers stay near their cap (14–18), chirps get through winter thinly (6–12 at the end), 61–131 bites at planted sprouts with 101–141 goblin-planted bushes grown anyway; 0–1 deaths, pop 19–21.
 - Balance (96 days × 5 seeds, Phase 6 acceptance): pop 14–17 at the end (peaks 19–23), 8–11 deaths a village (mostly old age; 0–2 disease, one dehydration on two seeds, one combat), 2–5 floods, 0–1 droughts, 2–3 blight outbreaks and 23–36 lightning strikes per village; blight outbreaks run a little under their expected count because a roll finds no eligible bush now and then.
 - Balance (64 days × 5 seeds, after P6.5): remedy worked out on days 2/6/8/19 in four villages (never in one), 1–2 doses made and taken per village; 0–3 deaths (2 of gut rot on one seed, one dehydration), pop 15–23.
 - Balance (96 days × 3 seeds, after P6.4): every dead goblin buried in the graveyard (10/8/9 graves, no mounds), 134–328 mourning visits per village, 9–10 deaths (mostly old age), 3–4 generations, pop 11–17 at the end (peaks 19–20), ~0.4–0.45 ms/tick.

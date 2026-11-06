@@ -119,7 +119,10 @@ export function discoveryChance(g: Goblin, w: World, id: RecipeId): number {
   const rot = PRESERVE_IDS.has(id) ? 1 + Math.min(CFG.preserve.rotIdeaMax, spoiledToday(w) * CFG.preserve.rotIdeaPer) : 1;
   // a cure is on everyone's mind, and the more so while someone lies ill (P6.5)
   const ill = id !== 'herbal_remedy' ? 1 : CFG.health.remedyIdeaBase * (w.s.goblins.some((o) => o.health.disease?.stage === 'sick') ? CFG.health.remedyIdeaMul : 1);
-  return K.discoveryBase * (0.5 + g.personality.wanderlust) * (1 + K.skillMul * skill) * inspiration(g) * near * rot * ill * K.memoryNear ** recalled;
+  // a hopper bounding about puts a goblin with a feather in mind of a sling (P7.1)
+  const HU = CFG.wildlife.hunt;
+  const prey = id === 'sling' && w.s.wildlife.some((c) => c.kind === 'hopper' && dist(c.pos, g.pos) <= HU.ideaRange) ? HU.ideaNear : 1;
+  return K.discoveryBase * (0.5 + g.personality.wanderlust) * (1 + K.skillMul * skill) * inspiration(g) * near * rot * ill * prey * K.memoryNear ** recalled;
 }
 
 /** §6 step 12b: once an in-game hour per goblin (staggered), a roll to discover something new. */

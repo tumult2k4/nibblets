@@ -187,6 +187,8 @@ export function noteFor(e: SimEvent, w: World, names: Map<ID, string>): Note | n
       return { ...base, text: t('ev.drought_ended'), tier: 'info', icon: 'drop' };
     case 'blight_started':
       return { ...base, text: t('ev.blight'), tier: 'notable', icon: 'leaf' };
+    case 'critter_hunted':
+      return e.killed ? { ...base, id: e.goblinId, text: t('ev.hunted', { name: name(e.goblinId) }), tier: 'info', icon: 'fang' } : null;
     case 'blight_culled':
       return { ...base, id: e.goblinId, text: t('ev.blight_culled', { name: name(e.goblinId) }), tier: 'info', icon: 'leaf' };
     case 'shooting_star':

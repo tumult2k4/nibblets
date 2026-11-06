@@ -3,6 +3,7 @@ import { HEALTH } from './cfg/health';
 import { DISASTERS } from './cfg/disasters';
 import { DEATH } from './cfg/death';
 import { MIRACLES } from './cfg/miracles';
+import { WILDLIFE } from './cfg/wildlife';
 
 export const CFG = {
   tickHz: 10,
@@ -31,7 +32,7 @@ export const CFG = {
     adult: { scale: 1, head: 0.45 }, elder: { scale: 0.92, head: 0.45, stoop: 12 },
   },
   genetics: { quantMutationChance: 0.06, quantMutationSigma: 0.08, hueSigma: 18, discreteMutationChance: 0.01, albinoFounderFreq: 0.03, personalitySigma: 0.08 },
-  food: { apple: 40, apple_core: 10, apple_mash: 55, dried_apple: 30, berry: 15, mushroom: 15, glowcap: 10, redcap: 12, fish: 25, cooked_fish: 40, stew: 60 },
+  food: { apple: 40, apple_core: 10, apple_mash: 55, dried_apple: 30, berry: 15, mushroom: 15, glowcap: 10, redcap: 12, fish: 25, cooked_fish: 40, meat: 30, cooked_meat: 45, stew: 60 },
   plants: {
     stageDays: { seed: 0.5, sprout: 1, sapling: 1.5, young: 2 }, matureUntilDays: 64, oldUntilDays: 80,
     appleRegrowDays: 0.5, maxApples: 5, wood: { young: 1, mature: 3, old: 2, tree: 8 },
@@ -290,7 +291,7 @@ export const CFG = {
   health: HEALTH,
   /** P6.2–P6.3 fire, floods, drought, blight, shooting stars: see cfg/disasters.ts */
   disasters: DISASTERS,
-  death: DEATH, miracles: MIRACLES,
+  death: DEATH, miracles: MIRACLES, wildlife: WILDLIFE,
   llm: { diariesPerDay: 3, dialoguesPerDay: 4, barksPerDay: 6, tokensPerDay: 12000, rpm: 10, concurrency: 2, timeoutMs: 20000 },
   god: {
     startFavor: 50, maxFavorBase: 100, maxFavorPerBeliever: 15, believerFaith: 40, prayingFavorMul: 3,

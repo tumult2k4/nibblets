@@ -2,9 +2,10 @@
 import { EN as EN0 } from './i18n.en';
 import { DE as DE0 } from './i18n.de';
 import { DE6, EN6 } from './i18n.p6';
+import { DE7, EN7 } from './i18n.p7';
 
-const EN = { ...EN0, ...EN6 };
-const DE: Record<string, string> = { ...DE0, ...DE6 };
+const EN = { ...EN0, ...EN6, ...EN7 };
+const DE: Record<string, string> = { ...DE0, ...DE6, ...DE7 };
 
 export type Lang = 'en' | 'de';
 export type I18nKey = keyof typeof EN;

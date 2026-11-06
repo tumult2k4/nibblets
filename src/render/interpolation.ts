@@ -37,6 +37,8 @@ export class Interp {
     for (const g of s.goblins)
       cur.set(g.id, { x: g.pos.x, y: g.pos.y, z: g.airborne ? g.airborne.z : this.alt(g.pos.x, g.pos.y) + this.lift(g), facing: g.facing });
     for (const e of s.enemies) cur.set(e.id, { x: e.pos.x, y: e.pos.y, z: this.alt(e.pos.x, e.pos.y), facing: e.facing });
+    const sea = CFG.world.waterLevel * CFG.world.heightScale;
+    for (const c of s.wildlife) cur.set(c.id, { x: c.pos.x, y: c.pos.y, z: Math.max(sea, this.alt(c.pos.x, c.pos.y)), facing: c.heading });
     for (const it of s.groundItems)
       cur.set(it.id, { x: it.pos.x, y: it.pos.y, z: it.airborne ? it.airborne.z : this.alt(it.pos.x, it.pos.y), facing: 0 });
     this.cur = cur;
