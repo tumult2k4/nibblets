@@ -36,9 +36,11 @@ const forgetCrafts = (gs: Goblin[]): void => {
 };
 /** control run (P5 acceptance): nobody ever thinks of a grinding stone, drying rack or storage pit — winter should bite */
 const noPreserve = process.argv.includes('--no-preserve');
-/** P8.9: `--god kind|stern|wrathful` plays a Divine-mode world with a scripted god */
+/** P8.9: `--god absent|kind|benevolent|stern|wrathful|chaotic` plays a Divine-mode world with a scripted god */
 const godArg = process.argv[process.argv.indexOf('--god') + 1] as GodProfile | undefined;
 const god = process.argv.includes('--god') && GOD_PROFILES.includes(godArg!) ? godArg! : null;
+/** `--free`: the scripted god plays in Sandbox mode (no favor, no tiers) */
+const free = process.argv.includes('--free');
 if (noPreserve) (CFG.preserve as { enabled: boolean }).enabled = false;
 
 interface Row {
@@ -93,7 +95,7 @@ const meanHue = (hs: number[]): number => {
 };
 
 function runSeed(seed: number): Row {
-  const w = createWorld({ seed, ...(god ? { mode: 'divine' as const } : {}) });
+  const w = createWorld({ seed, ...(god ? { mode: free ? 'sandbox' as const : 'divine' as const } : {}) });
   const faithSummary = faithTracker(w); // P8.8
   const playGod = god ? godPlayer(w, god, seed) : null;
   if (noCraft) forgetCrafts(w.s.goblins);
@@ -283,7 +285,7 @@ const rows: Row[] = [];
 for (let i = 0; i < seedCount; i++) {
   const r = runSeed(firstSeed + i);
   rows.push(r);
-  console.log(`seed ${r.seed}: pop ${r.popEnd} (min ${r.popMin}, max ${r.popMax}) deaths ${JSON.stringify(r.deaths)} eaten ${r.eaten} bushes ${r.bushes0}→${r.bushesEnd} plantedMature ${r.plantedMature} wood ${r.wood} stone/flint/sticks ${r.stone} armed ${r.armed} fires ${r.fires} gnashers/stolen/bites/fled/killed/wounds ${r.foes} veterans ${r.veterans} huts ${r.huts} fences ${r.fences} beasts/smashed wisps/lured newcomers ${r.rare} housed@autumn ${r.housedAutumn < 0 ? '—' : Math.round(r.housedAutumn * 100) + '%'} specialists ${r.specialists} friends ${r.friends} winterStarve ${r.winterStarve} winterDeaths ${r.winterDeaths} spoiled ${r.spoiled} mash/dried ${r.preserved} generations ${r.generations} hue ${r.hue} (drift ${r.hueDrift.toFixed(1)}°) ill [${r.ill}] tended ${r.tended} remedies ${r.remedies} wildfires [${r.wildfires}] floods/droughts/blight/stars ${r.disasters} buried/mounds/mourned ${r.rites} hunted ${r.wild} fished ${r.econ} settle [${r.settle}] garden [${r.garden}] commons [${r.commons}] mood [${r.mood}] society [${r.society}] ate [${r.foods}] recovered ${r.watch.recovered}/${r.watch.judged} (worst dip ${Math.round((1 - r.watch.worst) * 100)} %)${r.watch.misses.length ? ' [' + r.watch.misses.join('; ') + ']' : ''} tick ${r.tickMs.toFixed(3)}ms ${r.fails.length ? 'FAIL ' + r.fails.join(',') : 'ok'}`);
+  console.log(`seed ${r.seed}: pop ${r.popEnd} (min ${r.popMin}, avg ${r.popAvg.toFixed(1)}, max ${r.popMax}) deaths ${JSON.stringify(r.deaths)} eaten ${r.eaten} god food ${r.divineFood} bushes ${r.bushes0}→${r.bushesEnd} plantedMature ${r.plantedMature} wood ${r.wood} stone/flint/sticks ${r.stone} armed ${r.armed} fires ${r.fires} gnashers/stolen/bites/fled/killed/wounds ${r.foes} veterans ${r.veterans} huts ${r.huts} fences ${r.fences} beasts/smashed wisps/lured newcomers ${r.rare} housed@autumn ${r.housedAutumn < 0 ? '—' : Math.round(r.housedAutumn * 100) + '%'} specialists ${r.specialists} friends ${r.friends} winterStarve ${r.winterStarve} winterDeaths ${r.winterDeaths} spoiled ${r.spoiled} mash/dried ${r.preserved} generations ${r.generations} hue ${r.hue} (drift ${r.hueDrift.toFixed(1)}°) ill [${r.ill}] tended ${r.tended} remedies ${r.remedies} wildfires [${r.wildfires}] floods/droughts/blight/stars ${r.disasters} buried/mounds/mourned ${r.rites} hunted ${r.wild} fished ${r.econ} settle [${r.settle}] garden [${r.garden}] commons [${r.commons}] mood [${r.mood}] society [${r.society}] ate [${r.foods}] recovered ${r.watch.recovered}/${r.watch.judged} (worst dip ${Math.round((1 - r.watch.worst) * 100)} %)${r.watch.misses.length ? ' [' + r.watch.misses.join('; ') + ']' : ''} tick ${r.tickMs.toFixed(3)}ms ${r.fails.length ? 'FAIL ' + r.fails.join(',') : 'ok'}`);
 }
 const lines = [
   `# Balance report — ${days} days × ${seedCount} seeds${noCraft ? ' (control: no crafting)' : ''}${noPreserve ? ' (control: no preservation)' : ''}`,

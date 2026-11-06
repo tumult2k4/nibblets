@@ -1,15 +1,18 @@
 /**
- * Scripted gods for the balance runner (P8.9): `--god absent|kind|benevolent|stern|wrathful` plays a Divine-mode
+ * Scripted gods for the balance runner (P8.9): `--god absent|kind|benevolent|stern|wrathful|chaotic` plays a Divine-mode
  * world the way such a god would, through the same commands the UI sends, once an in-game hour (and spends favor as
  * it earns it).
  *  - absent: never acts (faith should fall to the piety floors).
- *  - benevolent: the kind god who also lays out apples every morning (dependence, §17.5).
+ *  - benevolent (§20.4): the kind god who also lays out apples every morning (dependence, §17.5), drops food
+ *    of a morning when the store holds under 3 days and heals the sick and badly hurt.
+ *  - chaotic (§20.4): one random power a day.
  *  - kind: answers the most pressing prayer it can, blesses the saddest goblin each morning, feeds a famine,
  *    and now and then signs "worship" or "gather food" to the faithful; lightning only at Gnashers.
  *  - stern: answers only prayers in despair, keeps the village at work with stern signs (gather, build), smites
  *    Gnashers near the village.
  *  - wrathful: answers only revenge and protection, curses the mischievous, throws lightning a few strides from goblins as a show, and
  *    commands worship in a wrathful voice.
+ * `--free` plays them in Sandbox mode (no favor, no tiers) instead of Divine mode.
  */
 import { Rng } from '../src/shared/rng';
 import { CFG } from '../src/sim/config';
@@ -22,9 +25,12 @@ import { answerFor } from '../src/sim/god/answer';
 import { openPrayers } from '../src/sim/god/prayers';
 import { foodStores } from '../src/sim/spoilage';
 import { validate } from '../src/sim/commands';
+import { powerDef } from '../src/sim/god/cast';
 
-export type GodProfile = 'absent' | 'kind' | 'benevolent' | 'stern' | 'wrathful';
-export const GOD_PROFILES: readonly GodProfile[] = ['absent', 'kind', 'benevolent', 'stern', 'wrathful'];
+export type GodProfile = 'absent' | 'kind' | 'benevolent' | 'stern' | 'wrathful' | 'chaotic';
+export const GOD_PROFILES: readonly GodProfile[] = ['absent', 'kind', 'benevolent', 'stern', 'wrathful', 'chaotic'];
+/** the chaotic god's grab bag */
+const CHAOS = ['apple_shower', 'bountiful_growth', 'healing_touch', 'warm_sun', 'blessing', 'inspiration', 'shiny_gift', 'rain', 'clear_sky', 'snowfall', 'lightning', 'swarm', 'curse', 'blight'];
 
 const HOUR = CFG.god.hourTicks, DAY = CFG.time.dayTicks;
 
@@ -48,25 +54,41 @@ export function godPlayer(w: World, profile: GodProfile, seed: number): () => vo
     return false;
   };
   const smiteNear = (r: number): boolean => {
-    const e = w.s.enemies.find((x) => dist(x.pos, w.s.village.center) < r && !w.s.goblins.some((g) => dist(g.pos, x.pos) < 2));
+    const e = w.s.enemies.find((x) => dist(x.pos, w.s.village.center) < r && !w.s.goblins.some((g) => dist(g.pos, x.pos) < 4)); // (closer, its fire has killed goblins)
     return !!e && tryCmd({ type: 'god_cast', power: 'lightning', pos: { x: e.pos.x, y: e.pos.y } });
+  };
+  /** chaotic: one random power a day, at a random goblin (lightning a few strides off it), at a random hour */
+  let chaosHour = 12;
+  const chaos = (): boolean => {
+    const g = rng.pick(w.s.goblins), d = powerDef(rng.pick(CHAOS))!;
+    const a = rng.range(0, Math.PI * 2), off = d.id === 'lightning' ? 7 : 0;
+    const pos = { x: g.pos.x + Math.cos(a) * off, y: g.pos.y + Math.sin(a) * off };
+    return tryCmd({ type: 'god_cast', power: d.id, pos, ...(d.target === 'goblin' ? { targetId: g.id } : {}), ...(d.radius ? { radius: d.radius[0] } : {}) });
   };
   return () => {
     const s = w.s;
     if (profile === 'absent' || s.tick % HOUR !== 0 || !s.goblins.length) return;
     const hour = Math.floor((s.tick % DAY) / HOUR);
-    const famine = foodStores(s).days < 1 && s.goblins.some((g) => g.needs.hunger < 30);
-    if (profile === 'kind' || profile === 'benevolent') {
-      if (profile === 'benevolent' && hour === 6) {
-        const p = s.village.stockpilePos, n = Math.min(12, s.goblins.length);
+    const ben = profile === 'benevolent', days = foodStores(s).days;
+    const famine = ben ? hour === 6 && days < 3 : days < 1 && s.goblins.some((g) => g.needs.hunger < 30); // (benevolent: checked each morning)
+    if (profile === 'chaotic') {
+      if (hour === chaosHour) chaos();
+      if (hour === 23) chaosHour = rng.int(6, 22);
+      return;
+    }
+    if (profile === 'kind' || ben) {
+      if (ben && hour === 6) { // breakfast from the sky comes first
+        const p = s.village.stockpilePos, n = Math.min(CFG.god.maxGiftQty, Math.ceil(s.goblins.length * 0.8));
         if (tryCmd({ type: 'god_spawn_item', item: 'apple', qty: n, pos: { x: p.x + rng.range(-2, 2), y: p.y + rng.range(-2, 2) } })) return;
       }
       if (answer()) return;
       if (famine && (tryCmd({ type: 'god_cast', power: 'apple_shower', pos: { ...s.village.stockpilePos }, radius: 4 })
         || tryCmd({ type: 'god_spawn_item', item: 'apple', qty: 6, pos: { ...s.village.stockpilePos } }))) return;
+      const sick = ben && s.goblins.find((g) => g.health.disease?.stage === 'sick' || g.health.hp < g.health.maxHp * 0.5);
+      if (sick && tryCmd({ type: 'god_cast', power: 'healing_touch', pos: { ...sick.pos }, targetId: sick.id })) return;
       if (hour === 7) {
         const sad = [...s.goblins].sort((a, b) => a.mood.value - b.mood.value)[0]!;
-        if (s.god.favor > 40 && tryCmd({ type: 'god_cast', power: 'blessing', pos: { ...sad.pos }, targetId: sad.id })) return;
+        if (s.god.favor > (ben ? 80 : 40) && tryCmd({ type: 'god_cast', power: 'blessing', pos: { ...sad.pos }, targetId: sad.id })) return;
       }
       if (hour === 9 && rng.chance(0.4) && s.god.favor > 30) {
         const fs = faithful();
