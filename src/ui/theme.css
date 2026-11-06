@@ -126,7 +126,7 @@ table.genome td { padding: 1px 4px; border-bottom: 1px solid rgba(0,0,0,.08); }
 .logo { font-size: 6em; font-weight: 600; letter-spacing: .04em; color: var(--parchment); text-shadow: 0 5px 0 var(--bark), 0 10px 20px rgba(0,0,0,.4); position: relative; margin-bottom: 18px; }
 .logo .peek { position: absolute; left: -.05em; top: -.48em; width: .7em; height: .7em; }
 .form { display: grid; grid-template-columns: 160px 1fr; gap: 8px 12px; align-items: center; }
-.form input[type=text], .form select, .form input[type=number] { font-family: var(--font); font-size: 1em; padding: 4px 8px; border: 2px solid var(--bark); border-radius: 8px; background: #fffaf0; }
+.form input[type=text], .form input[type=password], .form select, .form input[type=number] { font-family: var(--font); font-size: 1em; padding: 4px 8px; border: 2px solid var(--bark); border-radius: 8px; background: #fffaf0; }
 .steps { display: flex; gap: 6px; margin-bottom: 12px; } .steps .btn { font-size: .9em; }
 .founders { display: flex; gap: 8px; flex-wrap: wrap; } .founders .f { text-align: center; font-size: .8em; cursor: pointer; }
 .founders canvas { width: 96px; height: 96px; border-radius: 10px; border: 2px solid var(--bark); background: #cfe6f2; }
@@ -207,3 +207,4 @@ table.genome td { padding: 1px 4px; border-bottom: 1px solid rgba(0,0,0,.08); }
 .speechbubble { position: fixed; left: 0; top: 0; z-index: 0; pointer-events: none; max-width: 220px; padding: 5px 10px; border: 2px solid var(--bark); border-radius: 12px; background: #fffaf0; font-family: 'Patrick Hand', 'Fredoka', sans-serif; font-size: 15px; color: var(--ink); box-shadow: 0 2px 6px rgba(0, 0, 0, .2); }
 .speechbubble::after { content: ''; position: absolute; left: 50%; bottom: -9px; margin-left: -7px; border: 7px solid transparent; border-top-color: var(--bark); border-bottom: 0; }
 .skysign.hidden, .speechbubble.hidden { display: none; }
+.sub.warn { color: #9a3b1b; font-weight: 600; }

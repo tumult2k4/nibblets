@@ -3,10 +3,11 @@ import { t, type Lang } from '../i18n';
 import { overlay, field, select, checkbox } from './common';
 import type { Settings } from '../store';
 import { codeLabel, getKeys, resetKeys, setKey } from '../keys';
+import { llmTab } from './llmSettings';
 
-type Tab = 'graphics' | 'gameplay' | 'controls' | 'access' | 'language';
+type Tab = 'graphics' | 'gameplay' | 'controls' | 'access' | 'language' | 'llm';
 
-/** Settings (§18.3): graphics, gameplay, controls (rebinding with conflict swap), accessibility, language. */
+/** Settings (§18.3): graphics, gameplay, controls (rebinding with conflict swap), accessibility, language, the LLM voices (P9.1). */
 export function settingsScreen(cur: Settings, gentle: boolean, apply: (s: Settings, gentle: boolean) => void, close: () => void): HTMLElement {
   let s = { ...cur };
   let g = gentle;
@@ -48,7 +49,7 @@ export function settingsScreen(cur: Settings, gentle: boolean, apply: (s: Settin
     return el('div', {}, el('div.sub', { text: t('set.rebind') }), grid, el('button.btn', { style: 'margin-top:8px', onclick: () => { resetKeys(); render(); } }, t('set.reset')));
   };
   const render = () => {
-    const names: Tab[] = ['graphics', 'gameplay', 'controls', 'access', 'language'];
+    const names: Tab[] = ['graphics', 'gameplay', 'controls', 'access', 'language', 'llm'];
     tabs.replaceChildren(...names.map((n) => el(`button.btn${n === tab ? '.on' : ''}`, { onclick: () => { tab = n; render(); } }, t(`set.${n}`))));
     let content: HTMLElement;
     if (tab === 'graphics')
@@ -70,6 +71,7 @@ export function settingsScreen(cur: Settings, gentle: boolean, apply: (s: Settin
       content = el('div.form', {},
         ...field(t('set.uiScale'), num('uiScale', 0.8, 1.5, 0.05)),
         ...field(t('set.reducedMotion'), checkbox(s.reducedMotion, (v) => set('reducedMotion', v))));
+    else if (tab === 'llm') content = llmTab();
     else content = el('div.form', {}, ...field(t('set.language'), select<Lang>([['en', t('set.english')], ['de', t('set.german')]], s.language, (v) => set('language', v))));
     body.replaceChildren(content);
   };
