@@ -4,6 +4,7 @@
  * are struck turn on their attacker unless hurt or crowded; at 0 hp they drop a pelt and a bone (and any loot).
  */
 import { CFG } from './config';
+import { moodWorkMul } from './goblin/mood';
 import { clamp, dist, q4 } from '../shared/math';
 import { killGoblin } from './goblin/needs';
 import { express } from './goblin/genetics/phenotype';
@@ -25,7 +26,8 @@ const C = CFG.combat;
 
 export const hasInjury = (g: Goblin, k: Injury['kind']): boolean => g.health.injuries.some((i) => i.kind === k);
 /** Work speed: a bruised arm slows chopping, mining, building and crafting by 20 %; so does being ill (P6.1). */
-export const workMul = (g: Goblin): number => (hasInjury(g, 'bruised_arm') ? C.armMul : 1) * diseaseWorkMul(g);
+/** Work speed: a bruised arm, sickness and mood (§7.5, ×0.7 miserable to ×1.2 glowing). */
+export const workMul = (g: Goblin): number => (hasInjury(g, 'bruised_arm') ? C.armMul : 1) * diseaseWorkMul(g) * moodWorkMul(g);
 export const isVeteran = (g: Goblin): boolean => g.traits.includes('veteran');
 const combatSkill = (g: Goblin): number => skillLevel(g, 'combat');
 

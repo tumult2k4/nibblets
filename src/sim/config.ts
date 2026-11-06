@@ -9,6 +9,7 @@ import { BUILDINGS } from './cfg/buildings';
 import { SETTLEMENT } from './cfg/settlement';
 import { GARDEN } from './cfg/garden';
 import { COMMONS } from './cfg/commons';
+import { MOOD } from './cfg/mood';
 
 export const CFG = {
   tickHz: 10,
@@ -278,7 +279,7 @@ export const CFG = {
   health: HEALTH,
   /** P6.2–P6.3 fire, floods, drought, blight, shooting stars: see cfg/disasters.ts */
   disasters: DISASTERS,
-  death: DEATH, miracles: MIRACLES, wildlife: WILDLIFE, economy: ECONOMY, settlement: SETTLEMENT, garden: GARDEN, commons: COMMONS,
+  death: DEATH, miracles: MIRACLES, wildlife: WILDLIFE, economy: ECONOMY, settlement: SETTLEMENT, garden: GARDEN, commons: COMMONS, mood: MOOD,
   llm: { diariesPerDay: 3, dialoguesPerDay: 4, barksPerDay: 6, tokensPerDay: 12000, rpm: 10, concurrency: 2, timeoutMs: 20000 },
   god: {
     startFavor: 50, maxFavorBase: 100, maxFavorPerBeliever: 15, believerFaith: 40, prayingFavorMul: 3,

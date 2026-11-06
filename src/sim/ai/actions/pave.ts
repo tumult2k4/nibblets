@@ -8,7 +8,7 @@ import { dist } from '../../../shared/math';
 import { addItem, countItem, removeItems } from '../../inventory';
 import { faceToward, moveAlong, planPath } from '../../steering';
 import { deposit, stockCount, withdraw } from '../../stockpile';
-import { gainXp, skillSpeed } from '../../goblin/skills';
+import { gainXp, workSpeed } from '../../goblin/skills';
 import { knows } from '../../recipes';
 import { pave, paveRun, paveWanted } from '../../roads';
 import { storePos } from '../../commons';
@@ -63,7 +63,7 @@ export const PavePath: UtilityAction = {
     if (a.stage === 1) { a.stage = 2; a.progress = 0; }
     g.velocity = { x: 0, y: 0 };
     faceToward(g, a.target!);
-    if (++a.progress < Math.round(P.ticks / skillSpeed(g, 'building'))) return 'running';
+    if (++a.progress < Math.round(P.ticks / workSpeed(g, 'building'))) return 'running';
     const x = Math.floor(a.target!.x), y = Math.floor(a.target!.y);
     if (pave(w.s, x, y)) {
       removeItems(g, 'stone', 1);

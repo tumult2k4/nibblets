@@ -247,7 +247,7 @@ export class Renderer {
     }
   }
 
-  /** State-derived emotes, checked every few seconds: sweat when starving/parched, a tune when happy. */
+  /** State-derived emotes, checked every few seconds: sweat when starving/parched, a tune when happy, anger, tears. */
   private ambientEmotes(dt: number): void {
     this.moodCheck -= dt;
     if (this.moodCheck > 0) return;
@@ -255,6 +255,8 @@ export class Renderer {
     for (const g of this.world.s.goblins) {
       if (g.needs.hunger < 15 || g.needs.thirst < 15) this.emotes.show(g.id, 'sweat');
       else if (g.mood.value > 60 && (g.activity.action === 'wander' || g.activity.action === 'idle') && Math.random() < 0.15) this.emotes.show(g.id, 'music');
+      else if (g.mood.emotion === 'angry' && Math.random() < 0.12) this.emotes.show(g.id, 'anger'); // P8.1: a scowl, a tear
+      else if ((g.mood.emotion === 'sad' || g.mood.emotion === 'grieving' || g.activity.action === 'sulk') && Math.random() < 0.08) this.emotes.show(g.id, 'tear');
     }
   }
 

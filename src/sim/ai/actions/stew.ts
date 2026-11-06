@@ -11,7 +11,7 @@ import { faceToward, moveAlong, planPath } from '../../steering';
 import { deposit, withdraw } from '../../stockpile';
 import { workSpot } from '../../buildings';
 import { isLit } from '../../fire';
-import { gainXp, skillSpeed } from '../../goblin/skills';
+import { gainXp, workSpeed } from '../../goblin/skills';
 import { STEW_FOODS, stewFrom, stewHearth, stewInputs } from '../../settlement';
 import { busy } from './village';
 import type { Goblin } from '../../state';
@@ -85,7 +85,7 @@ export const CookStew: UtilityAction = {
     g.velocity = { x: 0, y: 0 };
     faceToward(g, b.pos);
     if (!isLit(b)) return home(g, w); // the fire went out
-    if (++a.progress < Math.round(S.ticks / skillSpeed(g, 'cooking'))) return 'running';
+    if (++a.progress < Math.round(S.ticks / workSpeed(g, 'cooking'))) return 'running';
     a.progress = 0;
     const set = stewFrom((t) => countItem(g, t));
     if (!set) return home(g, w);

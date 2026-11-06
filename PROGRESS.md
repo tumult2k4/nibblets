@@ -1,5 +1,5 @@
 # Nibblets progress
-Current: Phase 8 — P8.1 full mood system
+Current: Phase 8 — P8.2 trinkets
 ## Done
 - [x] P1.1 scaffold: Vite + strict TS, ESLint flat config with sim architecture rules, Prettier, Vitest, scripts
 - [x] P1.2 shared/: math, ids, mulberry32 Rng with fork(label), typed EventBus
@@ -77,9 +77,11 @@ Current: Phase 8 — P8.1 full mood system
 - [x] Visible trails by day 20: 45–86 tiles worn past 0.5 on day 20 across the P7.4–P7.6 balance runs (acceptance wants 30); stone paths over the most worn of them
 - [x] Food diversity: 10–13 kinds of food eaten per village over 96 days (apples, mash, dried apples, cores, berries, stew, grilled fish, roast meat, glowcaps, mushrooms, raw fish and meat), the runner fails a seed below 3
 - [x] No regression vs P6 survival (96 days × 5 seeds): 8–11 deaths a village, almost all old age (0–1 disease; Phase 6 had 8–11 with one dehydration on two seeds), no starvation or cold deaths; every village back to ≥ 70 % of its population a season after every disaster on 5/5 seeds (180 judged, worst dip 21 %, Phase 6: 25 %). End population 9–15 (peaks 17–21) against Phase 6's 14–17 (peaks 19–23): on seeds 2 and 4 fewer eggs were laid in the second year (10 against 15–17 with the Phase 6 code); a wider check (14 seeds to day 40, P7.4 against P7.6) put births within seed-to-seed noise (119 against 108 eggs, mates 40 against 43 on the 8 extra seeds), so this is noted, not fixed
+- [x] P8.1 full mood system: mood sets the pace of all work (×0.7 to ×1.2), favorite foods, the full moon for the pious, cold rain on the unsheltered, emotions read off needs and grievances (angry, excited and the rest) and shown on the body (head, ears, idle poses, emotes); mood breaks after half a day below −70, rolled by personality (tantrum smashing something owned or kicking the home, sulking apart, bingeing on the store, wandering off for a day and sometimes back with a trinket), with relief after and no work, company or play during; a day above 80 lights a day of inspiration; inspector names modifiers and shows the favorite food; balance runner reports mood
 ## Next
-- [ ] P8.1 full mood system with modifiers and emotions; emotion animations; mood breaks; inspiration
+- [ ] P8.2 trinkets (§12.1), `HuntTrinket`, `Decorate`, trinket value, hut shelves rendering
 ## Notes / known issues
+- Balance (64 days × 5 seeds, after P8.1): pop 17–21, 0–1 deaths (old age), no winter starvation; mean mood 49–55, no mood breaks (nothing in normal play keeps a goblin under −70 for half a day; breaks come with hardship and grief) and 4–7 inspirations per village; tick 0.9–1.1 ms.
 - Balance (96 days × 5 seeds, Phase 7 acceptance): pop 9–15 at the end (peaks 17–21), 8–11 deaths a village (old age; one disease death on two seeds), 3 generations, 5–8 floods, 3–9 blight outbreaks and 15–28 lightning strikes per village, all recovered from; 0–94 hoppers hunted, 75–99 compost made where a heap stands, 82–91 tiles paved, 0–20 fur cloaks; ~0.9–1.1 ms/tick.
 - Balance (64 days × 5 seeds, after P7.5): pop 17–22, 0–1 deaths (old age); the material zone is marked on day 0 (the default village starts with a campfire and hut); 0–2 hauls a run (little lies about); mean demand food 0.31–0.36, weapons 0.04–0.12, housing 0.01–0.16, repair 0–0.11; 0–15 fur cloaks (where hunting took off), 0–7 necklaces, 0–2 war paints; compost heaps now stand on 3 seeds (47–62 compost made, 21–30 spread); tick 1.2–1.3 ms.
 - Balance (64 days × 5 seeds, after P7.4): pop 16–21, 0–2 deaths (old age, a fight); 0–3 garden plots with 0–6 bushes in them, 26–39 compost made and 22–26 spread where a heap stands, 78–91 tiles paved per village, 50–75 tiles worn past 0.5 by day 20 (acceptance wants 30), 8–11 kinds of food eaten; no bridges (the default island has no crossing worth one; the tests cover them).

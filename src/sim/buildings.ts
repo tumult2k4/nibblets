@@ -1,7 +1,8 @@
 /** Buildings (§10.1–10.2): site finding, blueprints, material delivery bookkeeping, labor, completion. */
 import { workMul } from './combat';
 import { CFG } from './config';
-import { clamp, dist, q4 } from '../shared/math';
+import { moodWorkMul } from './goblin/mood';
+import { dist, q4 } from '../shared/math';
 import { allocId } from '../shared/ids';
 import { fnv1a } from '../shared/rng';
 import type { BuildingType, ID, ItemStack, ItemType, Vec2 } from '../shared/types';
@@ -157,10 +158,10 @@ export function placeBlueprint(w: World, type: BuildingType, pos: Vec2, ownerId:
   return b;
 }
 
-/** Labor rate per tick (§10.2): 0.002 × (1 + skill × 0.15) × mood speed, ×1.3 when a friend works alongside. */
+/** Labor rate per tick (§10.2): 0.002 × (1 + skill × 0.15) × mood speed (×0.7..×1.2), ×1.3 when a friend works alongside. */
 export function laborRate(w: World, g: Goblin, b: Building): number {
   const skill = skillLevel(g, 'building');
-  const mood = 0.95 + 0.25 * clamp(g.mood.value / 100, -1, 1);
+  const mood = moodWorkMul(g);
   let rate = B.buildRate * (1 + skill * B.skillBonus) * mood * (buildingDef(b.type)?.labor ?? 1);
   const friend = w.s.goblins.some((o) => o.id !== g.id && o.activity.action === 'build' && o.activity.targetId === b.id
     && (g.relationships.find((r) => r.targetId === o.id)?.opinion ?? 0) >= CFG.social.friend);

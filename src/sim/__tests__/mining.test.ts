@@ -61,6 +61,7 @@ describe('mining, sticks and tool durability (P4.1)', () => {
     const bare = mineOnce(w, g);
     g.inventory = [];
     g.skills = {}; // compare the tool alone, not the practice
+    g.mood.value = 0; // nor the mood (P8.1)
     addItem(g, { type: 'pick', qty: 1 });
     expect(mineTicks(g)).toBe(CFG.mining.ticksPerStone / 2);
     const fast = mineOnce(w, g);

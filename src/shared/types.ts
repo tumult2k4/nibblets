@@ -174,7 +174,8 @@ export type SimEvent = BaseEvent &
     | { type: 'trait_gained'; goblinId: ID; trait: string }
     | { type: 'sickness'; goblinId: ID; disease: DiseaseId; phase: 'infected' | 'symptomatic' | 'recovered' | 'died' }
     | { type: 'trinket_found'; goblinId: ID; trinket: TrinketKind; rarity: Rarity }
-    | { type: 'mood_break'; goblinId: ID; kind: MoodBreakKind }
+    | { type: 'mood_break'; goblinId: ID; kind: MoodBreakKind; item?: ItemType; at?: Vec2 }
+    | { type: 'inspired'; goblinId: ID; at: Vec2 }
     | { type: 'festival'; kind: FestivalKind; phase: 'start' | 'end' }
     | { type: 'chief_chosen'; goblinId: ID; previousId: ID | null }
     | { type: 'trade'; aId: ID; bId: ID; gave: ItemStack[]; got: ItemStack[] }

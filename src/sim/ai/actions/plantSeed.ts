@@ -9,7 +9,7 @@ import type { World } from '../../world';
 import { findPlantingSite } from '../targets';
 import type { Goblin } from '../../state';
 import type { UtilityAction } from '../action';
-import { gainXp, skillSpeed } from '../../goblin/skills';
+import { gainXp, workSpeed } from '../../goblin/skills';
 
 /** Growing apple plants near the village: a full nursery makes planting less urgent. Cached per tick. */
 let cache = { tick: -1, n: 0, s: null as unknown };
@@ -42,7 +42,7 @@ export const PlantSeed: UtilityAction = {
       if (moveAlong(w, g) !== 'arrived') return 'running';
       if (!siteOk(w, site, CFG.plants.minSeedGap)) return 'failed'; // someone planted here first
       a.stage = 1;
-      a.progress = Math.round(CFG.plants.plantTicks / skillSpeed(g, 'farming'));
+      a.progress = Math.round(CFG.plants.plantTicks / workSpeed(g, 'farming'));
       faceToward(g, site);
     }
     a.progress -= 1;

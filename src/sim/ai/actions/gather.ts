@@ -12,7 +12,7 @@ import { stockCount } from '../../stockpile';
 import { materialWanted } from '../wants';
 import { craftWant } from '../../crafting';
 import { knows } from '../../recipes';
-import { gainXp, skillSpeed } from '../../goblin/skills';
+import { gainXp, workSpeed } from '../../goblin/skills';
 import { busy } from './village';
 import type { GrassPatch, Goblin, Plant } from '../../state';
 import type { World } from '../../world';
@@ -56,7 +56,7 @@ export const CutGrass: UtilityAction = {
     if (a.stage === 0) {
       if (moveAlong(w, g) !== 'arrived') return 'running';
       a.stage = 1;
-      a.progress = Math.round(F.cutTicks / skillSpeed(g, 'forage'));
+      a.progress = Math.round(F.cutTicks / workSpeed(g, 'forage'));
     }
     g.velocity = { x: 0, y: 0 };
     faceToward(g, p.pos);

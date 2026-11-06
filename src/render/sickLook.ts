@@ -8,6 +8,7 @@ import * as THREE from 'three';
 import type { Goblin } from '../sim/state';
 import { sickness } from '../sim/disease';
 import type { GoblinRig } from './goblinMesh';
+import { emotionPose } from './emotionPose';
 
 const spotGeo = new THREE.IcosahedronGeometry(0.03, 0).scale(1, 1, 0.45);
 const mats = new Map<string, THREE.MeshLambertMaterial>();
@@ -38,8 +39,8 @@ function spots(color: string, seed: number, r: GoblinRig): THREE.Group {
   return grp;
 }
 
-/** Called each frame after the pose is set. */
-export function sickLook(g: Goblin, r: GoblinRig, t: number): void {
+/** Called each frame after the pose is set; returns the emotion's ear flattening (emotionPose). */
+export function sickLook(g: Goblin, r: GoblinRig, t: number): number {
   const def = sickness(g);
   const color = def?.symptoms.color;
   const has = r.body.getObjectByName('spots');
@@ -64,4 +65,5 @@ export function sickLook(g: Goblin, r: GoblinRig, t: number): void {
     r.body.position.y = 0.05; r.legL.rotation.x = r.legR.rotation.x = -1.25;
     r.head.rotation.x = 0.45; r.armL.rotation.x = r.armR.rotation.x = -0.5; r.armL.rotation.z = 0.3; r.armR.rotation.z = -0.3;
   }
+  return emotionPose(g, r, t);
 }

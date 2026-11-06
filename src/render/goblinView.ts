@@ -241,7 +241,7 @@ export class GoblinViews {
       r.head.rotation.y = Math.sin(t * 0.5 + g.id * 1.3) * 0.5;
       earFlop = Math.max(0, Math.sin(t * 2.3 + g.id * 2)) ** 20 * 0.4;
     }
-    sickLook(g, r, t);
+    earFlop += sickLook(g, r, t); // and the emotion shown (P8.1)
     r.earL.rotation.z = earBaseL - earFlop;
     r.earR.rotation.z = earBaseR + earFlop;
     // blink

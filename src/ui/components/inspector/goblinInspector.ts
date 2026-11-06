@@ -22,6 +22,7 @@ import { feltTemperature, isWet, shelterOf, huddleBonus } from '../../../sim/tem
 import { MAX_LEVEL, SKILLS, skillLevel } from '../../../sim/goblin/skills';
 import { diseaseDef } from '../../../sim/disease';
 import { quarantined } from '../../../sim/quarantine';
+import { favoriteFood, isInspired } from '../../../sim/goblin/mood';
 
 export const bar = (v: number, color = 'var(--moss)'): HTMLElement => el('div.bar', {}, el('i', { style: `width:${Math.max(0, Math.min(100, v))}%;background:${color}` }));
 const row = (label: string, v: number, shown: string, color?: string) =>
@@ -84,7 +85,16 @@ function modLabel(id: string, w: World): string {
     const deadId = Number(id.slice(6));
     return t('mod.grief', { name: w.s.graves.find((gr) => gr.goblinId === deadId)?.name ?? w.s.lineage[deadId]?.name ?? '?' });
   }
-  return id.replace(/_/g, ' ');
+  const k = `mod.${id.split(':')[0]}`, s = t(k);
+  return s === k ? id.replace(/_/g, ' ') : s;
+}
+
+/** Favorite food, a mood break under way, inspiration (P8.1). */
+function moodTags(g: Goblin, w: World): string[] {
+  const tags = [t('insp.favorite', { item: t(`item.${favoriteFood(g)}`) })];
+  if (g.moodBreak) tags.push(t('insp.onBreak', { kind: t(`break.${g.moodBreak.kind}`) }));
+  if (isInspired(g, w)) tags.push(t('insp.inspired'));
+  return tags;
 }
 
 export function statusTab(g: Goblin, w: World): HTMLElement {
@@ -110,6 +120,7 @@ export function statusTab(g: Goblin, w: World): HTMLElement {
     el('h3', { text: t('insp.mood') }),
     row(t(`emotion.${g.mood.emotion}`), (mood + 100) / 2, String(Math.round(mood)), mood < -30 ? 'var(--apple)' : 'var(--gold)'),
     mods.length ? el('div.sub', { text: mods.join(' · ') }) : null,
+    el('div.sub', { text: moodTags(g, w).join(' · ') }),
     el('h3', { text: t('insp.health') }),
     row(t('insp.hp'), (g.health.hp / g.health.maxHp) * 100, `${Math.round(g.health.hp)}/${g.health.maxHp}`, needColor((g.health.hp / g.health.maxHp) * 100)),
     woundsLine(g) ? el('div.sub', { text: woundsLine(g) }) : null,

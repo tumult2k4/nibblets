@@ -75,7 +75,7 @@ describe('building system (§10.1–10.2, P3.3)', () => {
     b.storage.push({ type: 'wood', qty: 6 });
     g.mood.value = 0;
     const base = laborRate(w, g, b);
-    expect(base).toBeCloseTo(0.002 * 0.95, 6);
+    expect(base).toBeCloseTo(0.002, 6); // a level mood: ×1 (P8.1)
     g.skills.building = xpFor(4);
     expect(laborRate(w, g, b)).toBeCloseTo(base * 1.6, 6);
     g.skills.building = 0;

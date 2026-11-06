@@ -47,6 +47,7 @@ describe('Disease (P6.1, §14.3)', () => {
     expect(infect(w, g, 'spotted_fever')).toBe(true);
     expect(g.health.disease).toMatchObject({ id: 'spotted_fever', stage: 'incubating' });
     expect(isSick(g)).toBe(false);
+    g.mood.value = 0; // mood's own hand in work speed aside (P8.1)
     expect(workMul(g)).toBe(1);
     tickDiseases(w, 2 * DAY + 2);
     expect(isSick(g)).toBe(true);

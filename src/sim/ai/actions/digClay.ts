@@ -9,7 +9,7 @@ import type { Goblin } from '../../state';
 import type { World } from '../../world';
 import type { UtilityAction } from '../action';
 import { moveAlong, planPath } from '../../steering';
-import { gainXp, skillSpeed } from '../../goblin/skills';
+import { gainXp, workSpeed } from '../../goblin/skills';
 import { addItem, canCarry } from '../../inventory';
 import { clayNear } from '../../kiln';
 import { knows } from '../../recipes';
@@ -46,7 +46,7 @@ export const DigClay: UtilityAction = {
     if (a.stage === 0) {
       if (moveAlong(w, g) !== 'arrived') return 'running';
       a.stage = 1;
-      a.progress = Math.round(C.digTicks / skillSpeed(g, 'mining'));
+      a.progress = Math.round(C.digTicks / workSpeed(g, 'mining'));
     }
     g.velocity = { x: 0, y: 0 };
     if (--a.progress > 0) return 'running';

@@ -5,6 +5,7 @@
  */
 import { CFG } from '../config';
 import { q4 } from '../../shared/math';
+import { moodWorkMul } from './mood';
 import type { SkillId } from '../../shared/types';
 import type { ActionId, Goblin } from '../state';
 import type { World } from '../world';
@@ -44,6 +45,8 @@ export function xpFor(level: number): number {
 export const skillLevel = (g: Goblin, id: SkillId): number => levelOf(g.skills[id] ?? 0);
 /** Work pace from skill: +10 % per level. */
 export const skillSpeed = (g: Goblin, id: SkillId): number => 1 + K.speedPerLevel * skillLevel(g, id);
+/** Work pace from skill and mood (§7.5: ×0.7 miserable to ×1.2 glowing). */
+export const workSpeed = (g: Goblin, id: SkillId): number => skillSpeed(g, id) * moodWorkMul(g);
 
 /**
  * Practice makes perfect: add XP (industrious goblins learn faster); a whole new level is an event. Younglings

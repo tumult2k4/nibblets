@@ -55,6 +55,7 @@ import { CookStew } from './actions/stew';
 import { SpreadCompost, TendCompost } from './actions/compost';
 import { PavePath } from './actions/pave';
 import { HaulToStockpile } from './actions/haul';
+import { Binge, Sulk, WanderOff } from './actions/moodBreak';
 import { demandMul } from '../commons';
 import { DigClay } from './actions/digClay';
 
@@ -73,7 +74,7 @@ export const ACTIONS: Record<ActionId, UtilityAction> = {
   rest_sick: RestSick, tend_sick: TendSick, extinguish_fire: ExtinguishFire, escape_fire: EscapeFire,
   cull_blight: CullBlight, bury_dead: BuryDead, mourn: Mourn, hunt: Hunt, fish: Fish, dig_clay: DigClay, cook_stew: CookStew,
   tend_compost: TendCompost, spread_compost: SpreadCompost, pave_path: PavePath,
-  haul_to_stockpile: HaulToStockpile,
+  haul_to_stockpile: HaulToStockpile, sulk: Sulk, binge: Binge, wander_off: WanderOff,
 };
 const CHOOSABLE = (Object.values(ACTIONS) as UtilityAction[]).filter((a) => !a.forced);
 
@@ -96,6 +97,7 @@ export function scoreActions(g: Goblin, w: World, noise = true, planned: ActionI
   const rows: ScoreRow[] = [];
   for (const a of CHOOSABLE) {
     if (!stageAtLeast(g.lifeStage, a.minStage) || !a.isAvailable(g, w)) continue;
+    if (g.moodBreak && a.tags.some((t) => t === 'work' || t === 'social' || t === 'fun')) continue; // P8.1: no work, company or play on a break
     let base = a.score(g, w);
     // §7.4 focus: the planner's chosen step gets ×1.5 and a floor so low-scoring steps (explore) still happen
     const fo = planned === a.id ? CFG.planner.focus : 1;

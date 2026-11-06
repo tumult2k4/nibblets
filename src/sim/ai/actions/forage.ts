@@ -10,7 +10,7 @@ import { looksEdible, mushroomItem, removeMushroom } from '../../ecology';
 import type { Goblin } from '../../state';
 import type { World } from '../../world';
 import type { UtilityAction } from '../action';
-import { gainXp, skillSpeed } from '../../goblin/skills';
+import { gainXp, workSpeed } from '../../goblin/skills';
 import { knows } from '../../recipes';
 import { countItem } from '../../inventory';
 import { stockCount } from '../../stockpile';
@@ -91,7 +91,7 @@ export const Forage: UtilityAction = {
       if (dist(g.pos, m.pos) < 0.5) a.path = [];
       if (moveAlong(w, g) !== 'arrived') return 'running';
       a.stage = 1;
-      a.progress = Math.round(M.forageTicks / skillSpeed(g, 'forage'));
+      a.progress = Math.round(M.forageTicks / workSpeed(g, 'forage'));
       faceToward(g, m.pos);
     }
     if (--a.progress > 0) return 'running';

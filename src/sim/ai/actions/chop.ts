@@ -11,7 +11,7 @@ import { woodWanted } from '../wants';
 import type { Goblin, Plant } from '../../state';
 import type { World } from '../../world';
 import type { UtilityAction } from '../action';
-import { gainXp, skillSpeed } from '../../goblin/skills';
+import { gainXp, workSpeed } from '../../goblin/skills';
 
 const P = CFG.plants;
 
@@ -78,13 +78,13 @@ export const Chop: UtilityAction = {
       if (moveAlong(w, g) !== 'arrived') return 'running';
       faceToward(g, p.pos);
       a.stage = 1;
-      a.progress = Math.round(P.chopTicksPerHit / skillSpeed(g, 'woodcraft'));
+      a.progress = Math.round(P.chopTicksPerHit / workSpeed(g, 'woodcraft'));
     }
     if (--a.progress > 0) return 'running';
     const tool = toolFor(g, 'chop');
     p.hp -= (P.chopHitDmg * tool.mul * workMul(g)) / (p.kind === 'tree' ? P.treeToughness : 1);
     gainXp(w, g, 'woodcraft', CFG.skills.xp.chopHit);
-    a.progress = Math.round(P.chopTicksPerHit / skillSpeed(g, 'woodcraft'));
+    a.progress = Math.round(P.chopTicksPerHit / workSpeed(g, 'woodcraft'));
     if (p.hp > 0) return 'running';
     const tree = p.kind === 'tree';
     const wood = tree ? (p.stage === 'young' ? P.wood.young * 2 : P.wood.tree)

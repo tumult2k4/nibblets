@@ -7,7 +7,7 @@ import { findDryPlant, nearestShores } from '../targets';
 import { wellSpot, wells } from '../../settlement';
 import type { UtilityAction } from '../action';
 import type { Goblin } from '../../state';
-import { gainXp, skillLevel, skillSpeed } from '../../goblin/skills';
+import { gainXp, skillLevel, workSpeed } from '../../goblin/skills';
 
 /**
  * §P2.2: visit water first (cupped hands, "wet hands" for 600 ticks), then splash a dry young plant.
@@ -39,7 +39,7 @@ export const WaterPlant: UtilityAction = {
       case 0:
         if (moveAlong(w, g) !== 'arrived') return 'running';
         a.stage = 1;
-        a.progress = Math.round(CFG.plants.waterTicks / skillSpeed(g, 'farming'));
+        a.progress = Math.round(CFG.plants.waterTicks / workSpeed(g, 'farming'));
         return 'running';
       case 1:
         if (--a.progress > 0) return 'running';
@@ -53,7 +53,7 @@ export const WaterPlant: UtilityAction = {
         if (moveAlong(w, g) !== 'arrived') return 'running';
         faceToward(g, p.pos);
         a.stage = 3;
-        a.progress = Math.round(CFG.plants.waterTicks / skillSpeed(g, 'farming'));
+        a.progress = Math.round(CFG.plants.waterTicks / workSpeed(g, 'farming'));
         return 'running';
       default:
         if (--a.progress > 0) return 'running';

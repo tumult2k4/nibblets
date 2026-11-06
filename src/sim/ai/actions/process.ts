@@ -11,7 +11,7 @@ import { addItem, countItem, removeItems } from '../../inventory';
 import { moveAlong, planPath, faceToward } from '../../steering';
 import { deposit, withdraw } from '../../stockpile';
 import { buildingDef, workSpot } from '../../buildings';
-import { gainXp, skillSpeed } from '../../goblin/skills';
+import { gainXp, workSpeed } from '../../goblin/skills';
 import { RAW_COOKED, rawHeld, rawInStock, isDrying, processJob, processUrge, rackDried, rackLoad, startDrying, surplusApples } from '../../preserve';
 import { isLit } from '../../fire';
 import { observe } from '../../knowledge';
@@ -126,7 +126,7 @@ export const Process: UtilityAction = {
       return countItem(g, 'apple') > 0 ? toStock(g, w) : 'done';
     }
     // grind: one mash per round of work, until fewer than two apples are left
-    if (++a.progress < Math.round(R.grindTicks / skillSpeed(g, 'cooking'))) return 'running';
+    if (++a.progress < Math.round(R.grindTicks / workSpeed(g, 'cooking'))) return 'running';
     a.progress = 0;
     removeItems(g, 'apple', R.grindIn);
     if (addItem(g, { type: 'apple_mash', qty: 1 }) < 1) deposit(w.s, { type: 'apple_mash', qty: 1 });
@@ -141,7 +141,7 @@ export const Process: UtilityAction = {
 function cook(g: Goblin, w: World, b: Building): StepResult {
   const a = g.activity;
   if (!isLit(b)) return toStock(g, w);
-  if (++a.progress < Math.round(COOK.ticks / skillSpeed(g, 'cooking'))) return 'running';
+  if (++a.progress < Math.round(COOK.ticks / workSpeed(g, 'cooking'))) return 'running';
   a.progress = 0;
   const raw = RAW.find((t) => countItem(g, t) > 0);
   if (!raw) return toStock(g, w);

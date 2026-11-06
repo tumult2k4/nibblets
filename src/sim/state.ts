@@ -1,6 +1,6 @@
 /** Plain-data world state (§5). Everything here is serializable; no class instances. */
 import type {
-  Biome, BuildingType, ChatTopic, EnemyKind, ID, ItemStack, LifeStage, PlantKind, PlantStage, Vec2, WeatherKind, Tone, WishIntent,
+  Biome, BuildingType, ChatTopic, EnemyKind, ID, ItemStack, LifeStage, MoodBreakKind, PlantKind, PlantStage, Vec2, WeatherKind, Tone, WishIntent,
 } from '../shared/types';
 import type { Genome } from './goblin/genetics/genome';
 import type { GodState } from './god/godState';
@@ -81,7 +81,8 @@ export type ActionId =
   | 'mine' | 'craft' | 'equip' | 'plan_building' | 'tend_fire' | 'flee' | 'attack' | 'defend_village' | 'guard' | 'repair_building'
   | 'follow_wisp' | 'scatter' | 'chat' | 'comfort' | 'gift' | 'court' | 'lay_egg' | 'incubate_egg' | 'feed_child' | 'follow_parent'
   | 'play' | 'learn' | 'teach' | 'cut_grass' | 'pick_flowers' | 'process' | 'rest_sick' | 'tend_sick' | 'extinguish_fire' | 'escape_fire' | 'cull_blight'
-  | 'bury_dead' | 'mourn' | 'hunt' | 'fish' | 'dig_clay' | 'cook_stew' | 'tend_compost' | 'spread_compost' | 'pave_path' | 'haul_to_stockpile';
+  | 'bury_dead' | 'mourn' | 'hunt' | 'fish' | 'dig_clay' | 'cook_stew' | 'tend_compost' | 'spread_compost' | 'pave_path' | 'haul_to_stockpile'
+  | 'sulk' | 'binge' | 'wander_off';
 
 export interface ActivityState {
   action: ActionId;
@@ -159,7 +160,13 @@ export interface Goblin {
   lastEggTick: number;
   /** P5.9 Fertility gift: until then the next egg comes regardless of the day's roll, the cooldown and lean times */
   fertileUntil?: number;
+  /** P8.1 mood (§7.5): since when mood has been past the break line (or the inspiration line); the break under way;
+   * when the last break and the last spark of inspiration came */
+  moodLow?: number; moodHigh?: number; moodBreak?: MoodBreak; lastBreak?: number; lastInspired?: number;
 }
+
+/** A mood break under way (§7.5): until when, and for wandering off where to. */
+export interface MoodBreak { kind: MoodBreakKind; until: number; at?: Vec2 }
 
 /** A shiny thing (§12.1). P5.9 brings the first ones (the Shiny Gift); hunting, trading and decorating come in P8. */
 export interface Trinket {

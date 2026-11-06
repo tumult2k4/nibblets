@@ -73,6 +73,13 @@ export function noteFor(e: SimEvent, w: World, names: Map<ID, string>): Note | n
       return null;
     case 'goblin_transformed':
       return w.goblin(e.goblinId) ? { ...base, id: e.goblinId, text: t('ev.transformed', { name: name(e.goblinId) }), tier: 'info', icon: 'sparkle' } : null;
+    case 'mood_break': {
+      const text = e.kind !== 'tantrum' ? t(`ev.mood_break.${e.kind}`, { name: name(e.goblinId) })
+        : e.item ? t('ev.tantrum_item', { name: name(e.goblinId), item: t(`item.${e.item}`) }) : t('ev.tantrum_home', { name: name(e.goblinId) });
+      return { ...base, id: e.goblinId, text, tier: 'notable', icon: e.kind === 'tantrum' ? 'bolt' : 'goblin' };
+    }
+    case 'inspired':
+      return { ...base, id: e.goblinId, text: t('ev.inspired', { name: name(e.goblinId) }), tier: 'notable', icon: 'sparkle' };
     case 'trinket_found':
       return { ...base, id: e.goblinId, text: t('ev.trinket_found', { name: name(e.goblinId), trinket: t(`trinket.${e.trinket}`), rarity: t(`rarity.${e.rarity}`) }), tier: 'notable', icon: 'gem' };
     case 'landed':

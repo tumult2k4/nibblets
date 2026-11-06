@@ -9,7 +9,7 @@ import { addItem, countItem, removeItems } from '../../inventory';
 import { moveAlong, planPath, faceToward } from '../../steering';
 import { deposit, stockCount, withdraw } from '../../stockpile';
 import { workSpot } from '../../buildings';
-import { gainXp, skillSpeed } from '../../goblin/skills';
+import { gainXp, workSpeed } from '../../goblin/skills';
 import { compostTarget, feedHeap, heapCompost, heapFill, heaps, spareWaste, spreadCompost } from '../../garden';
 import { busy, isDaytime, othersDoing } from './village';
 import type { Building, Goblin } from '../../state';
@@ -113,7 +113,7 @@ export const SpreadCompost: UtilityAction = {
     if (a.stage === 1) { a.stage = 2; a.progress = 0; }
     g.velocity = { x: 0, y: 0 };
     faceToward(g, a.target!);
-    if (++a.progress < Math.round(C.spreadTicks / skillSpeed(g, 'farming'))) return 'running';
+    if (++a.progress < Math.round(C.spreadTicks / workSpeed(g, 'farming'))) return 'running';
     removeItems(g, 'compost', 1);
     spreadCompost(w.s, a.target!);
     gainXp(w, g, 'farming', CFG.skills.xp.plant);

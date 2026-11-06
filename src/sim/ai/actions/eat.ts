@@ -3,7 +3,7 @@ import { q4 } from '../../../shared/math';
 import { itemDef } from '../../items';
 import { addItem, countItem, foodStack, takeOne } from '../../inventory';
 import { needUrgency } from '../../goblin/needs';
-import { addMood } from '../../goblin/mood';
+import { addMood, ateFood } from '../../goblin/mood';
 import { sharedMeal } from '../../goblin/social';
 import { spawnGroundItem } from '../../groundItems';
 import { siteOk, spawnPlant } from '../../plants';
@@ -45,6 +45,7 @@ function eatStep(g: Goblin, w: World, pick: () => ItemStack | undefined): StepRe
   w.s.stats.eaten += 1;
   if (one.divine) w.s.stats.divineFood += 1;
   if (one.divine) addMood(w, g, 'sky_food', 3, 1800);
+  ateFood(w, g, one.type); // P8.1: its favorite food cheers it
   // P7.3: a stew warms the heart, and more so eaten together
   const stew = one.type === 'stew' ? CFG.settlement.stew : null;
   if (stew) addMood(w, g, 'ate_stew', stew.mood, stew.moodDays * CFG.time.dayTicks);
