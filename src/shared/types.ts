@@ -195,7 +195,7 @@ export type SimEvent = BaseEvent &
     | { type: 'chief_chosen'; goblinId: ID; previousId: ID | null }
     | { type: 'trade'; aId: ID; bId: ID; gave: ItemStack[]; got: ItemStack[] }
     | { type: 'clan_contact' | 'clan_raid' | 'clan_alliance'; clanA: ID; clanB: ID }
-    | { type: 'place_named'; placeId: ID; name: string }
+    | { type: 'place_named'; placeId: ID } // P9.2: worded by language where shown (llm/placeNames.ts)
     | { type: 'superstition_formed' | 'superstition_faded'; omen: string; luck: string; valence: number }
     | { type: 'epithet_earned'; goblinId: ID; epithet: string; at: Vec2 }
     | { type: 'divine_act'; act: DivineActKind; targetId?: ID; witnessIds: ID[] }

@@ -1,0 +1,60 @@
+/**
+ * A goblin in words for the prompts (§19.3 context header, P9.2): name and epithet, life stage, age in seasons, size
+ * and skin color in words ("small", "mossy green"), personality, acquired traits, the three strongest
+ * relationships, the feeling of the moment, the biggest worry, the season and weather, the chief. Worded in the
+ * game's language.
+ */
+import { CFG } from '../sim/config';
+import type { ID } from '../shared/types';
+import type { Goblin, NeedId, WorldState } from '../sim/state';
+import { ageDays } from '../sim/goblin/goblin';
+import { phenotypeOf } from '../sim/goblin/genetics/phenotype';
+import { describePersonality } from '../sim/goblin/personality';
+import { emotionOf } from '../sim/goblin/mood';
+import { clockAt } from '../sim/time';
+import { tIn, type Lang } from '../ui/i18n';
+
+export interface GoblinContext {
+  name: string; epithet: string; stage: string; age: number; sizeWord: string; colorWord: string; descriptor: string;
+  traits: string; relationships: string[]; emotion: string; lowestNeed: string; season: string; weather: string; chief: string;
+}
+
+/** Anyone's name, the living or the dead (the lineage book keeps every name). */
+export const nameOf = (s: WorldState, id: ID | null | undefined): string | null =>
+  id === null || id === undefined ? null : s.goblins.find((g) => g.id === id)?.name ?? s.lineage[id]?.name ?? null;
+
+/** "mossy green", "dark teal", "pale rose red" (12 hues of 30°, from red). */
+export function colorWord(h: number, l: number, lang: Lang): string {
+  const c = tIn(lang, `cx.hue.${Math.floor((((h % 360) + 360 + 15) % 360) / 30)}`);
+  return l < 0.32 ? tIn(lang, 'cx.dark', { c }) : l > 0.66 ? tIn(lang, 'cx.pale', { c }) : c;
+}
+export const sizeWord = (scale: number, lang: Lang): string => tIn(lang, `cx.size.${scale < 0.93 ? 'small' : scale > 1.07 ? 'big' : 'mid'}`);
+
+const NEEDS: NeedId[] = ['hunger', 'thirst', 'energy', 'warmth', 'safety', 'social', 'fun', 'curiosity', 'comfort', 'purpose'];
+
+export function goblinContext(s: WorldState, g: Goblin, lang: Lang): GoblinContext {
+  const ph = phenotypeOf({ genome: g.genome, ageDays: ageDays(g, s.tick), stage: g.lifeStage, hunger: g.needs.hunger, scars: g.health.scars });
+  const rels = [...g.relationships].filter((r) => nameOf(s, r.targetId)).sort((a, b) => Math.abs(b.opinion) - Math.abs(a.opinion)).slice(0, 3).map((r) => {
+    const label = r.bond !== 'none' ? tIn(lang, `cx.rel.${r.bond}`) : tIn(lang, r.opinion >= 20 ? 'cx.rel.likes' : r.opinion <= -20 ? 'cx.rel.dislikes' : 'cx.rel.none');
+    return `${nameOf(s, r.targetId)} (${label})`;
+  });
+  const low = NEEDS.reduce((a, b) => ((g.needs[b] ?? 100) < (g.needs[a] ?? 100) ? b : a));
+  const clock = clockAt(s.tick);
+  const chief = nameOf(s, s.village.chiefId);
+  return {
+    name: g.name,
+    epithet: g.epithet ? tIn(lang, `epithet.${g.epithet}`, { name: g.name }) : '',
+    stage: tIn(lang, `stage.${g.lifeStage}`).toLowerCase(),
+    age: Math.floor(ageDays(g, s.tick) / CFG.time.daysPerSeason),
+    sizeWord: sizeWord(ph.scale, lang),
+    colorWord: colorWord(ph.skinColor.h, ph.skinColor.l, lang),
+    descriptor: describePersonality(g.personality).map((k) => tIn(lang, `word.${k}`)).join(', ') || tIn(lang, 'cx.ordinary'),
+    traits: g.traits.map((x) => tIn(lang, `atrait.${x}`)).join(', ') || tIn(lang, 'cx.none'),
+    relationships: rels,
+    emotion: tIn(lang, `emotion.${emotionOf(g)}`),
+    lowestNeed: tIn(lang, `need.${low}`).toLowerCase(),
+    season: tIn(lang, `season.${clock.season}`),
+    weather: tIn(lang, `weather.${s.weather.kind}`).toLowerCase(),
+    chief: chief ?? tIn(lang, 'cx.nochief'),
+  };
+}

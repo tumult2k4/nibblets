@@ -27,10 +27,12 @@ export interface Settings {
   uiScale: number; reducedMotion: boolean; language: Lang;
   /** §18.4 step 4: ask before a cast that would kill a goblin */
   confirmLethal: boolean;
+  /** P9.2: place names floating over the map (§15.6) */
+  placeNames: boolean;
 }
 export const DEFAULT_SETTINGS: Settings = {
   shadows: 'high', renderScale: 1, outlines: true, fog: true, edgePan: false, invertOrbit: false, autopauseDeath: false,
-  tooltipDelay: 350, uiScale: 1, reducedMotion: false, language: 'en', confirmLethal: true,
+  tooltipDelay: 350, uiScale: 1, reducedMotion: false, language: 'en', confirmLethal: true, placeNames: true,
 };
 
 export interface UIState {

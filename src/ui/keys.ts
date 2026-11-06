@@ -4,7 +4,7 @@ import { loadPref, savePref } from './store';
 export const DEFAULT_KEYS: Record<string, string> = {
   pause: 'Space', speed1: 'Digit1', speed2: 'Digit2', speed3: 'Digit3', speed4: 'Digit4', hand: 'KeyH', gifts: 'KeyG',
   follow: 'KeyF', lens: 'KeyL', cycle: 'Tab', quicksave: 'F5', quickload: 'F9', debug: 'Backquote', rotL: 'KeyQ', rotR: 'KeyE',
-  help: 'F1', inspector: 'KeyI', feed: 'KeyN', terraform: 'KeyT', nature: 'KeyR', wrath: 'KeyZ', miracles: 'KeyM', village: 'KeyY', family: 'KeyK', sandbox: 'KeyB', stats: 'KeyO', prayers: 'KeyP', voice: 'KeyV',
+  help: 'F1', inspector: 'KeyI', feed: 'KeyN', terraform: 'KeyT', nature: 'KeyR', wrath: 'KeyZ', miracles: 'KeyM', village: 'KeyY', family: 'KeyK', sandbox: 'KeyB', stats: 'KeyO', prayers: 'KeyP', voice: 'KeyV', places: 'KeyX',
 };
 // stored bindings from older versions lack newer actions: fill them from the defaults
 let keys: Record<string, string> = { ...DEFAULT_KEYS, ...loadPref('keys', {} as Record<string, string>) };

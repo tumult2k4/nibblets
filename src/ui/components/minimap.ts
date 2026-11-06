@@ -34,10 +34,16 @@ export class Minimap implements Component {
     this.renderLenses();
   }
 
+  /** P9.2: place names on the map, on or off */
+  private placesChip(): HTMLElement {
+    const st = this.ctx.store.state.settings;
+    return el(`button.btn${st.placeNames !== false ? '.on' : ''}`, { onclick: () => { this.ctx.applySettings({ ...this.ctx.store.state.settings, placeNames: st.placeNames === false }); this.renderLenses(); } }, `⚑ ${t('mm.places')}`);
+  }
+
   renderLenses(): void {
     const cur = this.ctx.store.state.lens;
     this.lenses.replaceChildren(el('span.sub', { text: `${t('mm.lens')}:`, style: 'font-size:.75em' }), ...LENSES.map((l) =>
-      el(`button.btn${l === cur ? '.on' : ''}`, { onclick: () => this.ctx.store.set({ lens: l }) }, t(`lens.${l}`))));
+      el(`button.btn${l === cur ? '.on' : ''}`, { onclick: () => this.ctx.store.set({ lens: l }) }, t(`lens.${l}`))), this.placesChip());
     if (cur !== 'genetics') return;
     // genetics lens (P5.9): color by one locus instead of skin hue, with a line on what the colors mean
     const locus = this.ctx.store.state.geneLocus ?? null;

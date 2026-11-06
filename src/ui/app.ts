@@ -19,6 +19,8 @@ import { DebugOverlay } from './components/debugOverlay';
 import { VillagePanel } from './components/villagePanel';
 import { PrayersPanel } from './components/prayersPanel';
 import { VoicePanel } from './components/voicePanel';
+import { PlaceLabels } from './placeLabels';
+import { EventLog } from '../llm/eventLog';
 import { StatsPanel } from './components/statsPanel';
 import { FamilyTree } from './components/familyTree';
 import { SandboxDrawer } from './components/sandbox/drawer';
@@ -42,6 +44,10 @@ export class App implements Ctx {
   tray!: GiftTray;
   minimap!: Minimap;
   voice!: VoicePanel;
+  /** P9.2: place names over the map */
+  readonly places = new PlaceLabels(this);
+  /** P9.2: what happened, by day, for the LLM layer's prompts (never read by the sim) */
+  readonly log = new EventLog();
   private comps: Component[] = [];
   private hud = el('div', { style: 'position:absolute;inset:0;pointer-events:none' });
   private lastUpdate = 0;
@@ -104,6 +110,7 @@ export class App implements Ctx {
   private frame(dt: number): void {
     this.input.frame(dt);
     this.fx.frame(dt);
+    this.places.frame();
     if (this.store.state.screen !== 'title') for (const c of this.comps) c.frame?.(dt);
     const now = performance.now();
     if (now - this.lastUpdate > 100) {
@@ -116,6 +123,7 @@ export class App implements Ctx {
     if (this.store.state.screen === 'title') return;
     const w = this.game.world;
     for (const g of w.s.goblins) this.names.set(g.id, g.name);
+    this.log.record(evs, w.s);
     for (const e of evs) {
       const n = noteFor(e, w, this.names);
       if (n) {

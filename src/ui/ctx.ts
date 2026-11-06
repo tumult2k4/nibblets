@@ -1,6 +1,6 @@
 import type { EntityKind } from '../render/picking';
 import type { Game } from '../game';
-import type { Store } from './store';
+import type { Settings, Store } from './store';
 import type { ID, Vec2 } from '../shared/types';
 import type { Command } from '../sim/commands';
 
@@ -17,6 +17,8 @@ export interface Ctx {
   quickSave(): Promise<void>;
   quickLoad(): Promise<void>;
   readOnly(): boolean;
+  /** change and keep the player's settings (P9.2: the place-name toggle) */
+  applySettings(s: Settings): void;
 }
 
 export interface Component {

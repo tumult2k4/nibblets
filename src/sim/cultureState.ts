@@ -39,6 +39,8 @@ export interface Culture {
   /** how many of `signs` have been read */
   read?: number;
   beliefs?: Belief[];
+  /** P9.2: named places (§15.6), in the order they were named */
+  places?: import('./places').Place[];
   /** beliefs formed and faded over the years, for the balance runner and the chronicle */
   formed?: number; faded?: number;
 }

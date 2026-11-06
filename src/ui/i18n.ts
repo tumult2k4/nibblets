@@ -7,9 +7,10 @@ import { DE8, EN8 } from './i18n.p8';
 import { DE8B, EN8B } from './i18n.p8b';
 import { DE8C, EN8C } from './i18n.p8c';
 import { DE9, EN9 } from './i18n.p9';
+import { DE9B, EN9B } from './i18n.p9b';
 
-const EN = { ...EN0, ...EN6, ...EN7, ...EN8, ...EN8B, ...EN8C, ...EN9 };
-const DE: Record<string, string> = { ...DE0, ...DE6, ...DE7, ...DE8, ...DE8B, ...DE8C, ...DE9 };
+const EN = { ...EN0, ...EN6, ...EN7, ...EN8, ...EN8B, ...EN8C, ...EN9, ...EN9B };
+const DE: Record<string, string> = { ...DE0, ...DE6, ...DE7, ...DE8, ...DE8B, ...DE8C, ...DE9, ...DE9B };
 
 export type Lang = 'en' | 'de';
 export type I18nKey = keyof typeof EN;
@@ -28,7 +29,11 @@ export const onLangChange = (f: () => void): void => {
 };
 
 export function t(key: I18nKey | string, params?: Record<string, string | number>): string {
-  let s = TABLES[lang][key] ?? EN[key as I18nKey] ?? key;
+  return tIn(lang, key, params);
+}
+/** `t` in a given language, whatever the UI shows (P9: prompts are written in the game's language setting). */
+export function tIn(l: Lang, key: I18nKey | string, params?: Record<string, string | number>): string {
+  let s = TABLES[l][key] ?? EN[key as I18nKey] ?? key;
   if (params) for (const [k, v] of Object.entries(params)) s = s.replaceAll(`{${k}}`, String(v));
   return s;
 }

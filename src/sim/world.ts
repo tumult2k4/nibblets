@@ -24,6 +24,7 @@ import { updateLeadership } from './leadership';
 import { updateFestivals } from './festivals';
 import { noteSign, updateSuperstitions } from './superstitions';
 import { noteFaith, updateFaith } from './god/faithLoop';
+import { notePlace } from './places';
 import { updateWildfire } from './wildfire';
 import { updateClimate } from './climate';
 import { updateBlight } from './blight';
@@ -85,6 +86,7 @@ export class World {
     this.bus.emit({ ...e, tick: this.s.tick } as SimEvent);
     noteSign(this, e); // omens and turns of luck for the superstitions (P8.6)
     noteFaith(this, e); // meals, food from the sky, festivals in the god's honor (P8.8)
+    notePlace(this, e); // a notable event names its spot (P9.2)
   }
 
   push(cmd: Command): void {

@@ -10,6 +10,8 @@ export const EN9 = {
   'llm.b.diaries': 'Diary entries', 'llm.b.dialogues': 'Conversations', 'llm.b.barks': 'Shouts', 'llm.b.books': 'Books',
   'llm.test': 'Test', 'llm.testing': 'Asking…', 'llm.testOk': 'Answer: {text}', 'llm.testFail': 'Failed: {err}', 'llm.testPrompt': 'Greet the god of the goblins in one short line.',
   'llm.local': 'Kept in this browser, never in saves.',
+  'mm.places': 'Names', 'key.places': 'Place names on the map', 'ev.place_named': 'The village calls this place {name}.',
+  'ev.place_named_after': 'The village calls this place {name}, after {who}.',
 };
 
 export const DE9: Record<keyof typeof EN9, string> = {
@@ -23,4 +25,6 @@ export const DE9: Record<keyof typeof EN9, string> = {
   'llm.b.diaries': 'Tagebucheinträge', 'llm.b.dialogues': 'Gespräche', 'llm.b.barks': 'Ausrufe', 'llm.b.books': 'Bücher',
   'llm.test': 'Testen', 'llm.testing': 'Frage…', 'llm.testOk': 'Antwort: {text}', 'llm.testFail': 'Fehlgeschlagen: {err}', 'llm.testPrompt': 'Grüße den Gott der Goblins in einer kurzen Zeile.',
   'llm.local': 'Liegt in diesem Browser, nie in Spielständen.',
+  'mm.places': 'Namen', 'key.places': 'Ortsnamen auf der Karte', 'ev.place_named': 'Das Dorf nennt diesen Ort {name}.',
+  'ev.place_named_after': 'Das Dorf nennt diesen Ort {name}, nach {who}.',
 };

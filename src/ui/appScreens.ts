@@ -65,6 +65,7 @@ export class Screens {
   private setWorld(w: World): void {
     this.app.game.setWorld(w);
     this.app.names.clear();
+    this.app.log.clear();
     this.app.feed?.reset();
   }
 
