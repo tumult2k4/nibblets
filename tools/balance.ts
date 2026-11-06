@@ -18,6 +18,7 @@ import { RECIPES } from '../src/sim/recipes';
 import { bestSkill } from '../src/sim/goblin/skills';
 import type { Goblin } from '../src/sim/state';
 import { generations } from '../src/sim/goblin/lineage';
+import { heterozygosity } from '../src/sim/goblin/genetics/genome';
 import { DisasterWatch, RECOVER, rateCheck, type WatchResult } from './disasterWatch';
 import { inGarden } from '../src/sim/garden';
 
@@ -55,8 +56,9 @@ if (process.argv.includes('--frozen-clans')) (CFG.clans as { every: number }).ev
 interface Row {
   /** deaths and everyone who lived there (founders + newcomers), for the control run's loss share */
   lost: number; residents: number;
-  /** P10.1: the rival clans at the end */
-  clans: string;
+  /** P10.1: the rival clans at the end; P10.4: goblins who married in (and had young), married out, allies' help, and the
+   * living's mean heterozygosity and hue spread (the diversity an isolated village loses) */
+  clans: string; mig: string; migKids: boolean; het: number;
   seed: number; popMin: number; popAvg: number; popMax: number; popEnd: number; births: number;
   deaths: Record<string, number>; eaten: number; divineFood: number; starvationDays: number;
   hueDrift: number; tickMs: number; fails: string[];
@@ -134,6 +136,7 @@ function runSeed(seed: number): Row {
   const eaten: Record<string, number> = {};
   const md = { sum: 0, n: 0, breaks: { tantrum: 0, sulk: 0, binge: 0, wander_off: 0 } as Record<string, number>, inspired: 0, found: 0, given: 0 };
   const soc = { theft: 0, seen: 0, pranks: 0, sorry: 0, brawls: 0, broken: 0, chiefs: 0, changes: 0, firstChief: -1, sentences: { return: 0, apology: 0, exile: 0 }, fests: {} as Record<string, number>, came: 0, instruments: 0, built: {} as Record<string, number>, prayers: 0 };
+  const mig = { joined: [] as number[], out: 0, help: 0, helpTick: -1 };
   const clanRaids: Record<number, number> = {}, trade = { scouts: 0, traders: 0, deals: 0, swaps: 0, got: [] as string[], gave: [] as string[], raids: 0, lost: 0, slain: 0, gifts: 0, left: 0 };
   w.bus.subscribe((e) => {
     if (e.type === 'theft') { soc.theft++; if (e.witnessIds.length) soc.seen++; }
@@ -143,12 +146,14 @@ function runSeed(seed: number): Row {
     if (e.type === 'chief_chosen') { soc.chiefs++; if (e.previousId !== null) soc.changes++; else soc.firstChief = Math.floor(e.tick / CFG.time.dayTicks); }
     if (e.type === 'justice') soc.sentences[e.sentence]++;
     if (e.type === 'clan_raid') clanRaids[e.clanA] = (clanRaids[e.clanA] ?? 0) + 1; // P10.1
-    if (e.type === 'visitor_arrived') trade[e.kind === 'scout' ? 'scouts' : 'traders']++; // P10.2
+    if (e.type === 'visitor_arrived') { if (e.kind === 'scout' || e.kind === 'trader') trade[e.kind === 'scout' ? 'scouts' : 'traders']++; } // P10.2
     if (e.type === 'clan_raid' && e.clanB === w.s.clans[0]?.id) trade.raids++; // P10.3
     if (e.type === 'enemy_stole' && w.s.enemies.find((x) => x.id === e.enemyId)?.kind === 'raider') trade.lost += e.qty;
     if (e.type === 'enemy_killed' && e.kind === 'raider') trade.slain++;
     if (e.type === 'clan_gift') trade.gifts++;
-    if (e.type === 'goblin_left') trade.left++;
+    if (e.type === 'goblin_left') { if (e.why === 'married') mig.out++; else trade.left++; }
+    if (e.type === 'goblin_joined') mig.joined.push(e.goblinId); // P10.4
+    if (e.type === 'visitor_arrived' && e.kind === 'warrior' && w.s.tick !== mig.helpTick) { mig.help++; mig.helpTick = w.s.tick; }
     if (e.type === 'traded') { if (e.visitorId !== undefined) { trade.deals++; const g = e.got; trade.got.push(g.type ? `${g.type}×${g.qty}` : g.trinket ?? `recipe:${g.recipe}`); trade.gave.push(e.gave.type ? `${e.gave.type}×${e.gave.qty}` : e.gave.trinket ?? '?'); } else trade.swaps++; }
     if (e.type === 'festival' && e.phase === 'end') { soc.fests[e.kind] = (soc.fests[e.kind] ?? 0) + 1; soc.came += e.came ?? 0; } // P8.5
     if (e.type === 'item_crafted' && (e.item === 'drum' || e.item === 'flute')) soc.instruments++;
@@ -262,6 +267,10 @@ function runSeed(seed: number): Row {
   if (days >= 32 && Object.keys(eaten).filter((k) => eaten[k]! >= Math.floor(days / 32)).length < 3) fails.push('diet<3');
   if (!noPreserve && !noCraft && winterDeaths > 1) fails.push('winter starvation');
   const gens = 1 + Math.max(0, ...generations(w.s).values());
+  const migrants = new Set(mig.joined), kids = Object.values(w.s.lineage).filter((l) => l.parents?.some((p) => migrants.has(p))).length;
+  const het = w.s.goblins.reduce((a, g) => a + heterozygosity(g.genome), 0) / Math.max(1, w.s.goblins.length);
+  const hues = w.s.goblins.map((g) => express(g.genome, 'skinHue')), hueMean = hues.length ? hues.reduce((a, h) => a + h, 0) / hues.length : 0;
+  const hueSd = Math.sqrt(hues.reduce((a, h) => a + hueDelta(hueMean, h) ** 2, 0) / Math.max(1, hues.length));
   if (days >= 96 && !noPreserve && !noCraft && gens < 3) fails.push('generations<3');
   const wr = watch.result();
   const spec: Record<string, number> = {};
@@ -298,6 +307,8 @@ function runSeed(seed: number): Row {
     housedAutumn, huts: w.s.buildings.filter((b) => (b.type === 'hut' || b.type === 'stone_hut') && b.buildProgress >= 1).length, weatherDeaths,
     rare: `${rare.beasts}/${rare.smashed} ${rare.wisps}/${rare.lured} ${rare.newcomers}`,
     clans: w.s.rivals.map((c) => `${c.name} ${c.archetype} pop ${c.pop} food ${(c.store / Math.max(1, c.pop)).toFixed(1)}d fierce ${c.aggression.toFixed(2)} rel ${Math.round(c.relation)}${c.allied ? ' ally' : ''} met ${c.contact === null ? '—' : 'day ' + Math.floor(c.contact / 3600)} raids ${clanRaids[c.id] ?? 0}`).join('; ') + ` | scouts ${trade.scouts} traders ${trade.traders} deals ${trade.deals} swaps ${trade.swaps} got {${tally(trade.got)}} gave {${tally(trade.gave)}} raids ${trade.raids} (food lost ${trade.lost}, raiders slain ${trade.slain}) gifts ${trade.gifts} defected ${trade.left}`,
+    mig: `joined ${mig.joined.length} (young ${kids}, living ${w.s.goblins.filter((g) => migrants.has(g.id)).length}) married out ${mig.out} helped ${mig.help} het ${het.toFixed(3)} hue sd ${hueSd.toFixed(1)}°`,
+    migKids: kids > 0, het,
     fences: `${w.s.buildings.filter((b) => b.type === 'fence' && b.buildProgress >= 1).length}/${w.s.village.fenceRing ? ringTiles(w.s, w.s.village.fenceRing).length : 0}`,
   };
 }
@@ -306,7 +317,7 @@ const rows: Row[] = [];
 for (let i = 0; i < seedCount; i++) {
   const r = runSeed(firstSeed + i);
   rows.push(r);
-  console.log(`seed ${r.seed}: pop ${r.popEnd} (min ${r.popMin}, avg ${r.popAvg.toFixed(1)}, max ${r.popMax}) deaths ${JSON.stringify(r.deaths)} eaten ${r.eaten} god food ${r.divineFood} bushes ${r.bushes0}→${r.bushesEnd} plantedMature ${r.plantedMature} wood ${r.wood} stone/flint/sticks ${r.stone} armed ${r.armed} fires ${r.fires} gnashers/stolen/bites/fled/killed/wounds ${r.foes} veterans ${r.veterans} huts ${r.huts} fences ${r.fences} beasts/smashed wisps/lured newcomers ${r.rare} housed@autumn ${r.housedAutumn < 0 ? '—' : Math.round(r.housedAutumn * 100) + '%'} specialists ${r.specialists} friends ${r.friends} winterStarve ${r.winterStarve} winterDeaths ${r.winterDeaths} spoiled ${r.spoiled} mash/dried ${r.preserved} generations ${r.generations} hue ${r.hue} (drift ${r.hueDrift.toFixed(1)}°) ill [${r.ill}] tended ${r.tended} remedies ${r.remedies} wildfires [${r.wildfires}] floods/droughts/blight/stars ${r.disasters} buried/mounds/mourned ${r.rites} hunted ${r.wild} fished ${r.econ} settle [${r.settle}] garden [${r.garden}] commons [${r.commons}] mood [${r.mood}] society [${r.society}] clans [${r.clans}] ate [${r.foods}] recovered ${r.watch.recovered}/${r.watch.judged} (worst dip ${Math.round((1 - r.watch.worst) * 100)} %)${r.watch.misses.length ? ' [' + r.watch.misses.join('; ') + ']' : ''} tick ${r.tickMs.toFixed(3)}ms ${r.fails.length ? 'FAIL ' + r.fails.join(',') : 'ok'}`);
+  console.log(`seed ${r.seed}: pop ${r.popEnd} (min ${r.popMin}, avg ${r.popAvg.toFixed(1)}, max ${r.popMax}) deaths ${JSON.stringify(r.deaths)} eaten ${r.eaten} god food ${r.divineFood} bushes ${r.bushes0}→${r.bushesEnd} plantedMature ${r.plantedMature} wood ${r.wood} stone/flint/sticks ${r.stone} armed ${r.armed} fires ${r.fires} gnashers/stolen/bites/fled/killed/wounds ${r.foes} veterans ${r.veterans} huts ${r.huts} fences ${r.fences} beasts/smashed wisps/lured newcomers ${r.rare} housed@autumn ${r.housedAutumn < 0 ? '—' : Math.round(r.housedAutumn * 100) + '%'} specialists ${r.specialists} friends ${r.friends} winterStarve ${r.winterStarve} winterDeaths ${r.winterDeaths} spoiled ${r.spoiled} mash/dried ${r.preserved} generations ${r.generations} hue ${r.hue} (drift ${r.hueDrift.toFixed(1)}°) ill [${r.ill}] tended ${r.tended} remedies ${r.remedies} wildfires [${r.wildfires}] floods/droughts/blight/stars ${r.disasters} buried/mounds/mourned ${r.rites} hunted ${r.wild} fished ${r.econ} settle [${r.settle}] garden [${r.garden}] commons [${r.commons}] mood [${r.mood}] society [${r.society}] clans [${r.clans}] migration [${r.mig}] ate [${r.foods}] recovered ${r.watch.recovered}/${r.watch.judged} (worst dip ${Math.round((1 - r.watch.worst) * 100)} %)${r.watch.misses.length ? ' [' + r.watch.misses.join('; ') + ']' : ''} tick ${r.tickMs.toFixed(3)}ms ${r.fails.length ? 'FAIL ' + r.fails.join(',') : 'ok'}`);
 }
 const lines = [
   `# Balance report — ${days} days × ${seedCount} seeds${noCraft ? ' (control: no crafting)' : ''}${noPreserve ? ' (control: no preservation)' : ''}`,
@@ -341,6 +352,10 @@ const recLine = `Recovery: ${whole}/${rows.length} seeds back to ≥ ${RECOVER *
 lines.push('', rates.line, recLine);
 console.log(rates.line);
 console.log(recLine);
+// P10 acceptance: goblins marry in from allied clans and have young (≥ 3 of 5 seeds); diversity against `--no-clans`
+const migLine = `Migration: ${rows.filter((r) => r.migKids).length}/${rows.length} seeds with a goblin who married in and had young; mean heterozygosity ${(rows.reduce((a, r) => a + r.het, 0) / rows.length).toFixed(3)}`;
+lines.push('', migLine);
+console.log(migLine);
 writeFileSync('balance-report.md', lines.join('\n') + '\n');
 // in the control run losses (even a village dying out) are the point; only its loss share and tick time decide
 const control = control0();

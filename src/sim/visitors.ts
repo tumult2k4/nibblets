@@ -25,7 +25,8 @@ import { shiftRelation, type RivalClan, type Side } from './clans';
 
 const V = CFG.visitors, DAY = CFG.time.dayTicks, HOUR = DAY / 24;
 
-export type VisitorKind = 'scout' | 'trader';
+/** P10.4: a `suitor` comes to marry into the village, `warrior`s to help against a Bramblebeast */
+export type VisitorKind = 'scout' | 'trader' | 'suitor' | 'warrior';
 /** What a trader gives: a stack of things, a trinket of some rarity, or a recipe it teaches. */
 export interface Goods { item?: ItemStack; trinket?: Rarity; recipe?: RecipeId }
 /** One of a trader's offers: what it gives, what it wants for it, whether it is done, who is on the way to strike it. */
@@ -38,6 +39,8 @@ export interface Visitor {
   /** where it came in (and leaves), where it stands at the village, when it leaves, when it strolls next */
   door: Vec2; spot: Vec2; leaveAt: number; nextStroll: number;
   offers: Offer[]; greeted: ID[]; traded: number;
+  /** P10.4: a warrior's quarry, and the ticks to its next blow */
+  targetId?: ID; timer?: number;
 }
 
 /** Things a trader may bring, a stack each. */
@@ -136,10 +139,10 @@ export function spawnVisitor(w: World, c: RivalClan, kind: VisitorKind): Visitor
 }
 
 /** Walk along the path; true on arrival. */
-function walk(v: Visitor): boolean {
+export function walk(v: Visitor, mul = 1): boolean {
   const wp = v.path[0];
   if (!wp) { v.velocity = { x: 0, y: 0 }; return true; }
-  const speed = V.speed / CFG.tickHz, dx = wp.x - v.pos.x, dy = wp.y - v.pos.y, d = Math.hypot(dx, dy);
+  const speed = (V.speed * mul) / CFG.tickHz, dx = wp.x - v.pos.x, dy = wp.y - v.pos.y, d = Math.hypot(dx, dy);
   if (d <= Math.max(speed, 0.05)) {
     v.pos = { x: q4(wp.x), y: q4(wp.y) };
     v.path.shift();
@@ -174,6 +177,7 @@ export function updateVisitors(w: World): void {
   const s = w.s, vs = s.visitors;
   if (!vs?.length) return;
   for (const v of [...vs]) {
+    if (v.kind === 'suitor' || v.kind === 'warrior') continue; // P10.4: alliance.ts walks them
     for (const o of v.offers) if (o.claimedBy !== null && !o.done && !claimed(w, v, o)) o.claimedBy = null;
     if (v.phase === 'coming' && walk(v)) { v.phase = 'staying'; v.nextStroll = s.tick + V.strollEvery; }
     else if (v.phase === 'staying') {

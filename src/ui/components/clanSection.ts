@@ -10,7 +10,7 @@ import type { WorldState } from '../../sim/state';
 import { geneColor } from '../geneColor';
 import { t } from '../i18n';
 
-const DAY = CFG.time.dayTicks, NAMED = ['contact', 'raided', 'was_raided', 'allied', 'ally_lost', 'greet', 'trade', 'visit', 'raid', 'slain', 'gift', 'defector'];
+const DAY = CFG.time.dayTicks, NAMED = ['contact', 'raided', 'was_raided', 'allied', 'ally_lost', 'greet', 'trade', 'visit', 'raid', 'slain', 'gift', 'defector', 'married'];
 
 function fare(c: RivalClan): string {
   const days = c.store / Math.max(1, c.pop);

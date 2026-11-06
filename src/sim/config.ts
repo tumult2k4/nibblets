@@ -24,6 +24,7 @@ import { PLACES } from './cfg/places';
 import { CLANS } from './cfg/clans';
 import { VISITORS } from './cfg/visitors';
 import { RAIDS } from './cfg/raids';
+import { ALLIANCE } from './cfg/alliance';
 
 export const CFG = {
   tickHz: 10,
@@ -294,7 +295,7 @@ export const CFG = {
   health: HEALTH,
   /** P6.2–P6.3 fire, floods, drought, blight, shooting stars: see cfg/disasters.ts */
   disasters: DISASTERS,
-  death: DEATH, miracles: MIRACLES, wildlife: WILDLIFE, economy: ECONOMY, settlement: SETTLEMENT, garden: GARDEN, commons: COMMONS, mood: MOOD, trinkets: TRINKETS, mischief: MISCHIEF, leadership: LEADERSHIP, festivals: FESTIVALS, beliefs: BELIEFS, character: CHARACTER, faith: FAITH, divine: DIVINE, llm: LLM, places: PLACES, books: BOOKS, clans: CLANS, visitors: VISITORS, raids: RAIDS,
+  death: DEATH, miracles: MIRACLES, wildlife: WILDLIFE, economy: ECONOMY, settlement: SETTLEMENT, garden: GARDEN, commons: COMMONS, mood: MOOD, trinkets: TRINKETS, mischief: MISCHIEF, leadership: LEADERSHIP, festivals: FESTIVALS, beliefs: BELIEFS, character: CHARACTER, faith: FAITH, divine: DIVINE, llm: LLM, places: PLACES, books: BOOKS, clans: CLANS, visitors: VISITORS, raids: RAIDS, alliance: ALLIANCE,
   god: {
     startFavor: 50, maxFavorBase: 100, maxFavorPerBeliever: 15, believerFaith: 40, prayingFavorMul: 3,
     offeringTrinketMul: 2, offeringFoodMul: 0.5, festivalFavor: 20, answeredPrayerFavor: 5,

@@ -9,7 +9,7 @@ import { fnv1a } from '../../shared/rng';
 import type { ID, Vec2 } from '../../shared/types';
 import type { Egg, Goblin, LineageEntry, WorldState } from '../state';
 import type { World } from '../world';
-import { meiosis } from './genetics/genome';
+import { heterozygosity, meiosis } from './genetics/genome';
 import { express } from './genetics/phenotype';
 import { createGoblin } from './goblin';
 import { isKin, opinionOf, relate, relationOf } from './social';
@@ -105,9 +105,16 @@ export function fertileToday(g: Goblin, mate: Goblin, w: World): boolean {
   if (need > 0 && foodStores(w.s).days < need) return false;
   const day = Math.floor(w.s.tick / DAY);
   const pop = w.s.goblins.length + w.s.eggs.length;
-  const chance = F.eggChancePerDay * Math.max(0, 1 - pop / CFG.goblin.softCap) * (w.clock.season === 'spring' ? F.springMul : 1);
+  const chance = F.eggChancePerDay * Math.max(0, 1 - pop / CFG.goblin.softCap) * (w.clock.season === 'spring' ? F.springMul : 1) * inbreedMul(g, mate);
   const roll = (fnv1a(`${Math.min(g.id, mate.id)}:${day}`, w.s.seed >>> 0) % 10000) / 10000;
   return roll < chance;
+}
+
+/** The inbreeding penalty (P10.4): a pair whose mean heterozygosity is low lays less often, down to `floor` of the
+ * chance. An isolated village slowly loses its alleles; goblins who marry in bring them back. */
+export function inbreedMul(g: Goblin, mate: Goblin): number {
+  const I = CFG.alliance.inbreeding, h = (heterozygosity(g.genome) + heterozygosity(mate.genome)) / 2;
+  return h >= I.below ? 1 : I.floor + ((1 - I.floor) * h) / I.below;
 }
 
 /** Can this pair have an egg now (§13.3)? Both well fed, home together, past the cooldown, under the soft cap. */

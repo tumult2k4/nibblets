@@ -67,7 +67,7 @@ describe('rival clans beyond the map (§16, P10.1)', () => {
     expect(c.pop).toBeGreaterThan(pop);
     expect(c.pool.map((g) => JSON.stringify(g))).not.toEqual(pool); // births bred the pool
     const fed = c.pop;
-    expect(c.relation).toBeGreaterThan(-90 / 2);
+    expect(c.relation).toBeGreaterThan(-75); // a slow drift (P10.4: alliances last)
     c.store = c.pop * 1; // a lean winter ahead
     live(w, start + 3 * SEASON, start + 4 * SEASON);
     expect(c.store).toBeLessThan(c.pop * 0.5); // eaten up (spring has just begun)

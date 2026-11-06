@@ -43,7 +43,7 @@ export interface RivalClan {
   contact: number | null; contactAt: number;
   pool: Genome[]; rng: number; news: ClanNews[];
   /** P10.2: when its next trader may come; P10.3: its last raid on the village, the chief's last gift */
-  nextTrader?: number; lastRaid?: number; lastGift?: number;
+  nextTrader?: number; lastRaid?: number; lastGift?: number; /** P10.4: when it may next send a suitor */ nextSuitor?: number;
 }
 
 const STOCKS: ClanArchetype[] = ['moss', 'ember', 'tide', 'plum'];

@@ -49,6 +49,7 @@ import { updateTraits } from './goblin/traits';
 import { updateWildlife } from './wildlife';
 import { updateClans } from './clans';
 import { updateVisitors } from './visitors';
+import { updateAllies } from './alliance';
 
 /**
  * The live world: plain-data state plus derived, rebuildable caches (rng object, spatial hashes,
@@ -178,6 +179,7 @@ export class World {
     updateCommons(this); //   18 village: zones and demand (P7.5)
     updateClans(this); //     19 the rival clans beyond the map (P10.1)
     updateVisitors(this); //  19b their scouts and traders at the village (P10.2)
+    updateAllies(this); //    19c allies: marriages, help against a Bramblebeast (P10.4)
     updateTrinkets(this); //  glints washed up after storms (P8.2)
     updateReputation(this); // reputation eases, old wrongs are let go (P8.3)
     updateLeadership(this); // chief, the night watch, exiles (P8.4)

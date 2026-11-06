@@ -1,5 +1,6 @@
 /** Phase 10 strings: the rival clans beyond the map (§16, P10.1), their place in the Village panel and the feed; their
- * scouts and traders, and trade (P10.2); raids, the chief's gifts and exiles who defect (P10.3).
+ * scouts and traders, and trade (P10.2); raids, the chief's gifts and exiles who defect (P10.3); suitors, allies'
+ * warriors and marriages (P10.4).
  * Merged by i18n.ts. */
 export const EN10 = {
   'clans.title': 'Clans beyond the hills', 'clans.none': 'No other goblins have been seen yet.', 'clans.more': 'There may be more goblins beyond the hills.',
@@ -29,6 +30,12 @@ export const EN10 = {
   'cnews.defector': 'Took in one of your exiles on day {day} ({delta}).',
   'cx.raid': 'raiders of the {clan} clan came', 'cx.gift_sent': '{a} took a gift to the {clan} clan', 'cx.defected': '{a} left us for the {clan} clan',
   'act.send_gift': 'Taking a gift to another clan', 'act.defect': 'Leaving for another clan', 'cx.struck': 'a {enemy} struck {bA}', 'ev.raider_hit': 'A raider clubbed {name}!',
+  'ev.suitor': 'A goblin of the {clan} clan, your allies, is coming to marry into the village.', 'ev.allies_help': 'Warriors of the {clan} clan have come to fight the Bramblebeast!',
+  'ev.joined': '{name} of the {clan} clan has married into the village.', 'ev.joined_match': '{name} has eyes for {match}.', 'ev.joined_recipes': '{name} knows how to make {list}.',
+  'ev.married_out': '{name} has gone to marry into the {clan} clan.', 'cnews.married': 'A marriage between your clans on day {day} ({delta}).',
+  'cx.visitor_suitor': 'a goblin of the {clan} clan came to marry into the village', 'cx.visitor_warrior': 'warriors of the {clan} clan came to fight the Bramblebeast',
+  'cx.joined': '{a} of the {clan} clan married into the village', 'cx.married_out': '{a} left us to marry into the {clan} clan',
+  'visitor.suitor': 'Suitor', 'visitor.warrior': 'Warrior', 'goblin.born_to': 'Born to the {clan} clan',
 };
 
 export const DE10: Record<keyof typeof EN10, string> = {
@@ -59,4 +66,10 @@ export const DE10: Record<keyof typeof EN10, string> = {
   'cnews.defector': 'Nahm an Tag {day} einen eurer Verbannten auf ({delta}).',
   'cx.raid': 'Plünderer vom {clan}-Clan kamen', 'cx.gift_sent': '{a} brachte dem {clan}-Clan ein Geschenk', 'cx.defected': '{a} verließ uns für den {clan}-Clan',
   'act.send_gift': 'Bringt einem Clan ein Geschenk', 'act.defect': 'Geht zu einem anderen Clan', 'cx.struck': 'ein {enemy} schlug {bA}', 'ev.raider_hit': 'Ein Plünderer hat {name} mit der Keule getroffen!',
+  'ev.suitor': 'Ein Goblin vom verbündeten {clan}-Clan kommt, um ins Dorf einzuheiraten.', 'ev.allies_help': 'Krieger vom {clan}-Clan sind gekommen, um gegen die Dornbestie zu kämpfen!',
+  'ev.joined': '{name} vom {clan}-Clan hat ins Dorf eingeheiratet.', 'ev.joined_match': '{name} hat ein Auge auf {match} geworfen.', 'ev.joined_recipes': '{name} weiß, wie man {list} macht.',
+  'ev.married_out': '{name} ist fortgegangen, um in den {clan}-Clan einzuheiraten.', 'cnews.married': 'Eine Heirat zwischen euren Clans an Tag {day} ({delta}).',
+  'cx.visitor_suitor': 'ein Goblin vom {clan}-Clan kam, um bei uns einzuheiraten', 'cx.visitor_warrior': 'Krieger vom {clan}-Clan kamen gegen die Dornbestie',
+  'cx.joined': '{a} vom {clan}-Clan heiratete bei uns ein', 'cx.married_out': '{a} verließ uns, um in den {clan}-Clan einzuheiraten',
+  'visitor.suitor': 'Brautwerber', 'visitor.warrior': 'Krieger', 'goblin.born_to': 'Geboren im {clan}-Clan',
 };

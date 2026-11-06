@@ -69,7 +69,7 @@ export function departGoblin(w: World, g: Goblin, c: RivalClan, why: 'defected' 
   loseKnowledge(w, g);
   c.pop = Math.min(CFG.clans.popCap, c.pop + 1);
   c.pool[w.rng.int(0, c.pool.length - 1)] = g.genome;
-  if (why === 'defected') shiftRelation(w, c, c.relation >= 0 ? D.friendly : D.hostile, 'defector');
+  shiftRelation(w, c, why === 'married' ? CFG.alliance.married : c.relation >= 0 ? D.friendly : D.hostile, why === 'married' ? 'married' : 'defector');
   w.emit({ type: 'goblin_left', goblinId: g.id, clanId: c.id, why, at: { ...g.pos } });
   w.rebuildCaches();
 }

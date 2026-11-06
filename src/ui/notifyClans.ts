@@ -1,6 +1,6 @@
-/** Feed notes for the rival clans (§16, P10.1–P10.3): first contact, raids among them (when the village knows both)
- * and on the village, an alliance made or broken, their scouts and traders, trade, the chief's gifts and exiles who
- * went over to a clan. Called from `cultureNote`. */
+/** Feed notes for the rival clans (§16, P10.1–P10.4): first contact, raids among them (when the village knows both)
+ * and on the village, an alliance made or broken, their scouts and traders, trade, the chief's gifts, exiles who
+ * went over to a clan, allies' suitors and warriors, and marriages either way. Called from `cultureNote`. */
 import type { ID, SimEvent, TradeGood } from '../shared/types';
 import type { World } from '../sim/world';
 import { visitorById, type Goods } from '../sim/visitors';
@@ -24,6 +24,11 @@ export function clanNote(e: SimEvent, w: World, base: { tick: number }, name: (i
     if (!c) return null;
     if (e.type === 'visitor_left') return e.kind === 'trader' ? { ...base, text: t('ev.trader_left', { clan: c.name }), tier: 'info', icon: 'leaf' } : null;
     if (e.kind === 'scout') return { ...base, at: e.at, text: t('ev.scout', { clan: c.name }), tier: 'notable', icon: 'eye' };
+    if (e.kind === 'suitor') return { ...base, at: e.at, text: t('ev.suitor', { clan: c.name }), tier: 'notable', icon: 'heart' }; // P10.4
+    if (e.kind === 'warrior') { // one note for the band (they come together; the first of them speaks)
+      const first = (w.s.visitors ?? []).filter((x) => x.kind === 'warrior' && x.clanId === c.id).sort((a, b) => a.id - b.id)[0];
+      return !first || first.id === e.visitorId ? { ...base, at: e.at, text: t('ev.allies_help', { clan: c.name }), tier: 'notable', icon: 'spear' } : null;
+    }
     const list = (v?.offers ?? []).map((o) => goodsText(o.give)).join(', ');
     return { ...base, at: e.at, text: t('ev.trader', { clan: c.name, list }), tier: 'notable', icon: 'gift' };
   }
@@ -31,11 +36,17 @@ export function clanNote(e: SimEvent, w: World, base: { tick: number }, name: (i
     const c = clan(e.clanId), gave = goodsText(e.gave), got = goodsText(e.got);
     return { ...base, id: e.goblinId, text: c ? t('ev.traded_visitor', { name: name(e.goblinId), gave, got, clan: c.name }) : t('ev.traded', { name: name(e.goblinId), other: name(e.withId), gave, got }), tier: 'info', icon: 'gift' };
   }
-  if (e.type === 'clan_gift' || e.type === 'goblin_left') { // P10.3
+  if (e.type === 'clan_gift' || e.type === 'goblin_left' || e.type === 'goblin_joined') { // P10.3, P10.4
     const c = clan(e.clanId);
     if (!c) return null;
     if (e.type === 'clan_gift') return { ...base, id: e.goblinId, text: t('ev.gift_sent', { name: name(e.goblinId), what: goodsText(e.gave), clan: c.name }), tier: 'info', icon: 'gift' };
-    return e.why === 'defected' ? { ...base, text: t('ev.defected', { name: name(e.goblinId), clan: c.name }), tier: 'notable', icon: 'leaf' } : null;
+    if (e.type === 'goblin_joined') {
+      const n = name(e.goblinId), parts = [t('ev.joined', { name: n, clan: c.name })];
+      if (e.matchId !== undefined) parts.push(t('ev.joined_match', { name: n, match: name(e.matchId) }));
+      if (e.recipes.length) parts.push(t('ev.joined_recipes', { name: n, list: e.recipes.map((r) => word(`recipe.${r}`)).join(', ') }));
+      return { ...base, id: e.goblinId, at: e.at, text: parts.join(' '), tier: 'notable', icon: 'heart' };
+    }
+    return { ...base, text: t(e.why === 'defected' ? 'ev.defected' : 'ev.married_out', { name: name(e.goblinId), clan: c.name }), tier: 'notable', icon: e.why === 'defected' ? 'leaf' : 'heart' };
   }
   if (e.type !== 'clan_contact' && e.type !== 'clan_raid' && e.type !== 'clan_alliance') return null;
   const a = clan(e.clanA);

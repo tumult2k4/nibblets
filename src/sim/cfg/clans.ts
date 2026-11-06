@@ -20,7 +20,7 @@ export const CLANS = {
   /** relation to the village (−100..100): drawn at the start around where it rests (traders +15, −50 per aggression
    * over the base, ± `start`), drifting `drift` of the way back there each update; alliance at `ally`, broken under `allyBreak`;
    * the words for it */
-  relation: { start: 30, traders: 15, perAggression: -50, drift: 0.004, ally: 70, allyBreak: 50, friendly: 30, wary: -10, hostile: -40 },
+  relation: { start: 30, traders: 15, perAggression: -50, drift: 0.002, ally: 70, allyBreak: 50, friendly: 30, wary: -10, hostile: -40 },
   /** first contact: the first clan after `firstContact` days, each next one `nextContact` days later */
   firstContact: [2, 8] as [number, number], nextContact: [4, 12] as [number, number],
   /** a hungry, fierce clan (aggression ≥ `fierce`) may raid another rival: chance an update, share of the store taken,

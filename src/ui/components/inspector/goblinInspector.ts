@@ -41,6 +41,12 @@ const row = (label: string, v: number, shown: string, color?: string) =>
   el('div.row', {}, el('span.lbl', { text: label }), bar(v, color), el('span.val', { text: shown }));
 const needColor = (v: number) => (v < 15 ? 'var(--apple)' : v < 40 ? 'var(--gold)' : 'var(--moss)');
 
+/** A goblin who married in from another clan (P10.4). */
+function bornTo(g: Goblin, w: World): HTMLElement | null {
+  const c = g.clanId !== w.s.clans[0]?.id ? w.s.rivals.find((x) => x.id === g.clanId) : undefined;
+  return c ? el('div.sub', { text: t('goblin.born_to', { clan: c.name }) }) : null;
+}
+
 export function goblinHeader(g: Goblin, w: World, onFollow: () => void, onClose: () => void, onFamily: () => void, onJournal: () => void): HTMLElement {
   const ph = phenotypeOf({ genome: g.genome, ageDays: ageDays(g, w.s.tick), stage: g.lifeStage, hunger: 70, scars: g.health.scars });
   const img = el('img.portrait', { src: portraits.get(ph, g.id * 31 + 7), alt: g.name });
@@ -50,6 +56,7 @@ export function goblinHeader(g: Goblin, w: World, onFollow: () => void, onClose:
     el('div', { style: 'flex:1' },
       el('h2', { text: withEpithet(g.name, g.epithet) }),
       g.role !== 'none' ? el('div.sub.badge', { text: t(`role.${g.role}`) }) : null,
+      bornTo(g, w),
       el('div.sub', { text: t('insp.age', { stage: t(`stage.${g.lifeStage}`), age: seasons }) }),
       el('div.sub', { text: t('insp.descriptor', { d: desc }) }),
       el('div', { style: 'margin-top:4px;display:flex;gap:4px' },

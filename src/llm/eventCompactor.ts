@@ -88,17 +88,18 @@ function phrase(s: WorldState, g: Goblin, e: SimEvent): [number, string, Record<
     }
     case 'visitor_arrived': {
       const clan = s.rivals.find((c) => c.id === e.clanId)?.name;
-      return clan ? [e.kind === 'scout' ? 6 : 4, `cx.visitor_${e.kind}`, { clan: `=${clan}` }] : null;
+      return clan ? [e.kind === 'scout' || e.kind === 'warrior' ? 6 : 4, `cx.visitor_${e.kind}`, { clan: `=${clan}` }] : null;
     }
     case 'clan_raid': { // P10.3
       const clan = s.rivals.find((c) => c.id === e.clanA)?.name;
       return clan && e.clanB === s.clans[0]?.id ? [9, 'cx.raid', { clan: `=${clan}` }] : null;
     }
-    case 'clan_gift': case 'goblin_left': {
+    case 'clan_gift': case 'goblin_left': case 'goblin_joined': {
       const clan = s.rivals.find((c) => c.id === e.clanId)?.name;
       if (!clan) return null;
       if (e.type === 'clan_gift') return [5, 'cx.gift_sent', { a: e.goblinId, clan: `=${clan}` }];
-      return e.why === 'defected' ? [bonded(g, e.goblinId) ? 10 : 6, 'cx.defected', { a: e.goblinId, clan: `=${clan}` }] : null;
+      if (e.type === 'goblin_joined') return [e.matchId === g.id ? 10 : 7, 'cx.joined', { a: e.goblinId, clan: `=${clan}` }]; // P10.4
+      return [bonded(g, e.goblinId) ? 10 : 6, e.why === 'defected' ? 'cx.defected' : 'cx.married_out', { a: e.goblinId, clan: `=${clan}` }];
     }
     default: return null;
   }

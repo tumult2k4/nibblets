@@ -214,12 +214,14 @@ export type SimEvent = BaseEvent &
     | { type: 'chief_chosen'; goblinId: ID; previousId: ID | null }
     | { type: 'trade'; aId: ID; bId: ID; gave: ItemStack[]; got: ItemStack[] }
     | { type: 'clan_contact' | 'clan_raid' | 'clan_alliance'; clanA: ID; clanB: ID; /** an alliance broken (P10.1) */ ended?: boolean }
-    | { type: 'visitor_arrived' | 'visitor_left'; visitorId: ID; clanId: ID; kind: 'scout' | 'trader' }
+    | { type: 'visitor_arrived' | 'visitor_left'; visitorId: ID; clanId: ID; kind: 'scout' | 'trader' | 'suitor' | 'warrior' }
     /** P10.2: a deal with a visiting trader (`visitorId`) or between two goblins (`withId`) */
     | { type: 'traded'; goblinId: ID; withId?: ID; visitorId?: ID; clanId?: ID; gave: TradeGood; got: TradeGood }
     /** P10.3: the chief's gift taken to a clan; a goblin gone to a rival clan (an exile who defected; P10.4 a marriage) */
     | { type: 'clan_gift'; goblinId: ID; clanId: ID; gave: TradeGood }
     | { type: 'goblin_left'; goblinId: ID; clanId: ID; why: 'defected' | 'married' }
+    /** P10.4: a goblin of an allied clan married into the village, with the recipes it brought */
+    | { type: 'goblin_joined'; goblinId: ID; clanId: ID; recipes: RecipeId[]; matchId?: ID }
     | { type: 'place_named'; placeId: ID } // P9.2: worded by language where shown (llm/placeNames.ts)
     | { type: 'superstition_formed' | 'superstition_faded'; omen: string; luck: string; valence: number }
     | { type: 'epithet_earned'; goblinId: ID; epithet: string; at: Vec2 }

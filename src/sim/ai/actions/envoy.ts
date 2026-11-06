@@ -124,7 +124,7 @@ export const Defect: UtilityAction = {
       if (moveAlong(w, g) === 'arrived' && dist(g.pos, to) > 1.5 && !planPath(w, g, to)) return 'failed';
       return 'running';
     }
-    departGoblin(w, g, c);
+    departGoblin(w, g, c, isExiled(g, w) ? 'defected' : 'married'); // P10.4: or off to marry into an allied clan
     return 'done';
   },
 };
