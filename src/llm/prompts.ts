@@ -70,12 +70,14 @@ export function dialoguePrompt(a: Speaker, b: Speaker, topic: ChatTopic, lang: L
 }
 
 /** A bark (§19.4): one line, at most 12 words, called out after a fight won, a discovery, a hatching, a friend's death. */
-export function barkPrompt(ctx: GoblinContext, what: string, lang: Lang): LLMRequest {
+export type BarkKind = 'win' | 'discovery' | 'hatch' | 'grief';
+
+export function barkPrompt(ctx: GoblinContext, what: string, kind: BarkKind, lang: Lang): LLMRequest {
   const c = safe(ctx), line = cleanInput(what, 160);
   const prompt = [
     `Write one short line, at most 12 words, that ${c.name} calls out right now.`,
     `About ${c.name}: ${c.stage}, ${c.descriptor}; feeling ${c.emotion}.`,
     `What just happened: ${line}`,
   ].join('\n');
-  return { system: systemPrompt(lang), prompt, maxTokens: MAX_TOKENS.bark, product: 'bark', facts: { lang, name: c.name, what: line } };
+  return { system: systemPrompt(lang), prompt, maxTokens: MAX_TOKENS.bark, product: 'bark', facts: { lang, name: c.name, what: line, kind } };
 }

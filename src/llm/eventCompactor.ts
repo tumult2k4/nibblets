@@ -18,7 +18,7 @@ const KEEP = 8, SEEN = 0.6;
 const BONDS = ['mate', 'best_friend', 'friend', 'parent', 'child', 'sibling'];
 
 export interface DayLine { tick: number; score: number; text: string }
-export interface GoblinDay { goblinId: ID; day: number; lines: string[]; score: number }
+export interface GoblinDay { goblinId: ID; day: number; lines: string[]; score: number; /** its best line (without the time) and that line's worth */ top: string | null; topScore: number }
 
 const bonded = (g: Goblin, id: ID): boolean => g.relationships.some((r) => r.targetId === id && BONDS.includes(r.bond)) || !!g.parents?.includes(id);
 const ownChild = (s: WorldState, g: Goblin, id: ID): boolean => !!s.lineage[id]?.parents?.includes(g.id);
@@ -81,8 +81,8 @@ function phrase(s: WorldState, g: Goblin, e: SimEvent): [number, string, Record<
 }
 
 const timeOfDay = (tick: number): string => {
-  const h = clockAt(tick).hour; // the day starts at dawn, 06:00
-  return h < 5 ? 'night' : h < 8 ? 'dawn' : h < 12 ? 'morning' : h < 14 ? 'midday' : h < 18 ? 'afternoon' : h < 21 ? 'dusk' : 'night';
+  const h = clockAt(tick).hour; // the day runs from 06:00 to 05:59, so its small hours are its end
+  return h < 6 ? 'night' : h < 8 ? 'dawn' : h < 12 ? 'morning' : h < 14 ? 'midday' : h < 18 ? 'afternoon' : h < 21 ? 'dusk' : 'night';
 };
 
 /** Fill a phrase: goblin ids become names ("I" for `self`), keys become words in `lang` (English nouns in lowercase). */
@@ -106,6 +106,12 @@ function words(s: WorldState, self: ID, lang: Lang, key: string, ps: Record<stri
   return tIn(lang, key, out);
 }
 
+/** One event in `g`'s words ("I slew a Gnasher"), or null if it is not worth a line. */
+export function lineFor(s: WorldState, g: Goblin, e: SimEvent, lang: Lang): string | null {
+  const p = phrase(s, g, e);
+  return p ? words(s, g.id, lang, p[1], p[2]) : null;
+}
+
 /** `g`'s day: the lines worth telling, best `KEEP` in time order, and how interesting the day was (their sum). */
 export function compactDay(s: WorldState, log: EventLog, g: Goblin, day: number, lang: Lang): GoblinDay {
   const merged = new Map<string, { tick: number; score: number; n: number; text: string; at: Logged['at'] }>();
@@ -126,7 +132,8 @@ export function compactDay(s: WorldState, log: EventLog, g: Goblin, day: number,
     if (place && !line.includes(place)) line = tIn(lang, 'cx.at', { line, place });
     return `${tIn(lang, `cx.tod.${timeOfDay(m.tick)}`)} — ${line}`;
   });
-  return { goblinId: g.id, day, lines, score: best.reduce((a, m) => a + m.score, 0) };
+  const top = best.reduce<(typeof best)[number] | null>((a, m) => (!a || m.score > a.score ? m : a), null);
+  return { goblinId: g.id, day, lines, score: best.reduce((a, m) => a + m.score, 0), top: top?.text ?? null, topScore: top?.score ?? 0 };
 }
 
 /** The `k` goblins with the most interesting `day` (diaries go to them, §19.4). */

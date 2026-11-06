@@ -5,7 +5,7 @@ import type { ID, SimEvent, Vec2 } from '../shared/types';
 import type { Command } from '../sim/commands';
 import { el } from './dom';
 import { injectIcons } from './icons';
-import { onLangChange, setLang, t } from './i18n';
+import { getLang, onLangChange, setLang, t } from './i18n';
 import { Store, initialState, savePref, type Settings } from './store';
 import type { Component, Ctx } from './ctx';
 import { Tooltip } from './components/tooltip';
@@ -21,8 +21,11 @@ import { PrayersPanel } from './components/prayersPanel';
 import { VoicePanel } from './components/voicePanel';
 import { PlaceLabels } from './placeLabels';
 import { EventLog } from '../llm/eventLog';
+import { LlmDirector, type SpokenLine } from '../llm/director';
+import { VoiceFx } from './voiceFx';
 import { StatsPanel } from './components/statsPanel';
 import { FamilyTree } from './components/familyTree';
+import { Journal } from './components/journal';
 import { SandboxDrawer } from './components/sandbox/drawer';
 import { QuickRing } from './components/quickRing';
 import { Input } from './input';
@@ -30,6 +33,8 @@ import { noteFor } from './notify';
 import { Screens } from './appScreens';
 import { WorldFx } from './worldFx';
 import { keyHandlers } from './appKeys';
+
+const LINE_MS = 1500;
 
 /** Wires the UI shell (§18) to the game: components, input, overlays, notifications. */
 export class App implements Ctx {
@@ -48,6 +53,10 @@ export class App implements Ctx {
   readonly places = new PlaceLabels(this);
   /** P9.2: what happened, by day, for the LLM layer's prompts (never read by the sim) */
   readonly log = new EventLog();
+  /** P9.4: diaries, dialogue and barks, and the bubbles they are spoken in */
+  readonly speech = new VoiceFx(this);
+  readonly director = new LlmDirector(this.log, { world: () => this.game.world.s, lang: getLang, say: (k, ls) => this.say(k, ls), onPause: () => this.llmPaused() });
+  private pauseToast = -Infinity;
   private comps: Component[] = [];
   private hud = el('div', { style: 'position:absolute;inset:0;pointer-events:none' });
   private lastUpdate = 0;
@@ -87,7 +96,7 @@ export class App implements Ctx {
     this.minimap = new Minimap(this);
     this.toolbar = new GodToolbar(this);
     this.voice = new VoicePanel(this);
-    this.comps = [this.topBar, this.toolbar, new Inspector(this), this.feed, this.tray, this.minimap, new DebugOverlay(this), new VillagePanel(this), new PrayersPanel(this), this.voice, new StatsPanel(this), new FamilyTree(this), new SandboxDrawer(this),
+    this.comps = [this.topBar, this.toolbar, new Inspector(this), this.feed, this.tray, this.minimap, new DebugOverlay(this), new VillagePanel(this), new PrayersPanel(this), this.voice, new StatsPanel(this), new FamilyTree(this), new Journal(this), new SandboxDrawer(this),
       new QuickRing(this, {
         pickUp: (id) => this.push({ type: 'god_grab', entityId: id }),
         pet: (id) => this.push({ type: 'god_pet', goblinId: id, ticks: 30 }),
@@ -111,6 +120,8 @@ export class App implements Ctx {
     this.input.frame(dt);
     this.fx.frame(dt);
     this.places.frame();
+    this.director.frame();
+    this.speech.frame();
     if (this.store.state.screen !== 'title') for (const c of this.comps) c.frame?.(dt);
     const now = performance.now();
     if (now - this.lastUpdate > 100) {
@@ -124,6 +135,7 @@ export class App implements Ctx {
     const w = this.game.world;
     for (const g of w.s.goblins) this.names.set(g.id, g.name);
     this.log.record(evs, w.s);
+    if (!this.replayMode) this.director.onEvents(evs);
     for (const e of evs) {
       const n = noteFor(e, w, this.names);
       if (n) {
@@ -136,6 +148,22 @@ export class App implements Ctx {
       if (e.type === 'god_spoke') this.voice.spoke(e); // P8.9: the sign in the sky, the replies
       if (e.type === 'wish_fulfilled') this.voice.kept(e);
     }
+  }
+
+  /** Speech over the heads (§19.7): a bark at once; dialogue a line every 1.5 s, each until its speaker talks again. */
+  private say(kind: 'dialogue' | 'bark', lines: SpokenLine[]): void {
+    if (kind === 'bark') return this.speech.bubble(lines[0]!.goblinId, lines[0]!.text, 0, { typed: true, ms: 3500 });
+    lines.forEach((l, i) => {
+      const next = lines.findIndex((m, j) => j > i && m.goblinId === l.goblinId);
+      this.speech.bubble(l.goblinId, l.text, i * LINE_MS, { typed: true, ms: next < 0 ? LINE_MS + 3000 : (next - i) * LINE_MS });
+    });
+  }
+
+  private llmPaused(): void {
+    const now = performance.now();
+    if (now - this.pauseToast < 5 * 60_000) return;
+    this.pauseToast = now;
+    this.toast(t('llm.paused'), 'info');
   }
 
   // ---- Ctx ----

@@ -9,6 +9,7 @@ import { bar } from './goblinInspector';
 import { CFG } from '../../../sim/config';
 import { dryProgress, isDrying, rackDried, rackLoad } from '../../../sim/preserve';
 import { towerOf } from '../../../sim/watch';
+import { journalsOf } from '../../../llm/store';
 
 const row = (label: string, ...rest: (HTMLElement | string)[]) => el('div.row', {}, el('span.lbl', { text: label }), ...rest);
 
@@ -20,7 +21,7 @@ export function buildingHead(b: Building, onClose: () => void): HTMLElement {
       el('button.btn', { onclick: onClose }, icon('close'))));
 }
 
-export function buildingBody(b: Building, w: World): HTMLElement {
+export function buildingBody(b: Building, w: World, onDiary?: (id: number) => void): HTMLElement {
   const name = (id: number | null) => (id === null ? t('insp.nobody') : w.goblin(id)?.name ?? '?');
   const def = buildingDef(b.type);
   const missing = missingMaterials(b);
@@ -40,7 +41,15 @@ export function buildingBody(b: Building, w: World): HTMLElement {
     b.decoration.length ? row(t(b.type === 'shrine' || b.type === 'temple' ? 'insp.offerings' : 'insp.shelf'), el('span', { text: b.decoration.map((id) => w.s.trinkets.find((x) => x.id === id)).map((x) => (x ? t(`trinket.${x.kind}`) : '?'))
       .concat((w.s.god.faith?.offerings ?? []).filter((o) => o.buildingId === b.id && o.item).map((o) => t(`item.${o.item}`))).join(' · ') })) : null,
     consecrated(b) ? el('div.sub', { text: t('insp.consecrated') }) : null, // P8.8
+    onDiary ? diaryShelf(b, w, onDiary) : null,
     b.type === 'watchtower' && b.buildProgress >= 1
       ? row(t('insp.lookout'), el('span', { text: w.s.goblins.find((g) => towerOf(g, w)?.id === b.id)?.name ?? t('insp.nobody') })) : null,
   );
+}
+
+/** A hut's shelf of its residents' diaries (§19.7, P9.4): one button each, opening the journal. */
+function diaryShelf(b: Building, w: World, open: (id: number) => void): HTMLElement | null {
+  const books = b.occupants.map((id) => ({ id, n: journalsOf(w.s, id, 'diary').length })).filter((x) => x.n > 0);
+  if (!books.length) return null;
+  return row(t('journal.shelf'), el('span', {}, ...books.map((x) => el('button.btn', { onclick: () => open(x.id), style: 'margin:0 4px 4px 0' }, icon('book'), ` ${w.goblin(x.id)?.name ?? '?'} (${x.n})`))));
 }

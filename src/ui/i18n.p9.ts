@@ -12,6 +12,12 @@ export const EN9 = {
   'llm.local': 'Kept in this browser, never in saves.',
   'mm.places': 'Names', 'key.places': 'Place names on the map', 'ev.place_named': 'The village calls this place {name}.',
   'ev.place_named_after': 'The village calls this place {name}, after {who}.',
+  'llm.paused': 'The voices went quiet for a moment (the language model did not answer).',
+  'key.journal': 'Journal', 'journal.title': 'Journal', 'journal.diary': 'Diaries', 'journal.book': 'Books', 'journal.eulogy': 'Eulogies', 'journal.chronicle': 'Chronicle',
+  'journal.none': 'Nothing written yet.', 'journal.noDiary': '{name} has not written in a diary yet. Diaries are written at dawn by the goblins with the most eventful day.',
+  'journal.day': 'Day {d} · {season}', 'journal.mock': 'Template text (no language model)', 'journal.dead': 'died', 'insp.journal': 'Journal',
+  'journal.bio': '{stage}, {age} seasons old, {size} and {color}', 'journal.shelf': 'Diaries on the shelf',
+
 };
 
 export const DE9: Record<keyof typeof EN9, string> = {
@@ -27,4 +33,10 @@ export const DE9: Record<keyof typeof EN9, string> = {
   'llm.local': 'Liegt in diesem Browser, nie in Spielständen.',
   'mm.places': 'Namen', 'key.places': 'Ortsnamen auf der Karte', 'ev.place_named': 'Das Dorf nennt diesen Ort {name}.',
   'ev.place_named_after': 'Das Dorf nennt diesen Ort {name}, nach {who}.',
+  'llm.paused': 'Die Stimmen sind kurz verstummt (das Sprachmodell hat nicht geantwortet).',
+  'key.journal': 'Tagebuch', 'journal.title': 'Tagebuch', 'journal.diary': 'Tagebücher', 'journal.book': 'Bücher', 'journal.eulogy': 'Grabreden', 'journal.chronicle': 'Chronik',
+  'journal.none': 'Noch nichts geschrieben.', 'journal.noDiary': '{name} hat noch nichts ins Tagebuch geschrieben. Tagebücher schreiben im Morgengrauen die Goblins mit dem ereignisreichsten Tag.',
+  'journal.day': 'Tag {d} · {season}', 'journal.mock': 'Vorlagentext (kein Sprachmodell)', 'journal.dead': 'gestorben', 'insp.journal': 'Tagebuch',
+  'journal.bio': '{stage}, {age} Jahreszeiten alt, {size} und {color}', 'journal.shelf': 'Tagebücher im Regal',
+
 };

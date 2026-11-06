@@ -6,9 +6,9 @@ import * as THREE from 'three';
 import type { App } from './app';
 import type { ID } from '../shared/types';
 
-interface Floater { el: HTMLDivElement; ids: ID[]; until: number; lift: number; born: number }
+interface Floater { el: HTMLDivElement; ids: ID[]; until: number; lift: number; born: number; text?: string; shown?: number }
 
-const SIGN_MS = 4000, BUBBLE_MS = 4500;
+const SIGN_MS = 4000, BUBBLE_MS = 4500, TYPE_MS = 28;
 
 export class VoiceFx {
   private items: Floater[] = [];
@@ -25,14 +25,14 @@ export class VoiceFx {
     this.items.push({ el: d, ids: ids.slice(0, 40), until: now + SIGN_MS, lift: 6, born: now });
   }
 
-  /** A reply over one goblin's head. */
-  bubble(id: ID, text: string, delay = 0): void {
+  /** A reply over one goblin's head; `typed` reveals it letter by letter (P9.4 speech), `ms` how long it stays. */
+  bubble(id: ID, text: string, delay = 0, o: { typed?: boolean; ms?: number } = {}): void {
     const d = document.createElement('div');
-    d.className = 'speechbubble hidden';
-    d.textContent = text;
+    d.className = `speechbubble hidden${o.typed ? ' typed' : ''}`;
+    d.textContent = o.typed ? '' : text;
     this.app.root.before(d); // under the HUD
     const now = performance.now() + delay;
-    this.items.push({ el: d, ids: [id], until: now + BUBBLE_MS, lift: 1.5, born: now });
+    this.items.push({ el: d, ids: [id], until: now + (o.ms ?? BUBBLE_MS), lift: 1.5, born: now, ...(o.typed ? { text, shown: 0 } : {}) });
   }
 
   frame(): void {
@@ -46,6 +46,10 @@ export class VoiceFx {
       const c = ps.reduce((a, p) => a.add(p), new THREE.Vector3()).multiplyScalar(1 / ps.length);
       const sc = r.toScreen(c.setY(c.y + f.lift));
       f.el.classList.toggle('hidden', !sc.visible);
+      if (f.text !== undefined) {
+        const n = Math.min(f.text.length, Math.ceil((now - f.born) / TYPE_MS));
+        if (n !== f.shown) { f.shown = n; f.el.textContent = f.text.slice(0, n); }
+      }
       const k = Math.min(1, (now - f.born) / 300, (f.until - now) / 600);
       f.el.style.opacity = String(Math.max(0, k));
       f.el.style.transform = `translate(${Math.round(sc.x)}px, ${Math.round(sc.y)}px) translate(-50%, -100%)`;

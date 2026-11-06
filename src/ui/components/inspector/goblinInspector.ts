@@ -41,7 +41,7 @@ const row = (label: string, v: number, shown: string, color?: string) =>
   el('div.row', {}, el('span.lbl', { text: label }), bar(v, color), el('span.val', { text: shown }));
 const needColor = (v: number) => (v < 15 ? 'var(--apple)' : v < 40 ? 'var(--gold)' : 'var(--moss)');
 
-export function goblinHeader(g: Goblin, w: World, onFollow: () => void, onClose: () => void, onFamily: () => void): HTMLElement {
+export function goblinHeader(g: Goblin, w: World, onFollow: () => void, onClose: () => void, onFamily: () => void, onJournal: () => void): HTMLElement {
   const ph = phenotypeOf({ genome: g.genome, ageDays: ageDays(g, w.s.tick), stage: g.lifeStage, hunger: 70, scars: g.health.scars });
   const img = el('img.portrait', { src: portraits.get(ph, g.id * 31 + 7), alt: g.name });
   const seasons = (ageDays(g, w.s.tick) / CFG.time.daysPerSeason).toFixed(1);
@@ -55,6 +55,7 @@ export function goblinHeader(g: Goblin, w: World, onFollow: () => void, onClose:
       el('div', { style: 'margin-top:4px;display:flex;gap:4px' },
         el('button.btn', { onclick: onFollow, 'data-tip': t('insp.follow') }, icon('eye')),
         el('button.btn', { onclick: onFamily, 'data-tip': t('insp.familyTree') }, icon('egg')),
+        el('button.btn', { onclick: onJournal, 'data-tip': t('insp.journal') }, icon('book')),
         el('button.btn', { onclick: onClose, 'data-tip': t('insp.close') }, icon('close')))));
 }
 

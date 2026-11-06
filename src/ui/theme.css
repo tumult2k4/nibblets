@@ -210,3 +210,19 @@ table.genome td { padding: 1px 4px; border-bottom: 1px solid rgba(0,0,0,.08); }
 .sub.warn { color: #9a3b1b; font-weight: 600; }
 .placelabel { position: fixed; left: 0; top: 0; z-index: 0; pointer-events: none; white-space: nowrap; font-family: 'Patrick Hand', 'Fredoka', sans-serif; font-size: 15px; color: #fff8e6; text-shadow: 0 1px 3px rgba(40, 25, 10, .9), 0 0 8px rgba(40, 25, 10, .5); opacity: .85; letter-spacing: .02em; }
 .placelabel.hidden { display: none; }
+/* P9.4 journal: a book with two pages, ink in the writer's skin color */
+.journal { position: absolute; top: 76px; left: 80px; width: 700px; max-width: calc(100vw - 420px); padding: 10px; z-index: 5; pointer-events: auto; --ink-accent: var(--bark); }
+.journal h2 { margin: 0 8px 0 0; font-size: 1.2em; } .journal .tabs { margin: 0 auto 0 8px; }
+.jbook { display: flex; gap: 0; margin-top: 8px; background: #f6edd9; border: 2px solid var(--bark); border-radius: 10px; box-shadow: inset 0 0 18px rgba(120, 90, 40, .18); }
+.jpage { padding: 12px 14px; max-height: 420px; overflow: auto; }
+.jpage.left { width: 190px; flex: none; border-right: 2px dashed rgba(90, 60, 30, .35); text-align: center; }
+.jpage.right { flex: 1; }
+.jpage select { width: 100%; font: inherit; margin-bottom: 8px; }
+.jpage h3 { margin: 6px 0 2px; color: var(--ink-accent); font-family: 'Patrick Hand', 'Fredoka', sans-serif; font-size: 1.25em; }
+.jportrait { width: 128px; height: 128px; border-radius: 12px; border: 2px solid var(--ink-accent); background: #cfe6f2; display: block; margin: 0 auto; }
+.jportrait.dead { display: flex; align-items: center; justify-content: center; font-size: 48px; background: #ddd3c0; color: #6d6253; }
+.jentry { margin-bottom: 12px; }
+.jentry .jday { font-weight: 600; font-size: .85em; color: var(--ink-accent); border-bottom: 1px solid var(--ink-accent); padding-bottom: 2px; }
+.jentry p { margin: 4px 0 0; font-family: 'Patrick Hand', 'Fredoka', sans-serif; font-size: 16px; line-height: 1.35; color: #3a2e22; }
+.jmock { color: var(--ink-2); font-weight: 400; cursor: help; }
+.speechbubble.typed { min-width: 24px; min-height: 1.2em; }

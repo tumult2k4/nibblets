@@ -10,6 +10,10 @@ export const LLM = {
   /** the scheduler (§19.6): concurrency, requests a minute, a request's timeout and retries; after `pauseAfter`
    * errors in a row LLM mode rests `pauseTicks` (10 in-game minutes) */
   scheduler: { concurrency: 2, perMinute: 10, timeoutMs: 20000, retries: 1, pauseAfter: 3, pauseTicks: 25 },
+  /** products (§19.4, P9.4): a dialogue needs both chatters to have had a day worth a line of `minScore` or one to
+   * feel strongly (`minOpinion`) about the other; barks cool down an hour a goblin and are stale after `barkStale`
+   * ticks; texts are clamped to these lengths */
+  products: { minScore: 5, minOpinion: 50, dialogueStale: 300, barkStale: 100, diaryChars: 800, barkChars: 90, lineChars: 80 },
   /** where the providers listen by default */
   endpoints: { proxy: 'http://localhost:8787/complete', ollama: 'http://localhost:11434/api/generate', anthropic: 'https://api.anthropic.com/v1/messages' },
 };

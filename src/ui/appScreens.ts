@@ -66,6 +66,8 @@ export class Screens {
     this.app.game.setWorld(w);
     this.app.names.clear();
     this.app.log.clear();
+    this.app.director.clear();
+    this.app.speech.clear();
     this.app.feed?.reset();
   }
 

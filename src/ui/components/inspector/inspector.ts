@@ -52,7 +52,8 @@ export class Inspector implements Component {
       if (!g) return this.ctx.select(null, []);
       if (fresh) {
         const family = () => this.ctx.store.set({ familyFocus: g.id, openPanels: { ...this.ctx.store.state.openPanels, family: true } });
-        this.head.replaceChildren(goblinHeader(g, w, () => this.ctx.follow(g.id), () => this.ctx.select(null, []), family));
+        const journal = () => this.openJournal(g.id);
+        this.head.replaceChildren(goblinHeader(g, w, () => this.ctx.follow(g.id), () => this.ctx.select(null, []), family, journal));
         this.tabs.replaceChildren(...TABS.map((tab) => el(`button.btn${tab === st.inspectorTab ? '.on' : ''}`, { onclick: () => this.ctx.store.set({ inspectorTab: tab }) }, t(`insp.${tab}`))));
         if (st.selection.length > 1) this.tabs.prepend(el('span.badge', { text: `+${st.selection.length - 1}` }));
       }
@@ -103,7 +104,7 @@ export class Inspector implements Component {
       const b = w.s.buildings.find((x) => x.id === id);
       if (!b) return this.ctx.select(null, []);
       if (fresh) this.head.replaceChildren(buildingHead(b, () => this.ctx.select(null, [])));
-      this.body.replaceChildren(buildingBody(b, w));
+      this.body.replaceChildren(buildingBody(b, w, (gid) => this.openJournal(gid)));
       return;
     }
     if (st.selectedKind === 'item' && id !== undefined) {
@@ -119,6 +120,10 @@ export class Inspector implements Component {
   }
 
   /** Village at a glance (no selection). */
+  private openJournal(id: number): void {
+    this.ctx.store.set({ journalFocus: id, journalTab: 'diary', openPanels: { ...this.ctx.store.state.openPanels, journal: true } });
+  }
+
   private glance(): void {
     const w = this.ctx.game.world;
     const s = w.s;

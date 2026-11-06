@@ -41,7 +41,7 @@ export interface UIState {
   selectedKind: EntityKind | null;
   hoveredId: ID | null;
   activeTool: ToolId;
-  openPanels: { inspector: boolean; feed: boolean; debug: boolean; flyout: boolean; tray: boolean; village: boolean; family?: boolean; sandbox?: boolean; stats?: boolean; prayers?: boolean; voice?: boolean };
+  openPanels: { inspector: boolean; feed: boolean; debug: boolean; flyout: boolean; tray: boolean; village: boolean; family?: boolean; sandbox?: boolean; stats?: boolean; prayers?: boolean; voice?: boolean; journal?: boolean };
   /** Sandbox drawer (P5.9): its tab, and what a click on the ground places (null: nothing armed) */
   sandboxTab?: SandboxTab;
   spawn?: SpawnSpec | null;
@@ -49,6 +49,9 @@ export interface UIState {
   geneLocus?: LocusId | null;
   /** the family tree centers on this goblin when opened from its inspector (P5.8) */
   familyFocus?: ID | null;
+  /** the journal (P9.4): whose diaries, and which tab */
+  journalFocus?: ID | null;
+  journalTab?: 'diary' | 'book' | 'eulogy' | 'chronicle';
   overlay: null | 'pause' | 'saves' | 'settings' | 'help' | 'wizard';
   lens: Lens;
   trayTab: TrayTab;

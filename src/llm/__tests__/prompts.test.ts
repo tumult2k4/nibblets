@@ -26,7 +26,7 @@ describe('prompts (§19.5, P9.3)', () => {
     expect(d).toMatchObject({ product: 'diary', maxTokens: 220, facts: { lang: 'en', name: 'Krikwick', lines: DAY } });
     const talk = dialoguePrompt({ ctx: KRIK, sees: 'best friend', news: DAY[1]! }, { ctx: FIZZ, sees: 'best friend', news: null }, 'danger', 'en');
     expect(talk.prompt).toMatchSnapshot();
-    expect(barkPrompt(KRIK, 'I slew a Gnasher', 'de').prompt).toMatchSnapshot();
+    expect(barkPrompt(KRIK, 'I slew a Gnasher', 'win', 'de').prompt).toMatchSnapshot();
   });
 
   it('player-typed text cannot smuggle instructions in', () => {

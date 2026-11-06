@@ -30,14 +30,19 @@ export function colorWord(h: number, l: number, lang: Lang): string {
 }
 export const sizeWord = (scale: number, lang: Lang): string => tIn(lang, `cx.size.${scale < 0.93 ? 'small' : scale > 1.07 ? 'big' : 'mid'}`);
 
+/** How `g` sees `id` in a word or two: its bond ("best friend"), else "likes", "dislikes" or "knows". */
+export function relLabel(g: Goblin, id: ID, lang: Lang): string {
+  const r = g.relationships.find((x) => x.targetId === id);
+  if (!r) return tIn(lang, 'cx.rel.none');
+  return r.bond !== 'none' ? tIn(lang, `cx.rel.${r.bond}`) : tIn(lang, r.opinion >= 20 ? 'cx.rel.likes' : r.opinion <= -20 ? 'cx.rel.dislikes' : 'cx.rel.none');
+}
+
 const NEEDS: NeedId[] = ['hunger', 'thirst', 'energy', 'warmth', 'safety', 'social', 'fun', 'curiosity', 'comfort', 'purpose'];
 
 export function goblinContext(s: WorldState, g: Goblin, lang: Lang): GoblinContext {
   const ph = phenotypeOf({ genome: g.genome, ageDays: ageDays(g, s.tick), stage: g.lifeStage, hunger: g.needs.hunger, scars: g.health.scars });
-  const rels = [...g.relationships].filter((r) => nameOf(s, r.targetId)).sort((a, b) => Math.abs(b.opinion) - Math.abs(a.opinion)).slice(0, 3).map((r) => {
-    const label = r.bond !== 'none' ? tIn(lang, `cx.rel.${r.bond}`) : tIn(lang, r.opinion >= 20 ? 'cx.rel.likes' : r.opinion <= -20 ? 'cx.rel.dislikes' : 'cx.rel.none');
-    return `${nameOf(s, r.targetId)} (${label})`;
-  });
+  const rels = [...g.relationships].filter((r) => nameOf(s, r.targetId)).sort((a, b) => Math.abs(b.opinion) - Math.abs(a.opinion)).slice(0, 3)
+    .map((r) => `${nameOf(s, r.targetId)} (${relLabel(g, r.targetId, lang)})`);
   const low = NEEDS.reduce((a, b) => ((g.needs[b] ?? 100) < (g.needs[a] ?? 100) ? b : a));
   const clock = clockAt(s.tick);
   const chief = nameOf(s, s.village.chiefId);
