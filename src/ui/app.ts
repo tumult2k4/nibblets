@@ -41,6 +41,8 @@ import { Tips } from './components/tips';
 import { PossessBar } from './components/possessBar';
 import { deedsFrom } from './deedWatch';
 import { PhotoBar } from './components/photoBar';
+import { Soundscape } from './sound/soundscape';
+import { audio, DEFAULT_AUDIO } from './audio';
 
 const LINE_MS = 1500;
 
@@ -73,6 +75,8 @@ export class App implements Ctx {
     named: (name) => this.toast(t('village.named', { name }), 'notable'),
     godNamed: (name) => this.toast(t('voice.godNamed', { name }), 'notable'),
     deed: (id, n) => this.earn(id, t(`deed.${id}.how`, n)) });
+  /** what the village sounds like from the camera (ElevenLabs-made audio) */
+  readonly sound = new Soundscape();
   private pauseToast = -Infinity;
   private comps: Component[] = [];
   private hud = el('div', { style: 'position:absolute;inset:0;pointer-events:none' });
@@ -143,6 +147,9 @@ export class App implements Ctx {
     this.places.frame();
     this.director.frame();
     this.speech.frame();
+    const cam = this.game.renderer.camera;
+    const title = this.store.state.screen === 'title';
+    this.sound.frame(dt, title ? null : this.game.world, { x: cam.target.x, y: cam.target.z, dist: cam.dist, yaw: cam.yaw }, { title, speed: this.game.paused ? 0 : this.game.speed });
     if (this.store.state.screen !== 'title') for (const c of this.comps) c.frame?.(dt);
     const now = performance.now();
     if (now - this.lastUpdate > 100) {
@@ -158,6 +165,7 @@ export class App implements Ctx {
     this.log.record(evs, w.s);
     if (!this.replayMode) this.director.onEvents(evs);
     this.dircam.onEvents(evs);
+    if (!this.replayMode) this.sound.onEvents(evs, w, this.game.speed >= 16);
     if (!this.replayMode) for (const [id, p] of deedsFrom(evs, w)) this.earn(id, t(`deed.${id}.how`, p)); // P11.1
     for (const e of evs) {
       const n = noteFor(e, w, this.names);
@@ -249,6 +257,7 @@ export class App implements Ctx {
     this.game.renderer.wrathFx.reduced = s.reducedMotion;
     this.game.renderer.miracleFx.reduced = s.reducedMotion;
     this.game.renderer.music.reducedMotion = s.reducedMotion;
+    audio.applyPrefs({ ...DEFAULT_AUDIO, ...s.audio });
   }
 
   t = t;

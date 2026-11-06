@@ -51,7 +51,7 @@ export class TrayDrag {
     }
     if (at) {
       this.send(item, at);
-      audio.play('apple_bonk');
+      audio.play(p.entity?.kind === 'goblin' ? 'apple_bonk' : 'gift_drop');
     }
   }
 

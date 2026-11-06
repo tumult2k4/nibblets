@@ -11,7 +11,8 @@
     "test:watch": "vitest",
     "lint": "eslint src tools",
     "balance": "tsx tools/balance.ts",
-    "llm-proxy": "tsx tools/llm-proxy.ts"
+    "llm-proxy": "tsx tools/llm-proxy.ts",
+    "audio:gen": "tsx --env-file=.env.local tools/audio-gen.ts"
   },
   "dependencies": {
     "@fontsource/fredoka": "^5.3.0",
@@ -20,6 +21,7 @@
     "three": "^0.187.0"
   },
   "devDependencies": {
+    "@elevenlabs/elevenlabs-js": "^2.77.0",
     "@eslint/js": "^9.39.5",
     "@types/node": "^22.20.5",
     "@types/three": "^0.187.0",
