@@ -25,6 +25,8 @@ export interface Settings {
   shadows: 'off' | 'low' | 'high'; renderScale: number; outlines: boolean; fog: boolean;
   edgePan: boolean; invertOrbit: boolean; autopauseDeath: boolean; tooltipDelay: number;
   uiScale: number; reducedMotion: boolean; language: Lang;
+  /** P11.4 accessibility: opaque high-contrast panels, color-blind-safe UI colors, the journal's type size */
+  highContrast: boolean; colorSafe: boolean; journalFont: number;
   /** §18.4 step 4: ask before a cast that would kill a goblin */
   confirmLethal: boolean;
   /** P9.2: place names floating over the map (§15.6) */
@@ -33,6 +35,7 @@ export interface Settings {
 export const DEFAULT_SETTINGS: Settings = {
   shadows: 'high', renderScale: 1, outlines: true, fog: true, edgePan: false, invertOrbit: false, autopauseDeath: false,
   tooltipDelay: 350, uiScale: 1, reducedMotion: false, language: 'en', confirmLethal: true, placeNames: true,
+  highContrast: false, colorSafe: false, journalFont: 1,
 };
 
 export interface UIState {

@@ -13,7 +13,7 @@ const BOND_ICON: Record<string, string> = { friend: 'heart', best_friend: 'star'
 /** An opinion bar centered on 0: green to the right for liking, red to the left for disliking. */
 function opinionBar(v: number): HTMLElement {
   const w = Math.min(50, Math.abs(v) / 2);
-  const style = v >= 0 ? `left:50%;width:${w}%;background:var(--moss)` : `left:${50 - w}%;width:${w}%;background:var(--apple)`;
+  const style = v >= 0 ? `left:50%;width:${w}%;background:var(--good)` : `left:${50 - w}%;width:${w}%;background:var(--bad)`;
   return el('div.bar', { style: 'position:relative' }, el('i', { style: `position:absolute;top:0;bottom:0;${style}` }));
 }
 

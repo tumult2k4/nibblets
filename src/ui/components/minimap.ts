@@ -2,6 +2,8 @@ import { el } from '../dom';
 import { geneColor, geneLegend } from '../geneColor';
 import { LOCUS_DEFS, type LocusDef, type LocusId } from '../../sim/goblin/genetics/genome';
 import { t } from '../i18n';
+import { tipKey } from './tooltip';
+import { keyLabel } from '../keys';
 import type { Ctx, Component } from '../ctx';
 import { LENSES } from '../store';
 import { express } from '../../sim/goblin/genetics/phenotype';
@@ -37,13 +39,13 @@ export class Minimap implements Component {
   /** P9.2: place names on the map, on or off */
   private placesChip(): HTMLElement {
     const st = this.ctx.store.state.settings;
-    return el(`button.btn${st.placeNames !== false ? '.on' : ''}`, { onclick: () => { this.ctx.applySettings({ ...this.ctx.store.state.settings, placeNames: st.placeNames === false }); this.renderLenses(); } }, `⚑ ${t('mm.places')}`);
+    return el(`button.btn${st.placeNames !== false ? '.on' : ''}`, { 'data-tip': tipKey(t('tip.places'), keyLabel('places')), onclick: () => { this.ctx.applySettings({ ...this.ctx.store.state.settings, placeNames: st.placeNames === false }); this.renderLenses(); } }, `⚑ ${t('mm.places')}`);
   }
 
   renderLenses(): void {
     const cur = this.ctx.store.state.lens;
     this.lenses.replaceChildren(el('span.sub', { text: `${t('mm.lens')}:`, style: 'font-size:.75em' }), ...LENSES.map((l) =>
-      el(`button.btn${l === cur ? '.on' : ''}`, { onclick: () => this.ctx.store.set({ lens: l }) }, t(`lens.${l}`))), this.placesChip());
+      el(`button.btn${l === cur ? '.on' : ''}`, { 'data-tip': `${t(`lensTip.${l}`)}<br><span class="sub">${t('lensTip.cycle', { key: `<kbd>${keyLabel('lens')}</kbd>` })}</span>`, onclick: () => this.ctx.store.set({ lens: l }) }, t(`lens.${l}`))), this.placesChip());
     if (cur !== 'genetics') return;
     // genetics lens (P5.9): color by one locus instead of skin hue, with a line on what the colors mean
     const locus = this.ctx.store.state.geneLocus ?? null;

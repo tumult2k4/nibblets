@@ -53,6 +53,13 @@ export const EN11 = {
   'possess.bar': 'You are {name}. Click: walk there · on an item: pick it up · on a bush: pick or chop · near a creature: fight. Esc lets go.',
   'mod.not_myself': 'I was not myself', 'replay.pause': 'Pause', 'replay.play': 'Play', 'replay.fast': 'Fast (64×)', 'replay.toEnd': 'Run to where the save was made', 'replay.progress': 'Day {day} of {of} · {n}/{cmds} commands',
   'key.photo': 'Photo mode', 'photo.title': 'Photo mode', 'photo.tilt': 'Tilt-shift', 'photo.tiltTip': 'Blur above and below a band, for the look of a tiny model village',
+  'set.highContrast': 'High-contrast panels', 'set.colorSafe': 'Color-blind-safe colors (goblins keep their own)', 'set.journalFont': 'Journal text size',
+  'set.keyboardNote': 'Keyboard only: {key} moves into the panels and on to the next, Tab and Shift+Tab go from button to button, Enter or Space presses, Esc goes back to the world.',
+  'key.focusPanels': 'Move into the panels', 'help.keyboard': 'Keyboard only',
+  'lensTip.default': 'The world as it is', 'lensTip.needs': 'Goblins colored by their lowest need: food, water or sleep', 'lensTip.faith': 'Goblins colored by their faith in you',
+  'lensTip.mood': 'Goblins colored by mood', 'lensTip.genetics': 'Goblins colored by one gene; pick it below', 'lensTip.fertility': 'Ground colored by how well plants grow',
+  'lensTip.moisture': 'Ground colored by how wet it is', 'lensTip.paths': 'Worn paths glow', 'lensTip.temperature': 'Air temperature, blue cold to red hot', 'lensTip.danger': 'Where trouble was lately, and where beasts roam',
+  'lensTip.cycle': '{key} steps through the lenses', 'tip.places': 'Show the names the village gave its places',
   'photo.focus': 'Focus', 'photo.vignette': 'Vignette', 'photo.save': 'Save PNG', 'photo.saving': 'Saving…', 'photo.exit': 'Leave', 'photo.hint': 'Drag to turn · wheel to zoom · Space runs time',
 };
 
@@ -109,5 +116,12 @@ export const DE11: Record<keyof typeof EN11, string> = {
   'possess.bar': 'Du bist {name}. Klick: dorthin gehen · auf einen Gegenstand: aufheben · auf einen Busch: pflücken oder fällen · bei einem Wesen: kämpfen. Esc lässt los.',
   'mod.not_myself': 'Ich war nicht ich selbst', 'replay.pause': 'Pause', 'replay.play': 'Abspielen', 'replay.fast': 'Schnell (64×)', 'replay.toEnd': 'Bis zum Speicherpunkt laufen', 'replay.progress': 'Tag {day} von {of} · {n}/{cmds} Befehle',
   'key.photo': 'Fotomodus', 'photo.title': 'Fotomodus', 'photo.tilt': 'Tilt-Shift', 'photo.tiltTip': 'Unschärfe ober- und unterhalb eines Streifens, wie bei einem Miniaturdorf',
+  'set.highContrast': 'Kontrastreiche Fenster', 'set.colorSafe': 'Farbenblind-sichere Farben (Goblins behalten ihre)', 'set.journalFont': 'Schriftgröße im Tagebuch',
+  'set.keyboardNote': 'Nur Tastatur: {key} springt in die Fenster und zum nächsten, Tab und Umschalt+Tab gehen von Knopf zu Knopf, Enter oder Leertaste drücken, Esc führt zurück zur Welt.',
+  'key.focusPanels': 'In die Fenster springen', 'help.keyboard': 'Nur mit der Tastatur',
+  'lensTip.default': 'Die Welt, wie sie ist', 'lensTip.needs': 'Goblins nach ihrem knappsten Bedürfnis gefärbt: Essen, Wasser oder Schlaf', 'lensTip.faith': 'Goblins nach ihrem Glauben an dich gefärbt',
+  'lensTip.mood': 'Goblins nach Laune gefärbt', 'lensTip.genetics': 'Goblins nach einem Gen gefärbt; wähle es unten', 'lensTip.fertility': 'Boden danach gefärbt, wie gut Pflanzen wachsen',
+  'lensTip.moisture': 'Boden danach gefärbt, wie nass er ist', 'lensTip.paths': 'Ausgetretene Pfade leuchten', 'lensTip.temperature': 'Lufttemperatur, blau kalt bis rot heiß', 'lensTip.danger': 'Wo es zuletzt Ärger gab und wo Bestien umherziehen',
+  'lensTip.cycle': '{key} schaltet durch die Linsen', 'tip.places': 'Die Namen zeigen, die das Dorf seinen Orten gab',
   'photo.focus': 'Fokus', 'photo.vignette': 'Vignette', 'photo.save': 'PNG speichern', 'photo.saving': 'Speichert…', 'photo.exit': 'Verlassen', 'photo.hint': 'Ziehen zum Drehen · Mausrad zum Zoomen · Leertaste lässt die Zeit laufen',
 };

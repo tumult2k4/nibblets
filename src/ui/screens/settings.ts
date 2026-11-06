@@ -2,7 +2,7 @@ import { el } from '../dom';
 import { t, type Lang } from '../i18n';
 import { overlay, field, select, checkbox } from './common';
 import type { Settings } from '../store';
-import { codeLabel, getKeys, resetKeys, setKey } from '../keys';
+import { codeLabel, getKeys, keyLabel, resetKeys, setKey } from '../keys';
 import { resetTips } from '../components/tips';
 import { llmTab } from './llmSettings';
 
@@ -22,8 +22,8 @@ export function settingsScreen(cur: Settings, gentle: boolean, apply: (s: Settin
     apply(s, g);
     if (k === 'language') render();
   };
-  const num = (k: 'renderScale' | 'tooltipDelay' | 'uiScale', min: number, max: number, step: number) => {
-    const i = el('input', { type: 'range', min, max, step, value: s[k], oninput: () => set(k, Number(i.value)) });
+  const num = (k: 'renderScale' | 'tooltipDelay' | 'uiScale' | 'journalFont', min: number, max: number, step: number) => {
+    const i = el('input', { type: 'range', min, max, step, value: s[k], 'aria-label': t(`set.${k === 'renderScale' ? 'scale' : k}`), oninput: () => set(k, Number(i.value)) });
     return i;
   };
   const controls = () => {
@@ -72,7 +72,11 @@ export function settingsScreen(cur: Settings, gentle: boolean, apply: (s: Settin
     else if (tab === 'access')
       content = el('div.form', {},
         ...field(t('set.uiScale'), num('uiScale', 0.8, 1.5, 0.05)),
-        ...field(t('set.reducedMotion'), checkbox(s.reducedMotion, (v) => set('reducedMotion', v))));
+        ...field(t('set.reducedMotion'), checkbox(s.reducedMotion, (v) => set('reducedMotion', v))),
+        ...field(t('set.highContrast'), checkbox(s.highContrast, (v) => set('highContrast', v))),
+        ...field(t('set.colorSafe'), checkbox(s.colorSafe, (v) => set('colorSafe', v))),
+        ...field(t('set.journalFont'), num('journalFont', 0.8, 1.6, 0.1)),
+        el('div.sub', { style: 'grid-column:1/-1;margin-top:6px', text: t('set.keyboardNote', { key: keyLabel('focusPanels') }) }));
     else if (tab === 'llm') content = llmTab();
     else content = el('div.form', {}, ...field(t('set.language'), select<Lang>([['en', t('set.english')], ['de', t('set.german')]], s.language, (v) => set('language', v))));
     body.replaceChildren(content);

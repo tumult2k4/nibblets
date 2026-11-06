@@ -5,7 +5,7 @@
  * stacked faces daubed in war paint, with wings at the top, set in a ring of stones; the temple (P8.8), an open hall on
  * a stone floor, four carved posts under a steep thatched roof with bone horns at its ends, a stone altar inside with
  * a bowl of embers before it (two tiles); the library shelf (P9.5), a little roofed wooden case on legs with two
- * shelves of books in many colours.
+ * shelves of books in many colors.
  */
 import * as THREE from 'three';
 import { merge, paint, wobble } from './lowpoly';

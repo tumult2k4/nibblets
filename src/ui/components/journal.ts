@@ -1,4 +1,6 @@
 import { el } from '../dom';
+import { tipKey } from './tooltip';
+import { keyLabel } from '../keys';
 import { t, getLang } from '../i18n';
 import type { Ctx, Component } from '../ctx';
 import { CFG } from '../../sim/config';
@@ -32,7 +34,7 @@ export class Journal implements Component {
   constructor(private ctx: Ctx) {}
 
   mount(parent: HTMLElement): void {
-    const close = el('button.btn.iconbtn', { onclick: () => this.set({ openPanels: { ...this.ctx.store.state.openPanels, journal: false } }) }, '✕');
+    const close = el('button.btn.iconbtn', { 'data-tip': tipKey(t('insp.close'), keyLabel('journal')), onclick: () => this.set({ openPanels: { ...this.ctx.store.state.openPanels, journal: false } }) }, '✕');
     this.pick.onchange = () => this.set({ journalFocus: Number(this.pick.value) });
     this.root.append(el('div.vp-head', {}, el('h2', { text: t('journal.title') }), this.tabs, close), el('div.jbook', {}, this.left, this.right));
     parent.append(this.root);

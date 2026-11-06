@@ -241,6 +241,8 @@ export class App implements Ctx {
     savePref('settings', s);
     setLang(s.language);
     document.documentElement.style.setProperty('--ui-scale', String(s.uiScale));
+    document.documentElement.style.setProperty('--journal-font', String(s.journalFont ?? 1)); // P11.4
+    for (const [c, on] of [['hc', s.highContrast], ['cb', s.colorSafe], ['rm', s.reducedMotion]] as const) document.body.classList.toggle(c, !!on);
     this.game.renderer.applySettings({ shadows: s.shadows, renderScale: s.renderScale, outlines: s.outlines, fog: s.fog });
     this.game.renderer.emotes.reducedMotion = s.reducedMotion;
     this.game.renderer.weatherFx.reduced = s.reducedMotion;

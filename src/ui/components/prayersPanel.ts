@@ -1,4 +1,6 @@
 import { el } from '../dom';
+import { tipKey } from './tooltip';
+import { keyLabel } from '../keys';
 import { CFG } from '../../sim/config';
 import { t } from '../i18n';
 import type { Ctx, Component } from '../ctx';
@@ -32,7 +34,7 @@ export class PrayersPanel implements Component {
   constructor(private ctx: Ctx) {}
 
   mount(parent: HTMLElement): void {
-    const close = el('button.btn.iconbtn', { onclick: () => this.ctx.store.set({ openPanels: { ...this.ctx.store.state.openPanels, prayers: false } }) }, '✕');
+    const close = el('button.btn.iconbtn', { 'data-tip': tipKey(t('insp.close'), keyLabel('prayers')), onclick: () => this.ctx.store.set({ openPanels: { ...this.ctx.store.state.openPanels, prayers: false } }) }, '✕');
     this.root.append(el('div.vp-head', {}, el('h2', { text: t('prayers.title') }), close), this.body);
     parent.append(this.root);
   }
@@ -54,7 +56,7 @@ export class PrayersPanel implements Component {
         el('div', { text: `${ICON[p.kind] ?? '✧'} ${prayerText(p.kind, name, target)}` }),
         el('div.sub', { text: done ? t('prayers.by', { act: t(`power.${p.answeredBy}`) === `power.${p.answeredBy}` ? p.answeredBy ?? '' : t(`power.${p.answeredBy}`) })
           : p.kind === 'thanks' ? t('prayers.thanksNote') : `${t('prayers.left', { h: Math.ceil(left / CFG.god.hourTicks) })}${p.desperate ? ' · ' + t('prayers.desperate') : ''}` }),
-        ...(done ? [] : [bar((left / span) * 100, p.desperate ? 'var(--apple)' : 'var(--gold)')]),
+        ...(done ? [] : [bar((left / span) * 100, p.desperate ? 'var(--bad)' : 'var(--gold)')]),
         el('div.pr-buttons', {}, ...buttons)));
   }
 

@@ -50,5 +50,6 @@ export function keyHandlers(app: App): KeyHandlers {
     photo: () => (inGame() || app.photo.on) && app.photo.toggle(),
     help: () => app.openOverlay(st().overlay === 'help' ? null : 'help'),
     rotL: () => {}, rotR: () => {}, // continuous, handled in Input.frame
+    focusPanels: () => {}, // P11.4: handled in Input.key (it needs the event)
   };
 }

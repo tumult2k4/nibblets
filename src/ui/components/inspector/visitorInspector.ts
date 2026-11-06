@@ -5,6 +5,7 @@
  */
 import { el } from '../../dom';
 import { t } from '../../i18n';
+import { tipKey } from '../tooltip';
 import { icon } from '../../icons';
 import type { World } from '../../../sim/world';
 import { clockAt } from '../../../sim/time';
@@ -24,7 +25,7 @@ export function visitorHead(v: Visitor, w: World, onFollow: () => void, onClose:
       c ? el('div.sub', { text: t('visitor.stance', { stance: t(`stance.${stanceOf(c)}`) }) }) : null,
       el('div', { style: 'margin-top:4px;display:flex;gap:4px' },
         el('button.btn', { onclick: onFollow, 'data-tip': t('insp.follow') }, icon('eye')),
-        el('button.btn', { onclick: onClose, 'data-tip': t('insp.close') }, icon('close')))));
+        el('button.btn', { onclick: onClose, 'data-tip': tipKey(t('insp.close'), 'Esc') }, icon('close')))));
 }
 
 export function visitorBody(v: Visitor): HTMLElement[] {

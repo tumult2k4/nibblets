@@ -1,5 +1,6 @@
 import { el } from '../../dom';
 import { t } from '../../i18n';
+import { tipKey } from '../tooltip';
 import { consecrated } from '../../../sim/shrine';
 import { icon } from '../../icons';
 import type { Building } from '../../../sim/state';
@@ -20,7 +21,7 @@ export function buildingHead(b: Building, onClose: () => void): HTMLElement {
   return el('div.insp-head', {}, icon('hill', 'portrait'),
     el('div', {}, el('h2', { text: t(`bld.${b.type}`) }),
       el('div.sub', { text: `${t('insp.building')} · ${b.buildProgress >= 1 ? t('insp.done') : t('insp.blueprint')}${b.data?.repair ? ` · ${t('insp.repair')}` : ''}` }),
-      el('button.btn', { onclick: onClose }, icon('close'))));
+      el('button.btn', { onclick: onClose, 'data-tip': tipKey(t('insp.close'), 'Esc') }, icon('close'))));
 }
 
 export function buildingBody(b: Building, w: World, onDiary?: (id: number) => void): HTMLElement {

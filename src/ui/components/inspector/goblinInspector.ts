@@ -1,5 +1,6 @@
 import { el } from '../../dom';
 import { t } from '../../i18n';
+import { tipKey } from '../tooltip';
 import { hslCss } from '../../../shared/math';
 import type { Goblin, NeedId } from '../../../sim/state';
 import type { Goal } from '../../../sim/ai/planner';
@@ -36,10 +37,10 @@ function prayerLine(g: Goblin, w: World): HTMLElement | null {
   return el('div.sub', { text: `${t('insp.prayer')}: ${prayerText(p.kind, g.name, target)} (${t('prayers.left', { h: Math.ceil(Math.max(0, p.expiresTick - w.s.tick) / CFG.god.hourTicks) })})` });
 }
 
-export const bar = (v: number, color = 'var(--moss)'): HTMLElement => el('div.bar', {}, el('i', { style: `width:${Math.max(0, Math.min(100, v))}%;background:${color}` }));
+export const bar = (v: number, color = 'var(--good)'): HTMLElement => el('div.bar', {}, el('i', { style: `width:${Math.max(0, Math.min(100, v))}%;background:${color}` }));
 const row = (label: string, v: number, shown: string, color?: string) =>
   el('div.row', {}, el('span.lbl', { text: label }), bar(v, color), el('span.val', { text: shown }));
-const needColor = (v: number) => (v < 15 ? 'var(--apple)' : v < 40 ? 'var(--gold)' : 'var(--moss)');
+const needColor = (v: number) => (v < 15 ? 'var(--bad)' : v < 40 ? 'var(--warn)' : 'var(--good)');
 
 /** A goblin who married in from another clan (P10.4). */
 function bornTo(g: Goblin, w: World): HTMLElement | null {
@@ -59,12 +60,12 @@ export function goblinHeader(g: Goblin, w: World, onFollow: () => void, onClose:
       bornTo(g, w),
       el('div.sub', { text: t('insp.age', { stage: t(`stage.${g.lifeStage}`), age: seasons }) }),
       el('div.sub', { text: t('insp.descriptor', { d: desc }) }),
-      el('div', { style: 'margin-top:4px;display:flex;gap:4px' },
+      el('div', { style: 'margin-top:4px;display:flex;flex-wrap:wrap;gap:4px' },
         el('button.btn', { onclick: onFollow, 'data-tip': t('insp.follow') }, icon('eye')),
         el('button.btn', { onclick: onFamily, 'data-tip': t('insp.familyTree') }, icon('egg')),
         el('button.btn', { onclick: onJournal, 'data-tip': t('insp.journal') }, icon('book')),
-        onPossess ? el(`button.btn${w.s.god.possessedId === g.id ? '.on' : ''}`, { onclick: onPossess, 'data-tip': t(w.s.god.possessedId === g.id ? 'possess.release' : 'possess.take'), text: '👁' }) : null,
-        el('button.btn', { onclick: onClose, 'data-tip': t('insp.close') }, icon('close')))));
+        onPossess ? el(`button.btn${w.s.god.possessedId === g.id ? '.on' : ''}`, { onclick: onPossess, 'data-tip': t(w.s.god.possessedId === g.id ? 'possess.release' : 'possess.take') }, icon('goblin')) : null,
+        el('button.btn', { onclick: onClose, 'data-tip': tipKey(t('insp.close'), 'Esc') }, icon('close')))));
 }
 
 const goalText = (goal: Goal, w: World): string => goal.kind === 'build'
@@ -145,7 +146,7 @@ export function statusTab(g: Goblin, w: World): HTMLElement {
     g.goalStack.length ? el('div.row', {}, el('b', { text: `${t('insp.goal')}: ` }), el('span', { text: g.goalStack.map((e) => goalText(e.goal, w)).join(' → ') })) : null,
     el('h3', { text: t('insp.needs') }), ...needs, el('div.sub', { text: tags.join(' · ') }), ...stubs,
     el('h3', { text: t('insp.mood') }),
-    row(t(`emotion.${g.mood.emotion}`), (mood + 100) / 2, String(Math.round(mood)), mood < -30 ? 'var(--apple)' : 'var(--gold)'),
+    row(t(`emotion.${g.mood.emotion}`), (mood + 100) / 2, String(Math.round(mood)), mood < -30 ? 'var(--bad)' : 'var(--gold)'),
     mods.length ? el('div.sub', { text: mods.join(' · ') }) : null,
     el('div.sub', { text: moodTags(g, w).join(' · ') }),
     el('h3', { text: t('insp.health') }),
@@ -174,7 +175,7 @@ export function mindTab(g: Goblin, w: World): HTMLElement {
     row(t('insp.faith'), v.faith, String(Math.round(v.faith)), 'var(--gold)'),
     row(t('insp.love'), v.love, String(Math.round(v.love)), '#e57a9a'),
     row(t('insp.fear'), v.fear, String(Math.round(v.fear)), 'var(--wrath)'),
-    v.angryAtGod ? el('div.sub', { text: t('insp.angryAtGod'), style: 'color:var(--apple)' }) : null,
+    v.angryAtGod ? el('div.sub', { text: t('insp.angryAtGod'), style: 'color:var(--bad)' }) : null,
     prayerLine(g, w), // P8.8
     ...v.wishes.filter((x) => x.expiresTick > w.s.tick).map((x) => el('div.sub', { // P8.9
       text: t(x.defied ? 'insp.wishDefied' : 'insp.wish', { what: understood([{ intent: x.intent, ...(x.target && x.target.kind !== 'action' ? { target: x.target } : {}) }], 'kind').split(' · ')[0]!, n: Math.round(x.strength * 100) }),

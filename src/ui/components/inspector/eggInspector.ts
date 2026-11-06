@@ -4,6 +4,7 @@
  */
 import { el } from '../../dom';
 import { t } from '../../i18n';
+import { tipKey } from '../tooltip';
 import { icon } from '../../icons';
 import type { Egg } from '../../../sim/state';
 import type { World } from '../../../sim/world';
@@ -20,7 +21,7 @@ export function eggHead(egg: Egg, onClose: () => void): HTMLElement {
   return el('div.insp-head', {}, icon('egg', 'portrait'),
     el('div', { style: 'flex:1' }, el('h2', { text: t('insp.egg') }),
       el('div.sub', { text: egg.twinOf !== undefined ? t('insp.eggTwin') : t('insp.eggOne') }),
-      el('button.btn', { onclick: onClose, 'data-tip': t('insp.close') }, icon('close'))));
+      el('button.btn', { onclick: onClose, 'data-tip': tipKey(t('insp.close'), 'Esc') }, icon('close'))));
 }
 
 /** What the child inside will look like, in a few plain words. */

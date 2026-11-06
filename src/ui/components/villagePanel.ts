@@ -1,4 +1,6 @@
 import { el } from '../dom';
+import { tipKey } from './tooltip';
+import { keyLabel } from '../keys';
 import { CFG } from '../../sim/config';
 import { godTitle, t } from '../i18n';
 import type { Ctx, Component } from '../ctx';
@@ -35,7 +37,7 @@ export class VillagePanel implements Component {
   constructor(private ctx: Ctx) {}
 
   mount(parent: HTMLElement): void {
-    const close = el('button.btn.iconbtn', { onclick: () => this.ctx.store.set({ openPanels: { ...this.ctx.store.state.openPanels, village: false } }) }, '✕');
+    const close = el('button.btn.iconbtn', { 'data-tip': tipKey(t('insp.close'), keyLabel('village')), onclick: () => this.ctx.store.set({ openPanels: { ...this.ctx.store.state.openPanels, village: false } }) }, '✕');
     // P7.6: the charts open beside it
     const charts = el('button.btn', { text: t('village.charts'), onclick: () => this.ctx.store.set({ openPanels: { ...this.ctx.store.state.openPanels, stats: !this.ctx.store.state.openPanels.stats } }) });
     this.root.append(el('div.vp-head', {}, el('h2', { text: t('village.title') }), charts, close), this.body);

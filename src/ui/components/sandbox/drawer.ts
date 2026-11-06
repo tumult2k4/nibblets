@@ -3,6 +3,8 @@
  * needs, mood and faith, and the World (weather, time, remove). Sandbox mode only; everything goes through commands.
  */
 import { el } from '../../dom';
+import { tipKey } from '../tooltip';
+import { keyLabel } from '../../keys';
 import { t } from '../../i18n';
 import type { Ctx, Component } from '../../ctx';
 import type { SandboxTab } from '../../store';
@@ -27,7 +29,7 @@ export class SandboxDrawer implements Component {
   constructor(private ctx: Ctx) {}
 
   mount(parent: HTMLElement): void {
-    const close = el('button.btn.iconbtn', { onclick: () => this.setOpen(false) }, '✕');
+    const close = el('button.btn.iconbtn', { 'data-tip': tipKey(t('insp.close'), keyLabel('sandbox')), onclick: () => this.setOpen(false) }, '✕');
     this.root.append(el('div.vp-head', {}, el('h2', { text: t('sbx.title') }), close), this.tabs, this.body);
     parent.append(this.root);
   }

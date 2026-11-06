@@ -50,7 +50,7 @@ export class Feed implements Component {
     }
     const jump = n.at ? el('button.btn', { onclick: () => this.jump(n), 'data-tip': t('feed.jump') }, icon('eye')) : null;
     const tEl = el(`div.toast.panel.${n.tier}`, {}, icon(n.icon), el('span.txt', { text: n.text }), jump,
-      el('button.btn', { onclick: () => tEl.remove() }, icon('close')));
+      el('button.btn', { onclick: () => tEl.remove(), 'data-tip': t('insp.close') }, icon('close')));
     this.toasts.prepend(tEl);
     this.recent.set(n.text, { el: tEl, n: 1, at: now });
     while (this.toasts.children.length > 5) this.toasts.lastElementChild!.remove();

@@ -1,4 +1,6 @@
 import { el } from '../dom';
+import { tipKey } from './tooltip';
+import { keyLabel } from '../keys';
 import { t } from '../i18n';
 import { chartCanvas, drawLines, drawStack } from '../chart';
 import { bandColor, statsData } from '../statsData';
@@ -20,7 +22,7 @@ export class StatsPanel implements Component {
   constructor(private ctx: Ctx) {}
 
   mount(parent: HTMLElement): void {
-    const close = el('button.btn.iconbtn', { onclick: () => this.ctx.store.set({ openPanels: { ...this.ctx.store.state.openPanels, stats: false } }) }, '✕');
+    const close = el('button.btn.iconbtn', { 'data-tip': tipKey(t('insp.close'), keyLabel('stats')), onclick: () => this.ctx.store.set({ openPanels: { ...this.ctx.store.state.openPanels, stats: false } }) }, '✕');
     this.root.append(el('div.vp-head', {}, el('h2', { text: t('stats.title') }), close), this.body);
     parent.append(this.root);
   }

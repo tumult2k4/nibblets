@@ -48,6 +48,8 @@ export function tempColor(c: THREE.Color, deg: number): void {
 }
 
 const D_CALM = new THREE.Color('#5fae5a'), D_WARN = new THREE.Color('#f2b13c'), D_HOT = new THREE.Color('#d8332a');
+/** P11.4: the red-to-green ramps (fertility, danger) swap to Okabe–Ito blue and vermillion for color-blind players. */
+const RAMPS = { normal: ['#9a4a2a', '#2f9e3a', '#5fae5a', '#d8332a'], safe: ['#d55e00', '#0072b2', '#0072b2', '#d55e00'] };
 /** Danger lens (P4.8): calm ground dims toward green, recent trouble glows amber, then red. */
 export function dangerColor(c: THREE.Color, v: number): void {
   c.multiplyScalar(0.5);
@@ -104,6 +106,14 @@ export class TerrainMesh {
   rebuildAll(): void {
     const C = CFG.world.chunk;
     for (let cy = 0; cy < this.s.size.h; cy += C) for (let cx = 0; cx < this.s.size.w; cx += C) this.buildChunk(cx, cy);
+  }
+
+  private safe = false;
+  setSafe(on: boolean): void {
+    if (on === this.safe) return;
+    this.safe = on;
+    [L_LOW, L_HIGH, D_CALM, D_HOT].forEach((c, i) => c.set(RAMPS[on ? 'safe' : 'normal'][i]!));
+    if (this.lens === 'fertility' || this.lens === 'danger') this.rebuildAll();
   }
 
   setLens(l: TerrainLens | null): void {

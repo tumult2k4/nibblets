@@ -6,6 +6,7 @@ import { CastTool } from './tools/castTool';
 import { SpawnTool } from './tools/spawnTool';
 import { PossessTool } from './tools/possessTool';
 import { actionFor } from './keys';
+import { focusNextRegion, inPanels, keepFocus, leavePanels, trapTab } from './focusNav';
 
 export interface KeyHandlers { [action: string]: () => void }
 
@@ -41,6 +42,7 @@ export class Input {
     canvas.addEventListener('wheel', (e) => this.wheel(e), { passive: false });
     window.addEventListener('wheel', (e) => { if (this.tray.active) { e.preventDefault(); this.tray.wheel(e.deltaY); } }, { passive: false });
     window.addEventListener('keydown', (e) => this.key(e));
+    keepFocus(this.canvas.ownerDocument.getElementById('ui') ?? document.body);
     window.addEventListener('keyup', (e) => this.keysDown.delete(e.code));
     window.addEventListener('blur', () => this.keysDown.clear());
   }
@@ -139,8 +141,22 @@ export class Input {
 
   private key(e: KeyboardEvent): void {
     const tgt = e.target as HTMLElement;
-    if (tgt && (tgt.tagName === 'INPUT' || tgt.tagName === 'SELECT' || tgt.tagName === 'TEXTAREA')) return;
     if ((window as unknown as { __rebinding?: boolean }).__rebinding) return;
+    const ui = this.canvas.ownerDocument.getElementById('ui') ?? document.body, focused = inPanels(ui);
+    // P11.4 keyboard-only: Tab stays inside an open dialog
+    if (e.code === 'Tab' && trapTab(ui, e.shiftKey)) return e.preventDefault();
+    if (tgt && (tgt.tagName === 'INPUT' || tgt.tagName === 'SELECT' || tgt.tagName === 'TEXTAREA')) return;
+    // P11.4 keyboard-only: inside the panels Tab moves between controls and Enter/Space press them; Esc leaves them
+    if (focused && (e.code === 'Tab' || e.code === 'Enter' || e.code === 'Space' || (e.code.startsWith('Arrow') && tgt.getAttribute('role') === 'slider'))) return;
+    if (actionFor(e.code) === 'focusPanels' || (e.code === 'Tab' && (this.ctx.store.state.screen === 'title' || this.ctx.store.state.overlay))) {
+      e.preventDefault();
+      focusNextRegion(ui, e.shiftKey);
+      return;
+    }
+    if (e.code === 'Escape' && leavePanels(ui)) {
+      e.preventDefault();
+      return;
+    }
     if (e.code === 'Escape') {
       e.preventDefault();
       if (this.tray.active) this.tray.cancel();

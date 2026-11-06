@@ -8,6 +8,8 @@
  * annotation (`llm.voice`), outside the hashed state.
  */
 import { el } from '../dom';
+import { tipKey } from './tooltip';
+import { keyLabel } from '../keys';
 import { getLang, godTitle, t } from '../i18n';
 import type { App } from '../app';
 import type { Component } from '../ctx';
@@ -57,7 +59,7 @@ export class VoicePanel implements Component {
   }
 
   mount(parent: HTMLElement): void {
-    const close = el('button.btn.iconbtn', { onclick: () => this.toggle(false) }, '✕');
+    const close = el('button.btn.iconbtn', { 'data-tip': tipKey(t('insp.close'), keyLabel('voice')), onclick: () => this.toggle(false) }, '✕');
     this.speakBtn.onclick = () => this.speakWords();
     this.input.onkeydown = (e) => { if (e.key === 'Enter') this.speakWords(); };
     this.root.append(el('div.vp-head', {}, el('h2', { text: t('voice.title') }), close), this.head, this.actions, this.wordsRow, this.wordsHint, this.log);

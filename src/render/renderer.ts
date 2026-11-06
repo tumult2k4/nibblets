@@ -252,7 +252,8 @@ export class Renderer {
     tools.forEach((o, i) => (o.visible = shown[i]!));
   }
 
-  setTerrainLens(l: TerrainLens | null): void {
+  setTerrainLens(l: TerrainLens | null, safe = false): void {
+    this.terrain.setSafe(safe);
     this.terrain.setLens(l);
   }
 

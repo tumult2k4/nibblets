@@ -19,7 +19,10 @@ const lerpColor = (a: THREE.Color, b: THREE.Color, t: number) => a.clone().lerp(
 const BAD = new THREE.Color('#e0503c');
 const MID = new THREE.Color('#f2c14e');
 const GOOD = new THREE.Color('#6cc46a');
-const scale3 = (t: number) => (t < 0.5 ? lerpColor(BAD, MID, t * 2) : lerpColor(MID, GOOD, (t - 0.5) * 2));
+// P11.4 color-blind-safe ramp (Okabe–Ito vermillion → yellow → blue): never asks anyone to tell red from green
+const SAFE = [new THREE.Color('#d55e00'), new THREE.Color('#f0e442'), new THREE.Color('#0072b2')] as const;
+let ramp: readonly THREE.Color[] = [BAD, MID, GOOD];
+const scale3 = (t: number) => (t < 0.5 ? lerpColor(ramp[0]!, ramp[1]!, t * 2) : lerpColor(ramp[1]!, ramp[2]!, (t - 0.5) * 2));
 
 const BRUSH_COLOR: Record<TerraformPower, string> = {
   raise_land: '#c9e07a', lower_land: '#c99a6b', smooth: '#e8e2c8', create_water: '#7fc6ea', fertile_soil: '#e9c35b', plant_forest: '#7ccf6a', place_rock: '#bdb7ad',
@@ -127,6 +130,7 @@ export class WorldFx {
     if (inGame || st.screen !== 'title') {
       const sel = new Set(st.selectedKind === 'goblin' ? st.selection : []);
       const pulse = 1 + Math.sin(this.t * 4) * 0.06;
+      ramp = st.settings.colorSafe ? SAFE : [BAD, MID, GOOD];
       for (const g of w.s.goblins) {
         const p = r.goblinWorldPos(g.id);
         if (!p) continue;
@@ -217,6 +221,6 @@ export class WorldFx {
     }
     r.rings.end();
     r.goblins.sizeBoost = st.lens === 'genetics' && inGame ? 1.5 : 0;
-    r.setTerrainLens(TERRAIN_LENSES.includes(st.lens) && st.screen !== 'title' ? (st.lens as TerrainLens) : null);
+    r.setTerrainLens(TERRAIN_LENSES.includes(st.lens) && st.screen !== 'title' ? (st.lens as TerrainLens) : null, !!st.settings.colorSafe);
   }
 }

@@ -76,7 +76,7 @@ export class Inspector implements Component {
       const eta = p.kind === 'apple_bush' && p.fruit < CFG.plants.maxApples && perHour > 0 ? `${((1 - p.fruitProgress) / perHour).toFixed(1)} h` : '—';
       this.head.replaceChildren(el('div.insp-head', {}, icon(p.kind === 'apple_bush' ? 'apple' : 'leaf', 'portrait'),
         el('div', {}, el('h2', { text: t('insp.plant') }), el('div.sub', { text: p.kind.replace('_', ' ') }),
-          el('button.btn', { onclick: () => this.ctx.select(null, []) }, icon('close')))));
+          el('button.btn', { onclick: () => this.ctx.select(null, []), 'data-tip': tipKey(t('insp.close'), 'Esc') }, icon('close')))));
       this.body.replaceChildren(
         el('div.row', {}, el('span.lbl', { text: t('insp.stage') }), el('span', { text: t(`pstage.${p.stage}`) })),
         el('div.row', {}, el('span.lbl', { text: t('insp.fruit') }), el('span', { text: `${p.fruit} / ${CFG.plants.maxApples}` })),
@@ -124,7 +124,7 @@ export class Inspector implements Component {
       if (!it) return this.ctx.select(null, []);
       this.head.replaceChildren(el('div.insp-head', {}, icon(ITEM_ICON[it.stack.type] ?? 'gift', 'portrait'),
         el('div', {}, el('h2', { text: t(`item.${it.stack.type}`) }), el('div.sub', { text: `${t('insp.item')} · ${t('insp.qty')} ${it.stack.qty}${it.stack.divine ? ` · ${t('insp.sky')}` : ''}` }),
-          el('button.btn', { onclick: () => this.ctx.select(null, []) }, icon('close')))));
+          el('button.btn', { onclick: () => this.ctx.select(null, []), 'data-tip': tipKey(t('insp.close'), 'Esc') }, icon('close')))));
       this.body.replaceChildren();
       return;
     }

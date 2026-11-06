@@ -17,7 +17,7 @@ export interface GoblinRig {
   hand: THREE.Object3D; // carried prop anchor
   belly: THREE.Mesh;
   eyeMat: THREE.MeshLambertMaterial;
-  /** P11.3: the skin colour of the shared limb geometry */
+  /** P11.3: the skin color of the shared limb geometry */
   skinMat: THREE.MeshLambertMaterial;
   outline: THREE.Mesh | null;
   triangles: number;
@@ -79,7 +79,7 @@ function bodyGeo(p: Phenotype, seed: number): THREE.BufferGeometry {
 
 /**
  * P11.3 geometry cache: legs and arms are the same shape on every goblin, so all goblins share one leg and one arm
- * geometry, shaded in greys and coloured by the goblin's own skin material. Shared geometry is never disposed with a rig.
+ * geometry, shaded in greys and colored by the goblin's own skin material. Shared geometry is never disposed with a rig.
  */
 const GREY = new THREE.Color(0.7, 0.7, 0.7), WHITE = new THREE.Color(1, 1, 1);
 const sharedGeo = (g: THREE.BufferGeometry): THREE.BufferGeometry => { g.userData.shared = true; return g; };

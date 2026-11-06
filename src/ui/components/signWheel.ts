@@ -4,6 +4,7 @@
  * click in the world). The choice goes out as a `divine_speech` sign; no language model needed.
  */
 import { el } from '../dom';
+import { tipKey } from './tooltip';
 import { t } from '../i18n';
 import type { ParsedIntent, Tone, WishIntent, BuildingType, ItemType } from '../../shared/types';
 
@@ -97,7 +98,7 @@ export class SignWheel {
     }));
     const ask = this.sub ? [el('b', { text: t(this.sub === 'gather' ? 'sign.what' : 'sign.buildWhat') })] : [];
     const center = el('div.sw-center', {}, ...ask, el('div', { text: this.label }), el('div.sub', { text: this.cost }), tones,
-      el('button.btn', { onclick: () => this.close(), style: 'margin-top:4px' }, '✕'));
+      el('button.btn', { 'data-tip': tipKey(t('insp.close'), 'Esc'), onclick: () => this.close(), style: 'margin-top:4px' }, '✕'));
     this.root.replaceChildren(el('div.sw-disc', {}, ...kids, center));
   }
 }

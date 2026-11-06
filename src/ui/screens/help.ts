@@ -33,7 +33,9 @@ export function helpScreen(close: () => void): HTMLElement {
         row(el('span.help-keys', {}, kbd('W'), kbd('A'), kbd('S'), kbd('D')), t('help.wasd')),
         el('h3', { text: t('help.hand') }),
         row(mouse('left'), t('help.click')), row(mouse('left'), t('help.drag')), row(mouse('still'), t('help.pet')),
-        row(mouse('wheel'), t('help.height'))),
+        row(mouse('wheel'), t('help.height')),
+        el('h3', { text: t('help.keyboard') }), // P11.4: everything works without a mouse but the hand itself
+        row(el('span.help-keys', {}, kbd(codeLabel(keys.focusPanels ?? 'F6')), kbd('Tab'), kbd('Esc')), t('set.keyboardNote', { key: codeLabel(keys.focusPanels ?? 'F6') }))),
       el('div', {},
         el('h3', { text: t('help.godPowers') }),
         ...(['help.c4', 'help.powers', 'help.voice'] as const).map((k) => el('p', { text: t(k) })),

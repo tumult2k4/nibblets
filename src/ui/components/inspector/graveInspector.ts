@@ -5,6 +5,7 @@
  */
 import { el } from '../../dom';
 import { t } from '../../i18n';
+import { tipKey } from '../tooltip';
 import { icon } from '../../icons';
 import type { Grave } from '../../../sim/state';
 import type { World } from '../../../sim/world';
@@ -29,7 +30,7 @@ export function graveHead(gr: Grave, onClose: () => void): HTMLElement {
   return el('div.insp-head', {}, icon('skull', 'portrait'),
     el('div', { style: 'flex:1' }, el('h2', { text: withEpithet(gr.name, gr.epithet) }),
       el('div.sub', { text: t(`grave.state.${gr.state}`) }),
-      el('button.btn', { onclick: onClose, 'data-tip': t('insp.close') }, icon('close'))));
+      el('button.btn', { onclick: onClose, 'data-tip': tipKey(t('insp.close'), 'Esc') }, icon('close'))));
 }
 
 /** The Resurrect button while the body is kept, or null; `cast` is null when the god cannot act (replays, observer). */

@@ -1,4 +1,6 @@
 import { el } from '../dom';
+import { tipKey } from './tooltip';
+import { keyLabel } from '../keys';
 import { t } from '../i18n';
 import type { Ctx, Component } from '../ctx';
 import { clanStats, generations, RECESSIVE } from '../../sim/goblin/lineage';
@@ -33,7 +35,7 @@ export class FamilyTree implements Component {
   constructor(private ctx: Ctx) {}
 
   mount(parent: HTMLElement): void {
-    const close = el('button.btn.iconbtn', { onclick: () => this.setOpen(false) }, '✕');
+    const close = el('button.btn.iconbtn', { 'data-tip': tipKey(t('insp.close'), keyLabel('family')), onclick: () => this.setOpen(false) }, '✕');
     this.filter.append(el('option', { value: '', text: t('tree.noFilter') }), ...RECESSIVE.map((k) => el('option', { value: k, text: t('tree.carriers', { trait: t(`tree.locus.${k}`) }) })));
     this.filter.onchange = () => this.draw();
     this.root.append(el('div.vp-head', {}, el('h2', { text: t('tree.title') }), this.filter, close), this.stats, this.canvas, el('div.sub', { text: t('tree.hint') }));

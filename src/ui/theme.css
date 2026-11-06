@@ -1,7 +1,8 @@
 :root {
   --parchment: #f3e9d2; --parchment-2: #e9dcbd; --bark: #6b4f3a; --bark-2: #8a6a50; --moss: #6e8b3d;
   --apple: #c8452d; --sky: #7fb3d5; --gold: #e8b64c; --wrath: #7a4fa0; --ink: #2e2a24; --ink-2: #5d5446;
-  --panel-alpha: 0.92; --ui-scale: 1;
+  --panel-alpha: 0.92; --ui-scale: 1; --journal-font: 1;
+  --good: var(--moss); --warn: var(--gold); --bad: var(--apple); --focus: #1f6fd1; /* P11.4: meaning, not hue */
   --font: 'Fredoka', system-ui, sans-serif; --hand: 'Patrick Hand', 'Comic Sans MS', cursive;
 }
 * { box-sizing: border-box; }
@@ -18,7 +19,7 @@ button { font-family: var(--font); font-size: 1em; color: var(--ink); cursor: po
 .btn:active, .btn.on { transform: translateY(2px); box-shadow: 0 0 0 var(--bark); background: var(--gold); }
 .btn.big { font-size: 1.3em; padding: 0.5em 1.4em; min-width: 12em; }
 .btn:disabled { opacity: .45; cursor: default; }
-.btn.danger { border-color: var(--apple); }
+.btn.danger { border-color: var(--bad); }
 .iconbtn { width: 2.6em; height: 2.6em; display: inline-flex; align-items: center; justify-content: center; padding: 0; position: relative; }
 .iconbtn svg { width: 1.6em; height: 1.6em; }
 .icon { width: 1.2em; height: 1.2em; vertical-align: -0.22em; }
@@ -43,11 +44,11 @@ button { font-family: var(--font); font-size: 1em; color: var(--ink); cursor: po
 .kin { display: inline-flex; align-items: center; gap: .3em; background: #f3e6c8; border: 1.5px solid var(--bark); border-radius: 999px; padding: 0 .5em 0 .2em; cursor: pointer; font-size: .9em; }
 .kin.dead { opacity: .55; cursor: default; } .kin .swatch { width: 12px; height: 12px; border-radius: 50%; display: inline-block; border: 1px solid var(--bark); }
 .recipes { display: flex; flex-wrap: wrap; gap: 3px 8px; font-size: .9em; color: var(--ink-2); }
-.recipe.only { color: var(--apple); font-weight: 600; }
+.recipe.only { color: var(--bad); font-weight: 600; }
 .badge { background: var(--gold); border: 2px solid var(--bark); border-radius: 999px; padding: 0 .6em; font-weight: 600; }
 .speed { display: inline-flex; gap: 4px; }
 .speed .btn { padding: .15em .5em; min-width: 2.4em; }
-.alert-count { position: absolute; top: -6px; right: -6px; background: var(--apple); color: #fff; border-radius: 999px; font-size: .7em; padding: 0 .4em; }
+.alert-count { position: absolute; top: -6px; right: -6px; background: var(--bad); color: #fff; border-radius: 999px; font-size: .7em; padding: 0 .4em; }
 /* left toolbar */
 .toolbar { position: absolute; top: 76px; left: 8px; display: flex; flex-direction: column; gap: 6px; padding: 6px; width: 60px; }
 .toolbar .iconbtn { width: 44px; height: 44px; }
@@ -87,7 +88,7 @@ button { font-family: var(--font); font-size: 1em; color: var(--ink); cursor: po
 .tabs { display: flex; gap: 4px; margin: 8px 0; flex-wrap: wrap; }
 .tabs .btn { padding: .15em .55em; font-size: .9em; }
 .bar { height: 10px; border-radius: 6px; background: rgba(0,0,0,.12); overflow: hidden; flex: 1; }
-.bar > i { display: block; height: 100%; background: var(--moss); border-radius: 6px; }
+.bar > i { display: block; height: 100%; background: var(--good); border-radius: 6px; }
 .row { display: flex; align-items: center; gap: 8px; margin: 4px 0; }
 .row .lbl { width: 92px; font-size: .9em; }
 .row .val { width: 40px; text-align: right; font-size: .85em; color: var(--ink-2); }
@@ -112,7 +113,7 @@ table.genome td { padding: 1px 4px; border-bottom: 1px solid rgba(0,0,0,.08); }
 /* toasts */
 .toasts { position: absolute; top: 76px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 6px; align-items: center; pointer-events: none; }
 .toast { pointer-events: auto; padding: 6px 12px; display: flex; gap: 8px; align-items: center; animation: pop .25s; max-width: 520px; }
-.toast.notable { border-color: var(--gold); } .toast.critical { border-color: var(--apple); background: #fbe3dc; }
+.toast.notable { border-color: var(--gold); } .toast.critical { border-color: var(--bad); background: #fbe3dc; }
 @keyframes pop { from { transform: scale(.8); opacity: 0; } }
 /* tooltip */
 .tooltip { position: fixed; z-index: 50; padding: 4px 8px; pointer-events: none; font-size: .85em; max-width: 280px; background: var(--ink); color: var(--parchment); border-radius: 8px; }
@@ -226,7 +227,7 @@ table.genome td { padding: 1px 4px; border-bottom: 1px solid rgba(0,0,0,.08); }
 .jportrait.dead { display: flex; align-items: center; justify-content: center; font-size: 48px; background: #ddd3c0; color: #6d6253; }
 .jentry { margin-bottom: 12px; }
 .jentry .jday { font-weight: 600; font-size: .85em; color: var(--ink-accent); border-bottom: 1px solid var(--ink-accent); padding-bottom: 2px; }
-.jentry p { margin: 4px 0 0; font-family: 'Patrick Hand', 'Fredoka', sans-serif; font-size: 16px; line-height: 1.35; color: #3a2e22; }
+.jentry p { margin: 4px 0 0; font-family: 'Patrick Hand', 'Fredoka', sans-serif; font-size: calc(16px * var(--ui-scale) * var(--journal-font)); line-height: 1.35; color: #3a2e22; }
 .jmock { color: var(--ink-2); font-weight: 400; cursor: help; }
 .speechbubble.typed { min-width: 24px; min-height: 1.2em; }
 /* P9.7: the heavens rumble while the Voice's words are understood */
@@ -279,3 +280,19 @@ body.photo-mode #ui > *, body.photo-mode .placelabel, body.photo-mode .speechbub
 .photo-ctl.dim { opacity: .45; }
 .photo-ctl input { width: 90px; }
 @media (prefers-reduced-motion: reduce) { .photo-bar { transition: none; } }
+/* P11.4 accessibility: a focus ring for keyboard use, high-contrast panels, color-blind-safe meaning colors, reduced motion */
+:focus { outline: none; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 6px; }
+.hc { --panel-alpha: 1; --ink: #000; --ink-2: #2b2118; --bark: #2b1d12; --parchment: #fffaf0; --focus: #0047b3; }
+.hc .panel { border-width: 3px; box-shadow: 0 0 0 2px #000, 0 6px 18px rgba(0, 0, 0, .45); }
+.hc .btn { background: #fff; border-color: #000; box-shadow: 0 2px 0 #000; }
+.hc .btn.on, .hc .btn:active, .hc .card.on { background: #ffd23f; }
+.hc .btn:disabled { opacity: .6; }
+.hc .sub, .hc .meta, .hc .card .meta, .hc .jmock { color: #2b2118; }
+.hc .tooltip { background: #000; color: #fff; border-color: #fff; }
+.hc .bar { background: #fff; outline: 1.5px solid #000; }
+.hc .jentry p { color: #000; }
+.hc :focus-visible { outline-width: 4px; }
+.cb { --good: #0072b2; --warn: #e69f00; --bad: #d55e00; }
+.rm .shake { animation: none; }
+.rm *, .rm *::before, .rm *::after { transition-duration: 0s !important; animation-duration: 0s !important; }

@@ -1,4 +1,6 @@
 import { el } from '../dom';
+import { tipKey } from './tooltip';
+import { keyLabel } from '../keys';
 import { t } from '../i18n';
 import type { Ctx, Component } from '../ctx';
 import { beliefsPage, creaturesPage, deedsPage, geneticsPage, placesPage, recipesPage } from './codexPages';
@@ -21,7 +23,7 @@ export class Codex implements Component {
   constructor(private ctx: Ctx) {}
 
   mount(parent: HTMLElement): void {
-    const close = el('button.btn.iconbtn', { onclick: () => this.ctx.store.set({ openPanels: { ...this.ctx.store.state.openPanels, codex: false } }) }, '✕');
+    const close = el('button.btn.iconbtn', { 'data-tip': tipKey(t('insp.close'), keyLabel('codex')), onclick: () => this.ctx.store.set({ openPanels: { ...this.ctx.store.state.openPanels, codex: false } }) }, '✕');
     this.root.append(el('div.vp-head', {}, el('h2', { text: t('codex.title') }), close), this.tabs, this.body);
     parent.append(this.root);
     this.renderTabs();

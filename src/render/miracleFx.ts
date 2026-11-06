@@ -107,8 +107,8 @@ export class MiracleFx {
     // the ground shakes for ten seconds, hardest at first
     if (this.quake > 0) {
       this.quake = Math.max(0, this.quake - dt);
-      const amp = (this.reduced ? 0.08 : 0.4) * (this.quake / QUAKE_S) + 0.03;
-      this.camera.shake = Math.max(this.camera.shake, amp);
+      // P11.4: reduced motion means no camera shake at all (the rubble and dust still say it)
+      if (!this.reduced) this.camera.shake = Math.max(this.camera.shake, 0.4 * (this.quake / QUAKE_S) + 0.03);
     }
   }
 }

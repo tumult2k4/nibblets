@@ -1,4 +1,6 @@
 import { el } from '../dom';
+import { tipKey } from './tooltip';
+import { keyLabel } from '../keys';
 import { getLang, t } from '../i18n';
 import type { Ctx, Component } from '../ctx';
 import { CFG } from '../../sim/config';
@@ -50,7 +52,7 @@ export class Timeline implements Component {
   constructor(private ctx: Ctx) {}
 
   mount(parent: HTMLElement): void {
-    const close = el('button.btn.iconbtn', { onclick: () => this.ctx.store.set({ openPanels: { ...this.ctx.store.state.openPanels, timeline: false } }) }, '✕');
+    const close = el('button.btn.iconbtn', { 'data-tip': tipKey(t('insp.close'), keyLabel('timeline')), onclick: () => this.ctx.store.set({ openPanels: { ...this.ctx.store.state.openPanels, timeline: false } }) }, '✕');
     this.root.append(el('div.vp-head', {}, el('h2', { text: t('tl.title') }), this.filters, close), this.strip);
     parent.append(this.root);
     this.renderFilters();
