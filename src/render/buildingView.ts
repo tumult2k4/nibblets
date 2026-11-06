@@ -11,7 +11,7 @@ import { gateGeo, kilnGeo, watchtowerGeo, workbenchGeo } from './stationMeshes';
 import { hearthGeo, longhouseGeo, nurseryGeo, wellGeo } from './settlementMeshes';
 import { bridgeGeo, compostHeapGeo, gardenPlotGeo } from './gardenMeshes';
 import { offeringGroup, paintGroup, shelfGroup } from './trinketMeshes';
-import { SHRINE_TOP, TEMPLE_TOP, musicCircleGeo, shrineGeo, templeGeo, totemGeo } from './cultureMeshes';
+import { SHRINE_TOP, TEMPLE_TOP, libraryShelfGeo, musicCircleGeo, shrineGeo, templeGeo, totemGeo } from './cultureMeshes';
 
 const HS = CFG.world.heightScale;
 const WOOD = '#9a6b3f', THATCH = '#d4a94e', DARK = '#4a3420';
@@ -90,7 +90,7 @@ const MAKERS: Partial<Record<Building['type'], () => THREE.BufferGeometry>> = {
   grinding_stone: grindingStoneGeo, drying_rack: dryingRackGeo, storage_pit: storagePitGeo,
   workbench: workbenchGeo, watchtower: watchtowerGeo, gate: () => gateGeo(1), kiln: kilnGeo,
   hearth: hearthGeo, longhouse: longhouseGeo, well: wellGeo, nursery: nurseryGeo,
-  garden_plot: gardenPlotGeo, compost_heap: compostHeapGeo, bridge: () => bridgeGeo(), music_circle: musicCircleGeo, shrine: shrineGeo, totem: totemGeo, temple: templeGeo,
+  garden_plot: gardenPlotGeo, compost_heap: compostHeapGeo, bridge: () => bridgeGeo(), music_circle: musicCircleGeo, shrine: shrineGeo, totem: totemGeo, temple: templeGeo, library_shelf: libraryShelfGeo,
 };
 /** Finished-building geometry by type (huts P3.3, campfire P4.3, preservation P5.6, P5.7 stations). */
 function geoOf(type: Building['type']): THREE.BufferGeometry {

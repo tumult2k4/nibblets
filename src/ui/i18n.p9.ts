@@ -18,6 +18,14 @@ export const EN9 = {
   'journal.day': 'Day {d} · {season}', 'journal.mock': 'Template text (no language model)', 'journal.dead': 'died', 'insp.journal': 'Journal',
   'journal.bio': '{stage}, {age} seasons old, {size} and {color}', 'journal.shelf': 'Diaries on the shelf',
 
+  'recipe.library_shelf': 'Library shelf', 'bld.library_shelf': 'Library shelf', 'act.write_book': 'Writing a book', 'act.read_book': 'Reading a book',
+  'atrait.storyteller': 'Storyteller', 'atrait.storyteller.d': 'Wrote a book: writes again sooner and likes a chat.',
+  'ev.book_written': '{name} wrote a book: {what}.', 'ev.books_lost': 'The library shelf is gone, and {n} books with it: {what}.',
+  'ev.read_book': '{name} learned {what} from a book by {author}.', 'ev.read_lost': '{name} read {what} back into the village from a book by {author}!',
+  'ev.built.library_shelf': 'The library shelf is finished: books can be written now.', 'insp.books': 'Books', 'insp.bookBy': 'by {name}', 'village.inBook': 'in a book',
+  'journal.untitled': "{name}'s book", 'journal.chronTitle': '{season}, year {year}', 'village.named': 'The goblins call their village {name} now.',
+  'grave.eulogyBy': '{name} said:',
+  'llm.lang': "{lang}, the game's language (Settings → Language). Diaries, books and speech are written in it; what is written keeps its language.",
 };
 
 export const DE9: Record<keyof typeof EN9, string> = {
@@ -39,4 +47,12 @@ export const DE9: Record<keyof typeof EN9, string> = {
   'journal.day': 'Tag {d} · {season}', 'journal.mock': 'Vorlagentext (kein Sprachmodell)', 'journal.dead': 'gestorben', 'insp.journal': 'Tagebuch',
   'journal.bio': '{stage}, {age} Jahreszeiten alt, {size} und {color}', 'journal.shelf': 'Tagebücher im Regal',
 
+  'recipe.library_shelf': 'Bücherregal', 'bld.library_shelf': 'Bücherregal', 'act.write_book': 'Schreibt ein Buch', 'act.read_book': 'Liest ein Buch',
+  'atrait.storyteller': 'Geschichtenerzähler', 'atrait.storyteller.d': 'Hat ein Buch geschrieben: schreibt bald wieder und plaudert gern.',
+  'ev.book_written': '{name} hat ein Buch geschrieben: {what}.', 'ev.books_lost': 'Das Bücherregal ist zerstört und mit ihm {n} Bücher: {what}.',
+  'ev.read_book': '{name} hat {what} aus einem Buch von {author} gelernt.', 'ev.read_lost': '{name} hat {what} aus einem Buch von {author} ins Dorf zurückgeholt!',
+  'ev.built.library_shelf': 'Das Bücherregal ist fertig: Jetzt können Bücher geschrieben werden.', 'insp.books': 'Bücher', 'insp.bookBy': 'von {name}', 'village.inBook': 'in einem Buch',
+  'journal.untitled': '{name}s Buch', 'journal.chronTitle': '{season}, Jahr {year}', 'village.named': 'Die Goblins nennen ihr Dorf jetzt {name}.',
+  'grave.eulogyBy': '{name} sprach:',
+  'llm.lang': '{lang}, die Sprache des Spiels (Einstellungen → Sprache). Tagebücher, Bücher und Reden werden darin geschrieben; was geschrieben ist, behält seine Sprache.',
 };

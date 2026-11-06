@@ -4,7 +4,8 @@
  * flat stones with a slab on top for offerings and a little bowl before it; the totem (P8.6), a carved pole of three
  * stacked faces daubed in war paint, with wings at the top, set in a ring of stones; the temple (P8.8), an open hall on
  * a stone floor, four carved posts under a steep thatched roof with bone horns at its ends, a stone altar inside with
- * a bowl of embers before it (two tiles).
+ * a bowl of embers before it (two tiles); the library shelf (P9.5), a little roofed wooden case on legs with two
+ * shelves of books in many colours.
  */
 import * as THREE from 'three';
 import { merge, paint, wobble } from './lowpoly';
@@ -79,5 +80,23 @@ export function templeGeo(): THREE.BufferGeometry {
   parts.push(paint(new THREE.BoxGeometry(0.74, 0.05, 0.5).translate(0, TEMPLE_TOP - 0.025, -0.25), '#a09c94', 0.05, 22));
   parts.push(paint(new THREE.CylinderGeometry(0.13, 0.09, 0.09, 7).translate(0, 0.165, 0.32), '#7b5232', 0.05, 23));
   parts.push(paint(new THREE.IcosahedronGeometry(0.07, 0).translate(0, 0.22, 0.32), '#e0703a', 0.05, 24));
+  return merge(parts);
+}
+
+const SPINES = ['#8c3b2e', '#2f5f8a', '#6e8b3d', '#c79a3a', '#7a4fa0', '#a35d3a'];
+export function libraryShelfGeo(): THREE.BufferGeometry {
+  const parts: THREE.BufferGeometry[] = [];
+  for (const sx of [-0.36, 0.36]) parts.push(paint(new THREE.BoxGeometry(0.07, 0.95, 0.32).translate(sx, 0.475, 0), P.wood, 0.05, sx > 0 ? 1 : 2)); // sides
+  for (const y of [0.12, 0.45, 0.78]) parts.push(paint(new THREE.BoxGeometry(0.76, 0.05, 0.32).translate(0, y, 0), P.wood, 0.04, Math.round(y * 10))); // boards
+  parts.push(paint(new THREE.BoxGeometry(0.76, 0.85, 0.03).translate(0, 0.5, -0.15), '#7a5a3c', 0.04, 7)); // the back
+  parts.push(paint(new THREE.ConeGeometry(0.62, 0.28, 4).rotateY(Math.PI / 4).scale(1, 1, 0.55).translate(0, 1.08, 0), '#8a6a44', 0.05, 8)); // a little roof
+  for (const [row, y] of [[0, 0.145], [1, 0.475]] as const) {
+    let x = -0.3;
+    for (let i = 0; x < 0.28; i++) {
+      const wdt = 0.06 + ((i * 7 + row * 3) % 3) * 0.015, h = 0.2 + ((i * 5 + row) % 4) * 0.025;
+      parts.push(paint(new THREE.BoxGeometry(wdt, h, 0.2).rotateZ(i % 5 === 4 ? 0.25 : 0).translate(x + wdt / 2, y + h / 2, 0.02), SPINES[(i + row * 2) % SPINES.length]!, 0.04, i + row * 10));
+      x += wdt + 0.012;
+    }
+  }
   return merge(parts);
 }

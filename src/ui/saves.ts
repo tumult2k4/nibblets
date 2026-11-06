@@ -5,6 +5,7 @@
 import { serialize } from '../sim/save';
 import type { WorldState } from '../sim/state';
 import { clockAt } from '../sim/time';
+import { villageTitle } from '../llm/store';
 
 export interface SlotMeta { slot: string; village: string; day: number; year: number; pop: number; mode: string; savedAt: number; thumb: string }
 interface SlotRow extends SlotMeta { data: string }
@@ -35,7 +36,7 @@ async function tx<T>(mode: IDBTransactionMode, fn: (s: IDBObjectStore) => IDBReq
 
 export function metaFor(s: WorldState, slot: string, thumb: string): SlotMeta {
   const c = clockAt(s.tick);
-  return { slot, village: s.village.name, day: c.day + 1, year: c.year, pop: s.goblins.length, mode: s.god.mode, savedAt: Date.now(), thumb };
+  return { slot, village: villageTitle(s), day: c.day + 1, year: c.year, pop: s.goblins.length, mode: s.god.mode, savedAt: Date.now(), thumb };
 }
 
 export async function saveSlot(s: WorldState, slot: string, thumb: string): Promise<void> {

@@ -15,6 +15,8 @@ import { kinChip } from './socialTab';
 import { castProblem } from '../../../sim/god/cast';
 import { resurrectProblem } from '../../../sim/god/powers/miracles';
 import { withEpithet } from '../../notifyCulture';
+import { journalsOf } from '../../../llm/store';
+import { nameOf } from '../../../llm/describe';
 
 const DAY = CFG.time.dayTicks;
 
@@ -58,6 +60,13 @@ export function graveBody(gr: Grave, w: World, onPick: (id: number) => void, cas
     chips(t('insp.parents'), parents), chips(t('insp.children'), children),
     grieving.length ? chips(t('grave.mourners'), grieving) : el('div.sub', { text: t('grave.noMourners') }),
     el('h3', { text: t('grave.eulogy') }),
-    el('p.sub', { text: gr.eulogy ?? t('grave.noEulogy') }),
+    eulogyOf(gr, w),
     resurrectRow(gr, w, cast));
+}
+
+/** The eulogy (P9.5): what the elder said at the funeral, from the journals. */
+function eulogyOf(gr: Grave, w: World): HTMLElement {
+  const e = journalsOf(w.s, gr.goblinId, 'eulogy').pop();
+  if (!e) return el('p.sub', { text: gr.eulogy ?? t('grave.noEulogy') });
+  return el('p.sub', {}, el('b', { text: t('grave.eulogyBy', { name: nameOf(w.s, e.by) ?? '?' }) }), ` ${e.text}`, e.source === 'mock' ? el('span.jmock', { 'data-tip': t('journal.mock'), text: ' ✎' }) : null);
 }

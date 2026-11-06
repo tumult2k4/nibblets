@@ -14,7 +14,8 @@
  * `hoarder` (P8.2): owns 8 trinkets → values trinkets twice as much (trinkets.ts) and hunts for more.
  * `gourmand` (P8.7): ate 10 cooked meals → cooked food cheers it, raw meat and fish put it out (mood.ts).
  * `night_owl` (P8.7): kept the night watch 5 times → sleeps in the morning and is up all night (sleepGround.ts),
- *   guards half again as readily. Epithets (epithets.ts) are checked on the same hourly round.
+ *   guards half again as readily. `storyteller` (P9.5): wrote a book → writes again sooner, chats a little more.
+ * Epithets (epithets.ts) are checked on the same hourly round.
  */
 import { CFG } from '../config';
 import { clamp, q4 } from '../../shared/math';
@@ -24,7 +25,7 @@ import { updateEpithet } from './epithets';
 
 const T = CFG.traits, CH = CFG.character;
 
-export type TraitId = 'veteran' | 'scarred' | 'green_thumb' | 'orphan' | 'twin' | 'grudge_holder' | 'returned' | 'hoarder' | 'gourmand' | 'night_owl';
+export type TraitId = 'veteran' | 'scarred' | 'green_thumb' | 'orphan' | 'twin' | 'grudge_holder' | 'returned' | 'hoarder' | 'gourmand' | 'night_owl' | 'storyteller';
 
 export interface TraitDef {
   /** earned when this holds (checked hourly); traits without one are given by events */
@@ -46,6 +47,7 @@ export const TRAITS: Record<TraitId, TraitDef> = {
   hoarder: { earn: (g) => g.trinkets.length >= T.hoarderTrinkets, actions: { hunt_trinket: T.hoarderHunt } },
   gourmand: { earn: (g) => (g.deeds.cooked ?? 0) >= CH.gourmand.cooked },
   night_owl: { earn: (g) => (g.deeds.watches ?? 0) >= CH.nightOwl.watches, actions: { guard: CH.nightOwl.guard } },
+  storyteller: { actions: { write_book: CFG.books.storyteller, chat: 1.1 } }, // P9.5: wrote a book
 };
 export const TRAIT_IDS = Object.keys(TRAITS) as TraitId[];
 

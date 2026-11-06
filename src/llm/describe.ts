@@ -13,6 +13,8 @@ import { describePersonality } from '../sim/goblin/personality';
 import { emotionOf } from '../sim/goblin/mood';
 import { clockAt } from '../sim/time';
 import { tIn, type Lang } from '../ui/i18n';
+import { cleanOutput, mentions } from './sanitize';
+import type { LLMRequest } from './provider';
 
 export interface GoblinContext {
   name: string; epithet: string; stage: string; age: number; sizeWord: string; colorWord: string; descriptor: string;
@@ -22,6 +24,19 @@ export interface GoblinContext {
 /** Anyone's name, the living or the dead (the lineage book keeps every name). */
 export const nameOf = (s: WorldState, id: ID | null | undefined): string | null =>
   id === null || id === undefined ? null : s.goblins.find((g) => g.id === id)?.name ?? s.lineage[id]?.name ?? null;
+
+/** Every goblin name the world knows, living and dead. */
+export function knownNames(s: WorldState): string[] {
+  const n = new Set<string>(s.goblins.map((g) => g.name));
+  for (const l of Object.values(s.lineage)) n.add(l.name);
+  return [...n];
+}
+
+/** How an answer is cleaned: no markdown, clamped, and no goblin named that the prompt did not name. */
+export function acceptFor(s: WorldState, req: LLMRequest, maxChars: number, keepLines = false): (t: string) => string | null {
+  const known = knownNames(s), allowed = known.filter((n) => mentions(req.prompt, n));
+  return (t) => cleanOutput(t, { maxChars, known, allowed, keepLines });
+}
 
 /** "mossy green", "dark teal", "pale rose red" (12 hues of 30°, from red). */
 export function colorWord(h: number, l: number, lang: Lang): string {

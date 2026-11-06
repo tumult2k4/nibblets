@@ -12,7 +12,7 @@ import { cleanInput } from './sanitize';
 
 export const LANGUAGE: Record<Lang, string> = { en: 'English', de: 'German' };
 
-export const MAX_TOKENS = { diary: 220, dialogue: 240, bark: 40 } as const;
+export const MAX_TOKENS = { diary: 220, dialogue: 240, bark: 40, book: 260, eulogy: 160, chronicle: 380, name: 20 } as const;
 
 /** The shared system prompt (§19.5), word for word. */
 export const systemPrompt = (lang: Lang): string =>
@@ -80,4 +80,57 @@ export function barkPrompt(ctx: GoblinContext, what: string, kind: BarkKind, lan
     `What just happened: ${line}`,
   ].join('\n');
   return { system: systemPrompt(lang), prompt, maxTokens: MAX_TOKENS.bark, product: 'bark', facts: { lang, name: c.name, what: line, kind } };
+}
+
+/** A book's title and page (§19.4): what it teaches, in its writer's voice. `contents` are worded already
+ * ("Club: wood, stone"). The answer starts with "Title: …". */
+export function bookPrompt(ctx: GoblinContext, contents: readonly string[], lang: Lang): LLMRequest {
+  const c = safe(ctx), what = lines(contents);
+  const prompt = [
+    `Write a little book that ${c.name} wrote for the village, in ${c.name}'s own voice.`,
+    'First line: "Title: " and a short title of at most 6 words. Then one page of at most 120 words on how to make or know these things:',
+    ...what,
+    `About ${c.name}: ${c.stage}, ${c.descriptor}; feeling ${c.emotion}.`,
+  ].join('\n');
+  return { system: systemPrompt(lang), prompt, maxTokens: MAX_TOKENS.book, product: 'book', facts: { lang, name: c.name, contents: what } };
+}
+
+export interface EulogyFacts { dead: string; epithet: string; age: number; cause: string; family: string; deeds: readonly string[]; rel: string }
+
+/** What an elder says at a funeral (§19.4): 2–4 sentences about the dead, from what it remembers. */
+export function eulogyPrompt(speaker: GoblinContext, f: EulogyFacts, lang: Lang): LLMRequest {
+  const c = safe(speaker), dead = cleanInput(f.dead), deeds = lines(f.deeds);
+  const prompt = [
+    `${c.name} speaks at the funeral of ${dead}. Write what ${c.name} says: 2-4 sentences, warm and simple.`,
+    `About ${dead}: ${f.epithet ? `${c80(f.epithet)}, ` : ''}lived ${f.age} seasons, died: ${c80(f.cause)}. Family: ${c80(f.family) || tIn(lang, 'cx.none')}.`,
+    `What ${c.name} remembers of ${dead}:`,
+    ...(deeds.length ? deeds : [tIn(lang, 'cx.none')]),
+    `About ${c.name}: ${c.stage}, ${c.descriptor}; ${dead} was to them: ${c80(f.rel)}.`,
+  ].join('\n');
+  return { system: systemPrompt(lang), prompt, maxTokens: MAX_TOKENS.eulogy, product: 'eulogy', facts: { lang, name: c.name, dead, epithet: f.epithet, cause: f.cause, deeds } };
+}
+
+export interface SeasonFacts { village: string; season: string; year: number; pop: [number, number]; hatched: number; died: number; built: number; learned: number; events: readonly string[]; diaries: readonly string[] }
+
+/** The season's chronicle (§19.4): one saga paragraph by the eldest goblin. */
+export function chroniclePrompt(chronicler: GoblinContext, f: SeasonFacts, lang: Lang): LLMRequest {
+  const c = safe(chronicler), village = cleanInput(f.village), ev = lines(f.events), di = lines(f.diaries);
+  const prompt = [
+    `${c.name}, the eldest goblin of ${village}, writes the chronicle of the ${f.season} of year ${f.year}: one saga paragraph of 120-200 words, in the chronicler's voice.`,
+    `The season in numbers: ${f.pop[0]} goblins at its start, ${f.pop[1]} at its end; ${f.hatched} hatched, ${f.died} died; ${f.built} buildings finished; ${f.learned} new things worked out.`,
+    'What happened:',
+    ...(ev.length ? ev : [tIn(lang, 'cx.none')]),
+    ...(di.length ? ['From the diaries:', ...di] : []),
+  ].join('\n');
+  return { system: systemPrompt(lang), prompt, maxTokens: MAX_TOKENS.chronicle, product: 'chronicle', facts: { lang, name: c.name, village, season: f.season, year: f.year, pop: f.pop, hatched: f.hatched, died: f.died, events: ev } };
+}
+
+/** The village names itself (§19.4) when it reaches three huts. */
+export function villageNamePrompt(places: readonly string[], chief: string, huts: number, lang: Lang): LLMRequest {
+  const ps = places.map((p) => cleanInput(p)).filter(Boolean).slice(0, 5);
+  const prompt = [
+    `The goblins' village has grown to ${huts} huts and needs a name. Invent one: one or two words with goblin flavor, fitting the land. Answer with the name only.`,
+    `Places nearby: ${ps.join(', ') || tIn(lang, 'cx.none')}. Chief: ${cleanInput(chief)}.`,
+  ].join('\n');
+  return { system: systemPrompt(lang), prompt, maxTokens: MAX_TOKENS.name, product: 'village_name', facts: { lang, places: ps } };
 }

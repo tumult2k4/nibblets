@@ -50,9 +50,9 @@ export function seedFacts(rng: Rng, g: Goblin): void {
 export function learn(w: World, g: Goblin, id: string, via: LearnVia, byId?: ID): boolean {
   if (knowsAny(g, id)) return false;
   (isFact(id) ? g.knownFacts : g.knownRecipes).push(id);
-  const lost = w.s.village.lost;
-  if (lost?.includes(id)) w.s.village.lost = lost.filter((x) => x !== id);
-  w.emit({ type: via === 'discovery' ? 'recipe_discovered' : 'recipe_learned', goblinId: g.id, recipe: id, via, ...(byId !== undefined ? { byId } : {}), at: { ...g.pos } });
+  const lost = w.s.village.lost, recovered = !!lost?.includes(id);
+  if (recovered) w.s.village.lost = lost!.filter((x) => x !== id);
+  w.emit({ type: via === 'discovery' ? 'recipe_discovered' : 'recipe_learned', goblinId: g.id, recipe: id, via, ...(byId !== undefined ? { byId } : {}), ...(recovered ? { recovered } : {}), at: { ...g.pos } });
   return true;
 }
 
@@ -95,6 +95,8 @@ function nearness(g: Goblin, w: World, id: RecipeId): { share: number; recalled:
   if (id === 'music_circle') return { share: g.activity.action === 'play_music' && g.activity.stage === 1 ? 1 : 0, recalled: 0 };
   // P8.6: a shrine to a goblin with a trinket and some faith, a totem to one in war paint
   if (id === 'shrine' || id === 'totem' || id === 'temple') return { share: placeIdea(g, w, id), recalled: 0 }; // P8.8: the temple at prayer
+  // P9.5: a shelf for books comes to mind of one who knows enough to want it kept
+  if (id === 'library_shelf') return { share: teachable(g).length >= CFG.books.minKnown && w.s.goblins.length >= CFG.books.shelf.pop ? 1 : 0, recalled: 0 };
   const atStock = atStore(w.s, g.pos, K.stockReach);
   if (atStock && RECIPES[id]?.station === 'site') held = true;
   for (const t of kinds) {
@@ -138,7 +140,8 @@ export function discoveryChance(g: Goblin, w: World, id: RecipeId): number {
     : id === 'bridge' ? (nextSpan(w.s) ? BR.ideaWith : BR.ideaWithout)
     : id === 'music_circle' ? CFG.festivals.music.circleIdea
     : id === 'shrine' ? CFG.beliefs.shrine.idea * (0.5 + g.personality.piety) : id === 'totem' ? CFG.beliefs.totem.idea
-    : id === 'temple' ? CFG.faith.temple.idea : 1;
+    : id === 'temple' ? CFG.faith.temple.idea
+    : id === 'library_shelf' ? CFG.books.shelf.idea * (w.s.village.lost?.length ? CFG.books.shelf.lostMul : 1) : 1;
   return K.discoveryBase * (0.5 + g.personality.wanderlust) * (1 + K.skillMul * skill) * inspiration(g) * near * rot * ill * prey * road * K.memoryNear ** recalled;
 }
 

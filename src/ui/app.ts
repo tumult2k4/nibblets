@@ -55,7 +55,8 @@ export class App implements Ctx {
   readonly log = new EventLog();
   /** P9.4: diaries, dialogue and barks, and the bubbles they are spoken in */
   readonly speech = new VoiceFx(this);
-  readonly director = new LlmDirector(this.log, { world: () => this.game.world.s, lang: getLang, say: (k, ls) => this.say(k, ls), onPause: () => this.llmPaused() });
+  readonly director = new LlmDirector(this.log, { world: () => this.game.world.s, lang: getLang, say: (k, ls) => this.say(k, ls), onPause: () => this.llmPaused(),
+    named: (name) => this.toast(t('village.named', { name }), 'notable') });
   private pauseToast = -Infinity;
   private comps: Component[] = [];
   private hud = el('div', { style: 'position:absolute;inset:0;pointer-events:none' });

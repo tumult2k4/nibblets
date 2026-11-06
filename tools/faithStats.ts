@@ -14,6 +14,8 @@ export function faithTracker(w: World): () => string {
   const f = { asked: 0, desperate: 0, answered: 0, ignored: 0, offerings: 0, group: 0, converted: 0, shamanDay: -1, shamans: 0, templeDay: -1, kinds: {} as Record<string, number> };
   /** P8.9 Divine mode: the day each tier first came, wishes kept / defied, times the god spoke */
   const d = { tierDay: [] as number[], kept: 0, defied: 0, spoke: 0, lost: 0 };
+  /** P9.5: books written, things read from them (and how many of those had been lost), books burned */
+  const bk = { written: 0, read: 0, recovered: 0, burned: 0, lost: 0 };
   w.bus.subscribe((e) => {
     if (e.type === 'prayer') { f.asked++; if (e.desperate) f.desperate++; f.kinds[e.kind] = (f.kinds[e.kind] ?? 0) + 1; }
     if (e.type === 'prayer_answered') f.answered++;
@@ -27,6 +29,10 @@ export function faithTracker(w: World): () => string {
     if (e.type === 'wish_fulfilled') d.kept++;
     if (e.type === 'wish_defied') d.defied++;
     if (e.type === 'god_spoke') d.spoke++;
+    if (e.type === 'book_written') bk.written++;
+    if (e.type === 'recipe_learned' && e.via === 'book') { bk.read++; if (e.recovered) bk.recovered++; }
+    if (e.type === 'books_lost') bk.burned += e.bookIds.length;
+    if (e.type === 'recipe_lost') bk.lost++;
   });
   return () => {
     const gs = w.s.goblins, faith = gs.length ? gs.reduce((a, g) => a + g.godView.faith, 0) / gs.length : 0;
@@ -37,6 +43,7 @@ export function faithTracker(w: World): () => string {
       + ` prayers ${f.asked} (desperate ${f.desperate}; ${kinds}) answered/ignored ${f.answered}/${f.ignored} offerings ${f.offerings} group ${f.group}`
       + ` shaman ${f.shamanDay < 0 ? '—' : 'day ' + f.shamanDay} (${f.shamans}) temple ${f.templeDay < 0 ? '—' : 'day ' + f.templeDay} favor ${w.s.god.favor.toFixed(0)}`
       + ` earned ${Object.entries(earned).map(([k, v]) => `${k} ${Number(v).toFixed(0)}`).join(' ')}]`
+      + ` books [written ${bk.written} read ${bk.read} recovered ${bk.recovered}/${bk.lost} lost burned ${bk.burned} on shelves ${w.s.village.culture?.books?.length ?? 0}]`
       + (w.s.god.mode === 'divine' ? ` divine [tier ${w.s.god.tier} (days ${d.tierDay.slice(1).map((x) => x ?? '—').join('/') || '—'}, lost ${d.lost}) align ${w.s.god.alignment.toFixed(0)}`
         + ` spoke ${d.spoke} wishes kept/defied ${d.kept}/${d.defied}]` : '')
       + (w.s.commandLog.length ? ` acts ${tally(w.s.commandLog.map((c) => (c.cmd.type === 'god_cast' ? c.cmd.power : c.cmd.type)))}` : '');

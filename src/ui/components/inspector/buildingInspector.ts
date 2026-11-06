@@ -10,6 +10,8 @@ import { CFG } from '../../../sim/config';
 import { dryProgress, isDrying, rackDried, rackLoad } from '../../../sim/preserve';
 import { towerOf } from '../../../sim/watch';
 import { journalsOf } from '../../../llm/store';
+import { booksOn } from '../../../sim/books';
+import { knowName } from '../../notify';
 
 const row = (label: string, ...rest: (HTMLElement | string)[]) => el('div.row', {}, el('span.lbl', { text: label }), ...rest);
 
@@ -42,9 +44,20 @@ export function buildingBody(b: Building, w: World, onDiary?: (id: number) => vo
       .concat((w.s.god.faith?.offerings ?? []).filter((o) => o.buildingId === b.id && o.item).map((o) => t(`item.${o.item}`))).join(' · ') })) : null,
     consecrated(b) ? el('div.sub', { text: t('insp.consecrated') }) : null, // P8.8
     onDiary ? diaryShelf(b, w, onDiary) : null,
+    b.type === 'library_shelf' ? bookShelf(b, w) : null,
     b.type === 'watchtower' && b.buildProgress >= 1
       ? row(t('insp.lookout'), el('span', { text: w.s.goblins.find((g) => towerOf(g, w)?.id === b.id)?.name ?? t('insp.nobody') })) : null,
   );
+}
+
+/** A library shelf's books (P9.5): the title its writer gave it (when the words have come), who wrote it, what it teaches. */
+function bookShelf(b: Building, w: World): HTMLElement {
+  const books = booksOn(w.s, b.id), pages = journalsOf(w.s, null, 'book');
+  return el('div', {}, el('h3', { text: `${t('insp.books')} (${books.length}/${CFG.books.perShelf})` }),
+    ...books.map((bk) => {
+      const title = pages.find((j) => j.ref === bk.id)?.title;
+      return el('div.row', {}, el('span.lbl', { text: `${title ? `${title} · ` : ''}${t('insp.bookBy', { name: bk.author })}` }), el('span', { text: bk.contents.map(knowName).join(', ') }));
+    }));
 }
 
 /** A hut's shelf of its residents' diaries (§19.7, P9.4): one button each, opening the journal. */

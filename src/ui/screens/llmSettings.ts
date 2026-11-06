@@ -1,13 +1,16 @@
 /**
  * The Voices (LLM) tab of Settings (§19.2, P9.1): the kill switch, provider, model, address, the direct API's key
  * behind its warning, temperature, the per-day budgets, and a Test button that asks the chosen provider for one line.
+ * The language is the game's (P9.6): every prompt says "Write in English/German", and the Mock writes both.
  */
 import { el } from '../dom';
 import { getLang, t } from '../i18n';
 import { field, select, checkbox } from './common';
 import { CFG } from '../../sim/config';
+import { systemPrompt } from '../../llm/prompts';
 import { llmSettings, makeProvider, setLlmSettings, PROVIDERS, type Budgets, type LlmSettings, type ProviderKind } from '../../llm/settings';
 
+const LANG_NAME = { en: 'English', de: 'Deutsch' } as const;
 const ENDPOINT: Record<ProviderKind, string> = { mock: '', proxy: CFG.llm.endpoints.proxy, ollama: CFG.llm.endpoints.ollama, anthropic: CFG.llm.endpoints.anthropic };
 
 export function llmTab(): HTMLElement {
@@ -26,6 +29,7 @@ export function llmTab(): HTMLElement {
     const rows: HTMLElement[] = [
       ...field(t('llm.enabled'), checkbox(s.enabled, (v) => set({ enabled: v }))),
       ...field(t('llm.provider'), select<ProviderKind>(PROVIDERS.map((k) => [k, t(`llm.p.${k}`)]), p, (v) => set({ provider: v }, true))),
+      ...field(t('set.language'), el('span.sub', { text: t('llm.lang', { lang: LANG_NAME[getLang()] }) })), // P9.6: the game's own
     ];
     if (p === 'ollama' || p === 'anthropic') rows.push(...field(t('llm.model'), text(s.model, (v) => set({ model: v }))));
     if (p !== 'mock') {
@@ -48,7 +52,7 @@ export function llmTab(): HTMLElement {
       out.textContent = t('llm.testing');
       test.disabled = true;
       try {
-        const reply = await makeProvider(llmSettings()).complete({ system: '', prompt: t('llm.testPrompt'), maxTokens: 40, temperature: llmSettings().temperature, product: 'test', facts: { lang: getLang() } });
+        const reply = await makeProvider(llmSettings()).complete({ system: systemPrompt(getLang()), prompt: t('llm.testPrompt'), maxTokens: 40, temperature: llmSettings().temperature, product: 'test', facts: { lang: getLang() } });
         out.textContent = t('llm.testOk', { text: reply.trim().slice(0, 200) });
       } catch (e) {
         out.textContent = t('llm.testFail', { err: (e as Error).message });

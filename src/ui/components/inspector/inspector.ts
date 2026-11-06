@@ -13,6 +13,7 @@ import { eggBody, eggHead } from './eggInspector';
 import { graveBody, graveHead } from './graveInspector';
 import { chiefOf } from '../../../sim/leadership';
 import { festivalNow } from '../../../sim/festivals';
+import { villageTitle } from '../../../llm/store';
 
 type Tab = 'status' | 'mind' | 'social' | 'body' | 'inventory';
 const TABS: Tab[] = ['status', 'mind', 'social', 'body', 'inventory'];
@@ -130,7 +131,7 @@ export class Inspector implements Component {
     const gs = s.goblins;
     const avg = (k: 'hunger' | 'thirst' | 'energy' | 'curiosity') => (gs.length ? gs.reduce((a, g) => a + g.needs[k], 0) / gs.length : 100);
     const needs = (['hunger', 'thirst', 'energy', 'curiosity'] as const).map((k) => ({ k, v: avg(k) })).sort((a, b) => a.v - b.v).slice(0, 3);
-    this.head.replaceChildren(el('h2', { text: t('insp.glance') }), el('div.sub', { text: s.village.name }));
+    this.head.replaceChildren(el('h2', { text: t('insp.glance') }), el('div.sub', { text: villageTitle(s) }));
     const godLine = el('div.row');
     setText(godLine, t('insp.glanceGod', { name: s.god.godName ? godNameText(s.god.godName) : t('insp.glanceUnnamed') }));
     const chief = chiefOf(w);

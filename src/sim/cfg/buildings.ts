@@ -29,6 +29,7 @@ export const BUILDINGS = {
     bridge: { cost: { wood: 4, rope: 1 } as Record<string, number>, footprint: 1, hp: 120, capacity: 0, storage: 0, labor: 2 },
     // P8.5 (§11.1): a ring of stones and log seats, the nightly gathering spot for music
     music_circle: { cost: { stone: 6 } as Record<string, number>, footprint: 3, hp: 200, capacity: 0, storage: 0, labor: 2.5 },
+    library_shelf: { cost: { wood: 4 } as Record<string, number>, footprint: 1, hp: 80, capacity: 0, storage: 0, labor: 1.5 },
     // P8.6 (§11.1): the shrine (its trinket is an offering, not a material) and the totem
     shrine: { cost: { stone: 4 } as Record<string, number>, footprint: 1, hp: 120, capacity: 0, storage: 0, labor: 2.5 },
     totem: { cost: { wood: 3, war_paint: 1 } as Record<string, number>, footprint: 1, hp: 80, capacity: 0, storage: 0, labor: 2.5 },

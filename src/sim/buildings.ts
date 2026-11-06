@@ -15,6 +15,7 @@ import { gainXp, skillLevel } from './goblin/skills';
 import { RECIPES } from './recipes';
 import { observe } from './knowledge';
 import { addReputation } from './mischief';
+import { loseBooks } from './books';
 
 const B = CFG.buildings;
 
@@ -275,5 +276,6 @@ export function destroyBuilding(w: World, b: Building, cause: string): void {
   if (!removeBuilding(w, b)) return;
   for (const g of w.s.goblins) if (g.homeId === b.id) g.homeId = null;
   for (const st of b.storage) spawnGroundItem(w, { ...st }, { x: q4(b.pos.x + w.rng.range(-0.7, 0.7)), y: q4(b.pos.y + w.rng.range(-0.7, 0.7)) });
+  if (b.type === 'library_shelf') loseBooks(w, b, cause); // P9.5
   w.emit({ type: 'building_destroyed', buildingId: b.id, kind: b.type, cause, at: b.pos });
 }

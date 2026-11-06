@@ -17,7 +17,7 @@ export function actorsOf(e: SimEvent): ID[] | null {
   switch (e.type) {
     case 'goblin_died': case 'egg_hatched': case 'injured': case 'mood_break': case 'trinket_found': case 'chief_chosen': case 'prayer_answered':
     case 'recovered': case 'epithet_earned': case 'inspired': case 'harvested': case 'plant_chopped': case 'rock_mined': case 'item_crafted':
-    case 'food_cooked': case 'core_planted': case 'wish_fulfilled': case 'wish_defied': case 'prayer': case 'fell_ill': case 'enemy_spotted':
+    case 'food_cooked': case 'core_planted': case 'book_written': case 'wish_fulfilled': case 'wish_defied': case 'prayer': case 'fell_ill': case 'enemy_spotted':
       return [e.goblinId];
     case 'fish_caught': return e.caught ? [e.goblinId] : null;
     case 'egg_laid': return [...e.parents];
@@ -40,7 +40,7 @@ export function actorsOf(e: SimEvent): ID[] | null {
     case 'comforted': return [e.goblinId, e.byId];
     case 'divine_act': return e.targetId !== undefined ? [e.targetId] : [];
     case 'festival': return e.phase === 'start' ? [] : null;
-    case 'enemy_stole': case 'shooting_star': case 'lightning_strike': case 'fire_started': case 'place_named': return [];
+    case 'enemy_stole': case 'shooting_star': case 'lightning_strike': case 'fire_started': case 'place_named': case 'books_lost': return [];
     default: return null;
   }
 }

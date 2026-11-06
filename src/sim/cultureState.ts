@@ -41,6 +41,8 @@ export interface Culture {
   beliefs?: Belief[];
   /** P9.2: named places (§15.6), in the order they were named */
   places?: import('./places').Place[];
+  /** P9.5: the books on the library shelves (§15.2), oldest first */
+  books?: import('./books').Book[];
   /** beliefs formed and faded over the years, for the balance runner and the chronicle */
   formed?: number; faded?: number;
 }

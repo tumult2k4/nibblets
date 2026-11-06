@@ -2,22 +2,24 @@
  * The LLM products in play (§19.4, P9.4): watches the sim's events and asks the scheduler for diaries (at dawn, for
  * the goblins with the best yesterday), dialogue (a chat between two goblins with something to say) and barks (a
  * fight won, a discovery, a hatchling, a friend's death). Answers go into `world.llm` and, for speech, to the
- * bubbles. Only reads the world; the sim never sees any of it.
+ * bubbles. Books, eulogies, the chronicle and the village's name (P9.5) are `CultureWriter`'s. Only reads the world;
+ * the sim never sees any of it.
  */
 import './mocks';
+import { CultureWriter } from './culture';
 import { CFG } from '../sim/config';
 import type { ID, SimEvent, TextSource } from '../shared/types';
 import type { Goblin, WorldState } from '../sim/state';
 import type { Lang } from '../ui/i18n';
 import type { EventLog } from './eventLog';
 import { compactDay, lineFor, topOfDay } from './eventCompactor';
-import { goblinContext, relLabel } from './describe';
+import { acceptFor, goblinContext, relLabel } from './describe';
 import { barkPrompt, dialoguePrompt, diaryPrompt, type BarkKind } from './prompts';
-import { cleanOutput, mentions, parseDialogue } from './sanitize';
+import { parseDialogue } from './sanitize';
 import { Scheduler } from './scheduler';
 import { addJournal, addSpeech } from './store';
 import { llmSettings, makeProvider, onLlmSettings } from './settings';
-import type { LLMProvider, LLMRequest } from './provider';
+import type { LLMProvider } from './provider';
 
 const DAY = CFG.time.dayTicks, HOUR = DAY / 24, P = CFG.llm.products;
 const BONDS = ['mate', 'best_friend', 'friend', 'parent', 'child', 'sibling'];
@@ -30,25 +32,24 @@ export interface DirectorHooks {
   /** show speech over the goblins' heads */
   say?: (kind: 'dialogue' | 'bark', lines: SpokenLine[]) => void;
   onPause?: () => void;
+  /** the village has named itself (P9.5) */
+  named?: (name: string) => void;
   /** tests: a provider of their own instead of the settings' */
   provider?: () => LLMProvider;
 }
 
-/** Every goblin name the world knows, living and dead. */
-export function knownNames(s: WorldState): string[] {
-  const n = new Set<string>(s.goblins.map((g) => g.name));
-  for (const l of Object.values(s.lineage)) n.add(l.name);
-  return [...n];
-}
-
 export class LlmDirector {
   readonly sched: Scheduler;
+  private readonly culture: CultureWriter;
   private cached: LLMProvider | null = null;
 
   constructor(private readonly log: EventLog, private readonly h: DirectorHooks) {
     onLlmSettings(() => (this.cached = null));
     this.sched = new Scheduler({
       settings: llmSettings, provider: () => this.provider(), tick: () => h.world().tick, ...(h.onPause ? { onPause: h.onPause } : {}),
+    });
+    this.culture = new CultureWriter(log, this.sched, {
+      world: h.world, lang: h.lang, say: (id, text, source) => this.spoke('bark', [{ goblinId: id, text }], source), ...(h.named ? { named: h.named } : {}),
     });
   }
 
@@ -60,6 +61,7 @@ export class LlmDirector {
     if (!llmSettings().enabled) return;
     const s = this.h.world();
     for (const e of evs) {
+      this.culture.onEvent(s, e);
       if (e.type === 'day_started') this.diaries(s, e.day - 1);
       else if (e.type === 'chat') this.dialogue(s, e.aId, e.bId, e);
       else this.bark(s, e);
@@ -73,13 +75,6 @@ export class LlmDirector {
     this.sched.clear();
   }
 
-  /** Clean an answer: no markdown, clamped, and no goblin the prompt did not name. */
-  private accept(s: WorldState, req: LLMRequest, maxChars: number, keepLines = false): (t: string) => string | null {
-    const known = knownNames(s);
-    const allowed = known.filter((n) => mentions(req.prompt, n));
-    return (t) => cleanOutput(t, { maxChars, known, allowed, keepLines });
-  }
-
   private diaries(s: WorldState, day: number): void {
     if (day < 0) return;
     const lang = this.h.lang();
@@ -88,7 +83,7 @@ export class LlmDirector {
       if (!g) continue;
       const req = diaryPrompt(goblinContext(s, g, lang), d.lines, lang);
       this.sched.enqueue({
-        key: `diary:${g.id}:${day}`, product: 'diary', priority: d.score, req, accept: this.accept(s, req, P.diaryChars),
+        key: `diary:${g.id}:${day}`, product: 'diary', priority: d.score, req, accept: acceptFor(s, req, P.diaryChars),
         done: (text, source) => { const w = this.h.world(); addJournal(w, { kind: 'diary', goblinId: g.id, day, tick: w.tick, text, source }); },
       });
     }
@@ -104,7 +99,7 @@ export class LlmDirector {
     const req = dialoguePrompt(
       { ctx: goblinContext(s, a, lang), sees: relLabel(a, b.id, lang), news: da.top },
       { ctx: goblinContext(s, b, lang), sees: relLabel(b, a.id, lang), news: db.top }, e.topic, lang);
-    const names: [string, string] = [a.name, b.name], clean = this.accept(s, req, P.lineChars, true);
+    const names: [string, string] = [a.name, b.name], clean = acceptFor(s, req, P.lineChars, true);
     this.sched.enqueue({
       key: `dialogue:${Math.min(a.id, b.id)}-${Math.max(a.id, b.id)}:${day}`, product: 'dialogue', priority: da.topScore + db.topScore, req,
       expires: e.tick + P.dialogueStale,
@@ -121,7 +116,7 @@ export class LlmDirector {
     const req = barkPrompt(goblinContext(s, b.g, lang), what, b.kind, lang);
     this.sched.enqueue({
       key: `bark:${b.g.id}`, product: 'bark', priority: BARK_PRIORITY[b.kind], req, cooldown: HOUR, expires: e.tick + P.barkStale,
-      accept: this.accept(s, req, P.barkChars), done: (text, source) => this.spoke('bark', [{ goblinId: b.g.id, text }], source),
+      accept: acceptFor(s, req, P.barkChars), done: (text, source) => this.spoke('bark', [{ goblinId: b.g.id, text }], source),
     });
   }
 

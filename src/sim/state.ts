@@ -83,7 +83,7 @@ export type ActionId =
   | 'play' | 'learn' | 'teach' | 'cut_grass' | 'pick_flowers' | 'process' | 'rest_sick' | 'tend_sick' | 'extinguish_fire' | 'escape_fire' | 'cull_blight'
   | 'bury_dead' | 'mourn' | 'hunt' | 'fish' | 'dig_clay' | 'cook_stew' | 'tend_compost' | 'spread_compost' | 'pave_path' | 'haul_to_stockpile'
   | 'sulk' | 'binge' | 'wander_off' | 'hunt_trinket' | 'decorate' | 'prank' | 'steal' | 'apologize' | 'brawl' | 'judge' | 'exile'
-  | 'join_festival' | 'play_music' | 'dance' | 'pray' | 'make_offering' | 'lead_prayer' | 'shake_fist';
+  | 'join_festival' | 'play_music' | 'dance' | 'pray' | 'make_offering' | 'lead_prayer' | 'shake_fist' | 'write_book' | 'read_book';
 
 export interface ActivityState {
   action: ActionId;
@@ -287,7 +287,7 @@ export interface StatsSeries {
   deathLog?: [number, string][];
 }
 
-export interface LlmAnnotations { journals: import('../shared/types').JournalEntry[]; speechText: Record<string, string>; voice?: import('../shared/types').VoiceLine[]; speech?: import('../shared/types').SpeechEntry[] }
+export interface LlmAnnotations { journals: import('../shared/types').JournalEntry[]; speechText: Record<string, string>; voice?: import('../shared/types').VoiceLine[]; speech?: import('../shared/types').SpeechEntry[]; villageName?: import('../shared/types').LlmName }
 
 export interface LoggedCommand { tick: number; cmd: import('./commands').Command }
 

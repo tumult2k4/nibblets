@@ -33,6 +33,7 @@ import { gardenSite, gardensWanted } from '../../garden';
 import { nextSpan } from '../../roads';
 import { wantsMusicCircle } from '../../music';
 import { wantsShrine, wantsTemple, wantsTotem } from '../../shrine';
+import { wantsLibrary } from './books';
 import { godTemper } from '../../god/devotion';
 
 const F = CFG.fire;
@@ -77,6 +78,7 @@ export function villageNeeds(w: World): BuildingType[] {
   if (wantsShrine(w) && hasSite(w, 'shrine')) out.splice(first ? 0 : out.length, 0, 'shrine');
   if (wantsTemple(w) && hasSite(w, 'temple')) out.splice(first ? 0 : out.length, 0, 'temple');
   if (wantsTotem(w) && hasSite(w, 'totem')) out.push('totem');
+  if (wantsLibrary(w) && hasSite(w, 'library_shelf')) out.push('library_shelf'); // P9.5: books keep what the village knows
   // P7.4: garden plots once the store holds a few days' food, a compost heap once there is one, the next bridge span
   const of = (t: BuildingType) => w.s.buildings.filter((b) => b.type === t), plots = of('garden_plot'), spans = of('bridge');
   if (plots.length < gardensWanted(w.s) && plots.every(isComplete) && foodStores(w.s).days >= CFG.garden.plot.planDays && hasSite(w, 'garden_plot')) out.push('garden_plot');
@@ -127,7 +129,7 @@ export function siteFor(w: World, type: BuildingType): Vec2 | null {
   if (type === 'garden_plot') return gardenSite(w);
   if (type === 'bridge') { const sp = nextSpan(w.s); return sp && { x: sp.tile.x + 0.5, y: sp.tile.y + 0.5 }; }
   // P8.5/P8.6: the music circle, the shrine and the totem sit out with the stations, or wherever there is room
-  if (type === 'music_circle' || type === 'shrine' || type === 'totem' || type === 'temple') return findCommunalSite(w, type, STATION_RADIUS) ?? findSite(w, type, w.s.village.center);
+  if (type === 'music_circle' || type === 'shrine' || type === 'totem' || type === 'temple' || type === 'library_shelf') return findCommunalSite(w, type, STATION_RADIUS) ?? findSite(w, type, w.s.village.center);
   // stations (and from P7.5 the compost heap, which wants room near the store) sit a little further out than the fire
   return findCommunalSite(w, type, (STATIONS as readonly string[]).includes(type) || type === 'compost_heap' ? STATION_RADIUS : undefined);
 }

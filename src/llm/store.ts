@@ -42,3 +42,6 @@ export function addSpeech(s: WorldState, e: SpeechEntry): void {
 
 /** What was said since `tick`, oldest first. */
 export const speechSince = (s: WorldState, tick: number): SpeechEntry[] => llmOf(s).speech.filter((e) => e.tick >= tick);
+
+/** The village's name: the one it gave itself (P9.5), else the one it was founded with. */
+export const villageTitle = (s: WorldState): string => s.llm?.villageName?.name ?? s.village.name;

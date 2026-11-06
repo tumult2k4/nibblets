@@ -13,6 +13,8 @@ import { shamanOf } from '../../sim/god/shaman';
 import { godTemper } from '../../sim/god/devotion';
 import { believers, maxFavor } from '../../sim/god/favor';
 import type { LifeStage } from '../../shared/types';
+import { villageTitle } from '../../llm/store';
+import { inBooks } from '../../sim/books';
 
 const STAGES: LifeStage[] = ['hatchling', 'youngling', 'adult', 'elder'];
 const cap = (x: string): string => x.charAt(0).toUpperCase() + x.slice(1);
@@ -60,7 +62,7 @@ export class VillagePanel implements Component {
     const policies = [pol.work && 'work', pol.rota && 'rota', pol.festivals && 'festivals', pol.shrine && 'shrine', pol.quarantine && 'quarantine',
       pol.law !== undefined && (pol.law < CFG.mischief.theft.law ? 'lax' : 'strict')].filter((x): x is string => !!x).map((k) => t(`policy.${k}`));
     this.body.replaceChildren(
-      el('div.sub', { text: s.village.name + (s.god.godName ? ' · ' + t('village.god', { name: godNameText(s.god.godName) }) : '') }),
+      el('div.sub', { text: villageTitle(s) + (s.god.godName ? ' · ' + t('village.god', { name: godNameText(s.god.godName) }) : '') }),
       el('h3', { text: `${t('village.pop')}: ${s.goblins.length}` }),
       el('div.sub', { text: counts.map(([st, n]) => `${t(`stage.${st}`)} ${n}`).join(' · ') }),
       el('div.sub', { text: t('village.food', { n: Math.round(food.food), d: food.days.toFixed(1) }) }),
@@ -77,7 +79,7 @@ export class VillagePanel implements Component {
       el('div.sub', { text: t('village.basics', { list: STARTER_RECIPES.map((id) => t(`recipe.${id}`)).join(', ') }) }),
       ...(recipes.length ? recipes.map(row) : [el('div.sub', { text: t('village.nothing') })]),
       ...(facts.length ? [el('h3', { text: t('village.facts') }), ...facts.map(row)] : []),
-      ...(s.village.lost?.length ? [el('div.sub.vp-lost', { text: t('village.lost', { list: s.village.lost.map(knowName).join(', ') }) })] : []),
+      ...(s.village.lost?.length ? [el('div.sub.vp-lost', { text: t('village.lost', { list: s.village.lost.map((id) => (inBooks(s, id) ? `${knowName(id)} (${t('village.inBook')})` : knowName(id))).join(', ') }) })] : []),
     );
   }
 }

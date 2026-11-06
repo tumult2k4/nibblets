@@ -74,7 +74,12 @@ export interface ParsedIntent { intent: WishIntent; target?: WishTarget }
 export interface VoiceLine { tick: number; goblinId: ID | null; text: string; tone?: Tone; intents?: WishIntent[]; who?: string; defied?: boolean }
 /** LLM annotations (§19, P9.3): text written about the world, kept in `world.llm` and never read by the sim. */
 export type TextSource = 'llm' | 'mock';
-export interface JournalEntry { kind: 'diary' | 'eulogy' | 'chronicle' | 'book'; goblinId: ID | null; day: number; tick: number; text: string; title?: string; source: TextSource }
+export interface JournalEntry {
+  kind: 'diary' | 'eulogy' | 'chronicle' | 'book'; goblinId: ID | null; day: number; tick: number; text: string; title?: string; source: TextSource;
+  /** who spoke it (a eulogy's elder) and what it belongs to (a book's id) */
+  by?: ID; ref?: ID;
+}
+export interface LlmName { name: string; source: TextSource; tick: number }
 export interface SpeechEntry { kind: 'dialogue' | 'bark'; tick: number; lines: { goblinId: ID; text: string }[]; source: TextSource }
 export type DivineActKind = PowerId | 'grab' | 'set_down' | 'drop' | 'throw' | 'pet' | 'poke' | 'flick' | 'gift';
 
@@ -122,6 +127,8 @@ export type SimEvent = BaseEvent &
     | { type: 'home_claimed'; goblinId: ID; buildingId: ID }
     | { type: 'goal_abandoned'; goblinId: ID; goal: string }
     | { type: 'goblin_died'; goblinId: ID; cause: DeathCause }
+    | { type: 'book_written'; goblinId: ID; bookId: ID; contents: string[] }
+    | { type: 'books_lost'; buildingId: ID; bookIds: ID[]; contents: string[]; cause: string }
     | { type: 'gift_given'; fromId: ID; toId: ID; item: ItemType }
     | { type: 'theft'; thiefId: ID; victimId: ID | null; item?: ItemType; witnessIds: ID[]; trinket?: TrinketKind; at?: Vec2 }
     | { type: 'prank'; prankerId: ID; targetId: ID; kind: PrankKind; at?: Vec2 }
@@ -140,7 +147,7 @@ export type SimEvent = BaseEvent &
     | { type: 'adopted'; goblinId: ID; parentId: ID }
     | { type: 'egg_lost'; eggId: ID; parents: [ID, ID]; cause: 'cold' | 'eaten' | 'neglect' | 'fall' | 'fire' | 'flood' }
     | { type: 'life_stage'; goblinId: ID; stage: LifeStage }
-    | { type: 'recipe_discovered' | 'recipe_learned' | 'recipe_lost'; goblinId?: ID; recipe: RecipeId; via?: LearnVia; byId?: ID }
+    | { type: 'recipe_discovered' | 'recipe_learned' | 'recipe_lost'; goblinId?: ID; recipe: RecipeId; via?: LearnVia; byId?: ID; /** P9.5: it had been lost */ recovered?: boolean }
     | { type: 'poisoned'; goblinId: ID; item: ItemType }
     | { type: 'food_spoiled'; qty: number; items: Partial<Record<ItemType, number>> }
     | { type: 'food_processed'; goblinId: ID; buildingId: ID; item: ItemType; qty: number }

@@ -11,6 +11,7 @@ import { getLang, godNameText, t } from './i18n';
 import { powersOfTier } from '../sim/god/tiers';
 import { placesOf } from '../sim/places';
 import { placeName as placeWords } from '../llm/placeNames';
+import { knowName } from './notify';
 
 /** A name with its epithet (P8.7), worded for the language: "Grubnok the Brave", "Old Mogwick". */
 export const withEpithet = (name: string, epithet: string | null): string => (epithet ? t(`epithet.${epithet}`, { name }) : name);
@@ -43,7 +44,11 @@ export function cultureNote(e: SimEvent, w: World, base: { tick: number }, name:
         ? { ...base, id: e.goblinId, text: t(k === 'shrine' ? 'ev.offering' : 'ev.offering_temple', { name: name(e.goblinId) }), tier: 'info', icon: 'gem' } : null;
     }
     case 'building_completed':
-      return ['music_circle', 'shrine', 'totem', 'temple'].includes(e.kind) ? { ...base, text: t(`ev.built.${e.kind}`), tier: 'notable', icon: e.kind === 'music_circle' ? 'star' : 'sparkle' } : null;
+      return ['music_circle', 'shrine', 'totem', 'temple', 'library_shelf'].includes(e.kind) ? { ...base, text: t(`ev.built.${e.kind}`), tier: 'notable', icon: e.kind === 'music_circle' ? 'star' : 'sparkle' } : null;
+    case 'book_written': // P9.5
+      return { ...base, id: e.goblinId, text: t('ev.book_written', { name: name(e.goblinId), what: e.contents.map(knowName).join(', ') }), tier: 'notable', icon: 'book' };
+    case 'books_lost':
+      return { ...base, text: t('ev.books_lost', { n: e.bookIds.length, what: e.contents.map(knowName).join(', ') }), tier: 'critical', icon: 'book' };
     case 'prayer': // P8.8
       return e.desperate ? { ...base, id: e.goblinId, text: t('ev.prayer_desperate', { what: prayerText(e.kind, name(e.goblinId), e.targetId !== undefined ? name(e.targetId) : undefined) }), tier: 'notable', icon: 'sparkle' } : null;
     case 'prayer_answered':

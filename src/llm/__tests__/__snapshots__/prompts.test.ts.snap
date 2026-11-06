@@ -1,5 +1,35 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`prompts (§19.5, P9.3) > book, eulogy, chronicle and village name prompts (P9.5) 1`] = `
+"Write a little book that Krikwick wrote for the village, in Krikwick's own voice.
+First line: "Title: " and a short title of at most 6 words. Then one page of at most 120 words on how to make or know these things:
+Club: wood and stone
+that redcaps are poison
+About Krikwick: adult, brave, greedy; feeling proud."
+`;
+
+exports[`prompts (§19.5, P9.3) > book, eulogy, chronicle and village name prompts (P9.5) 2`] = `
+"Fizz speaks at the funeral of Krikwick. Write what Fizz says: 2-4 sentences, warm and simple.
+About Krikwick: Krikwick the Brave, lived 4 seasons, died: old age. Family: Mib (child).
+What Fizz remembers of Krikwick:
+Krikwick slew a Gnasher
+About Fizz: adult, shy, curious; Krikwick was to them: best friend."
+`;
+
+exports[`prompts (§19.5, P9.3) > book, eulogy, chronicle and village name prompts (P9.5) 3`] = `
+"Krikwick, the eldest goblin of Toadmire, writes the chronicle of the Spring of year 1: one saga paragraph of 120-200 words, in the chronicler's voice.
+The season in numbers: 8 goblins at its start, 9 at its end; 2 hatched, 1 died; 3 buildings finished; 1 new things worked out.
+What happened:
+day 2 — I slew a Gnasher
+From the diaries:
+Fizz: Today was muddy."
+`;
+
+exports[`prompts (§19.5, P9.3) > book, eulogy, chronicle and village name prompts (P9.5) 4`] = `
+"The goblins' village has grown to 3 huts and needs a name. Invent one: one or two words with goblin flavor, fitting the land. Answer with the name only.
+Places nearby: Sad Pond, Star Hollow. Chief: Grubnok."
+`;
+
 exports[`prompts (§19.5, P9.3) > diary, dialogue and bark prompts 1`] = `
 "Write Krikwick's diary entry for today, in first person, 40-90 words.
 About Krikwick: adult, 3 seasons old, small and dark mossy green. Personality: brave, greedy.

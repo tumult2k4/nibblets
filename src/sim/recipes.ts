@@ -84,6 +84,8 @@ export const RECIPES: Record<RecipeId, RecipeDef> = {
   totem: { inputs: { wood: 3, war_paint: 1 }, station: 'site', building: 'totem', known: false, phase: 8, skill: 'woodcraft' },
   // P8.8 (§17.4): the temple (its two trinkets are laid in it, not hauled)
   temple: { inputs: { stone: 12, wood: 6 }, station: 'site', building: 'temple', known: false, phase: 8, skill: 'building' },
+  // P9.5 (§15.2): a shelf for the books that keep what the village knows
+  library_shelf: { inputs: { wood: 4 }, station: 'site', building: 'library_shelf', known: false, phase: 9, skill: 'woodcraft' },
 };
 
 export const recipeDef = (id: RecipeId): RecipeDef | undefined => RECIPES[id];

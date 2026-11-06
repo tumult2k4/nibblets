@@ -69,6 +69,8 @@ function phrase(s: WorldState, g: Goblin, e: SimEvent): [number, string, Record<
     case 'buried': return [6, 'cx.buried', { b: e.deadId }];
     case 'comforted': return [4, 'cx.comforted', { a: e.goblinId, b: e.byId }];
     case 'place_named': return [4, 'cx.place', { place: `@${e.placeId}` }];
+    case 'book_written': return [6, 'cx.book', { a: e.goblinId }];
+    case 'books_lost': return [6, 'cx.books_lost', {}];
     case 'harvested': return [1, 'cx.harvested', { a: e.goblinId, item: `item.${e.item}` }];
     case 'plant_chopped': return [1, 'cx.chopped', { a: e.goblinId }];
     case 'rock_mined': return [1, 'cx.mined', { a: e.goblinId }];
@@ -140,4 +142,25 @@ export function compactDay(s: WorldState, log: EventLog, g: Goblin, day: number,
 export function topOfDay(s: WorldState, log: EventLog, day: number, k: number, lang: Lang): GoblinDay[] {
   return s.goblins.filter((g) => g.lifeStage !== 'egg' && g.lifeStage !== 'hatchling').map((g) => compactDay(s, log, g, day, lang))
     .filter((d) => d.lines.length).sort((a, b) => b.score - a.score || a.goblinId - b.goblinId).slice(0, k);
+}
+
+/**
+ * Lines about days `days` told by `teller` (its own deeds as "I"): every logged event `keep` lets through, merged and
+ * scored as for a diary, the best `k` in the order they happened, each with its day ("day 3 — …") when `dated`.
+ * The chronicle tells the village's season this way, a eulogy what the dead did.
+ */
+export function pickLines(s: WorldState, log: EventLog, teller: Goblin, days: readonly number[], k: number, lang: Lang, keep: (l: Logged) => boolean = () => true, dated = true): string[] {
+  const merged = new Map<string, { tick: number; day: number; score: number; n: number }>();
+  for (const d of days) for (const l of log.of(d)) {
+    if (!keep(l)) continue;
+    const p = phrase(s, teller, l.e);
+    if (!p) continue;
+    const text = words(s, teller.id, lang, p[1], p[2]);
+    const m = merged.get(text);
+    if (m) { m.n++; m.score = Math.max(m.score, p[0]); } else merged.set(text, { tick: l.e.tick, day: d, score: p[0], n: 1 });
+  }
+  return [...merged].sort((a, b) => b[1].score - a[1].score || a[1].tick - b[1].tick).slice(0, k).sort((a, b) => a[1].tick - b[1].tick).map(([text, m]) => {
+    const line = m.n > 1 ? tIn(lang, 'cx.times', { line: text, n: m.n }) : text;
+    return dated ? `${tIn(lang, 'cx.day', { d: clockAt(m.tick).seasonDay + 1 })} — ${line}` : line;
+  });
 }

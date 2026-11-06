@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { barkPrompt, dialoguePrompt, diaryPrompt, systemPrompt } from '../prompts';
+import { barkPrompt, bookPrompt, chroniclePrompt, dialoguePrompt, diaryPrompt, eulogyPrompt, systemPrompt, villageNamePrompt } from '../prompts';
 import { clamp, cleanInput, cleanOutput, parseDialogue, stripMarkdown } from '../sanitize';
 import { addJournal, addSpeech, journalsOf, llmOf, speechSince } from '../store';
 import type { GoblinContext } from '../describe';
@@ -27,6 +27,17 @@ describe('prompts (§19.5, P9.3)', () => {
     const talk = dialoguePrompt({ ctx: KRIK, sees: 'best friend', news: DAY[1]! }, { ctx: FIZZ, sees: 'best friend', news: null }, 'danger', 'en');
     expect(talk.prompt).toMatchSnapshot();
     expect(barkPrompt(KRIK, 'I slew a Gnasher', 'win', 'de').prompt).toMatchSnapshot();
+  });
+
+  it('book, eulogy, chronicle and village name prompts (P9.5)', () => {
+    expect(bookPrompt(KRIK, ['Club: wood and stone', 'that redcaps are poison'], 'en').prompt).toMatchSnapshot();
+    const eu = eulogyPrompt(FIZZ, { dead: 'Krikwick', epithet: 'Krikwick the Brave', age: 4, cause: 'old age', family: 'Mib (child)', deeds: ['Krikwick slew a Gnasher'], rel: 'best friend' }, 'de');
+    expect(eu.prompt).toMatchSnapshot();
+    expect(eu).toMatchObject({ product: 'eulogy', maxTokens: 160, facts: { dead: 'Krikwick', deeds: ['Krikwick slew a Gnasher'] } });
+    const ch = chroniclePrompt(KRIK, { village: 'Toadmire', season: 'Spring', year: 1, pop: [8, 9], hatched: 2, died: 1, built: 3, learned: 1, events: ['day 2 — I slew a Gnasher'], diaries: ['Fizz: Today was muddy.'] }, 'en');
+    expect(ch.prompt).toMatchSnapshot();
+    expect(ch).toMatchObject({ product: 'chronicle', maxTokens: 380, facts: { pop: [8, 9], hatched: 2 } });
+    expect(villageNamePrompt(['Sad Pond', 'Star Hollow'], 'Grubnok', 3, 'en').prompt).toMatchSnapshot();
   });
 
   it('player-typed text cannot smuggle instructions in', () => {

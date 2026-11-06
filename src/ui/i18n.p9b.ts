@@ -3,7 +3,7 @@
  * the object ("me"/"mich"), {aD}/{bD} the German dative ("me"/"mir"). Merged by i18n.ts. */
 export const EN9B = {
   'cx.i': 'I', 'cx.me': 'me', 'cx.mir': 'me', 'cx.tod.night': 'night', 'cx.tod.dawn': 'dawn', 'cx.tod.morning': 'morning', 'cx.tod.midday': 'midday', 'cx.tod.afternoon': 'afternoon', 'cx.tod.dusk': 'dusk',
-  'cx.at': '{line} at {place}', 'cx.times': '{line} ×{n}', 'cx.someone': 'someone',
+  'cx.at': '{line} at {place}', 'cx.day': 'day {d}', 'cx.times': '{line} ×{n}', 'cx.someone': 'someone',
   'cx.died': '{a} died ({cause})', 'cx.hatched': '{a} hatched', 'cx.egg_laid': '{a} and {b} laid an egg', 'cx.slew': '{a} slew a {enemy}', 'cx.bit': 'a {enemy} bit {bA}',
   'cx.hurt': '{a} was hurt', 'cx.spotted': '{a} spotted a {enemy}', 'cx.stole_enemy': 'a {enemy} stole {item}', 'cx.discovered': '{a} worked out how to make {recipe}',
   'cx.learned': '{a} learned {recipe} from {bA}', 'cx.festival': '{fest} began', 'cx.theft': '{a} stole {item} from {bA}', 'cx.theft_store': '{a} stole {item}',
@@ -23,13 +23,15 @@ export const EN9B = {
   'cx.hue.0': 'brick red', 'cx.hue.1': 'rust orange', 'cx.hue.2': 'mustard yellow', 'cx.hue.3': 'mossy green', 'cx.hue.4': 'leaf green', 'cx.hue.5': 'pond green',
   'cx.hue.6': 'teal', 'cx.hue.7': 'sky blue', 'cx.hue.8': 'twilight blue', 'cx.hue.9': 'plum purple', 'cx.hue.10': 'berry pink', 'cx.hue.11': 'rose red',
   'cx.none': 'none', 'cx.nochief': 'no chief', 'cx.ordinary': 'ordinary',
+  'cx.know': 'that {fact}', 'cx.noInputs': 'nothing but your hands', 'cx.and': 'and', 'cx.book': '{a} wrote a book',
+  'cx.books_lost': 'the library shelf was lost, and its books with it',
   'cx.topic.weather': 'the weather', 'cx.topic.food': 'food', 'cx.topic.danger': 'danger', 'cx.topic.gossip': 'gossip', 'cx.topic.a_person': 'someone they know',
   'cx.topic.trinkets': 'shiny things', 'cx.topic.a_place': 'a place', 'cx.topic.the_dead': 'the dead', 'cx.topic.festival': 'the festival', 'cx.topic.complaint': 'what bothers them',
 };
 
 export const DE9B: Record<keyof typeof EN9B, string> = {
   'cx.i': 'ich', 'cx.me': 'mich', 'cx.mir': 'mir', 'cx.tod.night': 'nachts', 'cx.tod.dawn': 'früh', 'cx.tod.morning': 'morgens', 'cx.tod.midday': 'mittags', 'cx.tod.afternoon': 'nachmittags', 'cx.tod.dusk': 'abends',
-  'cx.at': '{line} bei {place}', 'cx.times': '{line} ×{n}', 'cx.someone': 'jemand',
+  'cx.at': '{line} bei {place}', 'cx.day': 'Tag {d}', 'cx.times': '{line} ×{n}', 'cx.someone': 'jemand',
   'cx.died': '{a} starb ({cause})', 'cx.hatched': '{a} schlüpfte', 'cx.egg_laid': '{a} und {b} bekamen ein Ei', 'cx.slew': '{a} erlegte einen {enemy}', 'cx.bit': 'ein {enemy} biss {bA}',
   'cx.hurt': '{a} wurde verletzt', 'cx.spotted': '{a} sah einen {enemy}', 'cx.stole_enemy': 'ein {enemy} stahl {item}', 'cx.discovered': '{a} fand heraus, wie man {recipe} macht',
   'cx.learned': '{a} lernte {recipe} von {bD}', 'cx.festival': '{fest} begann', 'cx.theft': '{a} stahl {bD} {item}', 'cx.theft_store': '{a} stahl {item}',
@@ -49,6 +51,8 @@ export const DE9B: Record<keyof typeof EN9B, string> = {
   'cx.hue.0': 'ziegelrot', 'cx.hue.1': 'rostorange', 'cx.hue.2': 'senfgelb', 'cx.hue.3': 'moosgrün', 'cx.hue.4': 'blattgrün', 'cx.hue.5': 'teichgrün',
   'cx.hue.6': 'türkis', 'cx.hue.7': 'himmelblau', 'cx.hue.8': 'dämmerblau', 'cx.hue.9': 'pflaumenlila', 'cx.hue.10': 'beerenrosa', 'cx.hue.11': 'rosenrot',
   'cx.none': 'keine', 'cx.nochief': 'kein Häuptling', 'cx.ordinary': 'gewöhnlich',
+  'cx.know': 'dass {fact}', 'cx.noInputs': 'nichts als deine Hände', 'cx.and': 'und', 'cx.book': '{a} schrieb ein Buch',
+  'cx.books_lost': 'das Bücherregal ging verloren und mit ihm seine Bücher',
   'cx.topic.weather': 'das Wetter', 'cx.topic.food': 'Essen', 'cx.topic.danger': 'Gefahr', 'cx.topic.gossip': 'Klatsch', 'cx.topic.a_person': 'jemanden, den sie kennen',
   'cx.topic.trinkets': 'glänzende Dinge', 'cx.topic.a_place': 'einen Ort', 'cx.topic.the_dead': 'die Toten', 'cx.topic.festival': 'das Fest', 'cx.topic.complaint': 'was sie stört',
 };

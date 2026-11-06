@@ -42,6 +42,12 @@ const god = process.argv.includes('--god') && GOD_PROFILES.includes(godArg!) ? g
 /** `--free`: the scripted god plays in Sandbox mode (no favor, no tiers) */
 const free = process.argv.includes('--free');
 if (noPreserve) (CFG.preserve as { enabled: boolean }).enabled = false;
+/** `--no-books` (P9.5 check): nobody writes, reads or builds a library shelf */
+if (process.argv.includes('--no-books')) {
+  ACTIONS.write_book.isAvailable = () => false;
+  ACTIONS.read_book.isAvailable = () => false;
+  (CFG.books.shelf as { pop: number }).pop = 999;
+}
 
 interface Row {
   /** deaths and everyone who lived there (founders + newcomers), for the control run's loss share */
@@ -132,7 +138,7 @@ function runSeed(seed: number): Row {
     if (e.type === 'justice') soc.sentences[e.sentence]++;
     if (e.type === 'festival' && e.phase === 'end') { soc.fests[e.kind] = (soc.fests[e.kind] ?? 0) + 1; soc.came += e.came ?? 0; } // P8.5
     if (e.type === 'item_crafted' && (e.item === 'drum' || e.item === 'flute')) soc.instruments++;
-    if (e.type === 'building_completed' && ['music_circle', 'shrine', 'totem', 'temple'].includes(e.kind)) soc.built[e.kind] ??= Math.floor(e.tick / CFG.time.dayTicks); // P8.5–P8.6
+    if (e.type === 'building_completed' && ['music_circle', 'shrine', 'totem', 'temple', 'library_shelf'].includes(e.kind)) soc.built[e.kind] ??= Math.floor(e.tick / CFG.time.dayTicks); // P8.5–P8.6
     if (e.type === 'emote' && e.emote === 'pray') soc.prayers++;
     if (e.type === 'trinket_found') md.found++;
     if (e.type === 'trinket_given') md.given++;

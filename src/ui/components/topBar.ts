@@ -11,6 +11,7 @@ import { WEATHER_KINDS } from '../../sim/weather';
 import type { WeatherKind } from '../../shared/types';
 import { maxFavor } from '../../sim/god/favor';
 import { MAX_TIER, tierNeeds } from '../../sim/god/tiers';
+import { villageTitle } from '../../llm/store';
 
 const WEATHER_ICON: Record<WeatherKind, string> = {
   clear: 'sun', cloudy: 'cloud', fog: 'fog', rain: 'rain', storm: 'storm', snow: 'snow', blizzard: 'snow', heatwave: 'heat',
@@ -103,7 +104,7 @@ export class TopBar implements Component {
     const w = this.ctx.game.world;
     const s = w.s;
     const c = w.clock;
-    setText(this.village, s.village.name);
+    setText(this.village, villageTitle(s));
     this.village.dataset.tip = s.god.godName ? t('insp.glanceGod', { name: godNameText(s.god.godName) }) : t('insp.glance');
     const hh = Math.floor(c.hour), mm = Math.floor((c.hour % 1) * 60);
     setText(this.cal, `${t('top.day', { season: t(`season.${c.season}`), day: c.seasonDay + 1 })} · ${t('top.year', { year: c.year })} · ${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`);

@@ -18,7 +18,8 @@ const TABS: Tab[] = ['diary', 'book', 'eulogy', 'chronicle'];
 /**
  * The journal (J, §19.7, P9.4): a book. Diaries: the left page shows the goblin (portrait, name and epithet, age,
  * size and color in words), the right page its entries by day, newest first, in ink of its own skin color. The other
- * tabs list the village's books, eulogies and the chronicle (written from P9.5). Text the Mock wrote is marked.
+ * tabs list the village's books, eulogies and the chronicle (P9.5), each with its title and who wrote or spoke it.
+ * Text the Mock wrote is marked.
  */
 export class Journal implements Component {
   private root = el('div.journal.panel.hidden');
@@ -78,7 +79,7 @@ export class Journal implements Component {
     this.root.style.removeProperty('--ink-accent');
     const es = journalsOf(s, null, kind).reverse();
     this.left.replaceChildren(el('h3', { text: t(`journal.${kind}`) }), el('div.sub', { text: String(es.length) }));
-    this.right.replaceChildren(...(es.length ? es.map((e) => entry(e, nameOf(s, e.goblinId))) : [el('p.sub', { text: t('journal.none') })]));
+    this.right.replaceChildren(...(es.length ? es.map((e) => entry(e, nameOf(s, e.by ?? e.goblinId))) : [el('p.sub', { text: t('journal.none') })]));
   }
 }
 
