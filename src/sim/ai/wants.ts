@@ -8,12 +8,19 @@ import { needUrgency } from '../goblin/needs';
 import type { ItemType } from '../../shared/types';
 import type { Goblin } from '../state';
 import type { World } from '../world';
+import { shared } from './memo';
 
 /** 0..1: how short the village (stockpile + what this goblin carries) is of `item`. */
 export function materialWanted(g: Goblin, w: World, item: ItemType, target: number): number {
-  let need = target;
-  for (const b of w.s.buildings) for (const m of missingMaterials(b)) if (m.type === item) need += m.qty;
+  const need = target + (shared(w, 'blueprintNeeds', () => blueprintNeeds(w)).get(item) ?? 0);
   return need <= 0 ? 0 : Math.max(0, 1 - (stockCount(w.s, item) + countItem(g, item)) / need);
+}
+
+/** What every unfinished building still waits for, by material. */
+function blueprintNeeds(w: World): Map<ItemType, number> {
+  const out = new Map<ItemType, number>();
+  for (const b of w.s.buildings) for (const m of missingMaterials(b)) out.set(m.type, (out.get(m.type) ?? 0) + m.qty);
+  return out;
 }
 
 export const woodWanted = (g: Goblin, w: World): number => materialWanted(g, w, 'wood', CFG.plants.woodTarget);

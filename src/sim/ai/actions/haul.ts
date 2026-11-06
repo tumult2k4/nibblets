@@ -49,6 +49,7 @@ function toZone(g: Goblin, w: World): 'running' | 'done' {
 export const HaulToStockpile: UtilityAction = {
   id: 'haul_to_stockpile', tags: ['work'], minStage: 'youngling', interruptible: true,
   isAvailable: (g, w) => !!pile(g, w, null),
+  cap: (g) => H.score * (0.5 + g.personality.industry) * (1 - busy(g)) * 1.5,
   score: (g, w) => {
     const it = pile(g, w, null);
     if (!it) return 0;

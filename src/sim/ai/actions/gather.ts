@@ -17,16 +17,19 @@ import { busy } from './village';
 import type { GrassPatch, Goblin, Plant } from '../../state';
 import type { World } from '../../world';
 import type { UtilityAction } from '../action';
+import { once } from '../memo';
+import { claimedByOther } from '../claims';
+import { flowers } from '../targets';
 
 const F = CFG.fiber;
 
 export const fiberWanted = (g: Goblin, w: World): number => materialWanted(g, w, 'fiber', F.fiberTarget);
 
-const cutting = (w: World, g: Goblin, id: number): boolean =>
-  w.s.goblins.some((o) => o !== g && o.activity.action === 'cut_grass' && o.activity.status === 'running' && o.activity.targetId === id);
+const cutting = (w: World, g: Goblin, id: number): boolean => claimedByOther(w, g, 'cut_grass', id, true);
 
 /** The nearest patch thick enough to cut (village side first: distance from the goblin). */
-export function grassPatch(g: Goblin, w: World): GrassPatch | null {
+export const grassPatch = (g: Goblin, w: World): GrassPatch | null => once(w, g, 'grass', () => grassPatch0(g, w));
+function grassPatch0(g: Goblin, w: World): GrassPatch | null {
   let best: GrassPatch | null = null, bd: number = F.range;
   for (const p of w.s.grass) {
     if (p.density < F.minDensity) continue;
@@ -39,6 +42,7 @@ export function grassPatch(g: Goblin, w: World): GrassPatch | null {
 export const CutGrass: UtilityAction = {
   id: 'cut_grass', tags: ['work'], minStage: 'youngling', interruptible: true,
   isAvailable: (g, w) => canCarry(g, 'fiber') && fiberWanted(g, w) > 0 && !!grassPatch(g, w),
+  cap: (g, w) => (F.gatherScore[0] + F.gatherScore[1] * fiberWanted(g, w)) * (1 - busy(g)),
   score(g, w) {
     const p = grassPatch(g, w)!;
     return (F.gatherScore[0] + F.gatherScore[1] * fiberWanted(g, w)) * (1 - busy(g)) * distanceFalloff(dist(g.pos, p.pos), F.range);
@@ -75,11 +79,12 @@ export function flowerWant(g: Goblin, w: World): number {
 }
 
 const inBloom = (p: Plant): boolean => p.kind === 'flower' && p.stage === 'mature' && p.fruit >= 1;
-const bloom = (g: Goblin, w: World, r: number = F.range): Plant | null => w.plantHash.nearest(g.pos, r, inBloom);
+const bloom = (g: Goblin, w: World, r: number = F.range): Plant | null => flowers(w).nearest(g.pos, r, inBloom);
 
 export const PickFlowers: UtilityAction = {
   id: 'pick_flowers', tags: ['work', 'fun'], minStage: 'youngling', interruptible: true,
   isAvailable: (g, w) => canCarry(g, 'flower') && flowerWant(g, w) > 0 && !!bloom(g, w),
+  cap: (g, w) => (0.06 + flowerWant(g, w)) * (1 - busy(g)),
   score: (g, w) => (0.06 + flowerWant(g, w)) * (1 - busy(g)),
   start(g, w) {
     const p = bloom(g, w);

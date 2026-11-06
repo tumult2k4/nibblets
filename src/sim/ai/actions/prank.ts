@@ -110,6 +110,7 @@ function pull(g: Goblin, o: Goblin, kind: Kind, w: World): boolean {
 export const Prank: UtilityAction = {
   id: 'prank', tags: ['fun'], minStage: 'youngling', interruptible: (g) => g.activity.stage === 0,
   isAvailable: (g, w) => g.personality.mischief > P.minMischief && !pressed(g) && !g.heldByGod && !resting(g, w, 'prank_rest') && !!prankTarget(g, w),
+  cap: (g) => q4(P.score * (0.6 + 0.4 * (1 - g.needs.fun / 100)) * (g.lifeStage === 'youngling' ? 1.3 : 1)),
   score: (g) => q4(P.score * (0.6 + 0.4 * (1 - g.needs.fun / 100)) * (g.lifeStage === 'youngling' ? 1.3 : 1)),
   start(g, w) {
     const t = prankTarget(g, w);

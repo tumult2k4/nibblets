@@ -12,8 +12,8 @@ export const v2 = (x: number, y: number): Vec2 => ({ x, y });
 export const add = (a: Vec2, b: Vec2): Vec2 => ({ x: a.x + b.x, y: a.y + b.y });
 export const sub = (a: Vec2, b: Vec2): Vec2 => ({ x: a.x - b.x, y: a.y - b.y });
 export const scale = (a: Vec2, s: number): Vec2 => ({ x: a.x * s, y: a.y * s });
-export const len = (a: Vec2): number => Math.hypot(a.x, a.y);
-export const dist = (a: Vec2, b: Vec2): number => Math.hypot(a.x - b.x, a.y - b.y);
+export const len = (a: Vec2): number => Math.sqrt(a.x * a.x + a.y * a.y); // (not Math.hypot: several times slower, P11.3)
+export const dist = (a: Vec2, b: Vec2): number => { const dx = a.x - b.x, dy = a.y - b.y; return Math.sqrt(dx * dx + dy * dy); };
 export const dist2 = (a: Vec2, b: Vec2): number => (a.x - b.x) ** 2 + (a.y - b.y) ** 2;
 export const norm = (a: Vec2): Vec2 => {
   const l = len(a);

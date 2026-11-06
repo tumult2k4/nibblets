@@ -70,9 +70,11 @@ export function openHomes(w: World): Building[] {
 export const lawOf = (w: World): number => w.s.village.policies?.law ?? TH.law;
 
 /** The most `g` could be tempted by anyone (its worst grudge, the dearest trinket): below the line, no need to look. */
-export function temptable(g: Goblin, w: World): boolean {
+export const temptable = (g: Goblin, w: World): boolean => temptCeiling(g, w) + 0.2 >= TH.minTemptation;
+/** The most anyone could tempt `g` (`temptation` before its clamp, with its worst opinion): P11.3's bound for Steal. */
+export function temptCeiling(g: Goblin, w: World): number {
   const worst = g.relationships.reduce((m, r) => Math.min(m, r.opinion), 0);
-  return needUrgency(g.needs.hunger) * 0.6 + greedOf(g) * 0.4 + g.personality.mischief * 0.3 + Math.max(0, -worst / 100) * 0.3 - lawOf(w) + 0.2 >= TH.minTemptation;
+  return needUrgency(g.needs.hunger) * 0.6 + greedOf(g) * 0.4 + g.personality.mischief * 0.3 + Math.max(0, -worst / 100) * 0.3 - lawOf(w);
 }
 
 /** How badly `g` wants to take from `victim` (0..1): want of food, greed, mischief, dislike, less the village's law. */

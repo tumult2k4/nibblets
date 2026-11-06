@@ -15,12 +15,12 @@ import { knows } from '../../recipes';
 import { countItem } from '../../inventory';
 import { stockCount } from '../../stockpile';
 import { remedyWant } from '../../remedy';
+import { claimCount } from '../claims';
 
 const M = CFG.mushrooms;
 const FAR = 40;
 
-const takenBy = (w: World, id: ID, me: ID): boolean =>
-  w.s.goblins.some((o) => o.id !== me && o.activity.action === 'forage' && o.activity.targetId === id && o.activity.status === 'running');
+const takenBy = (w: World, id: ID, me: ID): boolean => claimCount(w, 'forage', id, me, true) > 0;
 
 /**
  * Nearest visible mushroom it takes for food, else a remembered one (§8.2; redcaps only if it doesn't know better,
@@ -68,6 +68,7 @@ function forageTarget(g: Goblin, w: World): { m: { id: ID; pos: Vec2 }; score: n
 export const Forage: UtilityAction = {
   id: 'forage', tags: ['food', 'work'], minStage: 'youngling', interruptible: true,
   isAvailable: (g, w) => w.s.mushrooms.length > 0 && canCarry(g, 'mushroom') && (g.needs.hunger < 85 || herbWant(g, w) > 0),
+  cap: (g) => Math.max((foodStack(g) ? 0.3 : 1) * (0.04 + 0.8 * needUrgency(g.needs.hunger)), (knows(g, 'herbal_remedy') ? CFG.health.herbForage : 0) * (1 - Math.max(needUrgency(g.needs.hunger), needUrgency(g.needs.thirst), needUrgency(g.needs.energy)))),
   score: (g, w) => forageTarget(g, w)?.score ?? 0,
   start(g, w) {
     const m = forageTarget(g, w)?.m;

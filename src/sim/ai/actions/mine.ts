@@ -19,14 +19,17 @@ import type { Goblin, Rock } from '../../state';
 import type { World } from '../../world';
 import type { UtilityAction } from '../action';
 import { gainXp, skillLevel, skillSpeed } from '../../goblin/skills';
+import { claimedByOther } from '../claims';
+import { once } from '../memo';
 
 const M = CFG.mining;
 
 const takenBy = (w: World, g: Goblin, rk: Rock): boolean =>
-  w.s.goblins.some((o) => o.id !== g.id && o.activity.action === 'mine' && o.activity.targetId === rk.id);
+  claimedByOther(w, g, 'mine', rk.id);
 
 /** Nearest workable rock (flint-bearing ones a little preferred), one miner per rock. */
-export function findRock(g: Goblin, w: World): Rock | null {
+export const findRock = (g: Goblin, w: World): Rock | null => once(w, g, 'rock', () => findRock0(g, w));
+function findRock0(g: Goblin, w: World): Rock | null {
   let best: Rock | null = null, bs = 0;
   for (const rk of w.s.rocks) {
     const d = dist(g.pos, rk.pos);
@@ -62,6 +65,7 @@ const loaded = (g: Goblin): boolean => countItem(g, 'stone') >= M.stonesPerTrip 
 export const Mine: UtilityAction = {
   id: 'mine', tags: ['work'], minStage: 'adult', interruptible: true,
   isAvailable: (g, w) => !loaded(g) && stoneWanted(g, w) > 0,
+  cap: (g, w) => 0.3 * stoneWanted(g, w) * (1 - busy(g)),
   score(g, w) {
     if (!findRock(g, w)) return 0;
     return 0.3 * stoneWanted(g, w) * (1 - busy(g));

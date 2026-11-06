@@ -14,6 +14,7 @@ import { stockUpUrge } from '../../preserve';
 export const HarvestFruit: UtilityAction = {
   id: 'harvest_fruit', tags: ['food', 'work'], minStage: 'youngling', interruptible: true,
   isAvailable: (g, w) => (canCarry(g, 'apple') || canCarry(g, 'berry')) && (g.needs.hunger < 90 || stockUpUrge(w) > 0),
+  cap: (g, w) => Math.max((foodStack(g) ? 0.35 : 1) * (0.05 + 1.05 * needUrgency(g.needs.hunger)), stockUpUrge(w)),
   score(g, w) {
     const p = findFruitPlant(g, w);
     if (!p) return 0;

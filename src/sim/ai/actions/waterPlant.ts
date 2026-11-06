@@ -16,6 +16,7 @@ import { gainXp, skillLevel, workSpeed } from '../../goblin/skills';
 export const WaterPlant: UtilityAction = {
   id: 'water_plant', tags: ['work'], minStage: 'youngling', interruptible: true,
   isAvailable: (g, w) => CFG.plants.seasonMul[w.clock.season] > 0 && g.needs.thirst > 25 && g.needs.hunger > 25,
+  cap: (g) => 0.38 * 1.2 * (1 - needUrgency(Math.min(g.needs.hunger, g.needs.thirst))),
   score(g, w) {
     const p = findDryPlant(g, w);
     if (!p) return 0;

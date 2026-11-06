@@ -15,8 +15,13 @@ import { knowsFact, witnessFact } from '../../knowledge';
 import { removePlant } from '../../plants';
 import { spawnGroundItem } from '../../groundItems';
 import { workMul } from '../../combat';
+import { claimedByOther } from '../claims';
+import { perTick } from '../memo';
 
 const B = CFG.disasters.blight;
+
+/** Is any bush blighted enough to pull out (asked once a tick, P11.3)? */
+const anyBlight = (w: World): boolean => perTick(w, 'blight', () => w.s.plants.some((p) => p.blight >= B.cullAt));
 
 /** Does `g` know a blighted bush when it sees one? */
 export const knowsBlight = (g: Goblin): boolean => skillLevel(g, 'farming') >= B.farming || knowsFact(g, 'blight_spreads');
@@ -26,7 +31,7 @@ function sickBush(g: Goblin, w: World): Plant | null {
   let best: Plant | null = null, bs = 0;
   for (const p of w.plantHash.query(g.pos, B.cullRange)) {
     if (p.blight < B.cullAt || dist(p.pos, g.pos) > B.cullRange) continue;
-    if (w.s.goblins.some((o) => o !== g && o.activity.action === 'cull_blight' && o.activity.targetId === p.id)) continue;
+    if (claimedByOther(w, g, 'cull_blight', p.id)) continue;
     const sc = p.blight / (1 + dist(p.pos, g.pos) / 12);
     if (sc > bs) { bs = sc; best = p; }
   }
@@ -37,7 +42,7 @@ const busy = (g: Goblin): number => Math.max(needUrgency(g.needs.hunger), needUr
 
 export const CullBlight: UtilityAction = {
   id: 'cull_blight', tags: ['work'], minStage: 'adult', interruptible: true,
-  isAvailable: (g, w) => w.s.plants.some((p) => p.blight >= B.cullAt) && knowsBlight(g) && !!sickBush(g, w),
+  isAvailable: (g, w) => anyBlight(w) && knowsBlight(g) && !!sickBush(g, w),
   score: (g, w) => clamp((0.38 + 0.3 * sickBush(g, w)!.blight) * (1 - busy(g)), 0, 1),
   start(g, w) {
     const p = sickBush(g, w);

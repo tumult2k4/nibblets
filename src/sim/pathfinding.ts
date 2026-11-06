@@ -77,30 +77,37 @@ class MinHeap {
 
 /**
  * Path cache. Results depend only on (terrainVersion, start, goal), and terrainVersion bumps whenever
- * anything the cost function reads changes, so a cached path always equals a fresh search.
+ * anything the cost function reads changes, so a cached path always equals a fresh search. Each entry keeps the
+ * search's size too, so `pathWork` counts a search the same whether or not it was cached (P11.3: the decision budget
+ * reads it, and must read the same after a load, when the cache is empty).
  */
+export interface PathHit { path: Vec2[] | null; n: number }
+let work = 0;
+/** Expansions of every search asked for so far (cached ones counted as if made again). */
+export const pathWork = (): number => work;
 
 
 /**
  * A* over tiles, 8-neighbour, no corner cutting. Returns tile-center waypoints (excluding start). `blocked` marks extra
  * impassable tiles for this walker (enemies: finished fences, P4.6); it must only change with terrainVersion.
  */
-export function findPath(s: WorldState, from: Vec2, to: Vec2, cache: Map<string, Vec2[] | null>, blocked?: Uint8Array): Vec2[] | null {
+export function findPath(s: WorldState, from: Vec2, to: Vec2, cache: Map<string, PathHit>, blocked?: Uint8Array): Vec2[] | null {
   const sx = Math.floor(from.x), sy = Math.floor(from.y);
   const gx = Math.floor(to.x), gy = Math.floor(to.y);
   if (!inBounds(s, gx, gy) || !s.tiles[tileIndex(s, gx, gy)]!.walkable || blocked?.[tileIndex(s, gx, gy)]) return null;
   if (!inBounds(s, sx, sy)) return null;
   if (sx === gx && sy === gy) return [];
   const key = `${blocked ? 'e' : ''}${s.terrainVersion}:${sx},${sy}:${gx},${gy}`;
-  const hit = cache.get(key);
-  if (hit !== undefined) return hit ? hit.map((p) => ({ ...p })) : null;
-  const res = astar(s, sx, sy, gx, gy, blocked);
-  if (cache.size > CACHE_MAX) cache.delete(cache.keys().next().value as string);
-  cache.set(key, res);
-  return res ? res.map((p) => ({ ...p })) : null;
+  const hit = cache.get(key) ?? astar(s, sx, sy, gx, gy, blocked);
+  if (!cache.has(key)) {
+    if (cache.size > CACHE_MAX) cache.delete(cache.keys().next().value as string);
+    cache.set(key, hit);
+  }
+  work += hit.n;
+  return hit.path ? hit.path.map((p) => ({ ...p })) : null;
 }
 
-function astar(s: WorldState, sx: number, sy: number, gx: number, gy: number, blocked?: Uint8Array): Vec2[] | null {
+function astar(s: WorldState, sx: number, sy: number, gx: number, gy: number, blocked?: Uint8Array): PathHit {
   const W = s.size.w;
   const N = W * s.size.h;
   const g = new Float64Array(N).fill(Infinity);
@@ -122,7 +129,7 @@ function astar(s: WorldState, sx: number, sy: number, gx: number, gy: number, bl
     if (closed[cur]) continue;
     if (cur === goal) break;
     closed[cur] = 1;
-    if (++expansions > MAX_EXPANSIONS) return null;
+    if (++expansions > MAX_EXPANSIONS) return { path: null, n: expansions };
     const cx = cur % W, cy = (cur / W) | 0;
     for (let dy = -1; dy <= 1; dy++)
       for (let dx = -1; dx <= 1; dx++) {
@@ -141,11 +148,11 @@ function astar(s: WorldState, sx: number, sy: number, gx: number, gy: number, bl
         }
       }
   }
-  if (came[goal] === -1) return null;
+  if (came[goal] === -1) return { path: null, n: expansions };
   const path: Vec2[] = [];
   for (let c = goal; c !== start; c = came[c]!) path.push({ x: (c % W) + 0.5, y: ((c / W) | 0) + 0.5 });
   path.reverse();
-  return smooth(s, path);
+  return { path: smooth(s, path), n: expansions };
 }
 
 /** Drop intermediate waypoints that lie on a straight line (keeps saves small). */

@@ -21,6 +21,7 @@ import type { Goblin } from '../../state';
 import type { World } from '../../world';
 import type { UtilityAction } from '../action';
 import { totemWantsPaint } from '../../shrine';
+import { once } from '../memo';
 
 const busy = (g: Goblin): number => Math.max(needUrgency(g.needs.hunger), needUrgency(g.needs.thirst), needUrgency(g.needs.energy));
 
@@ -32,7 +33,8 @@ function mendJob(g: Goblin, w: World): { id: RecipeId; value: number } | null {
 }
 
 /** The job worth most: a new piece or a mend. */
-function job(g: Goblin, w: World): { id: RecipeId; value: number; mend: boolean } | null {
+const job = (g: Goblin, w: World): { id: RecipeId; value: number; mend: boolean } | null => once(w, g, 'craft', () => job0(g, w));
+function job0(g: Goblin, w: World): { id: RecipeId; value: number; mend: boolean } | null {
   const c = chooseCraft(g, w), m = mendJob(g, w);
   if (m && m.value > (c?.value ?? 0)) return { ...m, mend: true };
   return c ? { ...c, mend: false } : null;
@@ -68,6 +70,7 @@ export const Craft: UtilityAction = {
   // fetching and walking can be cut short; once the hands are busy the piece gets finished
   id: 'craft', tags: ['work'], minStage: 'adult', interruptible: (g) => g.activity.stage !== 1,
   isAvailable: (g, w) => !!job(g, w),
+  cap: (g) => 1 - busy(g), // every craft and mend is worth at most 1
   score: (g, w) => (job(g, w)?.value ?? 0) * (1 - busy(g)),
   start(g, w) {
     const c = job(g, w);

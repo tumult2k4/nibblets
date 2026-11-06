@@ -6,7 +6,7 @@
  * later to own up: the thing returned if it still has it, or a gift instead.
  */
 import { CFG } from '../../config';
-import { dist, q4 } from '../../../shared/math';
+import { clamp, dist, q4 } from '../../../shared/math';
 import type { Vec2 } from '../../../shared/types';
 import type { Building, Goblin, Trinket } from '../../state';
 import type { World } from '../../world';
@@ -17,8 +17,8 @@ import { isSleeping } from '../../goblin/goblin';
 import { workSpot } from '../../buildings';
 import { isFood } from '../../items';
 import { addItem, canCarry } from '../../inventory';
-import { carried, passTrinket, trinketValue } from '../../trinkets';
-import { makeAmends, openHomes, owed, rest, resting, temptable, temptation, theft } from '../../mischief';
+import { carried, isHoarder, passTrinket, trinketValue } from '../../trinkets';
+import { makeAmends, openHomes, owed, rest, resting, temptable, temptation, temptCeiling, theft } from '../../mischief';
 import { reach } from './kindness';
 import { beliefMul } from '../../superstitions';
 
@@ -50,7 +50,7 @@ export function stealMark(g: Goblin, w: World): Mark | null {
     const o = t && ownerOf(t, w);
     if (t && o) consider({ where: 'shelf', victim: o, b, t, tempt: temptation(g, o, false, w) + trinketValue(g, t) / V.legendary * 0.2 });
   }
-  for (const o of w.goblinHash.query(g.pos, TH.range)) {
+  for (const o of w.goblinHash.query(g.pos, TH.range, (q) => q.activity.action === 'sleep_ground')) {
     if (o === g || !isSleeping(o) || o.activity.action !== 'sleep_ground' || dist(o.pos, g.pos) > TH.range) continue;
     const t = carried(o, w)[0];
     if (t) consider({ where: 'pocket', victim: o, b: null, t, tempt: temptation(g, o, false, w) + trinketValue(g, t) / V.legendary * 0.2 });
@@ -85,6 +85,9 @@ function take(g: Goblin, m: Mark, w: World, at: Vec2): boolean {
 export const Steal: UtilityAction = {
   id: 'steal', tags: ['fun'], minStage: 'youngling', interruptible: false, // once it has made up its mind, it goes through with it
   isAvailable: (g, w) => !thirsty(g) && !g.heldByGod && !resting(g, w, 'steal_rest') && !!stealMark(g, w),
+  // P11.3: no temptation passes the ceiling, and a trinket adds at most a legendary's fifth (a hoarder's more)
+  cap: (g, w) => (thirsty(g) || g.heldByGod || !temptable(g, w) ? 0
+    : q4(TH.score * (0.4 + clamp(temptCeiling(g, w), 0, 1) + 0.2 * (isHoarder(g) ? CFG.trinkets.hoarderMul : 1)) * beliefMul(w, g, 'theft'))),
   score: (g, w) => q4(TH.score * (0.4 + stealMark(g, w)!.tempt) * beliefMul(w, g, 'theft')),
   start(g, w) {
     const m = stealMark(g, w);

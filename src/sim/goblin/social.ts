@@ -21,7 +21,18 @@ export const isKin = (a: Goblin, b: Goblin): boolean =>
   KIN_BONDS.has(relationOf(a, b.id)?.bond ?? 'none') ||
   !!a.parents?.includes(b.id) || !!b.parents?.includes(a.id) || (!!a.parents && !!b.parents && a.parents.some((p) => b.parents!.includes(p)));
 
-export const relationOf = (g: Goblin, id: ID): Relation | undefined => g.relationships.find((r) => r.targetId === id);
+/**
+ * Relations by whom (P11.3), so a lookup is not a pass over a hundred of them. A goblin's list is only ever appended
+ * to (`relate`) or replaced whole (pruning, loading), so the index follows the list's length and is dropped with it.
+ */
+const relIndex = new WeakMap<Relation[], { n: number; m: Map<ID, Relation> }>();
+export function relationOf(g: Goblin, id: ID): Relation | undefined {
+  const rs = g.relationships;
+  let c = relIndex.get(rs);
+  if (!c || c.n > rs.length) relIndex.set(rs, (c = { n: 0, m: new Map() }));
+  for (; c.n < rs.length; c.n++) if (!c.m.has(rs[c.n]!.targetId)) c.m.set(rs[c.n]!.targetId, rs[c.n]!); // the first one, as find would
+  return c.m.get(id);
+}
 export const opinionOf = (g: Goblin, id: ID): number => relationOf(g, id)?.opinion ?? 0;
 export const isFriend = (g: Goblin, id: ID): boolean => opinionOf(g, id) >= S.friend;
 

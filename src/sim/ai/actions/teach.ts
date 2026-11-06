@@ -59,6 +59,7 @@ const taughtLately = (g: Goblin): boolean => g.mood.modifiers.some((m) => m.id =
 export const Teach: UtilityAction = {
   id: 'teach', tags: ['social'], minStage: 'adult', interruptible: (g) => g.activity.stage === 0,
   isAvailable: (g, w) => !pressed(g) && !taughtLately(g) && teachable(g).length > 0 && !!pupil(g, w),
+  cap: (g) => (pressed(g) || taughtLately(g) ? 0 : 1) * (K.teachScore[0] + K.teachScore[1] * g.personality.sociability + K.teachScore[2] * g.personality.industry + K.rareBonus + K.kinBonus),
   score(g, w) {
     const o = pupil(g, w)!;
     const id = lesson(g, o, w)!;

@@ -93,6 +93,7 @@ export function claim(w: World, g: Goblin, b: Building): void {
 export const ClaimHome: UtilityAction = {
   id: 'claim_home', tags: ['work'], minStage: 'adult', interruptible: true,
   isAvailable: (g, w) => needsHome(g, w) && (!!freeHome(g, w) || openBlueprints(w) < H.maxOpenBlueprints),
+  cap: (g, w) => (H.claimBase + H.claimSeason[w.clock.season] + 0.4 * needUrgency(g.needs.warmth)) * (1 - needUrgency(Math.min(g.needs.hunger, g.needs.thirst))),
   score: (g, w) => {
     const cold = needUrgency(g.needs.warmth);
     const busy = needUrgency(Math.min(g.needs.hunger, g.needs.thirst));

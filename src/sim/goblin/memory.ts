@@ -3,7 +3,7 @@ import { q4 } from '../../shared/math';
 import type { ID, Vec2 } from '../../shared/types';
 import type { Goblin, MemoryEntry } from '../state';
 import type { World } from '../world';
-import { shoreTiles } from '../ai/targets';
+import { bushes, nearestShoreWithin } from '../ai/targets';
 import { visionRadius } from '../ai/considerations';
 import { looksEdible } from '../ecology';
 
@@ -35,29 +35,34 @@ export function forget(g: Goblin, kind: string, targetId: ID): void {
 
 export const memoriesOf = (g: Goblin, kind: Kind): MemoryEntry[] => g.memory.filter((m) => m.kind === kind);
 
+/** The ids of the plants and mushrooms there are now (P11.3: a set per tick, not a pass over all plants per memory). */
+let ids: { tick: number; plants: unknown; np: number; mush: unknown; nm: number; p: Set<ID>; m: Set<ID> } | null = null;
+function present(w: World): { p: Set<ID>; m: Set<ID> } {
+  const s = w.s;
+  if (!ids || ids.tick !== s.tick || ids.plants !== s.plants || ids.np !== s.plants.length || ids.mush !== s.mushrooms || ids.nm !== s.mushrooms.length)
+    ids = { tick: s.tick, plants: s.plants, np: s.plants.length, mush: s.mushrooms, nm: s.mushrooms.length, p: new Set(s.plants.map((p) => p.id)), m: new Set(s.mushrooms.map((m) => m.id)) };
+  return ids;
+}
+
 /** Look around: remember fruit plants, mushrooms, water, rocks and the stockpile within vision. */
 export function sense(g: Goblin, w: World, radius?: number): void {
   const r = radius ?? visionRadius(g, w);
-  for (const p of w.plantHash.query(g.pos, r)) {
-    if (p.kind !== 'apple_bush' && p.kind !== 'berry_bush') continue;
+  for (const p of bushes(w).query(g.pos, r)) {
     if (p.stage === 'mature' || p.stage === 'old') remember(g, w, 'fruit_plant', p.pos, p.fruit, p.id);
-    else forget(g, 'fruit_plant', p.id);
+    else if (g.memory.some((m) => m.kind === 'fruit_plant' && m.targetId === p.id)) forget(g, 'fruit_plant', p.id);
   }
   // remembered fruit plants in view that no longer exist → forget (seen gone); the current harvest
   // target is left for the action, which shows confusion on arrival
-  const tgt = g.activity.action === 'harvest_fruit' ? g.activity.targetId : null;
-  g.memory = g.memory.filter((m) => !(m.kind === 'fruit_plant' && m.targetId !== tgt && Math.hypot(m.pos.x - g.pos.x, m.pos.y - g.pos.y) < r * 0.8 && !w.s.plants.some((p) => p.id === m.targetId)));
-  let best: Vec2 | null = null;
-  let bd = r * r;
-  for (const t of shoreTiles(w)) {
-    const d = (t.x - g.pos.x) ** 2 + (t.y - g.pos.y) ** 2;
-    if (d < bd) { bd = d; best = t; }
-  }
+  const tgt = g.activity.action === 'harvest_fruit' ? g.activity.targetId : null, now = present(w), r8 = (r * 0.8) ** 2;
+  const near = (m: MemoryEntry) => (m.pos.x - g.pos.x) ** 2 + (m.pos.y - g.pos.y) ** 2 < r8;
+  const gone = (m: MemoryEntry) => (m.kind === 'fruit_plant' && m.targetId !== tgt && !now.p.has(m.targetId!) && near(m))
+    || (m.kind === 'mushroom' && !now.m.has(m.targetId!) && near(m));
+  const best = nearestShoreWithin(w, g.pos, r);
   if (best) remember(g, w, 'water', best);
   // mushrooms that look edible to it are remembered; vanished ones forgotten (redcaps only by those who don't know, P5.5)
   for (const m of w.s.mushrooms)
-    if (looksEdible(g, m) && Math.hypot(m.pos.x - g.pos.x, m.pos.y - g.pos.y) < r) remember(g, w, 'mushroom', m.pos, 0, m.id);
-  g.memory = g.memory.filter((m) => !(m.kind === 'mushroom' && Math.hypot(m.pos.x - g.pos.x, m.pos.y - g.pos.y) < r * 0.8 && !w.s.mushrooms.some((x) => x.id === m.targetId)));
+    if ((m.pos.x - g.pos.x) ** 2 + (m.pos.y - g.pos.y) ** 2 < r * r && looksEdible(g, m)) remember(g, w, 'mushroom', m.pos, 0, m.id);
+  if (g.memory.some(gone)) g.memory = g.memory.filter((m) => !gone(m));
   for (const rk of w.s.rocks) if (Math.hypot(rk.pos.x - g.pos.x, rk.pos.y - g.pos.y) < r) remember(g, w, 'rock', rk.pos, rk.stoneLeft, rk.id);
   const sp = w.s.village.stockpilePos;
   if (Math.hypot(sp.x - g.pos.x, sp.y - g.pos.y) < r) remember(g, w, 'stockpile', sp);

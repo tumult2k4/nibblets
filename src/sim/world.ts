@@ -40,7 +40,7 @@ import { think, act } from './ai/utility';
 import { updateGod } from './god/godState';
 import { updateSanctuaries } from './god/powers/miracles';
 import { sampleStats } from './stats';
-import { findPath } from './pathfinding';
+import { findPath, type PathHit } from './pathfinding';
 import { updateEggs } from './eggs';
 import { updateKnowledge } from './knowledge';
 import { updateSpoilage } from './spoilage';
@@ -65,7 +65,7 @@ export class World {
   readonly itemHash = new SpatialHash<GroundItem>(4);
   /** commands queued by UI/tests; applied at the start of the next tick */
   readonly queue: Command[] = [];
-  readonly pathCache = new Map<string, Vec2[] | null>();
+  readonly pathCache = new Map<string, PathHit>();
   private plantsVersion = -1;
   plantsDirty = true;
   /** wall-clock ms per tick (not part of state) */
@@ -97,9 +97,22 @@ export class World {
     if (!this.readOnly) this.queue.push(cmd);
   }
 
+  /** A goblin by id (P11.3: an index, rebuilt when the list changes; a hit is checked against the list itself). */
   goblin(id: ID): Goblin | undefined {
-    return this.s.goblins.find((g) => g.id === id);
+    const gs = this.s.goblins;
+    let i = this.gIdx.get(id);
+    if (i !== undefined && gs[i]?.id === id) return gs[i];
+    if (gs === this.gArr && gs.length === this.gLen && gs[gs.length - 1]?.id === this.gLast) return undefined; // unchanged: not here
+    this.gIdx.clear();
+    gs.forEach((g, k) => this.gIdx.set(g.id, k));
+    this.gArr = gs; this.gLen = gs.length; this.gLast = gs[gs.length - 1]?.id ?? -1;
+    i = this.gIdx.get(id);
+    return i === undefined ? undefined : gs[i];
   }
+  private gIdx = new Map<ID, number>();
+  private gArr: Goblin[] | null = null;
+  private gLen = -1;
+  private gLast = -1;
 
   path(from: Vec2, to: Vec2): Vec2[] | null {
     return findPath(this.s, from, to, this.pathCache);

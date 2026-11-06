@@ -6,20 +6,24 @@ import { moveAlong, planPath } from '../../steering';
 import { distanceFalloff } from '../considerations';
 import { deposit, stockCount, withdraw } from '../../stockpile';
 import { fetchPos } from '../../commons';
-import { addLabor, blueprints, inFlight, missingMaterials, workSpot } from '../../buildings';
+import { addLabor, blueprints, inFlight, isComplete, missingMaterials, workSpot } from '../../buildings';
 import type { ItemType } from '../../../shared/types';
 import type { Building, Goblin } from '../../state';
 import type { World } from '../../world';
 import type { UtilityAction } from '../action';
 import { goalBuilding } from '../planner';
+import { once } from '../memo';
 
 const B = CFG.buildings;
 const comfortable = (g: Goblin): number => 1 - needUrgency(Math.min(g.needs.hunger, g.needs.thirst, g.needs.energy + 10, g.needs.warmth + 20));
 /** A goblin's own goal building (§7.4) or own blueprint comes first. */
 const ownerMul = (g: Goblin, b: Building): number => (goalBuilding(g) === b.id || b.ownerId === g.id ? 1.5 : 1);
 
+/** At most `ownerMul` for any building: 1.5 only with a goal building or a blueprint of its own. */
+const owner = (g: Goblin, w: World): number => (goalBuilding(g) !== null || w.s.buildings.some((b) => b.ownerId === g.id && !isComplete(b)) ? 1.5 : 1);
 /** A blueprint that still needs a material this goblin carries or can fetch from the stockpile. */
-function deliveryJob(g: Goblin, w: World): { b: Building; type: ItemType; fromStock: boolean } | null {
+const deliveryJob = (g: Goblin, w: World): { b: Building; type: ItemType; fromStock: boolean } | null => once(w, g, 'deliver', () => deliveryJob0(g, w));
+function deliveryJob0(g: Goblin, w: World): { b: Building; type: ItemType; fromStock: boolean } | null {
   let best: { b: Building; type: ItemType; fromStock: boolean } | null = null;
   let bestD = Infinity;
   for (const b of blueprints(w.s)) {
@@ -38,6 +42,7 @@ function deliveryJob(g: Goblin, w: World): { b: Building; type: ItemType; fromSt
 export const DeliverMaterial: UtilityAction = {
   id: 'deliver_material', tags: ['work'], minStage: 'adult', interruptible: true,
   isAvailable: (g, w) => w.s.buildings.length > 0 && !!deliveryJob(g, w),
+  cap: (g, w) => 0.38 * (g.inventory.length ? 1.5 : 1) * owner(g, w) * comfortable(g),
   score: (g, w) => {
     const job = deliveryJob(g, w)!;
     // already carrying it: finish the trip
@@ -106,7 +111,8 @@ export const DeliverMaterial: UtilityAction = {
 };
 
 /** A blueprint with every material delivered, ready for labor. */
-function buildJob(g: Goblin, w: World): Building | null {
+const buildJob = (g: Goblin, w: World): Building | null => once(w, g, 'build', () => buildJob0(g, w));
+function buildJob0(g: Goblin, w: World): Building | null {
   let best: Building | null = null;
   let bestD = Infinity;
   for (const b of blueprints(w.s)) {
@@ -121,6 +127,7 @@ function buildJob(g: Goblin, w: World): Building | null {
 export const Build: UtilityAction = {
   id: 'build', tags: ['work'], minStage: 'adult', interruptible: true,
   isAvailable: (g, w) => w.s.buildings.length > 0 && !!buildJob(g, w),
+  cap: (g, w) => 0.42 * owner(g, w) * comfortable(g),
   score: (g, w) => {
     const b = buildJob(g, w)!;
     return 0.42 * ownerMul(g, b) * comfortable(g) * distanceFalloff(dist(g.pos, b.pos), 50);

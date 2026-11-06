@@ -27,6 +27,7 @@ import { benchFor } from './workbench';
 import { adornWant } from './adorn';
 import { instrumentWant, isInstrument } from './music';
 import type { SkillId } from '../shared/types';
+import { shared } from './ai/memo';
 
 const C = CFG.crafting, E = CFG.economy;
 const FB = CFG.fiber;
@@ -58,7 +59,7 @@ export const canSupply = (g: Goblin, w: World, id: RecipeId): boolean =>
 
 /** 0..1: how much this goblin would like one more `item` (weapons: a better one than it has; tools: one per job). */
 /** How many of `item` the village has: carried, held and in store. */
-const owned = (w: World, item: ItemType): number => stockCount(w.s, item) + w.s.goblins.reduce((n, o) => n + gear(o).reduce((k, s) => k + (s.type === item ? s.qty : 0), 0), 0);
+const owned = (w: World, item: ItemType): number => shared(w, `owned:${item}`, () => stockCount(w.s, item) + w.s.goblins.reduce((n, o) => n + gear(o).reduce((k, s) => k + (s.type === item ? s.qty : 0), 0), 0));
 
 export function craftWant(g: Goblin, w: World, item: ItemType): number {
   const d = itemDef(item);

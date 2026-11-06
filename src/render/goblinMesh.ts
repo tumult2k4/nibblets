@@ -17,6 +17,8 @@ export interface GoblinRig {
   hand: THREE.Object3D; // carried prop anchor
   belly: THREE.Mesh;
   eyeMat: THREE.MeshLambertMaterial;
+  /** P11.3: the skin colour of the shared limb geometry */
+  skinMat: THREE.MeshLambertMaterial;
   outline: THREE.Mesh | null;
   triangles: number;
   bucket: string;
@@ -75,9 +77,26 @@ function bodyGeo(p: Phenotype, seed: number): THREE.BufferGeometry {
   return g;
 }
 
+/**
+ * P11.3 geometry cache: legs and arms are the same shape on every goblin, so all goblins share one leg and one arm
+ * geometry, shaded in greys and coloured by the goblin's own skin material. Shared geometry is never disposed with a rig.
+ */
+const GREY = new THREE.Color(0.7, 0.7, 0.7), WHITE = new THREE.Color(1, 1, 1);
+const sharedGeo = (g: THREE.BufferGeometry): THREE.BufferGeometry => { g.userData.shared = true; return g; };
+const LEG = sharedGeo(merge([
+  paint(new THREE.CylinderGeometry(0.035, 0.04, 0.12, 3, 1, true).translate(0, -0.06, 0), GREY),
+  paint(new THREE.ConeGeometry(0.06, 0.13, 4).rotateX(Math.PI / 2).translate(0, -0.11, 0.04), GREY),
+]));
+const ARM = sharedGeo(merge([
+  paint(new THREE.CylinderGeometry(0.022, 0.026, 0.17, 3, 1, true).translate(0, -0.085, 0), WHITE),
+  paint(new THREE.TetrahedronGeometry(0.045).translate(0, -0.18, 0), GREY),
+]));
+
 export function buildGoblin(p: Phenotype, seed: number, outlines: boolean): GoblinRig {
   const skin = rgb(p.skinColor);
   const dark = skin.clone().multiplyScalar(0.7);
+  const skinMat = flatMat.clone();
+  skinMat.color.copy(skin);
   const root = new THREE.Group();
   const body = new THREE.Group();
   root.add(body);
@@ -93,10 +112,7 @@ export function buildGoblin(p: Phenotype, seed: number, outlines: boolean): Gobl
   const legL = new THREE.Group(), legR = new THREE.Group();
   for (const [leg, x] of [[legL, -0.07], [legR, 0.07]] as const) {
     leg.position.set(x, 0.13, 0);
-    add(leg, merge([
-      paint(new THREE.CylinderGeometry(0.035, 0.04, 0.12, 3, 1, true).translate(0, -0.06, 0), dark),
-      paint(new THREE.ConeGeometry(0.06, 0.13, 4).rotateX(Math.PI / 2).translate(0, -0.11, 0.04), dark),
-    ]));
+    add(leg, LEG, skinMat).castShadow = false; // P11.3: thin legs and arms cast no shadow worth a draw
     root.add(leg);
   }
   body.position.y = 0.12;
@@ -107,10 +123,7 @@ export function buildGoblin(p: Phenotype, seed: number, outlines: boolean): Gobl
   const hand = new THREE.Group();
   for (const [arm, x] of [[armL, -0.16], [armR, 0.16]] as const) {
     arm.position.set(x, 0.27, 0);
-    add(arm, merge([
-      paint(new THREE.CylinderGeometry(0.022, 0.026, 0.17, 3, 1, true).translate(0, -0.085, 0), skin),
-      paint(new THREE.TetrahedronGeometry(0.045).translate(0, -0.18, 0), dark),
-    ]));
+    add(arm, ARM, skinMat).castShadow = false;
     arm.rotation.z = x < 0 ? -0.25 : 0.25;
     body.add(arm);
   }
@@ -128,7 +141,7 @@ export function buildGoblin(p: Phenotype, seed: number, outlines: boolean): Gobl
   hg.scale(1.08, 0.92, 1);
   patternColors(hg, p, seed + 1, true);
   hg.computeVertexNormals();
-  add(head, hg);
+  const headParts: THREE.BufferGeometry[] = [hg]; // P11.3: nose and tusks are merged into the head, both eyes into one mesh
   // ears: long sideways cones, droop and notch (scars)
   const earLen = 0.28 * p.earLength;
   const inner = rgb({ h: p.skinColor.h + 10, s: Math.min(1, p.skinColor.s + 0.1), l: Math.min(0.85, p.skinColor.l + 0.12) });
@@ -148,12 +161,12 @@ export function buildGoblin(p: Phenotype, seed: number, outlines: boolean): Gobl
   const earL = mkEar(-1), earR = mkEar(1);
   // nose: cone, size & droop
   const ns = 0.08 * p.noseSize;
-  const nose = add(head, paint(new THREE.ConeGeometry(ns * 0.6, ns * 1.6, 4).rotateX(Math.PI / 2 + 0.35).translate(0, -hr * 0.12, hr * 0.98 + ns * 0.4), dark.clone().lerp(skin, 0.4)));
-  nose.castShadow = false;
+  headParts.push(paint(new THREE.ConeGeometry(ns * 0.6, ns * 1.6, 4).rotateX(Math.PI / 2 + 0.35).translate(0, -hr * 0.12, hr * 0.98 + ns * 0.4), dark.clone().lerp(skin, 0.4)));
   // eyes: octahedra with a dark pupil face; glow at night via emissive
   const eyeCol = rgb(p.eyeColor);
   const eyeMat = new THREE.MeshLambertMaterial({ color: '#ffffff', vertexColors: true, flatShading: true, emissive: eyeCol, emissiveIntensity: 0 });
   const er = hr * (p.headRatio > 0.5 ? 0.3 : 0.24);
+  const eyes: THREE.BufferGeometry[] = [];
   for (const side of [-1, 1]) {
     const eg = new THREE.OctahedronGeometry(er, 0);
     eg.translate(side * hr * 0.38, hr * 0.12, hr * 0.85);
@@ -165,11 +178,13 @@ export function buildGoblin(p: Phenotype, seed: number, outlines: boolean): Gobl
       for (let k = 0; k < 3; k++) c.set([cc.r, cc.g, cc.b], (f + k) * 3);
     }
     eg.setAttribute('color', new THREE.BufferAttribute(c, 3));
-    add(head, eg, eyeMat).castShadow = false;
+    eyes.push(eg);
   }
+  add(head, merge(eyes), eyeMat).castShadow = false;
   if (p.tusks)
     for (const side of [-1, 1])
-      add(head, paint(new THREE.ConeGeometry(0.014, 0.05, 3).translate(side * hr * 0.32, -hr * 0.45, hr * 0.8), '#f4ecd2')).castShadow = false;
+      headParts.push(paint(new THREE.ConeGeometry(0.014, 0.05, 3).translate(side * hr * 0.32, -hr * 0.45, hr * 0.8), '#f4ecd2'));
+  add(head, merge(headParts));
   // cheap toon outline: slightly scaled backface body (§23.1)
   let outline: THREE.Mesh | null = null;
   if (outlines) {
@@ -177,14 +192,15 @@ export function buildGoblin(p: Phenotype, seed: number, outlines: boolean): Gobl
     outline.scale.setScalar(1.08);
     belly.add(outline);
   }
-  return { root, body, head, earL, earR, armL, armR, legL, legR, hand, handL, belly, eyeMat, outline, triangles: tris, bucket: phenoBucket(p) };
+  return { root, body, head, earL, earR, armL, armR, legL, legR, hand, handL, belly, eyeMat, skinMat, outline, triangles: tris, bucket: phenoBucket(p) };
 }
 
 export const OUTLINE_MAT = new THREE.MeshBasicMaterial({ color: '#2a2418', side: THREE.BackSide });
 
 export function disposeRig(r: GoblinRig): void {
   r.root.traverse((o) => {
-    if (o instanceof THREE.Mesh && o.material !== OUTLINE_MAT) o.geometry.dispose();
+    if (o instanceof THREE.Mesh && o.material !== OUTLINE_MAT && !o.geometry.userData.shared) o.geometry.dispose();
   });
   r.eyeMat.dispose();
+  r.skinMat.dispose();
 }

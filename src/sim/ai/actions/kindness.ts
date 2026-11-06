@@ -18,6 +18,7 @@ import { addItem, takeOne } from '../../inventory';
 import { isFood, itemDef } from '../../items';
 import { spawnGroundItem } from '../../groundItems';
 import { addReputation } from '../../mischief';
+import { perTick } from '../memo';
 
 const S = CFG.social;
 const DAY = CFG.time.dayTicks;
@@ -44,7 +45,7 @@ export function reach(g: Goblin, o: Goblin, w: World): boolean | null {
 /** A sad friend or relative nearby that nobody has hugged lately. */
 export function sadFriend(g: Goblin, w: World): Goblin | null {
   let best: Goblin | null = null, bd = Infinity;
-  for (const o of w.goblinHash.query(g.pos, S.comfortRange)) {
+  for (const o of w.goblinHash.query(g.pos, S.comfortRange, (q) => q.mood.value < S.sadBelow)) {
     if (o.id === g.id || !awake(o) || o.mood.value >= S.sadBelow || has(o, 'comforted', w.s.tick) || !close(g, o)) continue;
     if (o.activity.action === 'flee' || o.activity.action === 'attack') continue;
     const d = dist(o.pos, g.pos);
@@ -56,6 +57,7 @@ export function sadFriend(g: Goblin, w: World): Goblin | null {
 export const Comfort: UtilityAction = {
   id: 'comfort', tags: ['social'], minStage: 'youngling', interruptible: (g) => g.activity.stage === 0,
   isAvailable: (g, w) => g.mood.value > -10 && !pressed(g) && !!sadFriend(g, w),
+  cap: (g, w) => (perTick(w, 'sad', () => w.s.goblins.filter((o) => o.mood.value < S.sadBelow).length) > (g.mood.value < S.sadBelow ? 1 : 0) ? 0.6 : 0),
   score: (g, w) => 0.3 + 0.3 * clamp(opinionOf(g, sadFriend(g, w)!.id) / 100, 0, 1),
   start(g, w) {
     const o = sadFriend(g, w);

@@ -35,12 +35,20 @@ import { wantsMusicCircle } from '../../music';
 import { wantsShrine, wantsTemple, wantsTotem } from '../../shrine';
 import { wantsLibrary } from './books';
 import { godTemper } from '../../god/devotion';
+import { once, perTick, shared } from '../memo';
 
 const F = CFG.fire;
 export const isDaytime = (c: Parameters<typeof daylight>[0]): boolean => daylight(c) > 0.5;
 export const busy = (g: Goblin): number => Math.max(needUrgency(g.needs.hunger), needUrgency(g.needs.thirst), needUrgency(g.needs.energy));
+/** Is another goblin doing `id` (to `targetId`) right now? Read from an index of who runs what, kept while goblins
+ * decide and remade after each start (P11.3). */
 export const othersDoing = (g: Goblin, w: World, id: string, targetId?: number): boolean =>
-  w.s.goblins.some((o) => o.id !== g.id && o.activity.action === id && o.activity.status === 'running' && (targetId === undefined || o.activity.targetId === targetId));
+  (shared(w, 'running', () => running(w)).get(id) ?? []).some((o) => o.id !== g.id && (targetId === undefined || o.activity.targetId === targetId));
+function running(w: World): Map<string, Goblin[]> {
+  const m = new Map<string, Goblin[]>();
+  for (const o of w.s.goblins) if (o.activity.status === 'running') (m.get(o.activity.action) ?? m.set(o.activity.action, []).get(o.activity.action)!).push(o);
+  return m;
+}
 
 const PR = CFG.preserve;
 /** Stations the village keeps (P5.6 preservation, P5.7 workbench, P7.2 kiln); they sit a little further out than the fire. */
@@ -103,7 +111,8 @@ export function villageNeed(w: World, g?: Goblin): BuildingType | null {
 }
 
 /** Own finished hut this goblin could turn to stone now (knows how, the stone is spare, by day). */
-export function upgradeJob(g: Goblin, w: World): Building | null {
+export const upgradeJob = (g: Goblin, w: World): Building | null => once(w, g, 'upgrade', () => upgradeJob0(g, w));
+function upgradeJob0(g: Goblin, w: World): Building | null {
   if (!knows(g, 'stone_hut') || !isDaytime(w.clock)) return null;
   const home = homeOf(g, w);
   if (!home || home.type !== 'hut' || !isComplete(home) || home.ownerId !== g.id) return null;
@@ -112,12 +121,13 @@ export function upgradeJob(g: Goblin, w: World): Building | null {
 }
 
 /** Own finished home with no hearth yet, for a goblin who knows how (by day; one hearth going up at a time). */
-export function hearthJob(g: Goblin, w: World): { home: Building; site: Vec2 } | null {
+export const hearthJob = (g: Goblin, w: World): { home: Building; site: Vec2 } | null => once(w, g, 'hearth', () => hearthJob0(g, w));
+function hearthJob0(g: Goblin, w: World): { home: Building; site: Vec2 } | null {
   if (!knows(g, 'hearth') || !isDaytime(w.clock)) return null;
   const home = homeOf(g, w);
   if (!home || !isHome(home) || !isComplete(home) || !home.occupants.includes(g.id) || hearthOf(w.s, home)) return null;
   if (w.s.buildings.some((b) => b.type === 'hearth' && !isComplete(b)) || foodStores(w.s).days < CFG.settlement.hearth.planDays) return null;
-  const site = hearthSite(w, home);
+  const site = perTick(w, `hearth:${home.id}`, () => hearthSite(w, home)); // a home's housemates ask the same
   return site ? { home, site } : null;
 }
 
@@ -141,6 +151,7 @@ export const PlanBuilding: UtilityAction = {
     if (upgradeJob(g, w) || hearthJob(g, w)) return true;
     return !!villageNeed(w, g) && !othersDoing(g, w, 'plan_building');
   },
+  cap: (g) => Math.max(0.35, CFG.settlement.hearth.planScore, 0.3) * (1 - busy(g)),
   score: (g, w) => (upgradeJob(g, w) ? 0.35 : hearthJob(g, w) ? CFG.settlement.hearth.planScore : villageNeed(w, g) === 'fence' ? 0.24 : 0.3) * (1 - busy(g)),
   start(g, w) {
     const up = upgradeJob(g, w);
@@ -198,7 +209,8 @@ export const PlanBuilding: UtilityAction = {
 };
 
 /** A campfire low on fuel that nobody else is feeding (nearest first). */
-function fireJob(g: Goblin, w: World): Building | null {
+const fireJob = (g: Goblin, w: World): Building | null => once(w, g, 'fire', () => fireJob0(g, w));
+function fireJob0(g: Goblin, w: World): Building | null {
   let best: Building | null = null, bd = 40;
   for (const b of campfires(w)) {
     if (!needsFuel(b) || othersDoing(g, w, 'tend_fire', b.id)) continue;
@@ -208,7 +220,8 @@ function fireJob(g: Goblin, w: World): Building | null {
   return best;
 }
 /** Fuel to feed: sticks first (plentiful), then wood; carried before stocked. */
-function fuelSource(g: Goblin, w: World): { item: FuelItem; carried: boolean } | null {
+const fuelSource = (g: Goblin, w: World): { item: FuelItem; carried: boolean } | null => once(w, g, 'fuel', () => fuelSource0(g, w));
+function fuelSource0(g: Goblin, w: World): { item: FuelItem; carried: boolean } | null {
   for (const item of FUELS) if (countItem(g, item) > 0) return { item, carried: true };
   for (const item of FUELS) if (spareStock(w, item) >= (item === 'stick' ? 2 : 1)) return { item, carried: false };
   return null;

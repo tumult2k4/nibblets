@@ -45,6 +45,7 @@ function unload(g: Goblin, w: World): void {
 export const CookStew: UtilityAction = {
   id: 'cook_stew', tags: ['work'], minStage: 'adult', interruptible: (g) => g.activity.stage === 0,
   isAvailable: (g, w) => !!job(g, w),
+  cap: (g) => S.score * (0.7 + 0.3 * g.personality.industry) * (1 - busy(g)),
   score: (g) => S.score * (0.7 + 0.3 * g.personality.industry) * (1 - busy(g)),
   start(g, w) {
     const b = job(g, w);

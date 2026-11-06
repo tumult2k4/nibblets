@@ -11,6 +11,7 @@ import type { UtilityAction } from '../action';
 export const Drink: UtilityAction = {
   id: 'drink', tags: ['food'], minStage: 'hatchling', interruptible: true,
   isAvailable: (g) => g.needs.thirst < 90,
+  cap: (g) => 1.25 * (0.05 + 1.15 * needUrgency(g.needs.thirst)),
   score(g, w) {
     const s = waterTargets(g, 1, w)[0];
     if (!s) return 0;

@@ -50,6 +50,7 @@ function pantry(g: Goblin, w: World): Building | null {
 export const StoreItem: UtilityAction = {
   id: 'store_item', tags: ['work'], minStage: 'youngling', interruptible: true,
   isAvailable: (g, w) => storable(g, w).length > 0,
+  cap: (g) => Math.min(0.6, 0.18 + 0.05 * g.inventory.reduce((k, s) => k + s.qty, 0)) * 1.4 * (1 - needUrgency(Math.min(g.needs.hunger, g.needs.thirst))),
   score: (g, w) => {
     const n = storable(g, w).reduce((k, s) => k + s.qty, 0);
     const full = g.inventory.length >= CFG.goblin.inventorySlots ? 1.4 : 1;

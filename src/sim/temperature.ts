@@ -34,10 +34,20 @@ export function airAt(w: World, pos: Vec2): number {
   return airTemperature(w.clock, weatherAt(w, pos)) + extra;
 }
 
+let roofs = { w: null as World | null, tick: -1, list: [] as Building[], n: -1, last: null as Building | null };
+/** The buildings that could shelter anyone (P11.3: the fences and stations are not walked past for every goblin each
+ * tick): of a sheltering type, listed once a tick and again if the buildings change in it. */
+function roofed(w: World): Building[] {
+  const bs = w.s.buildings;
+  const last = bs[bs.length - 1] ?? null;
+  if (roofs.w !== w || roofs.tick !== w.s.tick || roofs.n !== bs.length || roofs.last !== last) roofs = { w, tick: w.s.tick, list: bs.filter((b) => !!T.shelter[b.type]), n: bs.length, last };
+  return roofs.list;
+}
+
 /** The completed shelter building a goblin is standing in, if any. */
 export function shelterOf(w: World, g: Goblin): Building | null {
   if (g.airborne) return null;
-  for (const b of w.s.buildings) {
+  for (const b of roofed(w)) {
     if (b.buildProgress < 1 || !T.shelter[b.type]) continue;
     // (a longhouse is three tiles long: its far beds are further from the middle)
     if (Math.hypot(g.pos.x - b.pos.x, g.pos.y - b.pos.y) <= Math.max(T.shelterRadius, b.footprint.w * 0.47)) return b;
@@ -50,9 +60,9 @@ export const isWet = (w: World, g: Goblin): boolean => g.wetUntil > w.s.tick;
 /** §P3.6 huddling: +2 °C per goblin pressed close (max +4). */
 export function huddleBonus(w: World, g: Goblin): number {
   if (g.airborne) return 0;
-  let n = 0;
-  for (const o of w.goblinHash.query(g.pos, SH.huddleRadius))
-    if (o.id !== g.id && !o.airborne && Math.hypot(o.pos.x - g.pos.x, o.pos.y - g.pos.y) <= SH.huddleRadius) n++;
+  // P11.3: counted only as far as it can matter
+  const n = w.goblinHash.count(g.pos, SH.huddleRadius, Math.ceil(SH.huddleMax / SH.huddlePerGoblin),
+    (o) => o.id !== g.id && !o.airborne && Math.hypot(o.pos.x - g.pos.x, o.pos.y - g.pos.y) <= SH.huddleRadius);
   return Math.min(SH.huddleMax, n * SH.huddlePerGoblin);
 }
 
@@ -65,8 +75,7 @@ export function inShade(w: World, g: Goblin): boolean {
 }
 
 /** Felt temperature: air + shelter + huddle + campfire + clothes (P5.6) − wet penalty (a leaf cape halves it). */
-export function feltTemperature(w: World, g: Goblin): number {
-  const home = shelterOf(w, g);
+export function feltTemperature(w: World, g: Goblin, home = shelterOf(w, g)): number {
   return airAt(w, g.pos) + (home ? T.shelter[home.type]! : 0) + huddleBonus(w, g) + fireWarmth(w, g.pos) + clothingWarmth(g) - (isWet(w, g) ? T.wetPenalty * wetMul(g) : 0);
 }
 
@@ -84,8 +93,8 @@ export const warmthTarget = (g: Goblin, felt: number): number =>
 export function warmthDelta(w: World, g: Goblin): number {
   const hour = CFG.god.hourTicks;
   const kind = weatherAt(w, g.pos);
-  const outdoors = !shelterOf(w, g);
-  const target = warmthTarget(g, feltTemperature(w, g));
+  const roof = shelterOf(w, g), outdoors = !roof;
+  const target = warmthTarget(g, feltTemperature(w, g, roof));
   const cur = g.needs.warmth;
   let k: number = T.driftDownPerHour;
   if (target > cur) {

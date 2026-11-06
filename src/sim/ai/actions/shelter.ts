@@ -17,6 +17,7 @@ import type { ActionId, Building, Goblin } from '../../state';
 import type { World } from '../../world';
 import type { UtilityAction } from '../action';
 import { litFireNear } from '../../fire';
+import { trees } from '../targets';
 
 const SH = CFG.shelter;
 const STILL: ReadonlySet<ActionId> = new Set(['idle', 'sleep_ground', 'warm_up', 'seek_shelter', 'eat', 'eat_core']);
@@ -42,7 +43,7 @@ function roof(g: Goblin, w: World): { pos: Vec2; d: number } | null {
 }
 
 function shade(g: Goblin, w: World): Vec2 | null {
-  const t = w.plantHash.nearest(g.pos, SH.shadeRadius, (p) => p.kind === 'tree' && (p.stage === 'mature' || p.stage === 'old'));
+  const t = trees(w).nearest(g.pos, SH.shadeRadius, (p) => p.stage === 'mature' || p.stage === 'old');
   if (!t) return null;
   const d = Math.max(0.01, dist(g.pos, t.pos));
   return { x: q4(t.pos.x + ((g.pos.x - t.pos.x) / d) * 0.6), y: q4(t.pos.y + ((g.pos.y - t.pos.y) / d) * 0.6) };

@@ -31,12 +31,15 @@ const GIFTS = new Set(['flower_crown', 'flower', 'trinket']);
 const awake = (g: Goblin): boolean => !g.heldByGod && !g.airborne && g.activity.action !== 'sleep_home' && g.activity.action !== 'sleep_ground';
 const pressed = (g: Goblin): boolean => Math.max(needUrgency(g.needs.hunger), needUrgency(g.needs.thirst), needUrgency(g.needs.energy)) > 0.5;
 
-/** The one `g` would court now: the most attractive within reach, not courted in the last two hours. */
+/** The one `g` would court now: the most attractive within reach, not courted in the last two hours. Looking
+ * someone over makes them known (`relate`). P11.3: attraction, the costly part, is weighed only for one liked past
+ * the mate line, the only ones it can be above nothing for. */
 export function suitor(g: Goblin, w: World): Goblin | null {
   let best: Goblin | null = null, bs = 0;
   for (const o of w.goblinHash.query(g.pos, F.courtRange)) {
     if (o.id === g.id || !awake(o) || dist(o.pos, g.pos) > F.courtRange) continue;
-    if (w.s.tick - (relate(g, o.id).courtTick ?? -1e9) < F.courtCooldown) continue;
+    const r = relate(g, o.id);
+    if (w.s.tick - (r.courtTick ?? -1e9) < F.courtCooldown || r.opinion < CFG.social.mateThreshold) continue;
     const a = attraction(g, o, w) - dist(o.pos, g.pos) / 200;
     if (a > bs) { bs = a; best = o; }
   }

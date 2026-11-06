@@ -21,6 +21,7 @@ import { airAt } from '../../temperature';
 import { dangerAt } from '../../danger';
 import { heardOfTheft } from '../../mischief';
 import { godNews, tellOfGod } from '../../god/news';
+import { once } from '../memo';
 
 const S = CFG.social;
 const DAY = CFG.time.dayTicks;
@@ -39,10 +40,11 @@ function free(o: Goblin): boolean {
 }
 
 /** Best partner within reach: friends and family first, then whoever is closest. Rivals and enemies refuse. */
-export function chatPartner(g: Goblin, w: World): Goblin | null {
+export const chatPartner = (g: Goblin, w: World): Goblin | null => once(w, g, 'chat', () => chatPartner0(g, w));
+function chatPartner0(g: Goblin, w: World): Goblin | null {
   let best: Goblin | null = null, bs = -Infinity;
-  for (const o of w.goblinHash.query(g.pos, S.chatRange)) {
-    if (o.id === g.id || !free(o)) continue;
+  for (const o of w.goblinHash.query(g.pos, S.chatRange, free)) {
+    if (o.id === g.id) continue;
     const d = dist(o.pos, g.pos);
     if (d > S.chatRange || opinionOf(g, o.id) <= S.rival || opinionOf(o, g.id) <= S.rival) continue;
     const r = relationOf(g, o.id);
@@ -144,6 +146,7 @@ function invite(o: Goblin, g: Goblin, w: World): void {
 export const Chat: UtilityAction = {
   id: 'chat', tags: ['social'], minStage: 'youngling', interruptible: (g) => g.activity.stage === 0,
   isAvailable: (g, w) => g.needs.social < 90 && !pressed(g) && !!chatPartner(g, w),
+  cap: (g) => 0.05 + 0.8 * needUrgency(g.needs.social),
   score: (g) => 0.05 + 0.8 * needUrgency(g.needs.social),
   start(g, w) {
     const o = chatPartner(g, w);

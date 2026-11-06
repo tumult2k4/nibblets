@@ -15,8 +15,10 @@ import { isSleeping } from '../../goblin/goblin';
 import { opinionOf } from '../../goblin/social';
 import { angerAt, blow, brawlEnded, resting } from '../../mischief';
 import { reach } from './kindness';
+import { once } from '../memo';
+import { perTick } from '../memo';
 
-const B = CFG.mischief.brawl, S = CFG.social;
+const B = CFG.mischief.brawl, S = CFG.social, TH = CFG.mischief.theft, DAY = CFG.time.dayTicks;
 /** What a goblin can be dragged into a brawl from. */
 const BUSY: ReadonlySet<ActionId> = new Set(['flee', 'attack', 'defend_village', 'escape_fire', 'extinguish_fire', 'rest_sick', 'bury_dead', 'brawl', 'scatter']);
 
@@ -24,13 +26,17 @@ const pressed = (g: Goblin): boolean => Math.max(needUrgency(g.needs.hunger), ne
 const fit = (g: Goblin, w: World): boolean => !g.heldByGod && !g.airborne && !isSleeping(g) && (g.lifeStage === 'adult' || g.lifeStage === 'elder')
   && g.health.hp > g.health.maxHp * 0.6 && !resting(g, w, 'brawl_rest') && !BUSY.has(g.activity.action);
 
+/** Who has a known, unsettled, recent wrong against them (asked once a tick): only they can be angry without a grudge. */
+const wronged = (w: World): Set<number> => perTick(w, 'wronged', () => new Set(w.s.goblins.flatMap((o) => (o.guilt ?? []).filter((gu) => gu.known && !gu.settled && w.s.tick - gu.tick < TH.robbedDays * DAY).map((gu) => gu.victimId))));
+
 /** The one `g` is angriest with, close by and able to fight. */
-export function foe(g: Goblin, w: World): { o: Goblin; anger: number } | null {
+export const foe = (g: Goblin, w: World): { o: Goblin; anger: number } | null => once(w, g, 'foe', () => foe0(g, w));
+function foe0(g: Goblin, w: World): { o: Goblin; anger: number } | null {
   let best: { o: Goblin; anger: number } | null = null;
   for (const o of w.goblinHash.query(g.pos, B.range)) {
-    if (o === g || dist(o.pos, g.pos) > B.range || !fit(o, w)) continue;
+    if (o === g || dist(o.pos, g.pos) > B.range) continue;
     const anger = angerAt(g, o, w);
-    if (anger >= B.minAnger && (!best || anger > best.anger)) best = { o, anger };
+    if (anger >= B.minAnger && (!best || anger > best.anger) && fit(o, w)) best = { o, anger };
   }
   return best;
 }
@@ -54,6 +60,7 @@ function pullIn(o: Goblin, g: Goblin, w: World): void {
 export const Brawl: UtilityAction = {
   id: 'brawl', tags: [], minStage: 'adult', interruptible: (g) => g.activity.stage === 0,
   isAvailable: (g, w) => !pressed(g) && fit(g, w) && !!foe(g, w),
+  cap: (g, w) => (g.relationships.some((r) => r.opinion < -50) || wronged(w).has(g.id) ? B.score : 0), // no grudge, no anger
   score: (g, w) => q4(B.score * foe(g, w)!.anger),
   start(g, w) {
     const f = foe(g, w);

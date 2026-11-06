@@ -17,6 +17,7 @@ import { isFood, itemDef } from '../../items';
 import { sicken } from './eat';
 import { stockFood, withdraw } from '../../stockpile';
 import { spawnGroundItem } from '../../groundItems';
+import { claimedByOther } from '../claims';
 
 const F = CFG.family;
 const young = (g: Goblin): boolean => g.lifeStage === 'hatchling' || g.lifeStage === 'youngling';
@@ -29,7 +30,7 @@ export function hungryChild(g: Goblin, w: World): Goblin | null {
     if (r.bond !== 'child') continue;
     const c = w.goblin(r.targetId);
     if (!c || !young(c) || c.needs.hunger >= bh || foodStack(c) || c.heldByGod) continue;
-    if (w.s.goblins.some((o) => o.id !== g.id && o.activity.action === 'feed_child' && o.activity.targetId === c.id)) continue;
+    if (claimedByOther(w, g, 'feed_child', c.id)) continue;
     bh = c.needs.hunger;
     best = c;
   }

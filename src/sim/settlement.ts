@@ -82,7 +82,17 @@ export function wantsLonghouse(s: WorldState): boolean {
 }
 
 /** Water within `r` of `p` (any water tile). */
+const waterSeen = new WeakMap<WorldState, { ver: number; at: Map<string, boolean> }>();
+/** Open water within `r` of `p`? Remembered until the land changes (every biome change bumps `terrainVersion`, P11.3). */
 function waterWithin(s: WorldState, p: Vec2, r: number): boolean {
+  let c = waterSeen.get(s);
+  if (!c || c.ver !== s.terrainVersion) waterSeen.set(s, (c = { ver: s.terrainVersion, at: new Map() }));
+  const k = `${p.x},${p.y},${r}`;
+  let v = c.at.get(k);
+  if (v === undefined) c.at.set(k, (v = waterScan(s, p, r)));
+  return v;
+}
+function waterScan(s: WorldState, p: Vec2, r: number): boolean {
   for (let y = Math.floor(p.y - r); y <= p.y + r; y++)
     for (let x = Math.floor(p.x - r); x <= p.x + r; x++)
       if (tileAt(s, x, y)?.biome === 'water' && Math.hypot(x + 0.5 - p.x, y + 0.5 - p.y) <= r) return true;

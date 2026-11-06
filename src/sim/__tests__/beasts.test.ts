@@ -60,7 +60,7 @@ describe('Bramblebeast and Night Wisp (P4.7)', () => {
     at(w, 5, 0.3);
     const g = spearman(w, 12, 14.2, 'spear');
     g.personality.bravery = 1;
-    const e = spawnBramblebeast(w, { x: 3, y: 12 });
+    const e = spawnBramblebeast(w, { x: 8, y: 12 }); // it reaches the goblin before the goblin wanders off
     e.path = [{ x: 21, y: 12 }];
     e.home = { x: 21, y: 12 };
     const evs = events(w);

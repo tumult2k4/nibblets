@@ -46,6 +46,7 @@ function toStock(g: Goblin, w: World): StepResult {
 export const Process: UtilityAction = {
   id: 'process', tags: ['work'], minStage: 'adult', interruptible: (g) => g.activity.stage === 0,
   isAvailable: (g, w) => !!processJob(g, w),
+  cap: (g, w) => Math.max(0.4, COOK.score, R.processScore[0] + R.processScore[1] * processUrge(w.s, w.clock.season)) * (1 - busy(g)),
   score(g, w) {
     const j = processJob(g, w)!;
     if (j.kind === 'unload') return 0.4 * (1 - busy(g));

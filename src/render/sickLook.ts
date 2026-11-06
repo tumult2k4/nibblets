@@ -11,6 +11,7 @@ import type { GoblinRig } from './goblinMesh';
 import { emotionPose } from './emotionPose';
 
 const spotGeo = new THREE.IcosahedronGeometry(0.03, 0).scale(1, 1, 0.45);
+spotGeo.userData.shared = true; // kept when a rig is disposed
 const mats = new Map<string, THREE.MeshLambertMaterial>();
 const mat = (c: string) => mats.get(c) ?? mats.set(c, new THREE.MeshLambertMaterial({ color: c, flatShading: true })).get(c)!;
 

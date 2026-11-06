@@ -8,21 +8,26 @@ import { isGrowing, siteOk } from '../plants';
 import { wellSpot, wells } from '../settlement';
 import type { ID, Vec2 } from '../../shared/types';
 import { freeGardenBed } from '../garden';
+import { claimCount, claimedByOther } from './claims';
+import { once } from './memo';
 
 const FAR = 48;
 
-function claimedBy(w: World, plantId: number, except: number): number {
-  let n = 0;
-  for (const o of w.s.goblins) if (o.id !== except && o.activity.action === 'harvest_fruit' && o.activity.targetId === plantId) n++;
-  return n;
-}
+const claimedBy = (w: World, plantId: number, except: number): number => claimCount(w, 'harvest_fruit', plantId, except);
+
+/** The plants of a kind (P11.3), each in a hash of its own. */
+export const bushes = (w: World) => w.plantHash.subset('bush', (p) => p.kind === 'apple_bush' || p.kind === 'berry_bush');
+export const flowers = (w: World) => w.plantHash.subset('flower', (p) => p.kind === 'flower');
+export const trees = (w: World) => w.plantHash.subset('tree', (p) => p.kind === 'tree');
+export const woody = (w: World) => w.plantHash.subset('woody', (p) => p.kind !== 'flower');
 
 /** A fruit target: a visible fruiting bush, else the best remembered one (which may be stale). */
 export interface FruitTarget { id: ID; pos: Vec2; remembered: boolean }
 
-export function findFruitPlant(g: Goblin, w: World): FruitTarget | null {
+export const findFruitPlant = (g: Goblin, w: World): FruitTarget | null => once(w, g, 'fruit', () => findFruitPlant0(g, w));
+function findFruitPlant0(g: Goblin, w: World): FruitTarget | null {
   const ok = (p: Plant) => (p.kind === 'apple_bush' || p.kind === 'berry_bush') && (p.stage === 'mature' || p.stage === 'old') && p.fruit > claimedBy(w, p.id, g.id);
-  const seen = w.plantHash.nearest(g.pos, visionRadius(g, w), ok);
+  const seen = bushes(w).nearest(g.pos, visionRadius(g, w), ok);
   if (seen) return { id: seen.id, pos: seen.pos, remembered: false };
   let best: FruitTarget | null = null;
   let bs = 0;
@@ -52,6 +57,34 @@ export function shoreTiles(w: World): Vec2[] {
     for (let x = 0; x < w.s.size.w; x++) if (isShore(w.s, x, y)) tiles.push({ x: x + 0.5, y: y + 0.5 });
   shoreCache.set(w, { key, tiles });
   return tiles;
+}
+
+/** Shore tiles in 8×8 buckets (P11.3), each with its place in `shoreTiles` so ties still go to the first. */
+const shoreBuckets = new WeakMap<World, { key: number; cells: Map<number, { p: Vec2; i: number }[]> }>();
+const BUCKET = 8;
+function buckets(w: World): Map<number, { p: Vec2; i: number }[]> {
+  const key = w.s.terrainVersion, hit = shoreBuckets.get(w);
+  if (hit?.key === key) return hit.cells;
+  const cells = new Map<number, { p: Vec2; i: number }[]>();
+  shoreTiles(w).forEach((p, i) => {
+    const k = Math.floor(p.y / BUCKET) * 1024 + Math.floor(p.x / BUCKET);
+    (cells.get(k) ?? cells.set(k, []).get(k)!).push({ p, i });
+  });
+  shoreBuckets.set(w, { key, cells });
+  return cells;
+}
+
+/** The nearest shore tile within `r` of `pos` (the first in `shoreTiles` order on a tie), or null. */
+export function nearestShoreWithin(w: World, pos: Vec2, r: number): Vec2 | null {
+  const cells = buckets(w);
+  let best: Vec2 | null = null, bi = Infinity, bd = r * r;
+  for (let cy = Math.floor((pos.y - r) / BUCKET); cy <= Math.floor((pos.y + r) / BUCKET); cy++)
+    for (let cx = Math.floor((pos.x - r) / BUCKET); cx <= Math.floor((pos.x + r) / BUCKET); cx++)
+      for (const t of cells.get(cy * 1024 + cx) ?? []) {
+        const dx = t.p.x - pos.x, dy = t.p.y - pos.y, d = dx * dx + dy * dy;
+        if (d < bd || (d === bd && t.i < bi && best)) { bd = d; bi = t.i; best = t.p; }
+      }
+  return best;
 }
 
 /** A few nearest shore tiles, ordered by distance (ties by index → deterministic). */
@@ -103,13 +136,13 @@ function claimedSite(w: World, p: Vec2, except: number): boolean {
 }
 
 /** A thirsty young plant nearby that nobody else is already watering (own plantings first). */
-export function findDryPlant(g: Goblin, w: World): Plant | null {
+export const findDryPlant = (g: Goblin, w: World): Plant | null => once(w, g, 'dry', () => findDryPlant0(g, w));
+function findDryPlant0(g: Goblin, w: World): Plant | null {
   const C = CFG.plants;
   let best: Plant | null = null;
   let bestS = 0;
-  for (const p of w.plantHash.query(g.pos, C.waterRadius)) {
-    if (!isGrowing(p) || p.hydration >= C.waterBelow || p.kind === 'tree') continue;
-    if (w.s.goblins.some((o) => o.id !== g.id && o.activity.action === 'water_plant' && o.activity.targetId === p.id)) continue;
+  for (const p of w.plantHash.query(g.pos, C.waterRadius, (q) => q.hydration < C.waterBelow && q.kind !== 'tree' && isGrowing(q))) {
+    if (claimedByOther(w, g, 'water_plant', p.id)) continue;
     const s = (1 - p.hydration / C.waterBelow) * (p.plantedBy === g.id ? 1.3 : 1) / (1 + Math.hypot(p.pos.x - g.pos.x, p.pos.y - g.pos.y) / C.waterRadius);
     if (s > bestS) { bestS = s; best = p; }
   }

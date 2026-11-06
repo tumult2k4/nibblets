@@ -82,6 +82,7 @@ export const HuntTrinket: UtilityAction = {
 export const Decorate: UtilityAction = {
   id: 'decorate', tags: ['fun'], minStage: 'youngling', interruptible: true,
   isAvailable: (g, w) => !pressed(g) && !g.heldByGod && carried(g, w).length > 0 && !!shelfFor(g, w),
+  cap: () => T.shelf.score,
   score: (g, w) => q4(T.shelf.score * Math.min(1, 0.5 + 0.25 * carried(g, w).length) * distanceFalloff(dist(g.pos, shelfFor(g, w)!.pos), 50)),
   start(g, w) {
     const b = shelfFor(g, w);

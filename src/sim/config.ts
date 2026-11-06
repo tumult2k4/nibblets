@@ -42,7 +42,7 @@ export const CFG = {
     stageDays: { egg: 2, hatchling: 4, youngling: 16, adultUntil: 80 },
     speed: 2.2, visionDay: 12, visionNight: 7, inventorySlots: 4, baseHp: 100,
     decayPerDay: { hunger: 60, thirst: 90, energy: 70, social: 25, fun: 30, curiosity: 25, comfort: 15, purpose: 10 },
-    decisionIntervalTicks: 20, hysteresis: 1.15,
+    decisionIntervalTicks: 20, hysteresis: 1.15, thinkPopRef: 40, thinkBudget: { min: 8, per: 0.1, pathPer: 30, danger: 3 }, // P11.3: big villages re-decide less often; a tick's decisions (and A*) are capped, danger's at 3×
     workEnergyMul: 1.3, hatchlingHungerMul: 0.5, startAgeDays: [18, 40] as [number, number],
     sleepRestorePerDay: { ground: 260, mat: 390, hut: 520 }, wakeEnergy: 98,
     drinkTicks: 40, drinkAmount: 70, eatTicks: 30, harvestTicks: 25, pickupTicks: 8,

@@ -73,6 +73,9 @@ import { ReadBook, WriteBook } from './actions/books';
 import { GreetVisitor, Trade, TradeWithTrader } from './actions/trade';
 import { Defect, SendGift } from './actions/envoy';
 import { PossessedWalk } from './actions/possessed';
+import { claimsChanged } from './claims';
+import { deciding } from './memo';
+import { pathWork } from '../pathfinding';
 
 export const ACTIONS: Record<ActionId, UtilityAction> = {
   idle: Idle, wander: Wander, eat: Eat, harvest_fruit: HarvestFruit, pick_up: PickUp, drop: Drop,
@@ -111,34 +114,94 @@ function stageMul(g: Goblin, a: UtilityAction): number {
   return a.tags.includes('work') ? CFG.life.elderWork : a.tags.includes('social') ? CFG.life.elderSocial : 1;
 }
 
+/** P11.3: a decision's ±5 % noise, from the world, the tick, the goblin and the action, not from the world's stream,
+ * so an action skipped because it could not win draws nothing and changes nothing. */
+function noiseOf(w: World, g: Goblin, i: number): number {
+  let h = Math.imul(w.s.tick ^ 0x5bd1e995, 0x9e3779b1) ^ Math.imul(g.id + 0x632be5ab, 0x85ebca77) ^ Math.imul(i + 1, 0xc2b2ae3d) ^ (w.s.genParams.seed | 0);
+  h = Math.imul(h ^ (h >>> 16), 0x7feb352d);
+  h = Math.imul(h ^ (h >>> 15), 0x846ca68b);
+  return 0.95 + 0.1 * (((h ^ (h >>> 16)) >>> 0) / 4294967296);
+}
+
+/** May `g` choose `a` at all (stage, a mood break, exile)? Cheap, and asked before anything costly. */
+function eligible(g: Goblin, w: World, a: UtilityAction): boolean {
+  if (!stageAtLeast(g.lifeStage, a.minStage)) return false;
+  // P8.1: no work, company or play on a break (finding itself food still counts)
+  if (g.moodBreak && !a.tags.includes('food') && a.tags.some((t) => t === 'work' || t === 'social' || t === 'fun')) return false;
+  return !((g.exiledUntil ?? 0) > w.s.tick && !EXILE_OK.has(a.id)); // P8.4: out there, it fends for itself
+}
+
+interface Muls { dm: number; pw: number; mm: number; sk: number; hy: number; fo: number; n: number }
+/** Everything a base score is multiplied by (§7.3): demand, personality, mood, skill, hysteresis, focus, noise. */
+function mulsOf(g: Goblin, w: World, a: UtilityAction, i: number, noise: boolean, planned: ActionId | null, work: number): Muls {
+  return {
+    dm: demandMul(g, w.s, a.id), // §12.4: the village's shortfalls pull the industrious to the work that meets them
+    pw: personalityWeight(g.personality, a.id) * stageMul(g, a) * traitMul(g, a.id) * (a.tags.includes('work') ? (a.tags.includes('food') ? policyWorkMul(w) : work) : 1),
+    mm: moodMul(g, a), sk: skillFocus(g, a.id),
+    hy: g.activity.action === a.id && g.activity.status === 'running' ? CFG.goblin.hysteresis : 1,
+    fo: planned === a.id ? CFG.planner.focus : 1, // §7.4 focus: the planner's chosen step gets ×1.5 and a floor
+    n: noise ? noiseOf(w, g, i) : 1,
+  };
+}
+/** The base before the multipliers: the planner's floor and the god's wishes (P8.9) applied. */
+function lifted(g: Goblin, w: World, a: UtilityAction, m: Muls, base: number): number {
+  return wishScore(g, w, a.id, m.fo > 1 ? Math.max(base, CFG.planner.floor) : base);
+}
+
+function rowFor(g: Goblin, w: World, a: UtilityAction, m: Muls): ScoreRow | null {
+  if (!a.isAvailable(g, w)) return null;
+  let base = lifted(g, w, a, m, a.score(g, w));
+  if (base <= 0) return null;
+  base *= m.dm;
+  return { id: a.id, base, personality: m.pw, mood: m.mm, skill: m.sk, hysteresis: m.hy, focus: m.fo, final: base * m.pw * m.mm * m.sk * m.hy * m.fo * m.n };
+}
+const byScore = (x: ScoreRow, y: ScoreRow): number => y.final - x.final || (x.id < y.id ? -1 : 1);
+/** P8.4: an industrious chief; P8.5: no work at a festival (food aside). */
+const workMul = (w: World): number => policyWorkMul(w) * festivalWorkMul(w);
+
 /** Score every available action (debug overlay uses `noise=false`). */
 export function scoreActions(g: Goblin, w: World, noise = true, planned: ActionId | null = null): ScoreRow[] {
-  const rows: ScoreRow[] = [];
-  for (const a of CHOOSABLE) {
-    if (!stageAtLeast(g.lifeStage, a.minStage) || !a.isAvailable(g, w)) continue;
-    // P8.1: no work, company or play on a break (finding itself food still counts)
-    if (g.moodBreak && !a.tags.includes('food') && a.tags.some((t) => t === 'work' || t === 'social' || t === 'fun')) continue;
-    if ((g.exiledUntil ?? 0) > w.s.tick && !EXILE_OK.has(a.id)) continue; // P8.4: out there, it fends for itself
-    let base = a.score(g, w);
-    // §7.4 focus: the planner's chosen step gets ×1.5 and a floor so low-scoring steps (explore) still happen
-    const fo = planned === a.id ? CFG.planner.focus : 1;
-    if (fo > 1) base = Math.max(base, CFG.planner.floor);
-    base = wishScore(g, w, a.id, base); // P8.9: the god's wishes (§17.6) lift even what nobody needs done
-    if (base <= 0) continue;
-    base *= demandMul(g, w.s, a.id); // §12.4: the village's shortfalls pull the industrious to the work that meets them
-    const pw = personalityWeight(g.personality, a.id) * stageMul(g, a) * traitMul(g, a.id) // personality, life stage, traits
-      * (a.tags.includes('work') ? policyWorkMul(w) * (a.tags.includes('food') ? 1 : festivalWorkMul(w)) : 1); // P8.4: an industrious chief; P8.5: no work at a festival (food aside)
-    const mm = moodMul(g, a);
-    const sk = skillFocus(g, a.id);
-    const hy = g.activity.action === a.id && g.activity.status === 'running' ? CFG.goblin.hysteresis : 1;
-    const n = noise ? w.rng.range(0.95, 1.05) : 1;
-    rows.push({ id: a.id, base, personality: pw, mood: mm, skill: sk, hysteresis: hy, focus: fo, final: base * pw * mm * sk * hy * fo * n });
-  }
-  rows.sort((x, y) => y.final - x.final || (x.id < y.id ? -1 : 1));
-  return rows;
+  const rows: ScoreRow[] = [], work = workMul(w);
+  CHOOSABLE.forEach((a, i) => {
+    const r = eligible(g, w, a) ? rowFor(g, w, a, mulsOf(g, w, a, i, noise, planned, work)) : null;
+    if (r) rows.push(r);
+  });
+  return rows.sort(byScore);
+}
+
+/**
+ * `scoreActions` in order, one row at a time (P11.3), without scoring what cannot be next: an action with a `cap` is
+ * scored only once its capped final could beat the best row in hand, highest caps first. Same order, far fewer searches.
+ */
+export function rankActions(g: Goblin, w: World, planned: ActionId | null): () => ScoreRow | null {
+  const ready: ScoreRow[] = [], later: { a: UtilityAction; m: Muls; ub: number }[] = [], work = workMul(w);
+  CHOOSABLE.forEach((a, i) => {
+    if (!eligible(g, w, a)) return;
+    const m = mulsOf(g, w, a, i, true, planned, work);
+    if (!a.cap) { const r = rowFor(g, w, a, m); if (r) ready.push(r); return; }
+    const ub = lifted(g, w, a, m, a.cap(g, w));
+    if (ub > 0) later.push({ a, m, ub: ub * m.dm * m.pw * m.mm * m.sk * m.hy * m.fo * m.n });
+  });
+  ready.sort(byScore);
+  later.sort((x, y) => y.ub - x.ub || (x.a.id < y.a.id ? -1 : 1));
+  let li = 0;
+  return () => {
+    for (; li < later.length && (!ready.length || later[li]!.ub >= ready[0]!.final); li++) {
+      const r = rowFor(g, w, later[li]!.a, later[li]!.m);
+      if (r) { ready.push(r); ready.sort(byScore); }
+    }
+    return ready.shift() ?? null;
+  };
+}
+/** The best `k` of `scoreActions`, lazily (see `rankActions`). */
+export function chooseActions(g: Goblin, w: World, planned: ActionId | null, k = 3): ScoreRow[] {
+  const next = rankActions(g, w, planned), out: ScoreRow[] = [];
+  for (let r = next(); r && out.length < k; r = out.length < k ? next() : null) out.push(r);
+  return out;
 }
 
 function resetActivity(g: Goblin, w: World, id: ActionId): void {
+  claimsChanged();
   g.activity = { action: id, status: 'running', startedTick: w.s.tick, targetId: null, target: null, path: [], progress: 0, stage: 0 };
 }
 
@@ -146,7 +209,7 @@ function resetActivity(g: Goblin, w: World, id: ActionId): void {
 export function startAction(g: Goblin, w: World, id: ActionId): boolean {
   releaseReservations(g, w);
   resetActivity(g, w, id);
-  if (ACTIONS[id].start(g, w)) return true;
+  if (ACTIONS[id].start(g, w)) { claimsChanged(); return true; }
   resetActivity(g, w, 'idle');
   Idle.start(g, w);
   g.activity.status = 'running';
@@ -169,10 +232,23 @@ function releaseReservations(g: Goblin, w: World): void {
 
 const cursed = (g: Goblin, tick: number): boolean => g.mood.modifiers.some((m) => m.id === 'cursed' && m.expiresTick > tick);
 
-/** §6 step 12: staggered re-decision. */
+/** P11.3: how often a goblin re-decides (a big village less often), and how many may decide in one tick. */
+export function thinkPace(n: number): { iv: number; max: number; path: number; danger: number } {
+  const G = CFG.goblin, B = G.thinkBudget, max = Math.max(B.min, Math.ceil(n * B.per));
+  return { iv: Math.round(G.decisionIntervalTicks * Math.max(1, n / G.thinkPopRef)), max, path: B.pathPer * n, danger: max * B.danger };
+}
+
+/**
+ * §6 step 12: staggered re-decision. P11.3: once a tick's budget is spent (decisions, or A* expansions at 30 a
+ * goblin), the rest wait for the next tick, so a crowd waking at dawn spreads its choosing over a few ticks. Danger
+ * has a budget of its own, three times as big: a crowd that sees Gnashers all at once reacts over a few tenths of a
+ * second instead of in one long tick.
+ */
 export function think(w: World): void {
   const s = w.s;
-  const iv = CFG.goblin.decisionIntervalTicks;
+  const { iv, max, path, danger: dmax } = thinkPace(s.goblins.length);
+  const work0 = pathWork();
+  let made = 0, scared = 0;
   for (const g of s.goblins) {
     if (g.heldByGod || g.airborne || s.god.possessedId === g.id) continue; // P11.1: a possessed goblin does as the player says
     const cur = ACTIONS[g.activity.action];
@@ -184,9 +260,13 @@ export function think(w: World): void {
     const due = s.tick % iv === g.id % iv || danger || (ready && stormCaught(g, w));
     const canCut = danger || (typeof cur.interruptible === 'function' ? cur.interruptible(g) : cur.interruptible);
     if (!finished && (!due || !canCut)) continue;
-    const rows = scoreActions(g, w, true, planFor(g, w, (gg, ww) => !!findChopTarget(gg, ww)));
+    if (danger ? scared++ >= dmax : made >= max || pathWork() - work0 >= path) continue;
+    if (!danger) made++;
+    deciding(w, g); // P11.3: its searches are made once for this decision
+    const next = rankActions(g, w, planFor(g, w, (gg, ww) => !!findChopTarget(gg, ww)));
+    const first = next();
     g.lastDecisionTick = s.tick;
-    const best = rows[0]?.id ?? 'idle';
+    const best = first?.id ?? 'idle';
     if (!finished && best === g.activity.action) continue;
     // a cursed goblin (P4.8) fumbles one new task in four: it stands there flustered instead
     if (best !== 'idle' && !ACTIONS[best].tags.includes('danger') && cursed(g, s.tick) && w.rng.chance(CFG.powers.curseFail)) {
@@ -194,14 +274,16 @@ export function think(w: World): void {
       w.emit({ type: 'emote', goblinId: g.id, emote: 'sweat' });
       continue;
     }
-    // a choice that can't start (no site, no way there) falls through to the next best rather than idling
+    // a choice that can't start (no site, no way there) falls through to the next best rather than idling (the
+    // next best is found only then, P11.3)
     let started = false;
-    for (const r of rows.slice(0, 3)) {
+    for (let r = first, i = 0; r && i < 3; r = ++i < 3 ? next() : null) {
       if (r.id === 'idle') break;
       if ((started = startAction(g, w, r.id))) break;
     }
     if (!started) startAction(g, w, 'idle');
   }
+  deciding(w, null);
 }
 
 /** §6 step 13: step current actions. */

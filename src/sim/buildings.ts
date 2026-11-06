@@ -16,6 +16,7 @@ import { RECIPES } from './recipes';
 import { observe } from './knowledge';
 import { addReputation } from './mischief';
 import { loseBooks } from './books';
+import { claimers } from './ai/claims';
 
 const B = CFG.buildings;
 
@@ -46,8 +47,10 @@ export function missingMaterials(b: Building): ItemStack[] {
 /** Amount of `type` other goblins are already carrying to `b` (cooperative hauling without over-delivery). */
 export function inFlight(w: World, b: Building, type: ItemType, except: ID): number {
   let n = 0;
-  for (const g of w.s.goblins)
-    if (g.id !== except && g.activity.action === 'deliver_material' && g.activity.targetId === b.id && g.activity.stage >= 2) n += countItem(g, type);
+  for (const id of claimers(w, 'deliver_material', b.id)) { // P11.3: only those bound for it, checked as they stand now
+    const g = w.goblin(id);
+    if (g && g.id !== except && g.activity.action === 'deliver_material' && g.activity.targetId === b.id && g.activity.stage >= 2) n += countItem(g, type);
+  }
   return n;
 }
 

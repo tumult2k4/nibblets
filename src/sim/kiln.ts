@@ -47,24 +47,32 @@ export function isClayGround(s: WorldState, x: number, y: number): boolean {
   return false;
 }
 
-const clayCache = new WeakMap<WorldState, { ver: number; tiles: Vec2[] }>();
-/** Every clay tile (centers), cached until the land changes. */
-function clayTiles(s: WorldState): Vec2[] {
+const clayCache = new WeakMap<WorldState, { ver: number; tiles: Vec2[]; cells: Map<number, number[]> }>();
+const CELL = 8;
+/** Every clay tile (centers), and their places in 8×8 buckets (P11.3), cached until the land changes. */
+function clayTiles(s: WorldState): { tiles: Vec2[]; cells: Map<number, number[]> } {
   let c = clayCache.get(s);
   if (!c || c.ver !== s.terrainVersion) {
-    const tiles: Vec2[] = [];
-    for (let y = 0; y < s.size.h; y++) for (let x = 0; x < s.size.w; x++) if (isClayGround(s, x + 0.5, y + 0.5)) tiles.push({ x: x + 0.5, y: y + 0.5 });
-    clayCache.set(s, (c = { ver: s.terrainVersion, tiles }));
+    const tiles: Vec2[] = [], cells = new Map<number, number[]>();
+    for (let y = 0; y < s.size.h; y++) for (let x = 0; x < s.size.w; x++) if (isClayGround(s, x + 0.5, y + 0.5)) {
+      const k = Math.floor(y / CELL) * 1024 + Math.floor(x / CELL);
+      (cells.get(k) ?? cells.set(k, []).get(k)!).push(tiles.length);
+      tiles.push({ x: x + 0.5, y: y + 0.5 });
+    }
+    clayCache.set(s, (c = { ver: s.terrainVersion, tiles, cells }));
   }
-  return c.tiles;
+  return c;
 }
 
-/** The nearest clay ground within `r` of `pos`. */
+/** The nearest clay ground within `r` of `pos` (the first in map order on a tie). */
 export function clayNear(s: WorldState, pos: Vec2, r: number): Vec2 | null {
-  let best: Vec2 | null = null, bd = r;
-  for (const t of clayTiles(s)) {
-    const d = dist(t, pos);
-    if (d < bd) { bd = d; best = t; }
-  }
+  const { tiles, cells } = clayTiles(s);
+  let best: Vec2 | null = null, bd = r, bi = -1;
+  for (let cy = Math.floor((pos.y - r) / CELL); cy <= Math.floor((pos.y + r) / CELL); cy++)
+    for (let cx = Math.floor((pos.x - r) / CELL); cx <= Math.floor((pos.x + r) / CELL); cx++)
+      for (const i of cells.get(cy * 1024 + cx) ?? []) {
+        const t = tiles[i]!, d = dist(t, pos);
+        if (d < bd || (d === bd && i < bi)) { bd = d; bi = i; best = t; }
+      }
   return best;
 }

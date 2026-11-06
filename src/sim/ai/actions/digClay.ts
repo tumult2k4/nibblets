@@ -31,6 +31,7 @@ export const clayWanted = (g: Goblin, w: World): number => materialWanted(g, w, 
 export const DigClay: UtilityAction = {
   id: 'dig_clay', tags: ['work'], minStage: 'adult', interruptible: true,
   isAvailable: (g, w) => !isNight(w.clock) && canCarry(g, 'clay') && clayWanted(g, w) > 0 && !!clayNear(w.s, g.pos, C.range),
+  cap: (g, w) => clamp(C.want * clayWanted(g, w) * (0.5 + g.personality.industry) * (1 - busy(g)), 0, 1),
   score(g, w) {
     const at = clayNear(w.s, g.pos, C.range)!;
     return clamp(C.want * clayWanted(g, w) * (0.5 + g.personality.industry) * (1 - 0.4 * dist(at, g.pos) / C.range) * (1 - busy(g)), 0, 1);

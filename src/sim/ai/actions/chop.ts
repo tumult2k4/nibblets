@@ -12,6 +12,9 @@ import type { Goblin, Plant } from '../../state';
 import type { World } from '../../world';
 import type { UtilityAction } from '../action';
 import { gainXp, workSpeed } from '../../goblin/skills';
+import { claimedByOther } from '../claims';
+import { once } from '../memo';
+import { woody } from '../targets';
 
 const P = CFG.plants;
 
@@ -40,13 +43,14 @@ function chopValue(w: World, p: Plant, axe: boolean): number {
   return 0;
 }
 
-export function findChopTarget(g: Goblin, w: World): Plant | null {
+export const findChopTarget = (g: Goblin, w: World): Plant | null => once(w, g, 'chop', () => findChopTarget0(g, w));
+function findChopTarget0(g: Goblin, w: World): Plant | null {
   let best: Plant | null = null;
   let bestS = 0;
   const axe = !!fellingTool(g);
-  for (const p of w.plantHash.query(g.pos, 30)) {
+  for (const p of woody(w).query(g.pos, 30, (q) => chopValue(w, q, axe) > 0)) {
     const v = chopValue(w, p, axe);
-    if (v <= 0 || w.s.goblins.some((o) => o.id !== g.id && o.activity.action === 'chop' && o.activity.targetId === p.id)) continue;
+    if (claimedByOther(w, g, 'chop', p.id)) continue;
     const s = v / (1 + dist(g.pos, p.pos) / 15);
     if (s > bestS) { bestS = s; best = p; }
   }
@@ -59,6 +63,7 @@ const busy = (g: Goblin): number => Math.max(needUrgency(g.needs.hunger), needUr
 export const Chop: UtilityAction = {
   id: 'chop', tags: ['work'], minStage: 'adult', interruptible: true,
   isAvailable: (g, w) => canCarry(g, 'wood') && woodWanted(g, w) > 0,
+  cap: (g, w) => 0.34 * woodWanted(g, w) * (1 - busy(g)),
   score(g, w) {
     if (!findChopTarget(g, w)) return 0;
     return 0.34 * woodWanted(g, w) * (1 - busy(g));

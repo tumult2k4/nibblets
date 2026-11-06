@@ -18,6 +18,7 @@ import type { Building, Goblin } from '../../state';
 import type { World } from '../../world';
 import type { UtilityAction } from '../action';
 import { gainXp } from '../../goblin/skills';
+import { claimedByOther } from '../claims';
 
 const F = CFG.fences;
 
@@ -25,7 +26,7 @@ export const repairItem = (b: Building): ItemType => (F.repairItem[b.type] ?? 'w
 export const wantsRepair = (b: Building): boolean => isComplete(b) && b.hp < b.maxHp * CFG.storms.repairBelow;
 
 const taken = (g: Goblin, w: World, b: Building): boolean =>
-  w.s.goblins.some((o) => o.id !== g.id && o.activity.action === 'repair_building' && o.activity.status === 'running' && o.activity.targetId === b.id);
+  claimedByOther(w, g, 'repair_building', b.id, true);
 const hasMaterial = (g: Goblin, w: World, b: Building): boolean => countItem(g, repairItem(b)) > 0 || spareStock(w, repairItem(b)) >= 1;
 
 /** Nearest damaged building nobody else is mending, with material to hand. */

@@ -16,6 +16,11 @@ export interface UtilityAction {
   isAvailable(g: Goblin, w: World): boolean;
   /** 0..1 base score (before personality, noise and hysteresis) */
   score(g: Goblin, w: World): number;
+  /**
+   * P11.3: a cheap upper bound of `score` whenever the action is available, so a decision can skip the costly target
+   * search of an action that could not win anyway. Must never be below `score`; left out, the action is always scored.
+   */
+  cap?(g: Goblin, w: World): number;
   /** set up targets/path; return false if the action cannot start */
   start(g: Goblin, w: World): boolean;
   step(g: Goblin, w: World): StepResult;

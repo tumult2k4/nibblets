@@ -116,8 +116,9 @@ describe('wrath powers, Gentle mode, anger and the danger lens (P4.8)', () => {
     w.bus.subscribe((x) => evs.push(x));
     cast(w, 'curse', g.pos, { targetId: g.id });
     expect(g.mood.modifiers.find((m) => m.id === 'cursed')?.amount).toBe(PW.curseMood);
-    for (let t = 0; t < DAY / 4; t++) { w.step(); fed(w); }
-    expect(evs.filter((x) => x.type === 'emote' && x.goblinId === g.id && x.emote === 'sweat').length).toBeGreaterThan(0);
+    const sweats = () => evs.filter((x) => x.type === 'emote' && x.goblinId === g.id && x.emote === 'sweat').length;
+    for (let t = 0; t < DAY && !sweats(); t++) { w.step(); fed(w); } // one new task in four is fumbled
+    expect(sweats()).toBeGreaterThan(0);
     expect(rejected(cast(w, 'curse', g.pos, { targetId: 99999 }))).toMatchObject({ reason: 'missing_entity' });
   });
 

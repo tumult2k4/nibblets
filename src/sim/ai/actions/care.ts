@@ -23,6 +23,8 @@ import { REMEDY, dose, fetchRemedy, needsRemedy, remedyInStore } from '../../rem
 import { apartSpot, quarantined, sickHut } from '../../quarantine';
 import { bedSpot, homeOf } from './home';
 import { reach } from './kindness';
+import { claimedByOther } from '../claims';
+import { once, perTick } from '../memo';
 
 const H = CFG.health;
 const DAY = CFG.time.dayTicks;
@@ -82,13 +84,14 @@ export const RestSick: UtilityAction = {
 const pressed = (g: Goblin): boolean => Math.max(needUrgency(g.needs.hunger), needUrgency(g.needs.thirst), needUrgency(g.needs.energy)) > 0.5;
 
 /** A sick or hurt friend or relative close by that nobody has tended today and nobody is tending now. */
-export function patientFor(g: Goblin, w: World): Goblin | null {
+export const patientFor = (g: Goblin, w: World): Goblin | null => once(w, g, 'patient', () => patientFor0(g, w));
+function patientFor0(g: Goblin, w: World): Goblin | null {
   let best: Goblin | null = null, bs = -Infinity;
-  for (const o of w.goblinHash.query(g.pos, H.tendRange)) {
+  for (const o of w.goblinHash.query(g.pos, H.tendRange, ailing)) {
     if (o === g || o.heldByGod || !ailing(o) || o.health.tendedUntil > w.s.tick || dist(o.pos, g.pos) > H.tendRange) continue;
     const op = opinionOf(g, o.id);
     if (!isKin(g, o) && op < H.tendOpinion) continue;
-    if (w.s.goblins.some((x) => x !== g && x.activity.action === 'tend_sick' && x.activity.targetId === o.id)) continue;
+    if (claimedByOther(w, g, 'tend_sick', o.id)) continue;
     const sc = op / 100 + (isKin(g, o) ? 0.5 : 0) - dist(o.pos, g.pos) / H.tendRange;
     if (sc > bs) { bs = sc; best = o; }
   }
@@ -98,6 +101,7 @@ export function patientFor(g: Goblin, w: World): Goblin | null {
 export const TendSick: UtilityAction = {
   id: 'tend_sick', tags: ['social'], minStage: 'adult', interruptible: (g) => g.activity.stage !== 1,
   isAvailable: (g, w) => !isSick(g) && !pressed(g) && !!patientFor(g, w),
+  cap: (g, w) => (perTick(w, 'ailing', () => w.s.goblins.filter(ailing).length) > (ailing(g) ? 1 : 0) ? H.tendBase + 0.25 + 0.1 + 0.2 : 0),
   score: (g, w) => {
     const o = patientFor(g, w)!;
     return H.tendBase + 0.25 * clamp(opinionOf(g, o.id) / 100, 0, 1) + (isKin(g, o) ? 0.1 : 0) + (sickness(o)?.rest ?? 0.3) * 0.2;
