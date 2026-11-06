@@ -8,6 +8,15 @@ import { CFG } from '../sim/config';
 const LIMITS = { play: { p0: 25, p1: 80, d0: 6, d1: 90, clear: 1.2 }, free: { p0: 4, p1: 86, d0: 2.5, d1: 140, clear: 0.35 } };
 const RAD = Math.PI / 180;
 
+/**
+ * Screen-relative pan: dz < 0 moves toward where the camera looks (projected onto the ground), dx > 0 to screen right.
+ * The camera sits at target + (sin yaw, ·, cos yaw), so ground forward is (-sin, -cos) and right is (cos, -sin).
+ */
+export function panDelta(yaw: number, dx: number, dz: number): { x: number; z: number } {
+  const c = Math.cos(yaw), sn = Math.sin(yaw);
+  return { x: dx * c + dz * sn, z: dz * c - dx * sn };
+}
+
 export class OrbitCam {
   readonly cam: THREE.PerspectiveCamera;
   target = new THREE.Vector3();
@@ -41,9 +50,9 @@ export class OrbitCam {
     this.followId = null;
     this.fly = null;
     const k = this.dist * 0.0018;
-    const c = Math.cos(this.goalYaw), sn = Math.sin(this.goalYaw);
-    const nx = this.goal.x + (dx * c - dz * sn) * k * 10;
-    const nz = this.goal.z + (dx * sn + dz * c) * k * 10;
+    const d = panDelta(this.yaw, dx, dz); // the yaw on screen, so W follows the view even mid-rotation
+    const nx = this.goal.x + d.x * k * 10;
+    const nz = this.goal.z + d.z * k * 10;
     const w = this.s().size;
     this.setTarget(clamp(nx, 0, w.w), clamp(nz, 0, w.h));
   }
