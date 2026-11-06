@@ -80,6 +80,12 @@ export function noteFor(e: SimEvent, w: World, names: Map<ID, string>): Note | n
     }
     case 'inspired':
       return { ...base, id: e.goblinId, text: t('ev.inspired', { name: name(e.goblinId) }), tier: 'notable', icon: 'sparkle' };
+    case 'trinket_given':
+      return { ...base, id: e.goblinId, text: t('ev.trinket_given', { name: name(e.goblinId), other: name(e.toId), trinket: t(`trinket.${e.trinket}`) }), tier: 'notable', icon: 'gem' };
+    case 'trinkets_inherited':
+      return { ...base, id: e.goblinId, text: t('ev.trinkets_inherited', { name: name(e.goblinId), dead: name(e.fromId) }), tier: 'info', icon: 'gem' };
+    case 'glints_washed_up':
+      return { ...base, text: t('ev.glints'), tier: 'info', icon: 'sparkle' };
     case 'trinket_found':
       return { ...base, id: e.goblinId, text: t('ev.trinket_found', { name: name(e.goblinId), trinket: t(`trinket.${e.trinket}`), rarity: t(`rarity.${e.rarity}`) }), tier: 'notable', icon: 'gem' };
     case 'landed':

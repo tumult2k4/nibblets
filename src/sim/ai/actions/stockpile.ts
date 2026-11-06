@@ -1,6 +1,6 @@
 import { CFG } from '../../config';
 import { dist } from '../../../shared/math';
-import { addItem, countItem, foodStack } from '../../inventory';
+import { addItem, canCarry, countItem, foodStack, slotCount } from '../../inventory';
 import { isFood, isGear } from '../../items';
 import { HAND_RECIPES, RECIPES } from '../../recipes';
 import { needUrgency } from '../../goblin/needs';
@@ -93,7 +93,9 @@ export const StoreItem: UtilityAction = {
 /** Fetch food from the stockpile when hungry and the pockets are empty. */
 export const TakeItem: UtilityAction = {
   id: 'take_item', tags: ['food'], minStage: 'youngling', interruptible: true,
-  isAvailable: (g, w) => g.needs.hunger < 70 && !foodStack(g) && (!!stockFood(w.s) || !!homeFood(g, w)),
+  // (only with room in the pack: a pocket full of cores once had a starving goblin trying the store all day, P8.2)
+  isAvailable: (g, w) => g.needs.hunger < 70 && !foodStack(g) && (g.inventory.length < slotCount(g) || canCarry(g, stockFood(w.s)?.type ?? 'apple'))
+    && (!!stockFood(w.s) || !!homeFood(g, w)),
   score: (g, w) => (0.06 + 1.1 * needUrgency(g.needs.hunger)) * distanceFalloff(dist(g.pos, homeFood(g, w)?.pos ?? w.s.village.stockpilePos), 40),
   start(g, w) {
     const home = homeFood(g, w);

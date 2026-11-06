@@ -13,7 +13,7 @@ import { scoreActions, ACTIONS } from '../ai/utility';
 import { Binge, WanderOff } from '../ai/actions/moodBreak';
 import { trinketsOf } from '../trinkets';
 import { deserialize, serialize } from '../save';
-import { makeWorld, spawnGoblin } from './helpers';
+import { makeWorld, placePlant, spawnGoblin } from './helpers';
 import type { UtilityAction } from '../ai/action';
 import type { Goblin } from '../state';
 import type { World } from '../world';
@@ -146,6 +146,27 @@ describe('the full mood system (P8.1, §7.5)', () => {
     expect(evs.filter((e) => e.type === 'mood_break')).toHaveLength(2);
   });
 
+  it('real hardship weighs heavily: starving and freezing together bring a break', () => {
+    const w = makeWorld();
+    at(w, 2 * DAY);
+    const g = spawnGoblin(w);
+    const evs = events(w);
+    g.needs = { ...g.needs, hunger: 5, warmth: 5, thirst: 70, energy: 70, curiosity: 70, social: 70, safety: 80 };
+    g.mood.modifiers = [];
+    live(w, 60);
+    expect(g.mood.modifiers.find((m) => m.id === 'starving')?.amount).toBe(M.hardship.starving[1]);
+    expect(g.mood.modifiers.find((m) => m.id === 'freezing')?.amount).toBe(M.hardship.freezing[1]);
+    const hold = () => { g.needs.hunger = 5; g.needs.warmth = 5; };
+    for (let i = 0; i < DAY; i += 50) { hold(); live(w, 50); }
+    expect(g.mood.value).toBeLessThan(M.breaks.below);
+    expect(evs.some((e) => e.type === 'mood_break')).toBe(true);
+    // merely hungry: not a break
+    const h = spawnGoblin(w);
+    h.needs = { ...h.needs, hunger: 30, warmth: 60 };
+    live(w, 60);
+    expect(h.mood.modifiers.some((m) => m.id === 'starving')).toBe(false);
+  });
+
   it('a tantrum smashes something it owns, or kicks at its home, and lets the anger out', () => {
     const w = makeWorld();
     const g = spawnGoblin(w);
@@ -172,7 +193,12 @@ describe('the full mood system (P8.1, §7.5)', () => {
     startBreak(w, g, 'sulk');
     const rows = scoreActions(g, w, false);
     expect(rows[0]!.id).toBe('sulk');
-    expect(rows.some((r) => ACTIONS[r.id].tags.some((t) => t === 'work' || t === 'social' || t === 'fun'))).toBe(false);
+    expect(rows.some((r) => !ACTIONS[r.id].tags.includes('food') && ACTIONS[r.id].tags.some((t) => t === 'work' || t === 'social' || t === 'fun'))).toBe(false);
+    // but a hungry sulker still picks fruit
+    placePlant(w, 'apple_bush', 'mature', { x: g.pos.x + 2, y: g.pos.y }, 5);
+    g.needs.hunger = 8;
+    expect(scoreActions(g, w, false).slice(0, 3).map((r) => r.id)).toContain('harvest_fruit');
+    g.needs.hunger = 90;
     g.needs.hunger = 3;
     addItem(g, { type: 'apple', qty: 1 });
     expect(scoreActions(g, w, false)[0]!.id).toBe('eat');

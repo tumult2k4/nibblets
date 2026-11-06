@@ -21,8 +21,9 @@ import { homeOf } from './home';
 import { nurseryNear, nurseryNest } from '../../settlement';
 import type { Building } from '../../state';
 import { charm } from '../../clothing';
+import { carried, passTrinket, trinketValue } from '../../trinkets';
 
-const F = CFG.family;
+const F = CFG.family, TR = CFG.trinkets;
 const DAY = CFG.time.dayTicks;
 const GIFTS = new Set(['flower_crown', 'flower', 'trinket']);
 
@@ -75,8 +76,16 @@ export const Court: UtilityAction = {
       a.stage = 1;
       a.progress = 0;
       a.count = 0;
-      const gift = takeOne(g, (s) => GIFTS.has(s.type));
-      if (gift) {
+      // P8.2: a fresh courtship opens with a trinket if it has one to spare (the one it loves least), worth more to a hoarder
+      const r0 = relate(g, o.id), fresh = !r0.court || w.s.tick - (r0.courtTick ?? -1e9) > DAY;
+      const tr = fresh ? carried(g, w) : [];
+      const gift = tr.length ? null : takeOne(g, (s) => GIFTS.has(s.type));
+      if (tr.length) {
+        const t = tr[tr.length - 1]!;
+        passTrinket(w, t, g, o);
+        a.count = 1 + Math.min(TR.courtMax, TR.courtPerValue * trinketValue(o, t));
+        w.emit({ type: 'trinket_given', goblinId: g.id, toId: o.id, trinket: t.kind, at: { ...g.pos } });
+      } else if (gift) {
         a.count = 1;
         if (!addItem(o, gift)) spawnGroundItem(w, gift, o.pos);
       }
@@ -90,7 +99,7 @@ export const Court: UtilityAction = {
     if (w.s.tick - (rel.courtTick ?? -1e9) > DAY) rel.court = 0;
     rel.courtTick = w.s.tick;
     // a gift helps, and so does a flower crown (P5.6 charm)
-    const p = clamp(F.welcome + (opinionOf(o, g.id) - CFG.social.friend) / 50 + (a.count ? F.giftWelcome : 0) + charm(g), 0.1, 0.95);
+    const p = clamp(F.welcome + (opinionOf(o, g.id) - CFG.social.friend) / 50 + (a.count ? F.giftWelcome + a.count - 1 : 0) + charm(g), 0.1, 0.95);
     const ok = w.rng.chance(p);
     if (ok) {
       rel.court = (rel.court ?? 0) + 1;

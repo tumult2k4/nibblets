@@ -71,13 +71,16 @@ function woundsLine(g: Goblin): string {
   return parts.join(' · ');
 }
 
-const TRAIT_ICON: Record<string, string> = { veteran: 'spear', scarred: 'fang', green_thumb: 'leaf', orphan: 'heart', twin: 'egg', grudge_holder: 'curse' };
+const TRAIT_ICON: Record<string, string> = { veteran: 'spear', scarred: 'fang', green_thumb: 'leaf', orphan: 'heart', twin: 'egg', grudge_holder: 'curse', hoarder: 'gem' };
 /** Acquired traits (§7.7, P5.7) with icons and what each does. */
 function traitList(g: Goblin): HTMLElement[] {
   if (!g.traits.length) return [el('div.sub', { text: t('insp.noLifeTraits') })];
   return g.traits.map((tr) => el('div.trait-row', {},
     el('span.trait-chip', {}, icon(TRAIT_ICON[tr] ?? 'star'), el('span', { text: t(`atrait.${tr}`) })), el('span.sub', { text: t(`atrait.${tr}.d`) })));
 }
+
+const onAShelf = (w: World, id: number): boolean => w.s.buildings.some((b) => b.decoration.includes(id));
+const handName = (w: World, id: number): string => w.goblin(id)?.name ?? w.s.lineage[id]?.name ?? '?';
 
 /** A mood modifier in words: grief names whom it is for (P6.4). */
 function modLabel(id: string, w: World): string {
@@ -212,6 +215,7 @@ export function inventoryTab(g: Goblin, w: World): HTMLElement {
       ? el('span.recipe.only', { 'data-tip': t('insp.onlyKnowerTip') }, `${t(`recipe.${r}`)} · ${t('insp.onlyKnower')}`)
       : el('span.recipe', { text: t(`recipe.${r}`) }))),
     ...(g.trinkets.length ? [el('h3', { text: t('insp.trinkets') }), ...trinketsOf(g, w).map((x) =>
-      el('div.row', {}, el('span.swatch', { style: `background:hsl(${Math.round(x.hue)} 70% 60%)` }), el('span', { text: `${t(`trinket.${x.kind}`)} · ${t(`rarity.${x.rarity}`)}` })))] : []),
+      el('div.row', {}, el('span.swatch', { style: `background:hsl(${Math.round(x.hue)} 70% 60%)` }),
+        el('span', { text: `${t(`trinket.${x.kind}`)} · ${t(`rarity.${x.rarity}`)}${onAShelf(w, x.id) ? ` · ${t('insp.atHome')}` : ''}${x.history.length > 1 ? ` · ${t('insp.fromHand', { name: handName(w, x.history[x.history.length - 2]!) })}` : ''}` })))] : []),
     ...(g.knownFacts.length ? [el('h3', { text: t('insp.facts') }), el('div.sub', { text: g.knownFacts.map((f) => t(`fact.${f}`)).join(' · ') })] : []));
 }

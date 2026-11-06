@@ -2,7 +2,7 @@
  * Emotions on the body (§7.5, P8.1), laid over goblinView's poses: the shown emotion bends the head and the ears
  * whatever the goblin does, and an idle goblin acts it out in full (a happy hop, an angry stomp, a sad slump, a
  * scared tremble). Mood breaks have their own poses: sulking with arms crossed and back turned, bingeing with both
- * hands to the mouth. Returns how far to flatten the ears (positive: flat and drooping, negative: pricked up).
+ * hands to the mouth. Rummaging for trinkets and setting them on the shelf (P8.2) too. Returns how far to flatten the ears (positive: flat and drooping, negative: pricked up).
  */
 import type { Goblin } from '../sim/state';
 import type { GoblinRig } from './goblinMesh';
@@ -28,6 +28,13 @@ export function emotionPose(g: Goblin, r: GoblinRig, t: number): number {
     r.body.scale.set(sq, 1 / sq, sq);
     return -0.1;
   }
+  if (act === 'hunt_trinket' && a.stage === 1) { // crouched, turning stones over (P8.2)
+    const k = Math.sin(ph * 7);
+    r.body.position.y = 0.06; r.legL.rotation.x = r.legR.rotation.x = -1.1; r.body.rotation.x = 0.5;
+    r.armL.rotation.x = -0.9 + k * 0.4; r.armR.rotation.x = -0.9 - k * 0.4; r.head.rotation.y = Math.sin(ph * 1.3) * 0.4;
+    return -0.15;
+  }
+  if (act === 'decorate' && a.stage === 1) { r.armL.rotation.x = r.armR.rotation.x = -1.5; r.head.rotation.x = -0.1; return -0.2; } // setting it just so
   const still = STILL.has(act) && Math.hypot(g.velocity.x, g.velocity.y) < 0.05;
   switch (g.mood.emotion) {
     case 'sad': case 'grieving':

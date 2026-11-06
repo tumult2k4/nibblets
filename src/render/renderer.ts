@@ -13,6 +13,7 @@ import { WildfireFx } from './wildfireView';
 import { EnemyViews } from './enemyView';
 import { WildlifeViews } from './wildlifeView';
 import { GraveViews } from './graveView';
+import { GlintViews } from './trinketMeshes';
 import { EggViews } from './eggView';
 import { GoblinViews } from './goblinView';
 import { Emotes } from './emotes';
@@ -54,6 +55,7 @@ export class Renderer {
   enemies!: EnemyViews;
   wildlife!: WildlifeViews;
   graves!: GraveViews;
+  glints!: GlintViews;
   eggs!: EggViews;
   wrathFx!: WrathFx;
   miracleFx!: MiracleFx;
@@ -101,13 +103,14 @@ export class Renderer {
     this.wildlife = new WildlifeViews(w);
     this.graves = new GraveViews(w, (id) => this.goblinWorldPos(id));
     this.eggs = new EggViews(w);
+    this.glints = new GlintViews(w);
     this.wrathFx = new WrathFx(w, this.weatherFx, (id) => this.goblinWorldPos(id));
     this.wrathFx.reduced = this.weatherFx.reduced;
     this.miracleFx = new MiracleFx(w, this.camera, this.water.mesh.material as THREE.Material);
     this.miracleFx.reduced = this.weatherFx.reduced;
     this.goblins.outlines = this.settings.outlines;
     this.interp = new Interp(w);
-    this.worldGroup.add(this.terrain.group, this.water.mesh, this.props.group, this.buildings.group, this.mushrooms.group, this.goblins.group, this.weatherFx.group, this.fires.group, this.wildfire.group, this.enemies.group, this.wildlife.group, this.graves.group, this.eggs.group, this.wrathFx.group, this.miracleFx.group);
+    this.worldGroup.add(this.terrain.group, this.water.mesh, this.props.group, this.buildings.group, this.mushrooms.group, this.goblins.group, this.weatherFx.group, this.fires.group, this.wildfire.group, this.enemies.group, this.wildlife.group, this.graves.group, this.eggs.group, this.glints.group, this.wrathFx.group, this.miracleFx.group);
     const c = w.s.village.center;
     this.camera.setTarget(c.x, c.y, true);
   }
@@ -223,6 +226,7 @@ export class Renderer {
     this.enemies.update(this.interp, alpha, this.time, dt);
     this.wildlife.update(this.interp, alpha, this.time, dt);
     this.graves.update();
+    this.glints.update(this.time);
     this.eggs.update(dt, this.wrathFx.reduced);
     this.wrathFx.update(dt, alpha);
     this.miracleFx.update(dt, this.time);

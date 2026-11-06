@@ -82,7 +82,7 @@ export type ActionId =
   | 'follow_wisp' | 'scatter' | 'chat' | 'comfort' | 'gift' | 'court' | 'lay_egg' | 'incubate_egg' | 'feed_child' | 'follow_parent'
   | 'play' | 'learn' | 'teach' | 'cut_grass' | 'pick_flowers' | 'process' | 'rest_sick' | 'tend_sick' | 'extinguish_fire' | 'escape_fire' | 'cull_blight'
   | 'bury_dead' | 'mourn' | 'hunt' | 'fish' | 'dig_clay' | 'cook_stew' | 'tend_compost' | 'spread_compost' | 'pave_path' | 'haul_to_stockpile'
-  | 'sulk' | 'binge' | 'wander_off';
+  | 'sulk' | 'binge' | 'wander_off' | 'hunt_trinket' | 'decorate';
 
 export interface ActivityState {
   action: ActionId;
@@ -174,6 +174,9 @@ export interface Trinket {
   /** owner chain, first finder first, for stories */
   history: ID[];
 }
+
+/** Something shiny a storm washed up on the shore (P8.2): whoever searches there finds it, until the tide takes it. */
+export interface Glint { id: ID; pos: Vec2; rarity: import('../shared/types').Rarity; until: number }
 
 export interface Plant {
   id: ID; kind: PlantKind; pos: Vec2; stage: PlantStage; growth: number; fruit: number; fruitProgress: number;
@@ -286,6 +289,8 @@ export interface WorldState {
   graves: Grave[];
   /** every trinket in the world (§12.1, P5.9); goblins hold ids in `trinkets` */
   trinkets: Trinket[];
+  /** P8.2: glints on the shore after a storm, and whether a storm is blowing that will leave some */
+  glints?: Glint[]; stormWash?: boolean;
   lineage: Record<number, LineageEntry>;
   places: unknown[]; clans: Clan[]; village: VillageState; god: GodState;
   commandLog: LoggedCommand[]; weather: WeatherState; stats: StatsSeries; llm: LlmAnnotations;

@@ -17,6 +17,7 @@ import { adoptOrphans, comeOfAge } from './family';
 import { loseKnowledge } from '../knowledge';
 import { diseaseHungerMul } from '../disease';
 import { grieve, makeGrave } from '../death';
+import { inheritTrinkets } from '../trinkets';
 
 const WORK_ACTIONS = new Set(['harvest_fruit', 'pick_up', 'chop', 'build', 'deliver_material', 'play']);
 
@@ -91,7 +92,9 @@ export function killGoblin(w: World, g: Goblin, cause: DeathCause): void {
   const i = s.goblins.indexOf(g);
   if (i < 0) return;
   s.goblins.splice(i, 1);
-  s.graves.push(makeGrave(w, g, allocId(s), cause));
+  const grave = makeGrave(w, g, allocId(s), cause);
+  s.graves.push(grave);
+  inheritTrinkets(w, g, grave.goods); // P8.2: the rest go to the mate, a child or kin
   const line = s.lineage[g.id];
   if (line) line.died = s.tick;
   s.stats.deaths[cause] = (s.stats.deaths[cause] ?? 0) + 1;

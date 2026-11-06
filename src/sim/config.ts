@@ -10,6 +10,7 @@ import { SETTLEMENT } from './cfg/settlement';
 import { GARDEN } from './cfg/garden';
 import { COMMONS } from './cfg/commons';
 import { MOOD } from './cfg/mood';
+import { TRINKETS } from './cfg/trinkets';
 
 export const CFG = {
   tickHz: 10,
@@ -273,13 +274,13 @@ export const CFG = {
   /** P5.7 acquired traits (§7.7) */
   traits: {
     max: 3, checkEvery: 150, greenThumbPlanted: 25, greenThumbGrowth: 1.5, scarredScars: 2, twinEcho: 0.4, twinEchoMin: 4,
-    orphanBravery: 0.1, orphanSociability: -0.1, scarredCrowd: 1.5, scarredShun: 2, twinOpinion: 25, veteranWatch: 1.3, greenThumbWork: 1.3, returnedPiety: 0.3,
+    orphanBravery: 0.1, orphanSociability: -0.1, scarredCrowd: 1.5, scarredShun: 2, twinOpinion: 25, veteranWatch: 1.3, greenThumbWork: 1.3, returnedPiety: 0.3, hoarderTrinkets: 8, hoarderHunt: 1.5,
   },
   /** P6.1 health and disease (§14.3): see cfg/health.ts */
   health: HEALTH,
   /** P6.2–P6.3 fire, floods, drought, blight, shooting stars: see cfg/disasters.ts */
   disasters: DISASTERS,
-  death: DEATH, miracles: MIRACLES, wildlife: WILDLIFE, economy: ECONOMY, settlement: SETTLEMENT, garden: GARDEN, commons: COMMONS, mood: MOOD,
+  death: DEATH, miracles: MIRACLES, wildlife: WILDLIFE, economy: ECONOMY, settlement: SETTLEMENT, garden: GARDEN, commons: COMMONS, mood: MOOD, trinkets: TRINKETS,
   llm: { diariesPerDay: 3, dialoguesPerDay: 4, barksPerDay: 6, tokensPerDay: 12000, rpm: 10, concurrency: 2, timeoutMs: 20000 },
   god: {
     startFavor: 50, maxFavorBase: 100, maxFavorPerBeliever: 15, believerFaith: 40, prayingFavorMul: 3,

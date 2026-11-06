@@ -1,5 +1,11 @@
 /** Phase 8 strings (mood, society, faith), merged into the main tables by i18n.ts. */
 export const EN8 = {
+  'act.hunt_trinket': 'Looking for shiny things', 'act.decorate': 'Putting trinkets on the shelf',
+  'ev.trinket_given': '{name} gave {other} a {trinket}.', 'ev.trinkets_inherited': '{name} has the trinkets {dead} left behind.',
+  'ev.glints': 'The storm washed something shiny up on the shore.',
+  'insp.shelf': 'On the shelf', 'insp.atHome': 'on the shelf at home', 'insp.fromHand': 'from {name}',
+  'atrait.hoarder': 'Hoarder', 'atrait.hoarder.d': 'Owns eight trinkets: values them twice as much and keeps looking for more.',
+  'mod.decorated_home': 'trinkets at home', 'mod.starving': 'starving', 'mod.parched': 'parched', 'mod.freezing': 'freezing', 'mod.exhausted': 'exhausted',
   'act.sulk': 'Sulking', 'act.binge': 'Gorging on the store', 'act.wander_off': 'Wandering off',
   'ev.tantrum_item': '{name} threw a tantrum and smashed their {item}.',
   'ev.tantrum_home': '{name} threw a tantrum and kicked at their own home.',
@@ -20,6 +26,12 @@ export const EN8 = {
 };
 
 export const DE8: Record<keyof typeof EN8, string> = {
+  'act.hunt_trinket': 'Sucht nach Glänzendem', 'act.decorate': 'Stellt Schätze aufs Regal',
+  'ev.trinket_given': '{name} hat {other} etwas geschenkt: {trinket}.', 'ev.trinkets_inherited': '{name} erbt die Schätze von {dead}.',
+  'ev.glints': 'Der Sturm hat etwas Glänzendes ans Ufer gespült.',
+  'insp.shelf': 'Auf dem Regal', 'insp.atHome': 'zu Hause auf dem Regal', 'insp.fromHand': 'von {name}',
+  'atrait.hoarder': 'Sammler', 'atrait.hoarder.d': 'Besitzt acht Schätze: schätzt sie doppelt so hoch und sucht immer weiter.',
+  'mod.decorated_home': 'Schätze im Heim', 'mod.starving': 'am Verhungern', 'mod.parched': 'am Verdursten', 'mod.freezing': 'am Erfrieren', 'mod.exhausted': 'erschöpft',
   'act.sulk': 'Schmollt', 'act.binge': 'Frisst sich am Vorrat satt', 'act.wander_off': 'Läuft davon',
   'ev.tantrum_item': '{name} hat einen Wutanfall und zerschlägt: {item}.',
   'ev.tantrum_home': '{name} hat einen Wutanfall und tritt gegen das eigene Heim.',

@@ -12,6 +12,7 @@ import { spawnGroundItem } from '../../groundItems';
 import { tileAt } from '../../grid';
 import { toolFor, wearTool } from '../../tools';
 import { workMul } from '../../combat';
+import { giveTrinket, rollRarity } from '../../trinkets';
 import { stoneWanted } from '../wants';
 import type { ItemType } from '../../../shared/types';
 import type { Goblin, Rock } from '../../state';
@@ -93,6 +94,7 @@ export const Mine: UtilityAction = {
     give(g, w, 'stone');
     gainXp(w, g, 'mining', CFG.skills.xp.stone);
     if (flint) give(g, w, 'flint');
+    if (w.rng.chance(CFG.trinkets.mineChance)) giveTrinket(w, g, rollRarity(w)); // P8.2: something shiny in the rubble
     w.emit({ type: 'rock_mined', goblinId: g.id, rockId: rk.id, flint, left: rk.stoneLeft });
     if (pick) wearTool(w, g, pick);
     if (rk.stoneLeft <= 0) {

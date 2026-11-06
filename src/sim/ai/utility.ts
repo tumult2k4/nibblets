@@ -56,6 +56,7 @@ import { SpreadCompost, TendCompost } from './actions/compost';
 import { PavePath } from './actions/pave';
 import { HaulToStockpile } from './actions/haul';
 import { Binge, Sulk, WanderOff } from './actions/moodBreak';
+import { Decorate, HuntTrinket } from './actions/trinkets';
 import { demandMul } from '../commons';
 import { DigClay } from './actions/digClay';
 
@@ -75,6 +76,7 @@ export const ACTIONS: Record<ActionId, UtilityAction> = {
   cull_blight: CullBlight, bury_dead: BuryDead, mourn: Mourn, hunt: Hunt, fish: Fish, dig_clay: DigClay, cook_stew: CookStew,
   tend_compost: TendCompost, spread_compost: SpreadCompost, pave_path: PavePath,
   haul_to_stockpile: HaulToStockpile, sulk: Sulk, binge: Binge, wander_off: WanderOff,
+  hunt_trinket: HuntTrinket, decorate: Decorate,
 };
 const CHOOSABLE = (Object.values(ACTIONS) as UtilityAction[]).filter((a) => !a.forced);
 
@@ -97,7 +99,8 @@ export function scoreActions(g: Goblin, w: World, noise = true, planned: ActionI
   const rows: ScoreRow[] = [];
   for (const a of CHOOSABLE) {
     if (!stageAtLeast(g.lifeStage, a.minStage) || !a.isAvailable(g, w)) continue;
-    if (g.moodBreak && a.tags.some((t) => t === 'work' || t === 'social' || t === 'fun')) continue; // P8.1: no work, company or play on a break
+    // P8.1: no work, company or play on a break (finding itself food still counts)
+    if (g.moodBreak && !a.tags.includes('food') && a.tags.some((t) => t === 'work' || t === 'social' || t === 'fun')) continue;
     let base = a.score(g, w);
     // §7.4 focus: the planner's chosen step gets ×1.5 and a floor so low-scoring steps (explore) still happen
     const fo = planned === a.id ? CFG.planner.focus : 1;

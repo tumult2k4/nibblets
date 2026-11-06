@@ -3,6 +3,11 @@
  * breaks and inspiration. Ticks are sim ticks (10 a second); a day is 3600.
  */
 export const MOOD = {
+  /** needs (hunger, thirst, energy, curiosity; warmth only aches): ±0.35 a point either side of 50, −15 more under 15 */
+  needs: { lift: 0.35, ache: 0.35, dire: 15, curiosityAche: 0.35, curiosityDire: 15 },
+  /** real hardship on top (held while it lasts): starving or parched (under 10) −40, freezing (warmth under 10) −35,
+   * exhausted (energy under 5) −15; together, or with a loss, they bring a break */
+  hardship: { starving: [10, -40], parched: [10, -40], freezing: [10, -35], exhausted: [5, -15], ticks: 300 },
   /** work speed ×0.7 at −100, ×1 at 0, ×1.2 at +100 */
   work: { low: 0.7, high: 1.2 },
   /** everyday modifiers: a favorite food (+6, half a day), a full moon for the pious (+3 for the night), cold rain on

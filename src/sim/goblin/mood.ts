@@ -15,8 +15,9 @@ import type { ItemType } from '../../shared/types';
 import type { Goblin } from '../state';
 import type { World } from '../world';
 import { twinOf } from './traits';
+import { shelfCount } from '../trinkets';
 
-const M = CFG.mood, DAY = CFG.time.dayTicks;
+const M = CFG.mood, SH = CFG.trinkets.shelf, DAY = CFG.time.dayTicks;
 
 /** Grieving (P6.4): some loss still weighs `grievingAt` or more. */
 const grieving = (g: Goblin): boolean => g.mood.modifiers.some((m) => m.amount <= -CFG.death.grievingAt && m.id.startsWith('grief:'));
@@ -54,26 +55,38 @@ export function updateMood(w: World): void {
   }
 }
 
-/** The full moon on a pious goblin's night; cold rain on an unsheltered one. */
+/** Starving, parched, freezing, exhausted; the full moon on a pious goblin's night; cold rain on an unsheltered one; a decorated home to sleep in. */
 function everyday(w: World, g: Goblin): void {
   const c = w.clock;
   if (isNight(c) && Math.abs(c.moonPhase - 0.5) < M.moon.within && g.personality.piety > M.moon.piety && !g.mood.modifiers.some((m) => m.id === 'full_moon'))
     addMood(w, g, 'full_moon', M.moon.amount, DAY / 3);
   if (w.s.tick % 50 !== 0) return;
+  const H = M.hardship, n = g.needs;
+  if (n.hunger < H.starving[0]) holdMood(w, g, 'starving', H.starving[1], H.ticks);
+  if (n.thirst < H.parched[0]) holdMood(w, g, 'parched', H.parched[1], H.ticks);
+  if (n.warmth < H.freezing[0]) holdMood(w, g, 'freezing', H.freezing[1], H.ticks);
+  if (n.energy < H.exhausted[0]) holdMood(w, g, 'exhausted', H.exhausted[1], H.ticks);
   const k = weatherAt(w, g.pos);
-  if ((k === 'rain' || k === 'storm') && g.needs.warmth < M.rain.warmthBelow && !shelterOf(w, g)) holdMood(w, g, 'cold_rain', M.rain.amount, M.rain.ticks);
+  if ((k === 'rain' || k === 'storm') && n.warmth < M.rain.warmthBelow && !shelterOf(w, g)) holdMood(w, g, 'cold_rain', M.rain.amount, M.rain.ticks);
+  // P8.2: sleeping under a shelf of trinkets, +2 each (six at most) for the day after
+  const shelf = g.activity.action === 'sleep_home' ? Math.min(SH.max, shelfCount(g, w)) : 0;
+  if (shelf) holdMood(w, g, 'decorated_home', shelf * SH.moodPer, SH.moodDays * DAY);
 }
 
+/**
+ * Where mood is heading (§7.5): each need above or below half full, a desperate one (under 15) more; then company,
+ * play for the young, safety, and every modifier (real hardship among them, see `everyday`).
+ */
 export function moodTarget(g: Goblin): number {
-  const n = g.needs;
+  const n = g.needs, N = M.needs;
   let v = 0;
-  for (const k of ['hunger', 'thirst', 'energy', 'curiosity'] as const) {
-    v += (n[k] - 50) * 0.35;
-    if (n[k] < 15) v -= 15;
-  }
-  // warmth only hurts: being cold is miserable, being warm is merely normal
-  v += Math.min(0, n.warmth - 50) * 0.35;
-  if (n.warmth < 15) v -= 15;
+  const need = (x: number, ache: number, dire: number, lift: number = N.lift): void => {
+    v += x >= 50 ? (x - 50) * lift : (x - 50) * ache;
+    if (x < 15) v -= dire;
+  };
+  for (const k of ['hunger', 'thirst', 'energy'] as const) need(n[k], N.ache, N.dire);
+  need(n.curiosity, N.curiosityAche, N.curiosityDire);
+  need(n.warmth, N.ache, N.dire, 0); // warmth only hurts: being warm is merely normal
   // company (P5.1): loneliness weighs, good company lifts a little
   v += (n.social - 50) * CFG.social.moodMul;
   if (n.social < 15) v -= 10;

@@ -72,7 +72,7 @@ interface Row {
   garden: string;
   /** P7.5: day the material zone was marked, units hauled, mean demand (food/weapons/housing/repair), cloaks/necklaces/paints made */
   commons: string;
-  /** P8.1: mean mood, breaks (tantrum/sulk/binge/wander), inspirations */
+  /** P8.1–P8.2: mean mood, breaks (tantrum/sulk/binge/wander), inspirations, trinkets found / given / on shelves */
   mood: string;
 }
 
@@ -109,8 +109,10 @@ function runSeed(seed: number): Row {
   const com = { zoneDay: -1, hauled: 0, made: { fur_cloak: 0, bone_necklace: 0, war_paint: 0 } as Record<string, number>, demand: [0, 0, 0, 0], samples: 0 };
   const econ = { fish: 0, casts: 0, clay: 0, cooked: 0, made: { fishing_rod: 0, bucket: 0, pot: 0 }, kilns: 0, kilnDay: -1 };
   const eaten: Record<string, number> = {};
-  const md = { sum: 0, n: 0, breaks: { tantrum: 0, sulk: 0, binge: 0, wander_off: 0 } as Record<string, number>, inspired: 0 };
+  const md = { sum: 0, n: 0, breaks: { tantrum: 0, sulk: 0, binge: 0, wander_off: 0 } as Record<string, number>, inspired: 0, found: 0, given: 0 };
   w.bus.subscribe((e) => {
+    if (e.type === 'trinket_found') md.found++;
+    if (e.type === 'trinket_given') md.given++;
     if (e.type === 'mood_break') md.breaks[e.kind]!++;
     if (e.type === 'inspired') md.inspired++;
     if (e.type === 'fell_ill') ill[e.disease] = (ill[e.disease] ?? 0) + 1;
@@ -235,7 +237,7 @@ function runSeed(seed: number): Row {
     rites: `${rites.buried}/${rites.mounds}/${rites.mourned}`,
     disasters: `${dis.flood}/${dis.drought}/${dis.blight} (culled ${dis.culled})/${dis.star}${dis.floodLost ? ` huts lost ${dis.floodLost}` : ''}`,
     econ: `${econ.fish}/${econ.casts} clay ${econ.clay} cooked ${econ.cooked} rods/buckets/pots ${econ.made.fishing_rod}/${econ.made.bucket}/${econ.made.pot} kilns ${econ.kilns}${econ.kilnDay < 0 ? '' : ' (day ' + econ.kilnDay + ')'}`,
-    mood: `avg ${(md.sum / Math.max(1, md.n)).toFixed(0)} breaks ${Object.values(md.breaks).join('/')} inspired ${md.inspired}`,
+    mood: `avg ${(md.sum / Math.max(1, md.n)).toFixed(0)} breaks ${Object.values(md.breaks).join('/')} inspired ${md.inspired} trinkets found/given/shelved ${md.found}/${md.given}/${w.s.buildings.reduce((k, b) => k + b.decoration.length, 0)}`,
     commons: `zone ${com.zoneDay < 0 ? '—' : 'day ' + com.zoneDay} hauled ${com.hauled} demand ${com.demand.map((d) => (d / Math.max(1, com.samples)).toFixed(2)).join('/')} cloaks/necklaces/paints ${Object.values(com.made).join('/')}`,
     garden: `heaps ${w.s.buildings.filter((b) => b.type === 'compost_heap' && b.buildProgress >= 1).length} plots ${w.s.buildings.filter((b) => b.type === 'garden_plot' && b.buildProgress >= 1).length} in ${w.s.plants.filter((p) => inGarden(w.s, p.pos)).length} compost ${gard.compost}/${gard.spread} paved ${w.s.tiles.filter((t) => t.paved).length} spans ${w.s.buildings.filter((b) => b.type === 'bridge' && b.buildProgress >= 1).length} worn@20 ${gard.worn20}`,
     settle: `hearths ${w.s.buildings.filter((b) => b.type === 'hearth' && b.buildProgress >= 1).length} stews ${settle.stews} ${['longhouse', 'well', 'nursery'].map((k) => `${k} ${settle.done[k] === undefined ? '—' : 'day ' + settle.done[k]}`).join(' ')} nurseryEggs ${settle.nurseryEggs}`,

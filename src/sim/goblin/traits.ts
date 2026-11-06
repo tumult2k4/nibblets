@@ -11,6 +11,7 @@
  *   (40 % of any mood swing of 4 or more, mood.ts).
  * `grudge_holder` (its grudges never fade, social.ts) is earned through theft and pranks (P8).
  * `returned` (P6.6): brought back from the grave by the god → piety +0.3 for life; it comes on top of the other three.
+ * `hoarder` (P8.2): owns 8 trinkets → values trinkets twice as much (trinkets.ts) and hunts for more.
  */
 import { CFG } from '../config';
 import { clamp, q4 } from '../../shared/math';
@@ -19,7 +20,7 @@ import type { World } from '../world';
 
 const T = CFG.traits;
 
-export type TraitId = 'veteran' | 'scarred' | 'green_thumb' | 'orphan' | 'twin' | 'grudge_holder' | 'returned';
+export type TraitId = 'veteran' | 'scarred' | 'green_thumb' | 'orphan' | 'twin' | 'grudge_holder' | 'returned' | 'hoarder';
 
 export interface TraitDef {
   /** earned when this holds (checked hourly); traits without one are given by events */
@@ -38,6 +39,7 @@ export const TRAITS: Record<TraitId, TraitDef> = {
   twin: {},
   grudge_holder: {},
   returned: { personality: { piety: T.returnedPiety } },
+  hoarder: { earn: (g) => g.trinkets.length >= T.hoarderTrinkets, actions: { hunt_trinket: T.hoarderHunt } },
 };
 export const TRAIT_IDS = Object.keys(TRAITS) as TraitId[];
 
