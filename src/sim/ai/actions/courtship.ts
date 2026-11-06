@@ -18,6 +18,8 @@ import { addItem, takeOne } from '../../inventory';
 import { spawnGroundItem } from '../../groundItems';
 import { ambientWarmth, nestSpot } from '../../eggs';
 import { homeOf } from './home';
+import { nurseryNear, nurseryNest } from '../../settlement';
+import type { Building } from '../../state';
 import { charm } from '../../clothing';
 
 const F = CFG.family;
@@ -104,6 +106,12 @@ export const Court: UtilityAction = {
   },
 };
 
+/** Where the egg goes: a nest in the nursery when there is one within reach of home (P7.3), else by the door. */
+const layingSpot = (w: World, home: Building) => {
+  const n = nurseryNear(w.s, home.pos);
+  return n ? nurseryNest(w.s, n) : nestSpot(home);
+};
+
 export const LayEgg: UtilityAction = {
   id: 'lay_egg', tags: ['rest'], minStage: 'adult', interruptible: (g) => g.activity.stage === 0,
   isAvailable: (g, w) => !pressed(g) && !!canLay(g, w),
@@ -112,7 +120,8 @@ export const LayEgg: UtilityAction = {
     const b = homeOf(g, w);
     if (!b) return false;
     g.activity.targetId = b.id;
-    return planPath(w, g, nestSpot(b));
+    g.activity.target = layingSpot(w, b);
+    return planPath(w, g, g.activity.target);
   },
   step(g, w) {
     const a = g.activity;
@@ -127,7 +136,7 @@ export const LayEgg: UtilityAction = {
     if (--a.progress > 0) return 'running';
     const m = canLay(g, w);
     if (!m) return 'failed';
-    layEggs(w, g, m, nestSpot(b));
+    layEggs(w, g, m, a.target ?? nestSpot(b));
     for (const p of [g, m]) addMood(w, p, 'new_egg', F.eggMood, DAY);
     return 'done';
   },

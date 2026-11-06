@@ -9,6 +9,10 @@ export const EN7 = {
   'recipe.fishing_rod': 'Fishing rod', 'recipe.kiln': 'Kiln', 'recipe.bucket': 'Bucket', 'recipe.pot': 'Clay pot', 'bld.kiln': 'Kiln',
   'act.fish': 'Fishing', 'act.dig_clay': 'Digging clay',
   'ev.first_fish': '{name} caught the village\'s first fish.',
+  'recipe.hearth': 'Hearth', 'recipe.longhouse': 'Longhouse', 'recipe.well': 'Well', 'recipe.nursery': 'Nursery',
+  'bld.hearth': 'Hearth', 'bld.longhouse': 'Longhouse', 'bld.well': 'Well', 'bld.nursery': 'Nursery', 'act.cook_stew': 'Cooking stew',
+  'ev.hearth_built': '{name}\'s home has a hearth now.', 'ev.longhouse_built': 'The village raised a longhouse. Eight can sleep under its roof.',
+  'ev.first_stew': '{name} cooked the village\'s first stew.',
 };
 
 export const DE7: Record<keyof typeof EN7, string> = {
@@ -21,4 +25,8 @@ export const DE7: Record<keyof typeof EN7, string> = {
   'recipe.fishing_rod': 'Angel', 'recipe.kiln': 'Brennofen', 'recipe.bucket': 'Eimer', 'recipe.pot': 'Tontopf', 'bld.kiln': 'Brennofen',
   'act.fish': 'Angelt', 'act.dig_clay': 'Gräbt Lehm',
   'ev.first_fish': '{name} hat den ersten Fisch des Dorfes gefangen.',
+  'recipe.hearth': 'Herd', 'recipe.longhouse': 'Langhaus', 'recipe.well': 'Brunnen', 'recipe.nursery': 'Kinderstube',
+  'bld.hearth': 'Herd', 'bld.longhouse': 'Langhaus', 'bld.well': 'Brunnen', 'bld.nursery': 'Kinderstube', 'act.cook_stew': 'Kocht Eintopf',
+  'ev.hearth_built': '{name}s Heim hat jetzt einen Herd.', 'ev.longhouse_built': 'Das Dorf hat ein Langhaus errichtet. Acht finden darin Platz zum Schlafen.',
+  'ev.first_stew': '{name} hat den ersten Eintopf des Dorfes gekocht.',
 };

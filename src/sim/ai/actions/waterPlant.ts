@@ -4,6 +4,7 @@ import { dist, q4 } from '../../../shared/math';
 import { needUrgency } from '../../goblin/needs';
 import { moveAlong, planPath, faceToward } from '../../steering';
 import { findDryPlant, nearestShores } from '../targets';
+import { wellSpot, wells } from '../../settlement';
 import type { UtilityAction } from '../action';
 import type { Goblin } from '../../state';
 import { gainXp, skillLevel, skillSpeed } from '../../goblin/skills';
@@ -25,7 +26,7 @@ export const WaterPlant: UtilityAction = {
     const p = findDryPlant(g, w);
     if (!p) return false;
     g.activity.targetId = p.id;
-    const shore = nearestShores(g, w, 3).find((s) => planPath(w, g, s));
+    const shore = [...wells(w.s).map((b) => wellSpot(b, g.id)), ...nearestShores(g, w, 3)].sort((a, b) => dist(a, g.pos) - dist(b, g.pos)).find((s) => planPath(w, g, s));
     if (!shore) return false;
     g.activity.target = shore;
     return true;

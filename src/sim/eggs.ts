@@ -11,6 +11,7 @@ import type { World } from './world';
 import { airAt } from './temperature';
 import { litFireNear } from './fire';
 import { bodyWarm, hatch } from './goblin/family';
+import { inNursery } from './settlement';
 
 const F = CFG.family;
 const DAY = CFG.time.dayTicks;
@@ -33,6 +34,7 @@ export function nestSpot(b: Building): Vec2 {
 
 /** Warmth without a parent's body (0..1): the air, plus a roof, plus a fire's glow. */
 export function ambientWarmth(w: World, egg: Egg): number {
+  if (inNursery(w.s, egg.pos)) return 1; // P7.3: the nursery keeps its eggs warm (§13.3)
   const air = clamp((airAt(w, egg.pos) - F.coldAir) / F.airSpan, 0, F.airMax);
   return q4(air + (eggShelter(w, egg.pos) ? F.shelterWarmth : 0) + (litFireNear(w, egg.pos, F.fireRange) ? F.fireWarmth : 0));
 }

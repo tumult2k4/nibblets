@@ -6,12 +6,14 @@
  * stone, starts turning its hut into a stone hut. TendFire keeps the campfires fed from the pack or spare stock.
  */
 import { CFG } from '../../config';
+import { foodStores } from '../../spoilage';
 import { dist, q4 } from '../../../shared/math';
 import { addItem, countItem, removeItems } from '../../inventory';
 import { needUrgency } from '../../goblin/needs';
 import { moveAlong, planPath } from '../../steering';
 import { deposit, withdraw } from '../../stockpile';
-import { buildingDef, findCommunalSite, isComplete, placeBlueprint, startUpgrade, workSpot } from '../../buildings';
+import { buildingDef, findCommunalSite, findSite, isComplete, placeBlueprint, startUpgrade, workSpot } from '../../buildings';
+import { hearthOf, hearthSite, isHome, wantsLonghouse, wantsNursery, wantsWell } from '../../settlement';
 import { fenceSites, ringRadius, wantsFence } from '../../fences';
 import { knows } from '../../recipes';
 import { knowsFact } from '../../knowledge';
@@ -45,7 +47,7 @@ export function villageNeeds(w: World): BuildingType[] {
   needCache = { tick: w.s.tick, w, out };
   // any finished home counts (P7.2 balance: a village that had turned every hut to stone stopped planning stations)
   const roofed = w.s.buildings.some((b) => (buildingDef(b.type)?.capacity ?? 0) > 0 && isComplete(b));
-  const fire = campfires(w).length > 0;
+  const fire = campfires(w).some((b) => b.type === 'campfire');
   if (!fire && roofed) out.push('campfire');
   if (wantsFence(w)) out.push('fence');
   if (wantsGate(w)) out.push('gate');
@@ -57,6 +59,10 @@ export function villageNeeds(w: World): BuildingType[] {
     const mine = w.s.buildings.filter((b) => b.type === t);
     if (mine.length < want[t] && !mine.some((b) => !isComplete(b)) && hasSite(w, t)) out.push(t);
   }
+  // P7.3: a well when the water is a walk away, a nursery once there are eggs or couples, a longhouse when the huts fill
+  if (wantsWell(w.s) && hasSite(w, 'well')) out.push('well');
+  if (wantsNursery(w.s) && hasSite(w, 'nursery')) out.push('nursery');
+  if (wantsLonghouse(w.s) && hasSite(w, 'longhouse')) out.push('longhouse');
   return out;
 }
 
@@ -84,8 +90,19 @@ export function upgradeJob(g: Goblin, w: World): Building | null {
   return Object.entries(cost).every(([t, n]) => spareStock(w, t as ItemType) >= n) ? home : null;
 }
 
+/** Own finished home with no hearth yet, for a goblin who knows how (by day; one hearth going up at a time). */
+export function hearthJob(g: Goblin, w: World): { home: Building; site: Vec2 } | null {
+  if (!knows(g, 'hearth') || !isDaytime(w.clock)) return null;
+  const home = homeOf(g, w);
+  if (!home || !isHome(home) || !isComplete(home) || !home.occupants.includes(g.id) || hearthOf(w.s, home)) return null;
+  if (w.s.buildings.some((b) => b.type === 'hearth' && !isComplete(b)) || foodStores(w.s).days < CFG.settlement.hearth.planDays) return null;
+  const site = hearthSite(w, home);
+  return site ? { home, site } : null;
+}
+
 function siteFor(w: World, type: BuildingType): Vec2 | null {
   if (type === 'fence') return fenceSites(w, 1)[0] ?? null;
+  if (type === 'longhouse') return findSite(w, type, w.s.village.center);
   if (type === 'gate') return gateSite(w);
   if (type === 'watchtower') return towerSite(w);
   return findCommunalSite(w, type, (STATIONS as readonly string[]).includes(type) ? STATION_RADIUS : undefined);
@@ -95,15 +112,20 @@ const onRing = (t: BuildingType | null): boolean => t === 'fence' || t === 'gate
 export const PlanBuilding: UtilityAction = {
   id: 'plan_building', tags: ['work'], minStage: 'adult', interruptible: true,
   isAvailable: (g, w) => {
-    if (upgradeJob(g, w)) return true;
+    if (upgradeJob(g, w) || hearthJob(g, w)) return true;
     return !!villageNeed(w, g) && !othersDoing(g, w, 'plan_building');
   },
-  score: (g, w) => (upgradeJob(g, w) ? 0.35 : villageNeed(w, g) === 'fence' ? 0.24 : 0.3) * (1 - busy(g)),
+  score: (g, w) => (upgradeJob(g, w) ? 0.35 : hearthJob(g, w) ? CFG.settlement.hearth.planScore : villageNeed(w, g) === 'fence' ? 0.24 : 0.3) * (1 - busy(g)),
   start(g, w) {
     const up = upgradeJob(g, w);
     if (up) {
       g.activity.targetId = up.id;
       return planPath(w, g, workSpot(w.s, up, g));
+    }
+    const h = hearthJob(g, w); // P7.3: a hearth against its own home's wall
+    if (h) {
+      Object.assign(g.activity, { targetId: h.home.id, target: h.site, count: 1 });
+      return planPath(w, g, { x: h.site.x + 0.5, y: h.site.y + 1.2 });
     }
     const type = villageNeed(w, g);
     const site = type && siteFor(w, type);
@@ -115,6 +137,13 @@ export const PlanBuilding: UtilityAction = {
     if (moveAlong(w, g) !== 'arrived') return 'running';
     needCache.tick = -1; // look again: someone may have just marked it out
     w.emit({ type: 'emote', goblinId: g.id, emote: 'idea' });
+    if (g.activity.count === 1) {
+      const h = hearthJob(g, w);
+      if (!h) return 'failed';
+      const b = placeBlueprint(w, 'hearth', h.site, g.id);
+      b.data = { home: h.home.id };
+      return 'done';
+    }
     if (g.activity.targetId !== null) {
       const up = upgradeJob(g, w);
       if (!up) return 'failed';

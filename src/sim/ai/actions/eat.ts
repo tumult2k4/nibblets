@@ -45,7 +45,10 @@ function eatStep(g: Goblin, w: World, pick: () => ItemStack | undefined): StepRe
   w.s.stats.eaten += 1;
   if (one.divine) w.s.stats.divineFood += 1;
   if (one.divine) addMood(w, g, 'sky_food', 3, 1800);
-  sharedMeal(w, g);
+  // P7.3: a stew warms the heart, and more so eaten together
+  const stew = one.type === 'stew' ? CFG.settlement.stew : null;
+  if (stew) addMood(w, g, 'ate_stew', stew.mood, stew.moodDays * CFG.time.dayTicks);
+  sharedMeal(w, g, stew?.social ?? 0);
   sicken(w, g, one.type);
   if (rotten) exposeTo(w, g, 'gut_rot', CFG.health.rottenGutRot);
   if (one.type === 'fish' || one.type === 'meat') exposeTo(w, g, 'gut_rot', CFG.economy.rawGutRot); // eaten raw (P7.2)

@@ -104,7 +104,7 @@ function post(g: Goblin, w: World): Vec2 {
   const tower = freeTower(g, w);
   g.activity.targetId = tower?.id ?? null;
   if (tower) return { ...tower.pos };
-  const fire = campfires(w).find(isLit);
+  const fire = campfires(w).find((b) => b.type === 'campfire' && isLit(b));
   const c = fire?.pos ?? w.s.village.stockpilePos;
   const ang = g.id * 2.39996;
   return { x: q4(c.x + Math.cos(ang) * C.guardRadius), y: q4(c.y + Math.sin(ang) * C.guardRadius) };

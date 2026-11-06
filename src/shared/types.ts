@@ -156,7 +156,7 @@ export type SimEvent = BaseEvent &
     // P7.2: a cast that landed a fish (or didn't), clay dug, raw fish or meat cooked at a campfire
     | { type: 'fish_caught'; goblinId: ID; caught: boolean; first?: boolean }
     | { type: 'clay_dug'; goblinId: ID; qty: number }
-    | { type: 'food_cooked'; goblinId: ID; item: ItemType; qty: number }
+    | { type: 'food_cooked'; goblinId: ID; item: ItemType; qty: number; first?: boolean }
     // P6.6 powers: the ground shakes, the god's flood, a goblin back from the grave, one brought forth in a beam of light
     | { type: 'earthquake'; r: number }
     | { type: 'god_flood'; tiles: number; r: number }

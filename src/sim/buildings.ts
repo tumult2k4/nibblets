@@ -179,7 +179,7 @@ export function addLabor(w: World, g: Goblin, b: Building): boolean {
 export function completeBuilding(w: World, b: Building, finisher: ID | null): void {
   b.buildProgress = 1;
   b.storage = []; // construction materials are used up; the storage now belongs to the building
-  if (b.type === 'campfire') b.fuel = CFG.fire.startFuel; // lit with its kindling
+  if (b.type === 'campfire' || b.type === 'hearth') b.fuel = CFG.fire.startFuel; // lit with its kindling
   if (b.type === 'fence' || b.type === 'gate') w.s.terrainVersion += 1; // enemy (and, for a gate, goblin) paths change
   for (const k of Object.keys(b.data ?? {})) {
     if (!k.startsWith('w')) continue;

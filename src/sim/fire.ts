@@ -16,8 +16,11 @@ import type { World } from './world';
 
 const F = CFG.fire;
 
-export const isLit = (b: Building): boolean => b.type === 'campfire' && isComplete(b) && (b.fuel ?? 0) > 0;
-export const campfires = (w: World): Building[] => w.s.buildings.filter((b) => b.type === 'campfire');
+/** Fires that burn fuel: the campfire, and from P7.3 the hearth (just as contained). */
+export const isFireplace = (b: Building): boolean => b.type === 'campfire' || b.type === 'hearth';
+export const isLit = (b: Building): boolean => isFireplace(b) && isComplete(b) && (b.fuel ?? 0) > 0;
+/** Every campfire and hearth (to tend). */
+export const campfires = (w: World): Building[] => w.s.buildings.filter(isFireplace);
 
 /** Nearest lit campfire within `r`, if any. */
 export function litFireNear(w: World, pos: Vec2, r: number): Building | null {
@@ -64,7 +67,7 @@ export function addFuel(b: Building, item: FuelItem, n: number): number {
 }
 
 /** Wants tending: low on fuel (or out). */
-export const needsFuel = (b: Building): boolean => b.type === 'campfire' && isComplete(b) && (b.fuel ?? 0) < F.tendBelow;
+export const needsFuel = (b: Building): boolean => isFireplace(b) && isComplete(b) && (b.fuel ?? 0) < F.tendBelow;
 
 /** §6 step 5b: fires burn down (faster in bad weather); torches burn one use per in-game hour of night. */
 export function updateFires(w: World): void {
@@ -72,7 +75,8 @@ export function updateFires(w: World): void {
   if (s.tick % F.every === 0)
     for (const b of s.buildings) {
       if (!isLit(b)) continue;
-      b.fuel = Math.max(0, b.fuel! - F.every * (F.weatherBurn[weatherAt(w, b.pos)] ?? 1));
+      const burn = b.type === 'hearth' ? CFG.settlement.hearth.burn : (F.weatherBurn[weatherAt(w, b.pos)] ?? 1);
+      b.fuel = Math.max(0, b.fuel! - F.every * burn);
       if (b.fuel === 0) w.emit({ type: 'campfire_out', buildingId: b.id, at: b.pos });
     }
   if (s.tick % CFG.god.hourTicks === 0 && isNight(w.clock))

@@ -39,7 +39,8 @@ export function shelterOf(w: World, g: Goblin): Building | null {
   if (g.airborne) return null;
   for (const b of w.s.buildings) {
     if (b.buildProgress < 1 || !T.shelter[b.type]) continue;
-    if (Math.hypot(g.pos.x - b.pos.x, g.pos.y - b.pos.y) <= T.shelterRadius) return b;
+    // (a longhouse is three tiles long: its far beds are further from the middle)
+    if (Math.hypot(g.pos.x - b.pos.x, g.pos.y - b.pos.y) <= Math.max(T.shelterRadius, b.footprint.w * 0.47)) return b;
   }
   return null;
 }

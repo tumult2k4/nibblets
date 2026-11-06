@@ -5,6 +5,8 @@ import { DEATH } from './cfg/death';
 import { MIRACLES } from './cfg/miracles';
 import { WILDLIFE } from './cfg/wildlife';
 import { ECONOMY } from './cfg/economy';
+import { BUILDINGS } from './cfg/buildings';
+import { SETTLEMENT } from './cfg/settlement';
 
 export const CFG = {
   tickHz: 10,
@@ -77,27 +79,7 @@ export const CFG = {
     heatwaveThirstMul: 1.8, rainHydration: 1, rainHydrationFollow: 6, maxCells: 4, windJitter: 0.8,
   },
   /** P3.3 buildings (§10.1–10.2); shelter warmth lives in `temperature.shelter` */
-  buildings: {
-    defs: {
-      hut: { cost: { wood: 6 } as Record<string, number>, footprint: 2, hp: 100, capacity: 2, storage: 6 },
-      campfire: { cost: { wood: 2, stone: 1 } as Record<string, number>, footprint: 1, hp: 40, capacity: 0, storage: 0 },
-      fence: { cost: { wood: 1 } as Record<string, number>, footprint: 1, hp: 40, capacity: 0, storage: 0, labor: 8 },
-      stone_hut: { cost: { stone: 6 } as Record<string, number>, footprint: 2, hp: 220, capacity: 3, storage: 8, labor: 2.5 },
-      // P5.6 preservation: storage = what the rack holds per batch / what the pit keeps cool
-      grinding_stone: { cost: { stone: 3 } as Record<string, number>, footprint: 1, hp: 80, capacity: 0, storage: 0, labor: 3 },
-      drying_rack: { cost: { wood: 3, rope: 2 } as Record<string, number>, footprint: 1, hp: 30, capacity: 0, storage: 12, labor: 3 },
-      storage_pit: { cost: { stone: 2 } as Record<string, number>, footprint: 1, hp: 120, capacity: 0, storage: 160, labor: 1.2 },
-      // P5.7 workbench, watchtower and gate (§11.1)
-      workbench: { cost: { wood: 4, stone: 2 } as Record<string, number>, footprint: 1, hp: 60, capacity: 0, storage: 0, labor: 2 },
-      watchtower: { cost: { wood: 8, rope: 2 } as Record<string, number>, footprint: 1, hp: 70, capacity: 0, storage: 0, labor: 1.2 },
-      gate: { cost: { wood: 2, rope: 1 } as Record<string, number>, footprint: 1, hp: 50, capacity: 0, storage: 0, labor: 4 },
-      // P7.2 kiln (§11.1): fires clay goods
-      kiln: { cost: { clay: 6, stone: 4 } as Record<string, number>, footprint: 1, hp: 120, capacity: 0, storage: 0, labor: 2 },
-    } as Record<string, { cost: Record<string, number>; footprint: number; hp: number; capacity: number; storage: number; labor?: number }>,
-    buildRate: 0.002, skillBonus: 0.15, friendBonus: 1.3, workChunk: 300,
-    siteRadius: 14, maxSlope: 0.06, waterPref: [4, 10] as [number, number], hutSpacing: [3.6, 7] as [number, number],
-    occupiedCost: 4,
-  },
+  buildings: BUILDINGS,
   /** P3.5 planner goal stack (§7.4) */
   planner: { focus: 1.5, floor: 0.25, maxDepth: 4, abandonUrgency: 0.85, abandonTicks: 300, groundSearch: 20 },
   /** P3.8 nature & weather powers (§17.5.2): cells last 2 h; Warm Sun +15 °C; Snowfall chills its cell to −2 °C */
@@ -294,7 +276,7 @@ export const CFG = {
   health: HEALTH,
   /** P6.2–P6.3 fire, floods, drought, blight, shooting stars: see cfg/disasters.ts */
   disasters: DISASTERS,
-  death: DEATH, miracles: MIRACLES, wildlife: WILDLIFE, economy: ECONOMY,
+  death: DEATH, miracles: MIRACLES, wildlife: WILDLIFE, economy: ECONOMY, settlement: SETTLEMENT,
   llm: { diariesPerDay: 3, dialoguesPerDay: 4, barksPerDay: 6, tokensPerDay: 12000, rpm: 10, concurrency: 2, timeoutMs: 20000 },
   god: {
     startFavor: 50, maxFavorBase: 100, maxFavorPerBeliever: 15, believerFaith: 40, prayingFavorMul: 3,

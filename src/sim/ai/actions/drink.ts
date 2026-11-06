@@ -4,6 +4,7 @@ import { needUrgency } from '../../goblin/needs';
 import { moveAlong, planPath, faceToward } from '../../steering';
 import { distanceFalloff } from '../considerations';
 import { waterTargets } from '../targets';
+import { atWell } from '../../settlement';
 import type { UtilityAction } from '../action';
 
 /** Walk to the nearest shore and drink. */
@@ -34,11 +35,15 @@ export const Drink: UtilityAction = {
       if (moveAlong(w, g) !== 'arrived') return 'running';
       a.stage = 1;
       a.progress = CFG.goblin.drinkTicks;
-      // face the water
+      // face the water (or the well)
       const t = a.target!;
-      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, -1], [1, -1], [-1, 1]] as const) {
-        const tile = w.s.tiles[Math.floor(t.y + dy) * w.s.size.w + Math.floor(t.x + dx)];
-        if (tile?.biome === 'water') { faceToward(g, { x: t.x + dx, y: t.y + dy }); break; }
+      const well = atWell(w.s, t);
+      if (well) faceToward(g, { x: well.pos.x + 0.5, y: well.pos.y + 0.5 });
+      else {
+        for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, -1], [1, -1], [-1, 1]] as const) {
+          const tile = w.s.tiles[Math.floor(t.y + dy) * w.s.size.w + Math.floor(t.x + dx)];
+          if (tile?.biome === 'water') { faceToward(g, { x: t.x + dx, y: t.y + dy }); break; }
+        }
       }
     }
     a.progress -= 1;

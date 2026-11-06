@@ -5,6 +5,7 @@ import { visionRadius } from './considerations';
 import { isShore, tileAt } from '../grid';
 import { CFG } from '../config';
 import { isGrowing, siteOk } from '../plants';
+import { wellSpot, wells } from '../settlement';
 import type { ID, Vec2 } from '../../shared/types';
 
 const FAR = 48;
@@ -118,5 +119,11 @@ export function waterTargets(g: Goblin, k: number, w: World): Vec2[] {
   const known = g.memory.filter((m) => m.kind === 'water' && isShore(w.s, m.pos.x, m.pos.y))
     .map((m) => ({ p: m.pos, d: Math.hypot(m.pos.x - g.pos.x, m.pos.y - g.pos.y) }))
     .sort((a, b) => a.d - b.d).slice(0, k).map((x) => x.p);
-  return known.length ? known : nearestShores(g, w, k);
+  const out = known.length ? known : nearestShores(g, w, k);
+  // P7.3: a well counts too, as a little closer than it is (no bank to scramble down)
+  const ws = wells(w.s).map((b) => wellSpot(b, g.id));
+  if (!ws.length) return out;
+  const d = (p: Vec2, bonus: number): number => Math.hypot(p.x - g.pos.x, p.y - g.pos.y) - bonus;
+  return [...ws.map((p) => ({ p, d: d(p, CFG.settlement.well.bonus) })), ...out.map((p) => ({ p, d: d(p, 0) }))]
+    .sort((a, b) => a.d - b.d).slice(0, k).map((x) => x.p);
 }

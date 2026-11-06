@@ -65,6 +65,8 @@ interface Row {
   wild: string; foods: string;
   /** P7.2: fish landed / casts, clay dug, food cooked, rods/buckets/pots made, kilns (day of the first) */
   econ: string;
+  /** P7.3: hearths, stews cooked, longhouse / well / nursery (day finished), eggs laid in the nursery */
+  settle: string;
 }
 
 function control0(): boolean { return noCraft || noPreserve; }
@@ -95,6 +97,7 @@ function runSeed(seed: number): Row {
   const rites = { buried: 0, mounds: 0, mourned: 0 };
   const watch = new DisasterWatch(w);
   const wild = { kills: 0, throws: 0, slings: 0, slingDay: -1, nibbled: 0 };
+  const settle = { stews: 0, nurseryEggs: 0, done: {} as Record<string, number> };
   const econ = { fish: 0, casts: 0, clay: 0, cooked: 0, made: { fishing_rod: 0, bucket: 0, pot: 0 }, kilns: 0, kilnDay: -1 };
   const eaten: Record<string, number> = {};
   w.bus.subscribe((e) => {
@@ -108,6 +111,9 @@ function runSeed(seed: number): Row {
     if (e.type === 'sprout_nibbled') wild.nibbled++;
     if (e.type === 'fish_caught') { econ.casts++; if (e.caught) econ.fish++; }
     if (e.type === 'clay_dug') econ.clay += e.qty;
+    if (e.type === 'food_cooked' && e.item === 'stew') settle.stews += e.qty;
+    if (e.type === 'building_completed' && ['longhouse', 'well', 'nursery'].includes(e.kind)) settle.done[e.kind] ??= Math.floor(w.s.tick / CFG.time.dayTicks);
+    if (e.type === 'egg_laid' && e.at && w.s.buildings.some((b) => b.type === 'nursery' && b.buildProgress >= 1 && Math.hypot(b.pos.x - e.at!.x, b.pos.y - e.at!.y) < 1.5)) settle.nurseryEggs++;
     if (e.type === 'food_cooked') econ.cooked += e.qty;
     if (e.type === 'item_crafted' && (e.item === 'fishing_rod' || e.item === 'bucket' || e.item === 'pot')) econ.made[e.item]++;
     if (e.type === 'building_completed' && e.kind === 'kiln') { econ.kilns++; if (econ.kilnDay < 0) econ.kilnDay = Math.floor(w.s.tick / CFG.time.dayTicks); }
@@ -206,6 +212,7 @@ function runSeed(seed: number): Row {
     rites: `${rites.buried}/${rites.mounds}/${rites.mourned}`,
     disasters: `${dis.flood}/${dis.drought}/${dis.blight} (culled ${dis.culled})/${dis.star}${dis.floodLost ? ` huts lost ${dis.floodLost}` : ''}`,
     econ: `${econ.fish}/${econ.casts} clay ${econ.clay} cooked ${econ.cooked} rods/buckets/pots ${econ.made.fishing_rod}/${econ.made.bucket}/${econ.made.pot} kilns ${econ.kilns}${econ.kilnDay < 0 ? '' : ' (day ' + econ.kilnDay + ')'}`,
+    settle: `hearths ${w.s.buildings.filter((b) => b.type === 'hearth' && b.buildProgress >= 1).length} stews ${settle.stews} ${['longhouse', 'well', 'nursery'].map((k) => `${k} ${settle.done[k] === undefined ? '—' : 'day ' + settle.done[k]}`).join(' ')} nurseryEggs ${settle.nurseryEggs}`,
     wildfires: `${Object.entries(fireCauses).map(([k, v]) => `${k} ${v}`).join(', ') || '—'} / ash ${w.s.tiles.filter((t) => t.ash).length} / burned ${burnedB}`,
     specialists: `${Object.entries(spec).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${k} ${n}`).join(', ') || '—'} · top ${top.toFixed(1)}`, friends,
     lost: totalDeaths, residents: founders + rare.newcomers,
@@ -223,7 +230,7 @@ const rows: Row[] = [];
 for (let i = 0; i < seedCount; i++) {
   const r = runSeed(firstSeed + i);
   rows.push(r);
-  console.log(`seed ${r.seed}: pop ${r.popEnd} (min ${r.popMin}, max ${r.popMax}) deaths ${JSON.stringify(r.deaths)} eaten ${r.eaten} bushes ${r.bushes0}→${r.bushesEnd} plantedMature ${r.plantedMature} wood ${r.wood} stone/flint/sticks ${r.stone} armed ${r.armed} fires ${r.fires} gnashers/stolen/bites/fled/killed/wounds ${r.foes} veterans ${r.veterans} huts ${r.huts} fences ${r.fences} beasts/smashed wisps/lured newcomers ${r.rare} housed@autumn ${r.housedAutumn < 0 ? '—' : Math.round(r.housedAutumn * 100) + '%'} specialists ${r.specialists} friends ${r.friends} winterStarve ${r.winterStarve} winterDeaths ${r.winterDeaths} spoiled ${r.spoiled} mash/dried ${r.preserved} generations ${r.generations} hue ${r.hue} (drift ${r.hueDrift.toFixed(1)}°) ill [${r.ill}] tended ${r.tended} remedies ${r.remedies} wildfires [${r.wildfires}] floods/droughts/blight/stars ${r.disasters} buried/mounds/mourned ${r.rites} hunted ${r.wild} fished ${r.econ} ate [${r.foods}] recovered ${r.watch.recovered}/${r.watch.judged} (worst dip ${Math.round((1 - r.watch.worst) * 100)} %)${r.watch.misses.length ? ' [' + r.watch.misses.join('; ') + ']' : ''} tick ${r.tickMs.toFixed(3)}ms ${r.fails.length ? 'FAIL ' + r.fails.join(',') : 'ok'}`);
+  console.log(`seed ${r.seed}: pop ${r.popEnd} (min ${r.popMin}, max ${r.popMax}) deaths ${JSON.stringify(r.deaths)} eaten ${r.eaten} bushes ${r.bushes0}→${r.bushesEnd} plantedMature ${r.plantedMature} wood ${r.wood} stone/flint/sticks ${r.stone} armed ${r.armed} fires ${r.fires} gnashers/stolen/bites/fled/killed/wounds ${r.foes} veterans ${r.veterans} huts ${r.huts} fences ${r.fences} beasts/smashed wisps/lured newcomers ${r.rare} housed@autumn ${r.housedAutumn < 0 ? '—' : Math.round(r.housedAutumn * 100) + '%'} specialists ${r.specialists} friends ${r.friends} winterStarve ${r.winterStarve} winterDeaths ${r.winterDeaths} spoiled ${r.spoiled} mash/dried ${r.preserved} generations ${r.generations} hue ${r.hue} (drift ${r.hueDrift.toFixed(1)}°) ill [${r.ill}] tended ${r.tended} remedies ${r.remedies} wildfires [${r.wildfires}] floods/droughts/blight/stars ${r.disasters} buried/mounds/mourned ${r.rites} hunted ${r.wild} fished ${r.econ} settle [${r.settle}] ate [${r.foods}] recovered ${r.watch.recovered}/${r.watch.judged} (worst dip ${Math.round((1 - r.watch.worst) * 100)} %)${r.watch.misses.length ? ' [' + r.watch.misses.join('; ') + ']' : ''} tick ${r.tickMs.toFixed(3)}ms ${r.fails.length ? 'FAIL ' + r.fails.join(',') : 'ok'}`);
 }
 const lines = [
   `# Balance report — ${days} days × ${seedCount} seeds${noCraft ? ' (control: no crafting)' : ''}${noPreserve ? ' (control: no preservation)' : ''}`,

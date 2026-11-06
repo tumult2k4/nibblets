@@ -104,6 +104,7 @@ export function noteFor(e: SimEvent, w: World, names: Map<ID, string>): Note | n
       if (!e.damage) return null;
       return { ...base, id: e.goblinId, text: t('ev.enemy_bit', { enemy: foe(e.enemyId), name: name(e.goblinId) }), tier: 'info', icon: 'fang' };
     case 'campfire_out':
+      if (w.s.buildings.find((b) => b.id === e.buildingId)?.type === 'hearth') return null;
       return { ...base, text: t('ev.campfire_out'), tier: 'info', icon: 'heat' };
     case 'building_placed':
       if (e.kind === 'campfire') return { ...base, text: t('ev.campfire_planned'), tier: 'info', icon: 'heat' };
@@ -115,7 +116,12 @@ export function noteFor(e: SimEvent, w: World, names: Map<ID, string>): Note | n
       if (e.kind === 'stone_hut') return { ...base, text: t('ev.stone_hut_built'), tier: 'notable', icon: 'hill' };
       if (e.kind === 'fence') return fenceJustClosed(w) ? { ...base, text: t('ev.fence_closed'), tier: 'notable', icon: 'hill' } : null;
       if (e.kind === 'gate') return { ...base, text: t('ev.gate_built'), tier: 'notable', icon: 'hill' };
-      if (e.kind === 'grinding_stone' || e.kind === 'drying_rack' || e.kind === 'storage_pit' || e.kind === 'workbench' || e.kind === 'watchtower' || e.kind === 'kiln')
+      if (e.kind === 'hearth') {
+        const owner = w.s.buildings.find((b) => b.id === e.buildingId)?.ownerId;
+        return owner != null ? { ...base, id: owner, text: t('ev.hearth_built', { name: name(owner) }), tier: 'info', icon: 'heat' } : null;
+      }
+      if (e.kind === 'longhouse') return { ...base, text: t('ev.longhouse_built'), tier: 'notable', icon: 'hill' };
+      if (e.kind === 'grinding_stone' || e.kind === 'drying_rack' || e.kind === 'storage_pit' || e.kind === 'workbench' || e.kind === 'watchtower' || e.kind === 'kiln' || e.kind === 'well' || e.kind === 'nursery')
         return { ...base, text: t('ev.preserve_built', { building: t(`bld.${e.kind}`) }), tier: 'notable', icon: e.kind === 'workbench' ? 'gear' : e.kind === 'watchtower' ? 'eye' : 'bowl' };
       return e.kind === 'hut' ? { ...base, text: t('ev.hut_built'), tier: 'notable', icon: 'hill' } : null;
     case 'building_destroyed':
@@ -189,6 +195,8 @@ export function noteFor(e: SimEvent, w: World, names: Map<ID, string>): Note | n
       return { ...base, text: t('ev.blight'), tier: 'notable', icon: 'leaf' };
     case 'critter_hunted':
       return e.killed ? { ...base, id: e.goblinId, text: t('ev.hunted', { name: name(e.goblinId) }), tier: 'info', icon: 'fang' } : null;
+    case 'food_cooked':
+      return e.first ? { ...base, id: e.goblinId, text: t('ev.first_stew', { name: name(e.goblinId) }), tier: 'notable', icon: 'bowl' } : null;
     case 'fish_caught':
       return e.first ? { ...base, id: e.goblinId, text: t('ev.first_fish', { name: name(e.goblinId) }), tier: 'notable', icon: 'fish' } : null;
     case 'blight_culled':

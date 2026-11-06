@@ -41,6 +41,11 @@ export const RECIPES: Record<RecipeId, RecipeDef> = {
   fishing_rod: { inputs: { stick: 2, fiber: 2 }, station: 'none', output: 'fishing_rod', known: false, phase: 7, ticks: 120 },
   kiln: { inputs: { clay: 6, stone: 4 }, station: 'site', building: 'kiln', known: false, phase: 7, skill: 'building', after: 'campfire' },
   bucket: { inputs: { clay: 2, wood: 1 }, station: 'kiln', output: 'bucket', known: false, phase: 7, ticks: 300, after: 'kiln' },
+  // P7.3: a hearth against a home's wall (stew), the longhouse, a well, the nursery
+  hearth: { inputs: { stone: 4, clay: 2 }, station: 'site', building: 'hearth', known: false, phase: 7, skill: 'building', after: 'campfire' },
+  longhouse: { inputs: { wood: 20, stone: 8, rope: 4 }, station: 'site', building: 'longhouse', known: false, phase: 7, skill: 'building' },
+  well: { inputs: { stone: 8, rope: 2, bucket: 1 }, station: 'site', building: 'well', known: false, phase: 7, skill: 'building' },
+  nursery: { inputs: { wood: 6, fiber: 4 }, station: 'site', building: 'nursery', known: false, phase: 7, skill: 'building' },
   pot: { inputs: { clay: 2, wood: 1 }, station: 'kiln', output: 'pot', known: false, phase: 7, ticks: 300, after: 'kiln', near: ['apple'] },
   // P7.1: a sling for hunting hoppers
   sling: { inputs: { fiber: 2, feather: 1 }, station: 'none', output: 'sling', known: false, phase: 7, ticks: 120 },

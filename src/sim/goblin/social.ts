@@ -77,12 +77,12 @@ export function addSocial(g: Goblin, amount: number): void {
 }
 
 /** A meal eaten in company (§13.1): everyone eating within reach warms to the eater, and the eater to them. */
-export function sharedMeal(w: World, g: Goblin): void {
+export function sharedMeal(w: World, g: Goblin, bonus = 0): void {
   for (const o of w.goblinHash.query(g.pos, S.mealRange)) {
     if (o.id === g.id || dist(o.pos, g.pos) > S.mealRange || (o.activity.action !== 'eat' && o.activity.action !== 'eat_core')) continue;
     mutual(w, g, o, S.sharedMeal);
-    addSocial(g, S.mealSocial);
-    addSocial(o, S.mealSocial);
+    addSocial(g, S.mealSocial + bonus);
+    addSocial(o, S.mealSocial + bonus);
   }
 }
 

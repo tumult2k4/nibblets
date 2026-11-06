@@ -69,6 +69,12 @@ function moveIn(w: World, g: Goblin, b: Building): void {
 export function bedSpot(b: Building, g: Goblin): { x: number; y: number } {
   const i = b.occupants.indexOf(g.id);
   if (i < 0 && g.lifeStage !== 'adult' && g.lifeStage !== 'elder') return { x: q4(b.pos.x + ((g.id % 3) - 1) * 0.18), y: q4(b.pos.y + 0.12) };
+  // P7.3: the longhouse's eight sleep in two rows of four along its length
+  // (one moving in heads for the next free bed)
+  if (b.type === 'longhouse') {
+    const k = (i < 0 ? b.occupants.length : i) % 8;
+    return { x: q4(b.pos.x - 0.9 + (k % 4) * 0.6), y: q4(b.pos.y + (k < 4 ? -0.45 : 0.45)) };
+  }
   return { x: q4(b.pos.x + (i % 2 === 1 ? 0.28 : -0.28)), y: q4(b.pos.y + (i > 1 ? 0.28 : -0.1)) };
 }
 
