@@ -81,6 +81,6 @@ export function cultureNote(e: SimEvent, w: World, base: { tick: number }, name:
     case 'wish_defied':
       return { ...base, id: e.goblinId, text: t('ev.wish_defied', { name: name(e.goblinId) }), tier: 'notable', icon: 'close' };
     default:
-      return clanNote(e, w, base); // P10.1
+      return clanNote(e, w, base, name); // P10.1–P10.2
   }
 }

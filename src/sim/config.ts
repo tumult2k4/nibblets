@@ -23,6 +23,7 @@ import { LLM } from './cfg/llm';
 import { PLACES } from './cfg/places';
 import { CLANS } from './cfg/clans';
 import { VISITORS } from './cfg/visitors';
+import { RAIDS } from './cfg/raids';
 
 export const CFG = {
   tickHz: 10,
@@ -178,6 +179,7 @@ export const CFG = {
   },
   enemies: {
     graceDays: 3, baseThreat: 1, rampPerDay: 0.05, newMoonMul: 1.6, fullMoonMul: 0.7, maxActive: 20, gnasher: { hp: 60, dmg: 10, speed: 2.4, fleeAt: 0.3, armor: 2 },
+    raider: RAIDS.raider, // P10.3: a rival clan's goblin come for food
     // P4.7: a rare thorny brute that tramples straight through the village, smashing what stands in its way; it only
     // turns on goblins that hit it, and only a mob of three with heavy weapons (≥ 20 dmg) within 14 tiles will take it on
     bramblebeast: {
@@ -189,7 +191,7 @@ export const CFG = {
       hp: 1, dmg: 0, speed: 0.9, fleeAt: 0, count: 2, marshRange: 30, drift: 12, seekRange: 14, seekMul: 2.2, hover: 2.5, lureRadius: 6, lureChance: 0.06,
       lureTicks: 900, lureDist: 26, followDist: 1.4, waitDist: 3, torchRadius: 3, mood: -8,
     },
-    drops: { gnasher: { pelt: 1, bone: 1 }, bramblebeast: { pelt: 2, bone: 2, wood: 3 }, night_wisp: {} } as Record<string, Record<string, number>>,
+    drops: { gnasher: { pelt: 1, bone: 1 }, bramblebeast: { pelt: 2, bone: 2, wood: 3 }, night_wisp: {}, raider: { club: 1 } } as Record<string, Record<string, number>>,
     // P4.4 director & AI
     defenseMul: 0.3, armedDefense: 0.5, fireDefense: 1, fenceDefense: 2, fogChancePerHour: 0.08, spawnMinVillageDist: 28, spawnMinGoblinDist: 16,
     decideEvery: 10, sneakMul: 0.6, stealQty: 3, loneRadius: 4, crowdFlee: 3, crowdRadius: 4, sightRange: 18, unarmedCrowd: 0.5, packCall: 10, hutBreakIn: true as boolean,
@@ -292,7 +294,7 @@ export const CFG = {
   health: HEALTH,
   /** P6.2–P6.3 fire, floods, drought, blight, shooting stars: see cfg/disasters.ts */
   disasters: DISASTERS,
-  death: DEATH, miracles: MIRACLES, wildlife: WILDLIFE, economy: ECONOMY, settlement: SETTLEMENT, garden: GARDEN, commons: COMMONS, mood: MOOD, trinkets: TRINKETS, mischief: MISCHIEF, leadership: LEADERSHIP, festivals: FESTIVALS, beliefs: BELIEFS, character: CHARACTER, faith: FAITH, divine: DIVINE, llm: LLM, places: PLACES, books: BOOKS, clans: CLANS, visitors: VISITORS,
+  death: DEATH, miracles: MIRACLES, wildlife: WILDLIFE, economy: ECONOMY, settlement: SETTLEMENT, garden: GARDEN, commons: COMMONS, mood: MOOD, trinkets: TRINKETS, mischief: MISCHIEF, leadership: LEADERSHIP, festivals: FESTIVALS, beliefs: BELIEFS, character: CHARACTER, faith: FAITH, divine: DIVINE, llm: LLM, places: PLACES, books: BOOKS, clans: CLANS, visitors: VISITORS, raids: RAIDS,
   god: {
     startFavor: 50, maxFavorBase: 100, maxFavorPerBeliever: 15, believerFaith: 40, prayingFavorMul: 3,
     offeringTrinketMul: 2, offeringFoodMul: 0.5, festivalFavor: 20, answeredPrayerFavor: 5,

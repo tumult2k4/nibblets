@@ -24,7 +24,11 @@ export function actorsOf(e: SimEvent): ID[] | null {
     case 'enemy_killed': return e.killerId !== null ? [e.killerId] : [];
     case 'enemy_bit': return [e.goblinId];
     case 'recipe_discovered': return e.goblinId !== undefined ? [e.goblinId] : null;
-    case 'recipe_learned': return e.goblinId !== undefined ? [e.goblinId, ...(e.byId !== undefined ? [e.byId] : [])] : null;
+    case 'recipe_learned': return e.goblinId !== undefined && e.via !== 'trade' ? [e.goblinId, ...(e.byId !== undefined ? [e.byId] : [])] : null; // a trade says it
+    case 'traded': return [e.goblinId, ...(e.withId !== undefined ? [e.withId] : [])];
+    case 'visitor_arrived': return [];
+    case 'clan_gift': case 'goblin_left': return [e.goblinId]; // P10.3
+    case 'clan_raid': return [];
     case 'theft': return [e.thiefId, ...(e.victimId !== null ? [e.victimId] : [])];
     case 'building_completed': return e.goblinId !== undefined ? [e.goblinId] : [];
     case 'gift_given': return [e.fromId, e.toId];

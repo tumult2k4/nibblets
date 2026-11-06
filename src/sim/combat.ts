@@ -3,6 +3,7 @@
  * skill × fine, a knockback hop, weapon wear) and the hurt side of any blow (wounds, scars, waking, death). Enemies that
  * are struck turn on their attacker unless hurt or crowded; at 0 hp they drop a pelt and a bone (and any loot).
  */
+import { raiderFell } from './clans';
 import { CFG } from './config';
 import { moodWorkMul } from './goblin/mood';
 import { clamp, dist, q4 } from '../shared/math';
@@ -91,6 +92,7 @@ export function killEnemy(w: World, e: Enemy, killer: Goblin | null): void {
   if (killer) { killer.deeds.kills++; addReputation(killer, CFG.mischief.reputation.kill); }
   if (killer && w.rng.chance(CFG.trinkets.enemyDrop)) giveTrinket(w, killer, rollRarity(w)); // P8.2: its little hoard
   foughtTogether(w, e, e.mode === 'attack' ? e.targetId : null);
+  if (e.clanId !== undefined) raiderFell(w, e.clanId); // P10.3
   w.emit({ type: 'enemy_killed', enemyId: e.id, kind: e.kind, killerId: killer?.id ?? null, at: e.pos });
 }
 

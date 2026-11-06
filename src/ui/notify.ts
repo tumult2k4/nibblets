@@ -149,7 +149,7 @@ export function noteFor(e: SimEvent, w: World, names: Map<ID, string>): Note | n
       return { ...base, id: e.goblinId, text: t(`ev.injury_${e.injury}`, { name: name(e.goblinId) }), tier: 'info', icon: 'skull' };
     case 'enemy_bit':
       if (!e.damage) return null;
-      return { ...base, id: e.goblinId, text: t('ev.enemy_bit', { enemy: foe(e.enemyId), name: name(e.goblinId) }), tier: 'info', icon: 'fang' };
+      return { ...base, id: e.goblinId, text: t(w.s.enemies.find((x) => x.id === e.enemyId)?.kind === 'raider' ? 'ev.raider_hit' : 'ev.enemy_bit', { enemy: foe(e.enemyId), name: name(e.goblinId) }), tier: 'info', icon: 'fang' };
     case 'campfire_out':
       if (w.s.buildings.find((b) => b.id === e.buildingId)?.type === 'hearth') return null;
       return { ...base, text: t('ev.campfire_out'), tier: 'info', icon: 'heat' };

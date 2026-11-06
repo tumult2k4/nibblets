@@ -134,7 +134,7 @@ function runSeed(seed: number): Row {
   const eaten: Record<string, number> = {};
   const md = { sum: 0, n: 0, breaks: { tantrum: 0, sulk: 0, binge: 0, wander_off: 0 } as Record<string, number>, inspired: 0, found: 0, given: 0 };
   const soc = { theft: 0, seen: 0, pranks: 0, sorry: 0, brawls: 0, broken: 0, chiefs: 0, changes: 0, firstChief: -1, sentences: { return: 0, apology: 0, exile: 0 }, fests: {} as Record<string, number>, came: 0, instruments: 0, built: {} as Record<string, number>, prayers: 0 };
-  const clanRaids: Record<number, number> = {};
+  const clanRaids: Record<number, number> = {}, trade = { scouts: 0, traders: 0, deals: 0, swaps: 0, got: [] as string[], gave: [] as string[], raids: 0, lost: 0, slain: 0, gifts: 0, left: 0 };
   w.bus.subscribe((e) => {
     if (e.type === 'theft') { soc.theft++; if (e.witnessIds.length) soc.seen++; }
     if (e.type === 'prank') soc.pranks++;
@@ -143,6 +143,13 @@ function runSeed(seed: number): Row {
     if (e.type === 'chief_chosen') { soc.chiefs++; if (e.previousId !== null) soc.changes++; else soc.firstChief = Math.floor(e.tick / CFG.time.dayTicks); }
     if (e.type === 'justice') soc.sentences[e.sentence]++;
     if (e.type === 'clan_raid') clanRaids[e.clanA] = (clanRaids[e.clanA] ?? 0) + 1; // P10.1
+    if (e.type === 'visitor_arrived') trade[e.kind === 'scout' ? 'scouts' : 'traders']++; // P10.2
+    if (e.type === 'clan_raid' && e.clanB === w.s.clans[0]?.id) trade.raids++; // P10.3
+    if (e.type === 'enemy_stole' && w.s.enemies.find((x) => x.id === e.enemyId)?.kind === 'raider') trade.lost += e.qty;
+    if (e.type === 'enemy_killed' && e.kind === 'raider') trade.slain++;
+    if (e.type === 'clan_gift') trade.gifts++;
+    if (e.type === 'goblin_left') trade.left++;
+    if (e.type === 'traded') { if (e.visitorId !== undefined) { trade.deals++; const g = e.got; trade.got.push(g.type ? `${g.type}×${g.qty}` : g.trinket ?? `recipe:${g.recipe}`); trade.gave.push(e.gave.type ? `${e.gave.type}×${e.gave.qty}` : e.gave.trinket ?? '?'); } else trade.swaps++; }
     if (e.type === 'festival' && e.phase === 'end') { soc.fests[e.kind] = (soc.fests[e.kind] ?? 0) + 1; soc.came += e.came ?? 0; } // P8.5
     if (e.type === 'item_crafted' && (e.item === 'drum' || e.item === 'flute')) soc.instruments++;
     if (e.type === 'building_completed' && ['music_circle', 'shrine', 'totem', 'temple', 'library_shelf'].includes(e.kind)) soc.built[e.kind] ??= Math.floor(e.tick / CFG.time.dayTicks); // P8.5–P8.6
@@ -290,7 +297,7 @@ function runSeed(seed: number): Row {
     bushes0, bushesEnd: bushCount(), planted: w.s.plants.filter((p) => p.plantedBy !== null).length, plantedMature, wood, stone, armed, fires, foes: `${foes.spawned}/${foes.stolen}/${foes.bites}/${foes.fled}/${foes.killed}/${foes.wounds}`, veterans: w.s.goblins.filter((g) => g.traits.includes('veteran')).length,
     housedAutumn, huts: w.s.buildings.filter((b) => (b.type === 'hut' || b.type === 'stone_hut') && b.buildProgress >= 1).length, weatherDeaths,
     rare: `${rare.beasts}/${rare.smashed} ${rare.wisps}/${rare.lured} ${rare.newcomers}`,
-    clans: w.s.rivals.map((c) => `${c.name} ${c.archetype} pop ${c.pop} food ${(c.store / Math.max(1, c.pop)).toFixed(1)}d fierce ${c.aggression.toFixed(2)} rel ${Math.round(c.relation)}${c.allied ? ' ally' : ''} met ${c.contact === null ? '—' : 'day ' + Math.floor(c.contact / 3600)} raids ${clanRaids[c.id] ?? 0}`).join('; '),
+    clans: w.s.rivals.map((c) => `${c.name} ${c.archetype} pop ${c.pop} food ${(c.store / Math.max(1, c.pop)).toFixed(1)}d fierce ${c.aggression.toFixed(2)} rel ${Math.round(c.relation)}${c.allied ? ' ally' : ''} met ${c.contact === null ? '—' : 'day ' + Math.floor(c.contact / 3600)} raids ${clanRaids[c.id] ?? 0}`).join('; ') + ` | scouts ${trade.scouts} traders ${trade.traders} deals ${trade.deals} swaps ${trade.swaps} got {${tally(trade.got)}} gave {${tally(trade.gave)}} raids ${trade.raids} (food lost ${trade.lost}, raiders slain ${trade.slain}) gifts ${trade.gifts} defected ${trade.left}`,
     fences: `${w.s.buildings.filter((b) => b.type === 'fence' && b.buildProgress >= 1).length}/${w.s.village.fenceRing ? ringTiles(w.s, w.s.village.fenceRing).length : 0}`,
   };
 }

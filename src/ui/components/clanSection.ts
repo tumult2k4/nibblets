@@ -10,7 +10,7 @@ import type { WorldState } from '../../sim/state';
 import { geneColor } from '../geneColor';
 import { t } from '../i18n';
 
-const DAY = CFG.time.dayTicks, NAMED = ['contact', 'raided', 'was_raided', 'allied', 'ally_lost'];
+const DAY = CFG.time.dayTicks, NAMED = ['contact', 'raided', 'was_raided', 'allied', 'ally_lost', 'greet', 'trade', 'visit', 'raid', 'slain', 'gift', 'defector'];
 
 function fare(c: RivalClan): string {
   const days = c.store / Math.max(1, c.pop);
@@ -19,8 +19,8 @@ function fare(c: RivalClan): string {
 
 function newsLine(s: WorldState, n: ClanNews): string {
   const day = Math.floor(n.tick / DAY) + 1, other = s.rivals.find((o) => o.id === n.other)?.name ?? '?';
-  if (NAMED.includes(n.kind)) return t(`cnews.${n.kind}`, { day, other });
-  return t('cnews.moved', { day, delta: `${(n.delta ?? 0) > 0 ? '+' : ''}${Math.round(n.delta ?? 0)}` });
+  const delta = `${(n.delta ?? 0) > 0 ? '+' : ''}${Math.round(n.delta ?? 0)}`;
+  return t(NAMED.includes(n.kind) ? `cnews.${n.kind}` : 'cnews.moved', { day, other, delta });
 }
 
 /** −100..100 as a bar from the middle: green to the right, red to the left. */

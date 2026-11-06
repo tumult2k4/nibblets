@@ -58,17 +58,24 @@ export function goodsValue(w: World, g: Goblin | null, x: Goods): number {
   return itemDef(x.item.type).value * x.item.qty * scarce;
 }
 
-/** Can the village spare this from its store? Food beyond `spareFoodDays` days, other things beyond `keep`. */
-export function canSpare(s: WorldState, x: ItemStack): boolean {
+/** Days of food the village keeps back before it trades any away: `spareFoodDays`, and from autumn on all it needs
+ * to see the winter through. */
+export function foodKept(s: WorldState): number {
+  const c = clockAt(s.tick), left = CFG.time.daysPerSeason - c.seasonDay;
+  return V.spareFoodDays + (c.season === 'autumn' ? left + CFG.time.daysPerSeason : c.season === 'winter' ? left : 0);
+}
+
+/** Can the village spare this from its store? Food beyond what it keeps back (`foodKept`), other things beyond `keep`. */
+export function canSpare(s: WorldState, x: ItemStack, keepDays = foodKept(s)): boolean {
   const have = stockCount(s, x.type);
   if (have < x.qty) return false;
   if (!isFood(x.type)) return have - x.qty >= V.keep;
   const f = foodStores(s), eat = Math.max(1, s.goblins.length) * CFG.goblin.decayPerDay.hunger;
-  return (f.food - (itemDef(x.type).nutrition ?? 0) * x.qty) / eat >= V.spareFoodDays;
+  return (f.food - (itemDef(x.type).nutrition ?? 0) * x.qty) / eat >= keepDays;
 }
 
 /** The land's edge toward `side`: walkable tiles that lie farthest that way, the ones nearest the middle line first. */
-function doors(s: WorldState, side: Side): Vec2[] {
+export function doors(s: WorldState, side: Side): Vec2[] {
   const [dx, dy] = DIR[side], c = s.village.center, out: { p: Vec2; far: number; off: number }[] = [];
   for (let y = 1; y < s.size.h - 1; y++) for (let x = 1; x < s.size.w - 1; x++) {
     if (!isWalkable(s, x, y)) continue;
@@ -100,7 +107,7 @@ function offersFor(w: World, c: RivalClan): Offer[] {
     if (gives.length >= V.trader.offers) break;
     gives.push({ item: { type, qty } });
   }
-  const spare = s.village.stockpile.filter((x) => x.qty > 0 && x.type !== 'apple_core' && x.type !== 'redcap').map((x) => x.type);
+  const spare = s.village.stockpile.filter((x) => x.qty > 0 && itemDef(x.type).value >= 2 && x.type !== 'apple_core' && x.type !== 'redcap').map((x) => x.type); // not ash or leaves
   return gives.map((give) => {
     const ask = spare.filter((t) => t !== give.item?.type), type: ItemType = ask.length ? w.rng.pick(ask) : 'apple';
     const worth = goodsValue(w, null, give.recipe ? { trinket: 'uncommon' } : give) * w.rng.range(V.greed[0], V.greed[1]);
@@ -124,7 +131,7 @@ export function spawnVisitor(w: World, c: RivalClan, kind: VisitorKind): Visitor
     nextStroll: 0, offers: kind === 'trader' ? offersFor(w, c) : [], greeted: [], traded: 0,
   };
   visitorsOf(s).push(v);
-  w.emit({ type: 'visitor_arrived', visitorId: v.id, clanId: c.id, kind, at: { ...door } });
+  w.emit({ type: 'visitor_arrived', visitorId: v.id, clanId: c.id, kind, at: { ...spot } }); // where the village will see it
   return v;
 }
 

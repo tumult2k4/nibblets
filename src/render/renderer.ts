@@ -16,6 +16,7 @@ import { GraveViews } from './graveView';
 import { GlintViews } from './trinketMeshes';
 import { EggViews } from './eggView';
 import { GoblinViews } from './goblinView';
+import { VisitorViews } from './visitorView';
 import { Emotes } from './emotes';
 import { MusicFx } from './musicFx';
 import type { TerrainLens } from './terrainMesh';
@@ -49,6 +50,7 @@ export class Renderer {
   terrain!: TerrainMesh;
   props!: Props;
   goblins!: GoblinViews;
+  visitors!: VisitorViews;
   buildings!: BuildingViews;
   mushrooms!: MushroomViews;
   fires!: FireFx;
@@ -97,6 +99,7 @@ export class Renderer {
     this.water = makeWater(w.s);
     this.props = new Props(w);
     this.goblins = new GoblinViews(w);
+    this.visitors = new VisitorViews(w); // P10.2 strangers from the clans
     this.buildings = new BuildingViews(w);
     this.mushrooms = new MushroomViews(w);
     this.fires = new FireFx(w);
@@ -112,9 +115,9 @@ export class Renderer {
     this.miracleFx.reduced = this.weatherFx.reduced;
     this.music = new MusicFx(w); // P8.5 notes in the player's color
     this.music.reducedMotion = this.weatherFx.reduced;
-    this.goblins.outlines = this.settings.outlines;
+    this.goblins.outlines = this.visitors.outlines = this.settings.outlines;
     this.interp = new Interp(w);
-    this.worldGroup.add(this.terrain.group, this.water.mesh, this.props.group, this.buildings.group, this.mushrooms.group, this.goblins.group, this.weatherFx.group, this.fires.group, this.wildfire.group, this.enemies.group, this.wildlife.group, this.graves.group, this.eggs.group, this.glints.group, this.wrathFx.group, this.miracleFx.group, this.music.group);
+    this.worldGroup.add(this.terrain.group, this.water.mesh, this.props.group, this.buildings.group, this.mushrooms.group, this.goblins.group, this.visitors.group, this.weatherFx.group, this.fires.group, this.wildfire.group, this.enemies.group, this.wildlife.group, this.graves.group, this.eggs.group, this.glints.group, this.wrathFx.group, this.miracleFx.group, this.music.group);
     const c = w.s.village.center;
     this.camera.setTarget(c.x, c.y, true);
   }
@@ -134,6 +137,7 @@ export class Renderer {
       this.goblins.outlines = s.outlines;
       for (const id of [...this.goblins.views.keys()]) this.goblins.views.delete(id);
       this.goblins.group.clear();
+      this.visitors.setOutlines(s.outlines);
     }
     this.resize();
   }
@@ -227,6 +231,7 @@ export class Renderer {
     this.fires.update(this.time, this.sky.night, this.camera.target);
     this.wildfire.update(this.time, this.sky.night, this.camera.target);
     this.goblins.update(this.interp, alpha, this.time, this.sky.night, dt);
+    this.visitors.update(this.interp, alpha, this.time, this.sky.night, dt);
     this.enemies.update(this.interp, alpha, this.time, dt);
     this.wildlife.update(this.interp, alpha, this.time, dt);
     this.graves.update();
@@ -235,7 +240,7 @@ export class Renderer {
     this.wrathFx.update(dt, alpha);
     this.miracleFx.update(dt, this.time);
     this.ambientEmotes(dt);
-    this.emotes.update(dt, (id) => this.goblins.headPos(id), this.camera.dist);
+    this.emotes.update(dt, (id) => this.goblins.headPos(id) ?? this.visitors.headPos(id), this.camera.dist);
     this.music.update(this.time, dt, (id) => this.goblins.headPos(id));
     this.gl.render(this.scene, this.camera.cam);
   }

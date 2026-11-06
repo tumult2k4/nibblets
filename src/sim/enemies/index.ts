@@ -12,11 +12,13 @@ import { towerSight, towerWarning, watchtowers } from '../watch';
 import { gnasherAct, gnasherDecide } from './gnasher';
 import { bramblebeastAct, bramblebeastDecide, maybeBramblebeast } from './bramblebeast';
 import { maybeWisps, wispAct, wispDecide } from './wisp';
+import { raiderAct, raiderDecide } from './raider';
 
 const BRAIN: Record<Enemy['kind'], { decide(w: World, e: Enemy): void; act(w: World, e: Enemy): boolean }> = {
   gnasher: { decide: gnasherDecide, act: gnasherAct },
   bramblebeast: { decide: bramblebeastDecide, act: bramblebeastAct },
   night_wisp: { decide: wispDecide, act: wispAct },
+  raider: { decide: raiderDecide, act: raiderAct }, // P10.3
 };
 
 /** §6 step 9 (second half): rare arrivals, notice/alarm, decisions every 10 ticks. */

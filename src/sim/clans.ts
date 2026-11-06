@@ -19,6 +19,7 @@ import { founderGenome, type ClanArchetype } from './goblin/genetics/founders';
 import { meiosis, type Genome } from './goblin/genetics/genome';
 import { makeName } from './goblin/names';
 import { clanVisits } from './visitors';
+import { sendRaiders, wantsRaid } from './enemies/raider';
 
 const C = CFG.clans, R = C.relation, A = C.aggression, DAY = CFG.time.dayTicks, PER_DAY = DAY / C.every;
 const SEASON_TICKS = DAY * CFG.time.daysPerSeason;
@@ -41,8 +42,8 @@ export interface RivalClan {
   /** when the village met them (null: not yet), and when it will */
   contact: number | null; contactAt: number;
   pool: Genome[]; rng: number; news: ClanNews[];
-  /** P10.2: when its next trader may come */
-  nextTrader?: number;
+  /** P10.2: when its next trader may come; P10.3: its last raid on the village, the chief's last gift */
+  nextTrader?: number; lastRaid?: number; lastGift?: number;
 }
 
 const STOCKS: ClanArchetype[] = ['moss', 'ember', 'tide', 'plum'];
@@ -109,6 +110,14 @@ export function shiftRelation(w: World, c: RivalClan, delta: number, kind: strin
   alliance(w, c);
 }
 
+/** A raider of clan `clanId` fell in the village (P10.3): the clan is one fewer, and hates the village more. */
+export function raiderFell(w: World, clanId: ID): void {
+  const c = w.s.rivals.find((x) => x.id === clanId);
+  if (!c) return;
+  c.pop = Math.max(C.popMin, c.pop - 1);
+  shiftRelation(w, c, CFG.raids.slain, 'slain');
+}
+
 function alliance(w: World, c: RivalClan): void {
   const mine = w.s.clans[0]?.id ?? 0;
   if (!c.allied && c.contact !== null && c.relation >= R.ally) {
@@ -169,5 +178,6 @@ export function updateClans(w: World): void {
       w.emit({ type: 'clan_contact', clanA: c.id, clanB: s.clans[0]?.id ?? 0 });
     }
     clanVisits(w, c, met); // P10.2: the scout at first contact, traders on their days
+    if (wantsRaid(w, c)) sendRaiders(w, c); // P10.3
   }
 }

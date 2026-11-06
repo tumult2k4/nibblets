@@ -83,7 +83,7 @@ export type ActionId =
   | 'play' | 'learn' | 'teach' | 'cut_grass' | 'pick_flowers' | 'process' | 'rest_sick' | 'tend_sick' | 'extinguish_fire' | 'escape_fire' | 'cull_blight'
   | 'bury_dead' | 'mourn' | 'hunt' | 'fish' | 'dig_clay' | 'cook_stew' | 'tend_compost' | 'spread_compost' | 'pave_path' | 'haul_to_stockpile'
   | 'sulk' | 'binge' | 'wander_off' | 'hunt_trinket' | 'decorate' | 'prank' | 'steal' | 'apologize' | 'brawl' | 'judge' | 'exile'
-  | 'join_festival' | 'play_music' | 'dance' | 'pray' | 'make_offering' | 'lead_prayer' | 'shake_fist' | 'write_book' | 'read_book' | 'trade' | 'trade_visitor' | 'greet_visitor';
+  | 'join_festival' | 'play_music' | 'dance' | 'pray' | 'make_offering' | 'lead_prayer' | 'shake_fist' | 'write_book' | 'read_book' | 'trade' | 'trade_visitor' | 'greet_visitor' | 'send_gift' | 'defect';
 
 export interface ActivityState {
   action: ActionId;
@@ -124,7 +124,7 @@ export interface Relation {
 export interface LineageEntry {
   parents: [ID, ID] | null; name: string; hue: number; born: number; died: number | null;
   /** P5.8 (save v14): clan, true skin color [h, s, l] and recessive allele counts, for the family tree */
-  clan?: ID; skin?: [number, number, number]; rec?: Record<string, number>;
+  clan?: ID; skin?: [number, number, number]; rec?: Record<string, number>; /** P10.3: when it left for a rival clan, and which */ left?: number; leftTo?: ID;
 }
 export interface DeedCounters {
   eaten: number; drank: number; harvested: number; planted: number; kills: number; builds: number; gifts: number; timesHeld: number; fights: number;
@@ -212,7 +212,7 @@ export interface Enemy {
   /** has any goblin noticed it yet (one alarm per enemy) */
   seen: boolean;
   /** called down by the god (Summon Gnashers, P4.8): hunts by day for a few hours */
-  summoned?: boolean;
+  summoned?: boolean; /** P10.3: a rival clan's raider, and its looks */ clanId?: ID; genome?: import('./goblin/genetics/genome').Genome;
 }
 
 /** A remembered spot of danger (P4.8 danger lens): where, when and how bad (0.5 sighting … 2 death). */
@@ -310,7 +310,7 @@ export interface WorldState {
   /** P8.2: glints on the shore after a storm, and whether a storm is blowing that will leave some */
   glints?: Glint[]; stormWash?: boolean;
   lineage: Record<number, LineageEntry>;
-  places: unknown[]; clans: Clan[]; /** P10.1: the clans beyond the map; P10.2: their goblins on it */ rivals: import('./clans').RivalClan[]; visitors?: import('./visitors').Visitor[]; village: VillageState; god: GodState;
+  places: unknown[]; clans: Clan[]; /** P10.1: the clans beyond the map; P10.2: their goblins on it */ rivals: import('./clans').RivalClan[]; visitors?: import('./visitors').Visitor[]; /** P10.3: goblins on their way to a rival clan */ leaving?: Record<number, ID>; village: VillageState; god: GodState;
   commandLog: LoggedCommand[]; weather: WeatherState; stats: StatsSeries; llm: LlmAnnotations;
   /** creation parameters (replay rebuilds tick 0 from these) */
   genParams: import('./newWorld').GenParams;

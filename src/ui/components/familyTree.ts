@@ -184,9 +184,9 @@ export class FamilyTree implements Component {
     x.font = '11px Fredoka, sans-serif';
     x.textAlign = 'center';
     for (const n of this.nodes) {
-      const e = s.lineage[n.id]!, dead = e.died !== null;
+      const e = s.lineage[n.id]!, dead = e.died !== null, gone = !dead && e.left !== undefined; // P10.3: left for a rival clan
       const [h, sat, l] = e.skin ?? [e.hue, 0.55, 0.5];
-      x.globalAlpha = dead ? 0.45 : 1;
+      x.globalAlpha = dead ? 0.45 : gone ? 0.7 : 1;
       x.fillStyle = `hsl(${h} ${Math.round((dead ? sat * 0.4 : sat) * 100)}% ${Math.round(l * 100)}%)`;
       x.beginPath(); x.arc(n.x, n.y, R, 0, Math.PI * 2); x.fill();
       const img = dead ? null : this.portrait(n.id);
@@ -207,7 +207,7 @@ export class FamilyTree implements Component {
       x.strokeText(e.name, n.x, n.y + R + 12); // a halo, so the name reads over the lines
       x.fillStyle = '#2e2a24';
       x.fillText(e.name, n.x, n.y + R + 12);
-      if (dead) x.fillText('☠', n.x + R * 0.8, n.y - R * 0.7);
+      if (dead || gone) x.fillText(dead ? '☠' : '↗', n.x + R * 0.8, n.y - R * 0.7);
       x.globalAlpha = 1;
     }
   }

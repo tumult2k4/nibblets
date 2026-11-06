@@ -99,4 +99,20 @@ describe('event compactor (§19.3, P9.2)', () => {
       expect(JSON.stringify(c)).not.toMatch(/(cx|need|season|weather|emotion|stage)\.[a-z]/);
     }
   });
+
+  it('trade and strangers (P10.2): the clan by its name, goods with their count', () => {
+    const w = makeWorld({ size: 40 });
+    const me = spawnGoblin(w, { pos: { x: 20, y: 20 } }), pal = spawnGoblin(w, { pos: { x: 21, y: 20 } });
+    for (const g of [me, pal]) registerLineage(w.s, g);
+    const log = new EventLog(), clan = w.s.rivals[0]!;
+    at(w, log, 9, { type: 'visitor_arrived', visitorId: 900, clanId: clan.id, kind: 'trader', at: { x: 21, y: 21 } });
+    at(w, log, 10, { type: 'traded', goblinId: me.id, visitorId: 900, clanId: clan.id, gave: { type: 'apple', qty: 2 }, got: { type: 'flint', qty: 3 } });
+    at(w, log, 15, { type: 'traded', goblinId: pal.id, withId: me.id, gave: { trinket: 'crystal' }, got: { type: 'apple', qty: 4 } });
+    expect(compactDay(w.s, log, me, 0, 'en').lines).toEqual([
+      `morning — a trader of the ${clan.name} clan came`,
+      `morning — I traded apple ×2 for flint ×3 with the ${clan.name} clan`,
+      `afternoon — ${pal.name} swapped crystal with me for apple ×4`,
+    ]);
+    expect(compactDay(w.s, log, me, 0, 'de').lines[1]).toBe(`morgens — ich tauschte beim ${clan.name}-Clan Apfel ×2 gegen Feuerstein ×3`);
+  });
 });

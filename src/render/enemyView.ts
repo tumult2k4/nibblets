@@ -7,6 +7,7 @@ import { itemGeo } from './meshFactory';
 import { glowTexture } from './fireView';
 import type { Interp } from './interpolation';
 import { buildBramble, buildWisp, type KindRig } from './beastView';
+import { buildRaider } from './raiderView';
 
 const HIDE = '#3d3448', BELLY = '#5b4d63', TOOTH = '#efe6d2', SPINE = '#b4a27e';
 
@@ -82,7 +83,8 @@ function build(): Rig {
   return { root, body, head, jaw, legs, mouth, carried: '', phase: 0, hp: Infinity, hurt: 0 };
 }
 
-/** Read-only enemy views: Gnashers with a trot, a bite lunge and loot in the mouth; Bramblebeasts; wisps (beastView). */
+/** Read-only enemy views: Gnashers with a trot, a bite lunge and loot in the mouth; Bramblebeasts; wisps (beastView);
+ * raiders from the rival clans (raiderView). */
 export class EnemyViews {
   readonly group = new THREE.Group();
   private rigs = new Map<number, Rig>();
@@ -102,7 +104,7 @@ export class EnemyViews {
       if (e.kind !== 'gnasher') {
         let k = this.others.get(e.id);
         if (!k) {
-          k = e.kind === 'bramblebeast' ? buildBramble() : buildWisp();
+          k = e.kind === 'bramblebeast' ? buildBramble() : e.kind === 'raider' ? buildRaider(e) : buildWisp();
           k.root.userData = { kind: 'enemy', id: e.id };
           this.others.set(e.id, k);
           this.group.add(k.root);

@@ -4,8 +4,10 @@
  * the policies: industrious → work ×1.1; brave → a night watch of the two bravest armed adults; sociable → more
  * festivals (P8.5); pious → the shrine first (P8.6) and quarantine; mischievous → lax about theft, earnest → strict.
  * Justice: the chief takes up a known theft by a goblin of poor name and orders it put right (the thing back, or a
- * gift and an apology) or, for the worst, two days' exile outside the village. Exiles live off the land and come back.
+ * gift and an apology) or, for the worst, two days' exile outside the village. Exiles live off the land and come back
+ * (P10.3: or go over to a rival clan).
  */
+import { maybeDefect } from './migration';
 import { CFG } from './config';
 import { clamp, dist, q4 } from '../shared/math';
 import type { ActionId, Goblin, Guilt } from './state';
@@ -29,7 +31,7 @@ export const exileRadius = (): number => CFG.world.villageRadius + J.exileDist;
 /** What an exile may still do: feed, drink and sleep rough out there, keep itself safe, roam. */
 export const EXILE_OK: ReadonlySet<ActionId> = new Set<ActionId>([
   'idle', 'wander', 'explore', 'eat', 'eat_core', 'drink', 'harvest_fruit', 'forage', 'pick_up', 'drop', 'equip', 'sleep_ground',
-  'flee', 'scatter', 'hunt', 'fish', 'hunt_trinket', 'exile', 'escape_fire', 'look_up', 'struggle', 'sulk', 'wander_off', 'rest_sick',
+  'flee', 'scatter', 'hunt', 'fish', 'hunt_trinket', 'exile', 'escape_fire', 'look_up', 'struggle', 'sulk', 'wander_off', 'rest_sick', 'defect',
 ]);
 
 // ---------------------------------------------------------------- the chief
@@ -98,6 +100,10 @@ export function updateLeadership(w: World): void {
   const t = w.s.tick, c = w.clock;
   if (t % 50 === 0) for (const g of w.s.goblins) {
     if (g.exiledUntil === undefined || g.exiledUntil > t) continue;
+    if (w.s.leaving?.[g.id] !== undefined) { // P10.3: on its way to a clan; if it cannot get away in a day, it comes home
+      if (t < g.exiledUntil + DAY) continue;
+      delete w.s.leaving[g.id];
+    } else if (maybeDefect(w, g)) continue;
     delete g.exiledUntil;
     w.emit({ type: 'exile_ended', goblinId: g.id, at: { ...g.pos } });
   }

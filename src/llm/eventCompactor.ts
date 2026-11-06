@@ -6,7 +6,7 @@
  * and language give the same lines.
  */
 import { clockAt } from '../sim/time';
-import type { ID, SimEvent } from '../shared/types';
+import type { ID, SimEvent, TradeGood } from '../shared/types';
 import type { Goblin, WorldState } from '../sim/state';
 import { tIn, type Lang } from '../ui/i18n';
 import { placesOf } from '../sim/places';
@@ -30,10 +30,13 @@ function phrase(s: WorldState, g: Goblin, e: SimEvent): [number, string, Record<
     case 'egg_hatched': return [ownChild(s, g, e.goblinId) ? 10 : 3, 'cx.hatched', { a: e.goblinId }];
     case 'egg_laid': return [e.parents.includes(g.id) ? 9 : 3, 'cx.egg_laid', { a: e.parents[0], b: e.parents[1] }];
     case 'enemy_killed': return [9, 'cx.slew', { a: e.killerId, enemy: `enemy.${e.kind}` }];
-    case 'enemy_bit': return [9, 'cx.bit', { b: e.goblinId, enemy: 'enemy.gnasher' }];
+    case 'enemy_bit': {
+      const kind = s.enemies.find((x) => x.id === e.enemyId)?.kind ?? 'gnasher';
+      return [9, kind === 'raider' ? 'cx.struck' : 'cx.bit', { b: e.goblinId, enemy: `enemy.${kind}` }];
+    }
     case 'injured': return [7, 'cx.hurt', { a: e.goblinId }];
     case 'enemy_spotted': return [4, 'cx.spotted', { a: e.goblinId, enemy: `enemy.${s.enemies.find((x) => x.id === e.enemyId)?.kind ?? 'gnasher'}` }];
-    case 'enemy_stole': return [5, 'cx.stole_enemy', { enemy: 'enemy.gnasher', item: `item.${e.item}` }];
+    case 'enemy_stole': return [5, 'cx.stole_enemy', { enemy: `enemy.${s.enemies.find((x) => x.id === e.enemyId)?.kind ?? 'gnasher'}`, item: `item.${e.item}` }];
     case 'recipe_discovered': return [8, 'cx.discovered', { a: e.goblinId ?? null, recipe: `recipe.${e.recipe}` }];
     case 'recipe_learned': return [4, 'cx.learned', { a: e.goblinId ?? null, b: e.byId ?? null, recipe: `recipe.${e.recipe}` }];
     case 'festival': return [7, 'cx.festival', { fest: `fest.${e.kind}` }];
@@ -78,9 +81,31 @@ function phrase(s: WorldState, g: Goblin, e: SimEvent): [number, string, Record<
     case 'fish_caught': return [2, 'cx.fish', { a: e.goblinId }];
     case 'food_cooked': return [1, 'cx.cooked', { a: e.goblinId, item: `item.${e.item}` }];
     case 'core_planted': return [1, 'cx.planted', { a: e.goblinId }];
+    case 'traded': { // P10.2
+      const clan = s.rivals.find((c) => c.id === e.clanId)?.name;
+      return clan ? [5, 'cx.traded_visitor', { a: e.goblinId, gave: goods(e.gave), got: goods(e.got), clan: `=${clan}` }]
+        : [4, 'cx.traded', { a: e.goblinId, b: e.withId ?? null, gave: goods(e.gave), got: goods(e.got) }];
+    }
+    case 'visitor_arrived': {
+      const clan = s.rivals.find((c) => c.id === e.clanId)?.name;
+      return clan ? [e.kind === 'scout' ? 6 : 4, `cx.visitor_${e.kind}`, { clan: `=${clan}` }] : null;
+    }
+    case 'clan_raid': { // P10.3
+      const clan = s.rivals.find((c) => c.id === e.clanA)?.name;
+      return clan && e.clanB === s.clans[0]?.id ? [9, 'cx.raid', { clan: `=${clan}` }] : null;
+    }
+    case 'clan_gift': case 'goblin_left': {
+      const clan = s.rivals.find((c) => c.id === e.clanId)?.name;
+      if (!clan) return null;
+      if (e.type === 'clan_gift') return [5, 'cx.gift_sent', { a: e.goblinId, clan: `=${clan}` }];
+      return e.why === 'defected' ? [bonded(g, e.goblinId) ? 10 : 6, 'cx.defected', { a: e.goblinId, clan: `=${clan}` }] : null;
+    }
     default: return null;
   }
 }
+
+/** Goods as a word key, with a count after a `*` ("item.flint*3"). */
+const goods = (x: TradeGood): string => (x.trinket ? `trinket.${x.trinket}` : x.recipe ? `recipe.${x.recipe}` : `item.${x.type}*${x.qty ?? 1}`);
 
 const timeOfDay = (tick: number): string => {
   const h = clockAt(tick).hour; // the day runs from 06:00 to 05:59, so its small hours are its end
@@ -100,9 +125,10 @@ function words(s: WorldState, self: ID, lang: Lang, key: string, ps: Record<stri
       const pl = placesOf(s).find((p) => p.id === Number(v.slice(1)));
       out[k] = pl ? placeName(pl, lang) : '?';
     } else if (k === 'epithet' && typeof v === 'string') out[k] = tIn(lang, v, { name: out.a ?? '' });
+    else if (typeof v === 'string' && v.startsWith('=')) out[k] = v.slice(1); // a name as it is (a clan's)
     else if (typeof v === 'string') {
-      const w = tIn(lang, v);
-      out[k] = lang === 'en' && !v.startsWith('fest.') && !v.startsWith('enemy.') ? w.toLowerCase() : w;
+      const [key, n] = v.split('*'), w = tIn(lang, key!), word = lang === 'en' && !v.startsWith('fest.') && !v.startsWith('enemy.') ? w.toLowerCase() : w;
+      out[k] = n && n !== '1' ? `${word} ×${n}` : word;
     } else out[k] = String(v ?? '');
   }
   return tIn(lang, key, out);

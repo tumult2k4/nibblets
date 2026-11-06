@@ -11,6 +11,8 @@ import { buildingBody, buildingHead } from './buildingInspector';
 import { socialTab } from './socialTab';
 import { eggBody, eggHead } from './eggInspector';
 import { graveBody, graveHead } from './graveInspector';
+import { visitorBody, visitorHead } from './visitorInspector';
+import { visitorById } from '../../../sim/visitors';
 import { chiefOf } from '../../../sim/leadership';
 import { festivalNow } from '../../../sim/festivals';
 import { villageTitle } from '../../../llm/store';
@@ -99,6 +101,13 @@ export class Inspector implements Component {
       if (fresh) this.head.replaceChildren(graveHead(gr, () => this.ctx.select(null, [])));
       const cast = this.ctx.readOnly() ? null : () => this.ctx.push({ type: 'god_cast', power: 'resurrect', pos: { ...gr.pos }, targetId: gr.id });
       this.body.replaceChildren(graveBody(gr, w, (o) => this.ctx.select('goblin', [o]), cast));
+      return;
+    }
+    if (st.selectedKind === 'visitor' && id !== undefined) { // P10.2
+      const v = visitorById(w.s, id);
+      if (!v) return this.ctx.select(null, []); // gone home
+      if (fresh) this.head.replaceChildren(visitorHead(v, w, () => this.ctx.follow(v.id), () => this.ctx.select(null, [])));
+      this.body.replaceChildren(...visitorBody(v));
       return;
     }
     if (st.selectedKind === 'building' && id !== undefined) {

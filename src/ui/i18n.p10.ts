@@ -1,4 +1,5 @@
-/** Phase 10 strings: the rival clans beyond the map (§16, P10.1), their place in the Village panel and the feed.
+/** Phase 10 strings: the rival clans beyond the map (§16, P10.1), their place in the Village panel and the feed; their
+ * scouts and traders, and trade (P10.2); raids, the chief's gifts and exiles who defect (P10.3).
  * Merged by i18n.ts. */
 export const EN10 = {
   'clans.title': 'Clans beyond the hills', 'clans.none': 'No other goblins have been seen yet.', 'clans.more': 'There may be more goblins beyond the hills.',
@@ -13,6 +14,21 @@ export const EN10 = {
   'cnews.allied': 'Became your allies on day {day}.', 'cnews.ally_lost': 'Left the alliance on day {day}.', 'cnews.moved': 'Relation {delta} on day {day}.',
   'ev.clan_contact': 'Strangers! Goblins of the {clan} clan have been seen {at}.', 'ev.clan_raid': 'News from beyond the hills: the {a} clan raided the {b} clan.',
   'ev.clan_alliance': 'The {clan} clan is now your ally!', 'ev.clan_alliance_end': 'The alliance with the {clan} clan is over.',
+  'ev.scout': 'A scout of the {clan} clan has come to look the village over.', 'ev.trader': 'A trader of the {clan} clan has come, offering {list}.',
+  'ev.trader_left': 'The {clan} trader went home.', 'ev.traded_visitor': '{name} traded {gave} for {got} with the {clan} trader.', 'ev.traded': '{name} swapped {gave} with {other} for {got}.',
+  'cnews.greet': 'Greeted warmly on day {day} ({delta}).', 'cnews.trade': 'Traded with you on day {day} ({delta}).', 'cnews.visit': 'Their trader came home pleased on day {day} ({delta}).',
+  'cx.visitor_scout': 'a scout of the {clan} clan came to look at us', 'cx.visitor_trader': 'a trader of the {clan} clan came', 'cx.traded_visitor': '{a} traded {gave} for {got} with the {clan} clan',
+  'cx.traded': '{a} swapped {gave} with {bA} for {got}',
+  'act.trade': 'Trading', 'act.trade_visitor': 'Trading with a stranger', 'act.greet_visitor': 'Greeting a stranger',
+  'visitor.scout': 'Scout', 'visitor.trader': 'Trader', 'visitor.of': '{kind} of the {clan} clan', 'visitor.offers': 'Offers', 'visitor.offer': '{give} for {want}',
+  'visitor.done': '(traded)', 'visitor.going': 'Going home', 'visitor.coming': 'Walking in', 'visitor.staying': 'Visiting until {hour}:00', 'visitor.greeted': 'Greeted by {n} goblins',
+  'visitor.recipe': 'how to make {what}', 'visitor.stance': '{stance} toward you',
+  'enemy.raider': 'Raider', 'ev.raid': 'Raiders of the {clan} clan are coming {from}!', 'ev.raid_home': 'The {clan} raiders went home with {food} food.',
+  'ev.gift_sent': '{name} took {what} to the {clan} clan as a gift from the chief.', 'ev.defected': '{name} did not come back from exile and has gone over to the {clan} clan.',
+  'cnews.raid': 'Raided your village on day {day} ({delta}).', 'cnews.slain': 'Lost a raider to you on day {day} ({delta}).', 'cnews.gift': 'Your chief sent a gift on day {day} ({delta}).',
+  'cnews.defector': 'Took in one of your exiles on day {day} ({delta}).',
+  'cx.raid': 'raiders of the {clan} clan came', 'cx.gift_sent': '{a} took a gift to the {clan} clan', 'cx.defected': '{a} left us for the {clan} clan',
+  'act.send_gift': 'Taking a gift to another clan', 'act.defect': 'Leaving for another clan', 'cx.struck': 'a {enemy} struck {bA}', 'ev.raider_hit': 'A raider clubbed {name}!',
 };
 
 export const DE10: Record<keyof typeof EN10, string> = {
@@ -28,4 +44,19 @@ export const DE10: Record<keyof typeof EN10, string> = {
   'cnews.allied': 'Wurde an Tag {day} euer Verbündeter.', 'cnews.ally_lost': 'Hat an Tag {day} das Bündnis verlassen.', 'cnews.moved': 'Beziehung {delta} an Tag {day}.',
   'ev.clan_contact': 'Fremde! Goblins vom {clan}-Clan wurden {at} gesehen.', 'ev.clan_raid': 'Nachricht von hinter den Hügeln: Der {a}-Clan hat den {b}-Clan überfallen.',
   'ev.clan_alliance': 'Der {clan}-Clan ist jetzt euer Verbündeter!', 'ev.clan_alliance_end': 'Das Bündnis mit dem {clan}-Clan ist vorbei.',
+  'ev.scout': 'Ein Kundschafter vom {clan}-Clan sieht sich das Dorf an.', 'ev.trader': 'Ein Händler vom {clan}-Clan ist da und bietet {list}.',
+  'ev.trader_left': 'Der Händler vom {clan}-Clan ist heimgegangen.', 'ev.traded_visitor': '{name} tauschte beim Händler vom {clan}-Clan {gave} gegen {got}.', 'ev.traded': '{name} tauschte mit {other} {gave} gegen {got}.',
+  'cnews.greet': 'An Tag {day} herzlich begrüßt ({delta}).', 'cnews.trade': 'Hat an Tag {day} mit euch gehandelt ({delta}).', 'cnews.visit': 'Ihr Händler kam an Tag {day} zufrieden heim ({delta}).',
+  'cx.visitor_scout': 'ein Kundschafter vom {clan}-Clan kam uns ansehen', 'cx.visitor_trader': 'ein Händler vom {clan}-Clan kam', 'cx.traded_visitor': '{a} tauschte beim {clan}-Clan {gave} gegen {got}',
+  'cx.traded': '{a} tauschte mit {bD} {gave} gegen {got}',
+  'act.trade': 'Tauscht', 'act.trade_visitor': 'Handelt mit einem Fremden', 'act.greet_visitor': 'Begrüßt einen Fremden',
+  'visitor.scout': 'Kundschafter', 'visitor.trader': 'Händler', 'visitor.of': '{kind} vom {clan}-Clan', 'visitor.offers': 'Angebote', 'visitor.offer': '{give} gegen {want}',
+  'visitor.done': '(getauscht)', 'visitor.going': 'Geht heim', 'visitor.coming': 'Kommt herein', 'visitor.staying': 'Zu Besuch bis {hour}:00 Uhr', 'visitor.greeted': 'Von {n} Goblins begrüßt',
+  'visitor.recipe': 'wie man {what} macht', 'visitor.stance': '{stance} euch gegenüber',
+  'enemy.raider': 'Plünderer', 'ev.raid': 'Plünderer vom {clan}-Clan kommen {from}!', 'ev.raid_home': 'Die Plünderer vom {clan}-Clan zogen mit {food} Essen heim.',
+  'ev.gift_sent': '{name} brachte dem {clan}-Clan {what} als Geschenk des Häuptlings.', 'ev.defected': '{name} kam nicht aus der Verbannung zurück und ist zum {clan}-Clan übergelaufen.',
+  'cnews.raid': 'Hat an Tag {day} euer Dorf überfallen ({delta}).', 'cnews.slain': 'Hat an Tag {day} einen Plünderer an euch verloren ({delta}).', 'cnews.gift': 'Euer Häuptling schickte an Tag {day} ein Geschenk ({delta}).',
+  'cnews.defector': 'Nahm an Tag {day} einen eurer Verbannten auf ({delta}).',
+  'cx.raid': 'Plünderer vom {clan}-Clan kamen', 'cx.gift_sent': '{a} brachte dem {clan}-Clan ein Geschenk', 'cx.defected': '{a} verließ uns für den {clan}-Clan',
+  'act.send_gift': 'Bringt einem Clan ein Geschenk', 'act.defect': 'Geht zu einem anderen Clan', 'cx.struck': 'ein {enemy} schlug {bA}', 'ev.raider_hit': 'Ein Plünderer hat {name} mit der Keule getroffen!',
 };

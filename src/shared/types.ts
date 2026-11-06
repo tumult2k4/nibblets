@@ -41,7 +41,7 @@ export type BuildingType =
   | 'watchtower' | 'shrine' | 'totem' | 'well' | 'garden_plot' | 'compost_heap'
   | 'nursery' | 'graveyard_marker' | 'library_shelf' | 'music_circle' | 'bridge' | 'temple';
 
-export type EnemyKind = 'gnasher' | 'bramblebeast' | 'night_wisp';
+export type EnemyKind = 'gnasher' | 'bramblebeast' | 'night_wisp' | 'raider';
 export type DeathCause =
   | 'starvation' | 'dehydration' | 'hypothermia' | 'old_age' | 'combat' | 'disease' | 'fall' | 'lightning'
   | 'fire' | 'poison' | 'drowning' | 'divine';
@@ -217,6 +217,9 @@ export type SimEvent = BaseEvent &
     | { type: 'visitor_arrived' | 'visitor_left'; visitorId: ID; clanId: ID; kind: 'scout' | 'trader' }
     /** P10.2: a deal with a visiting trader (`visitorId`) or between two goblins (`withId`) */
     | { type: 'traded'; goblinId: ID; withId?: ID; visitorId?: ID; clanId?: ID; gave: TradeGood; got: TradeGood }
+    /** P10.3: the chief's gift taken to a clan; a goblin gone to a rival clan (an exile who defected; P10.4 a marriage) */
+    | { type: 'clan_gift'; goblinId: ID; clanId: ID; gave: TradeGood }
+    | { type: 'goblin_left'; goblinId: ID; clanId: ID; why: 'defected' | 'married' }
     | { type: 'place_named'; placeId: ID } // P9.2: worded by language where shown (llm/placeNames.ts)
     | { type: 'superstition_formed' | 'superstition_faded'; omen: string; luck: string; valence: number }
     | { type: 'epithet_earned'; goblinId: ID; epithet: string; at: Vec2 }

@@ -9,7 +9,7 @@
 import { CFG } from '../../config';
 import { clamp, dist, q4 } from '../../../shared/math';
 import { allocId } from '../../../shared/ids';
-import type { ItemStack } from '../../../shared/types';
+import type { ItemStack, TradeGood } from '../../../shared/types';
 import type { Goblin, Trinket } from '../../state';
 import type { World } from '../../world';
 import type { UtilityAction } from '../action';
@@ -69,7 +69,9 @@ function strike(g: Goblin, w: World, v: Visitor, o: Offer): boolean {
   const c = clanOf(w.s, v);
   if (c && isFood(o.want.type)) c.store += ((itemDef(o.want.type).nutrition ?? 0) * o.want.qty) / CFG.goblin.decayPerDay.hunger;
   const x = o.give;
+  let got: TradeGood = {};
   if (x.item) {
+    got = { ...x.item };
     const kept = addItem(g, { ...x.item });
     if (kept < x.item.qty) spawnGroundItem(w, { type: x.item.type, qty: x.item.qty - kept }, { ...g.pos });
   } else if (x.trinket) {
@@ -78,13 +80,14 @@ function strike(g: Goblin, w: World, v: Visitor, o: Offer): boolean {
     };
     w.s.trinkets.push(t);
     g.trinkets.push(t.id);
-  } else if (x.recipe) learn(w, g, x.recipe, 'trade');
+    got = { trinket: t.kind };
+  } else if (x.recipe) { learn(w, g, x.recipe, 'trade'); got = { recipe: x.recipe }; }
   o.done = true;
   o.claimedBy = null;
   v.traded++;
   if (c) shiftRelation(w, c, V.trade, 'trade');
   addSocial(g, 10);
-  w.emit({ type: 'traded', goblinId: g.id, visitorId: v.id, clanId: v.clanId, gave: { ...o.want }, got: x.item ? { ...x.item } : x.trinket ? { trinket: x.trinket } : { ...(x.recipe ? { recipe: x.recipe } : {}) }, at: { ...g.pos } });
+  w.emit({ type: 'traded', goblinId: g.id, visitorId: v.id, clanId: v.clanId, gave: { ...o.want }, got, at: { ...g.pos } });
   w.emit({ type: 'emote', goblinId: g.id, emote: 'heart' });
   return true;
 }
@@ -247,7 +250,7 @@ export const GreetVisitor: UtilityAction = {
     if (!v || v.phase === 'going') return 'failed';
     if (a.stage === 0) {
       if (dist(g.pos, v.pos) > 1.4) {
-        if (dist(a.target ?? v.pos, v.pos) > 1.5) { a.target = { ...v.pos }; if (!planPath(w, g, v.pos)) return 'failed'; }
+        if (!a.path.length || dist(a.target ?? v.pos, v.pos) > 1.5) { a.target = { ...v.pos }; if (!planPath(w, g, v.pos)) return 'failed'; }
         moveAlong(w, g);
         return w.s.tick - a.startedTick > HOUR ? 'failed' : 'running';
       }
@@ -259,9 +262,9 @@ export const GreetVisitor: UtilityAction = {
     faceToward(g, v.pos);
     if (++a.progress < 60) return 'running';
     if (!v.greeted.includes(g.id)) {
+      const c = clanOf(w.s, v), warm = v.greeted.length * V.scout.greet < V.scout.greetMax; // the first few warm the clan
       v.greeted.push(g.id);
-      const c = clanOf(w.s, v);
-      if (c) shiftRelation(w, c, V.scout.greet, 'greet');
+      if (c && warm) shiftRelation(w, c, V.scout.greet, 'greet');
     }
     addSocial(g, 12);
     return 'done';

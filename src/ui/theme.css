@@ -232,3 +232,4 @@ table.genome td { padding: 1px 4px; border-bottom: 1px solid rgba(0,0,0,.08); }
 /* P9.7: the heavens rumble while the Voice's words are understood */
 body.rumbling canvas { filter: brightness(0.82) saturate(0.85); transition: filter .6s; }
 body canvas { transition: filter .6s; }
+.row.muted { opacity: 0.55; text-decoration: line-through; }
