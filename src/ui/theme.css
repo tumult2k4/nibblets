@@ -59,6 +59,12 @@ button { font-family: var(--font); font-size: 1em; color: var(--ink); cursor: po
 /* right inspector */
 .villagepanel { position: absolute; top: 76px; left: 80px; width: 300px; max-height: calc(100vh - 300px); overflow: auto; padding: 10px; z-index: 4; pointer-events: auto; }
 .villagepanel h2 { margin: 0; font-size: 1.2em; } .villagepanel h3 { margin: 10px 0 4px; font-size: 1em; } .villagepanel .sub { color: var(--ink-2); font-size: .9em; }
+.prayerspanel { position: absolute; top: 76px; left: 392px; width: 340px; max-height: calc(100vh - 200px); overflow: auto; padding: 10px; z-index: 5; pointer-events: auto; }
+.prayerspanel h2 { margin: 0; font-size: 1.2em; } .prayerspanel h3 { margin: 10px 0 4px; font-size: 1em; } .prayerspanel .sub { color: var(--ink-2); font-size: .85em; }
+.pr-card { display: flex; gap: 8px; align-items: flex-start; padding: 6px; margin: 6px 0; border-radius: 8px; background: rgba(255, 255, 255, .35); }
+.pr-card .portrait { width: 44px; height: 44px; border-radius: 8px; flex: none; }
+.pr-card.pr-done { background: rgba(232, 184, 74, .35); }
+.pr-buttons { display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap; } .pr-buttons .btn { padding: 2px 8px; font-size: .85em; }
 .statspanel { position: absolute; top: 76px; left: 392px; width: 348px; max-height: calc(100vh - 160px); overflow: auto; padding: 10px; z-index: 4; pointer-events: auto; }
 .statspanel h2 { margin: 0; font-size: 1.2em; } .statspanel h3 { margin: 10px 0 2px; font-size: .95em; } .statspanel .sub { color: var(--ink-2); font-size: .9em; }
 .statspanel canvas { display: block; background: rgba(255, 255, 255, .35); border-radius: 6px; }

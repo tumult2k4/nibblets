@@ -24,7 +24,16 @@ import { diseaseDef } from '../../../sim/disease';
 import { quarantined } from '../../../sim/quarantine';
 import { favoriteFood, isInspired } from '../../../sim/goblin/mood';
 import { isExiled, onWatch } from '../../../sim/leadership';
-import { withEpithet } from '../../notifyCulture';
+import { prayerText, withEpithet } from '../../notifyCulture';
+import { openPrayer } from '../../../sim/god/prayers';
+
+/** Its prayer open now (P8.8): what it asks, and how long it has left. */
+function prayerLine(g: Goblin, w: World): HTMLElement | null {
+  const p = openPrayer(g, w);
+  if (!p) return null;
+  const target = p.targetId !== undefined ? w.goblin(p.targetId)?.name : undefined;
+  return el('div.sub', { text: `${t('insp.prayer')}: ${prayerText(p.kind, g.name, target)} (${t('prayers.left', { h: Math.ceil(Math.max(0, p.expiresTick - w.s.tick) / CFG.god.hourTicks) })})` });
+}
 
 export const bar = (v: number, color = 'var(--moss)'): HTMLElement => el('div.bar', {}, el('i', { style: `width:${Math.max(0, Math.min(100, v))}%;background:${color}` }));
 const row = (label: string, v: number, shown: string, color?: string) =>
@@ -39,7 +48,7 @@ export function goblinHeader(g: Goblin, w: World, onFollow: () => void, onClose:
   return el('div.insp-head', {}, img,
     el('div', { style: 'flex:1' },
       el('h2', { text: withEpithet(g.name, g.epithet) }),
-      g.role === 'chief' ? el('div.sub.badge', { text: t('role.chief') }) : null,
+      g.role !== 'none' ? el('div.sub.badge', { text: t(`role.${g.role}`) }) : null,
       el('div.sub', { text: t('insp.age', { stage: t(`stage.${g.lifeStage}`), age: seasons }) }),
       el('div.sub', { text: t('insp.descriptor', { d: desc }) }),
       el('div', { style: 'margin-top:4px;display:flex;gap:4px' },
@@ -122,7 +131,7 @@ export function statusTab(g: Goblin, w: World): HTMLElement {
   const mood = g.mood.value;
   const mods = [...g.mood.modifiers].filter((m) => m.amount !== 0).sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount)).slice(0, 3).map((m) => `${modLabel(m.id, w)} ${m.amount > 0 ? '+' : ''}${Math.round(m.amount)}`);
   return el('div', {},
-    el('div.row', {}, el('b', { text: `${t('insp.doing')}: ` }), el('span', { text: t(`act.${g.activity.action}`) })),
+    el('div.row', {}, el('b', { text: `${t('insp.doing')}: ` }), el('span', { text: t(g.activity.action === 'pray' && g.activity.targetId === null ? 'act.pray.anywhere' : `act.${g.activity.action}`) })),
     g.goalStack.length ? el('div.row', {}, el('b', { text: `${t('insp.goal')}: ` }), el('span', { text: g.goalStack.map((e) => goalText(e.goal, w)).join(' → ') })) : null,
     el('h3', { text: t('insp.needs') }), ...needs, el('div.sub', { text: tags.join(' · ') }), ...stubs,
     el('h3', { text: t('insp.mood') }),
@@ -145,7 +154,7 @@ function skillRows(g: Goblin): HTMLElement[] {
   return rows.length ? rows : [el('div.sub', { text: t('insp.noSkills') })];
 }
 
-export function mindTab(g: Goblin): HTMLElement {
+export function mindTab(g: Goblin, w: World): HTMLElement {
   const v = g.godView;
   return el('div', {},
     el('h3', { text: t('insp.skills') }), ...skillRows(g),
@@ -156,6 +165,7 @@ export function mindTab(g: Goblin): HTMLElement {
     row(t('insp.love'), v.love, String(Math.round(v.love)), '#e57a9a'),
     row(t('insp.fear'), v.fear, String(Math.round(v.fear)), 'var(--wrath)'),
     v.angryAtGod ? el('div.sub', { text: t('insp.angryAtGod'), style: 'color:var(--apple)' }) : null,
+    prayerLine(g, w), // P8.8
     el('h3', { text: t('insp.deeds') }),
     el('div.sub', { text: t('insp.deedsLine', { e: g.deeds.eaten, d: g.deeds.drank, h: g.deeds.harvested, g: g.deeds.timesHeld }) }),
     el('div.sub', { text: t('insp.deedsLine2', { p: g.deeds.planted }) }),

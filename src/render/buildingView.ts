@@ -11,7 +11,7 @@ import { gateGeo, kilnGeo, watchtowerGeo, workbenchGeo } from './stationMeshes';
 import { hearthGeo, longhouseGeo, nurseryGeo, wellGeo } from './settlementMeshes';
 import { bridgeGeo, compostHeapGeo, gardenPlotGeo } from './gardenMeshes';
 import { offeringGroup, paintGroup, shelfGroup } from './trinketMeshes';
-import { SHRINE_TOP, musicCircleGeo, shrineGeo, totemGeo } from './cultureMeshes';
+import { SHRINE_TOP, TEMPLE_TOP, musicCircleGeo, shrineGeo, templeGeo, totemGeo } from './cultureMeshes';
 
 const HS = CFG.world.heightScale;
 const WOOD = '#9a6b3f', THATCH = '#d4a94e', DARK = '#4a3420';
@@ -90,7 +90,7 @@ const MAKERS: Partial<Record<Building['type'], () => THREE.BufferGeometry>> = {
   grinding_stone: grindingStoneGeo, drying_rack: dryingRackGeo, storage_pit: storagePitGeo,
   workbench: workbenchGeo, watchtower: watchtowerGeo, gate: () => gateGeo(1), kiln: kilnGeo,
   hearth: hearthGeo, longhouse: longhouseGeo, well: wellGeo, nursery: nurseryGeo,
-  garden_plot: gardenPlotGeo, compost_heap: compostHeapGeo, bridge: () => bridgeGeo(), music_circle: musicCircleGeo, shrine: shrineGeo, totem: totemGeo,
+  garden_plot: gardenPlotGeo, compost_heap: compostHeapGeo, bridge: () => bridgeGeo(), music_circle: musicCircleGeo, shrine: shrineGeo, totem: totemGeo, temple: templeGeo,
 };
 /** Finished-building geometry by type (huts P3.3, campfire P4.3, preservation P5.6, P5.7 stations). */
 function geoOf(type: Building['type']): THREE.BufferGeometry {
@@ -106,7 +106,7 @@ const POOL_MAT = new THREE.MeshBasicMaterial({ color: '#ffb347', transparent: tr
 
 const progressBucket = (b: Building) => (b.buildProgress >= 1 ? 10 : Math.floor(b.buildProgress * 10));
 const painted = (b: Building, tick: number): boolean => (b.data?.painted ?? 0) > tick;
-const sigOf = (b: Building, tick: number, fenceMask = 0) => `${b.type}:${progressBucket(b)}:${b.storage.map((s) => s.qty).join('.')}:${fenceMask}:${b.decoration.join('.')}:${painted(b, tick) ? 1 : 0}`;
+const sigOf = (b: Building, tick: number, fenceMask = 0, gifts = '') => `${b.type}:${progressBucket(b)}:${b.storage.map((s) => s.qty).join('.')}:${fenceMask}:${b.decoration.join('.')}:${painted(b, tick) ? 1 : 0}:${gifts}`;
 
 /** Read-only building views: translucent ghosts for blueprints, scaffolds while building, finished huts. */
 export class BuildingViews {
@@ -130,7 +130,7 @@ export class BuildingViews {
     for (const b of this.w.s.buildings) {
       seen.add(b.id);
       const mask = ringed(b) ? this.fenceMask(b, posts) : 0;
-      const sig = sigOf(b, this.w.s.tick, mask);
+      const sig = sigOf(b, this.w.s.tick, mask, b.type === 'shrine' || b.type === 'temple' ? (this.w.s.god.faith?.offerings ?? []).filter((o) => o.buildingId === b.id && o.item).length.toString() : '');
       const v = this.views.get(b.id);
       if (v && v.sig === sig) continue;
       if (v) this.group.remove(v.obj);
@@ -182,7 +182,9 @@ export class BuildingViews {
       }
       const shown = b.decoration.map((id) => this.w.s.trinkets.find((t) => t.id === id)).filter((t): t is Trinket => !!t);
       if (shown.length && (hut || b.type === 'longhouse')) g.add(shelfGroup(shown, b.type === 'longhouse')); // P8.2: the trinket shelf by the door
-      if (shown.length && b.type === 'shrine' && b.buildProgress >= 1) g.add(offeringGroup(shown, SHRINE_TOP)); // P8.6: offerings on the slab
+      const food = (this.w.s.god.faith?.offerings ?? []).filter((o) => o.buildingId === b.id && o.item).map((o) => o.item!);
+      if ((shown.length || food.length) && (b.type === 'shrine' || b.type === 'temple') && b.buildProgress >= 1) // P8.6: offerings on the slab (P8.8: food too, the temple's altar)
+        g.add(offeringGroup(shown, b.type === 'temple' ? TEMPLE_TOP : SHRINE_TOP, food, b.type === 'temple' ? -0.25 : 0));
       if (hut && painted(b, this.w.s.tick)) g.add(paintGroup(b.id)); // P8.3: a prankster's handiwork
       if (!hut) return tag(g, b);
       const win = new THREE.Mesh(WINDOW, WINDOW_MAT);

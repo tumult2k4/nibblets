@@ -1,5 +1,5 @@
 import { el, setText } from '../../dom';
-import { t } from '../../i18n';
+import { godNameText, t } from '../../i18n';
 import type { Ctx, Component } from '../../ctx';
 import { bar, bodyTab, goblinHeader, inventoryTab, mindTab, statusTab } from './goblinInspector';
 import { CFG } from '../../../sim/config';
@@ -58,7 +58,7 @@ export class Inspector implements Component {
       }
       const tab = st.inspectorTab;
       const pick = (o: number) => this.ctx.select('goblin', [o]);
-      this.body.replaceChildren(tab === 'status' ? statusTab(g, w) : tab === 'mind' ? mindTab(g) : tab === 'social' ? socialTab(g, w, pick) : tab === 'body' ? bodyTab(g, w) : inventoryTab(g, w));
+      this.body.replaceChildren(tab === 'status' ? statusTab(g, w) : tab === 'mind' ? mindTab(g, w) : tab === 'social' ? socialTab(g, w, pick) : tab === 'body' ? bodyTab(g, w) : inventoryTab(g, w));
       return;
     }
     this.tabs.replaceChildren();
@@ -127,7 +127,7 @@ export class Inspector implements Component {
     const needs = (['hunger', 'thirst', 'energy', 'curiosity'] as const).map((k) => ({ k, v: avg(k) })).sort((a, b) => a.v - b.v).slice(0, 3);
     this.head.replaceChildren(el('h2', { text: t('insp.glance') }), el('div.sub', { text: s.village.name }));
     const godLine = el('div.row');
-    setText(godLine, t('insp.glanceGod', { name: s.god.godName ?? t('insp.glanceUnnamed') }));
+    setText(godLine, t('insp.glanceGod', { name: s.god.godName ? godNameText(s.god.godName) : t('insp.glanceUnnamed') }));
     const chief = chiefOf(w);
     const fest = festivalNow(w); // P8.5
     this.body.replaceChildren(godLine, el('div.row', { text: chief ? t('village.chief', { name: chief.name }) : t('village.noChief') }),

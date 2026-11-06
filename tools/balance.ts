@@ -5,6 +5,7 @@
 import { writeFileSync } from 'node:fs';
 import { performance } from 'node:perf_hooks';
 import { createWorld } from '../src/sim/newWorld';
+import { faithTracker, tally } from './faithStats';
 import { CFG } from '../src/sim/config';
 import { express } from '../src/sim/goblin/genetics/phenotype';
 import { hueDelta } from '../src/shared/math';
@@ -89,6 +90,7 @@ const meanHue = (hs: number[]): number => {
 
 function runSeed(seed: number): Row {
   const w = createWorld({ seed });
+  const faithSummary = faithTracker(w); // P8.8
   if (noCraft) forgetCrafts(w.s.goblins);
   const founders = w.s.goblins.length;
   const bushCount = () => w.s.plants.filter((p) => p.kind === 'apple_bush' && (p.stage === 'mature' || p.stage === 'old')).length;
@@ -123,7 +125,7 @@ function runSeed(seed: number): Row {
     if (e.type === 'justice') soc.sentences[e.sentence]++;
     if (e.type === 'festival' && e.phase === 'end') { soc.fests[e.kind] = (soc.fests[e.kind] ?? 0) + 1; soc.came += e.came ?? 0; } // P8.5
     if (e.type === 'item_crafted' && (e.item === 'drum' || e.item === 'flute')) soc.instruments++;
-    if (e.type === 'building_completed' && ['music_circle', 'shrine', 'totem'].includes(e.kind)) soc.built[e.kind] ??= Math.floor(e.tick / CFG.time.dayTicks); // P8.5–P8.6
+    if (e.type === 'building_completed' && ['music_circle', 'shrine', 'totem', 'temple'].includes(e.kind)) soc.built[e.kind] ??= Math.floor(e.tick / CFG.time.dayTicks); // P8.5–P8.6
     if (e.type === 'emote' && e.emote === 'pray') soc.prayers++;
     if (e.type === 'trinket_found') md.found++;
     if (e.type === 'trinket_given') md.given++;
@@ -253,7 +255,7 @@ function runSeed(seed: number): Row {
     rites: `${rites.buried}/${rites.mounds}/${rites.mourned}`,
     disasters: `${dis.flood}/${dis.drought}/${dis.blight} (culled ${dis.culled})/${dis.star}${dis.floodLost ? ` huts lost ${dis.floodLost}` : ''}`,
     econ: `${econ.fish}/${econ.casts} clay ${econ.clay} cooked ${econ.cooked} rods/buckets/pots ${econ.made.fishing_rod}/${econ.made.bucket}/${econ.made.pot} kilns ${econ.kilns}${econ.kilnDay < 0 ? '' : ' (day ' + econ.kilnDay + ')'}`,
-    society: `thefts ${soc.theft} (seen ${soc.seen}) pranks ${soc.pranks} sorry ${soc.sorry} brawls ${soc.brawls} (broken up ${soc.broken}) opinion ${avgOp.toFixed(1)} rep ${Math.min(0, ...w.s.goblins.map((g) => g.reputation)).toFixed(0)}..${Math.max(0, ...w.s.goblins.map((g) => g.reputation)).toFixed(0)} chiefs ${soc.chiefs} (changes ${soc.changes}, first day ${soc.firstChief}) justice ${Object.values(soc.sentences).join('/')} festivals ${Object.values(soc.fests).reduce((a, b) => a + b, 0)} ${JSON.stringify(soc.fests)} came ${soc.came} instruments ${soc.instruments} built ${JSON.stringify(soc.built)} prayers ${soc.prayers} beliefs ${w.s.village.culture?.formed ?? 0}/${w.s.village.culture?.faded ?? 0} [${(w.s.village.culture?.beliefs ?? []).map((b) => `${b.omen}>${b.luck}`).join(' ')}] epithets [${w.s.goblins.map((g) => g.epithet).filter(Boolean).join(' ')}] traits [${w.s.goblins.flatMap((g) => g.traits).join(' ')}]`,
+    society: `thefts ${soc.theft} (seen ${soc.seen}) pranks ${soc.pranks} sorry ${soc.sorry} brawls ${soc.brawls} (broken up ${soc.broken}) opinion ${avgOp.toFixed(1)} rep ${Math.min(0, ...w.s.goblins.map((g) => g.reputation)).toFixed(0)}..${Math.max(0, ...w.s.goblins.map((g) => g.reputation)).toFixed(0)} chiefs ${soc.chiefs} (changes ${soc.changes}, first day ${soc.firstChief}) justice ${Object.values(soc.sentences).join('/')} festivals ${Object.values(soc.fests).reduce((a, b) => a + b, 0)} ${JSON.stringify(soc.fests)} came ${soc.came} instruments ${soc.instruments} built ${JSON.stringify(soc.built)} prayers ${soc.prayers} beliefs ${w.s.village.culture?.formed ?? 0}/${w.s.village.culture?.faded ?? 0} [${(w.s.village.culture?.beliefs ?? []).map((b) => `${b.omen}>${b.luck}`).join(' ')}] epithets ${tally(w.s.goblins.map((g) => g.epithet))} traits ${tally(w.s.goblins.flatMap((g) => g.traits))} ${faithSummary()}`,
     mood: `avg ${(md.sum / Math.max(1, md.n)).toFixed(0)} breaks ${Object.values(md.breaks).join('/')} inspired ${md.inspired} trinkets found/given/shelved ${md.found}/${md.given}/${w.s.buildings.reduce((k, b) => k + b.decoration.length, 0)}`,
     commons: `zone ${com.zoneDay < 0 ? '—' : 'day ' + com.zoneDay} hauled ${com.hauled} demand ${com.demand.map((d) => (d / Math.max(1, com.samples)).toFixed(2)).join('/')} cloaks/necklaces/paints ${Object.values(com.made).join('/')}`,
     garden: `heaps ${w.s.buildings.filter((b) => b.type === 'compost_heap' && b.buildProgress >= 1).length} plots ${w.s.buildings.filter((b) => b.type === 'garden_plot' && b.buildProgress >= 1).length} in ${w.s.plants.filter((p) => inGarden(w.s, p.pos)).length} compost ${gard.compost}/${gard.spread} paved ${w.s.tiles.filter((t) => t.paved).length} spans ${w.s.buildings.filter((b) => b.type === 'bridge' && b.buildProgress >= 1).length} worn@20 ${gard.worn20}`,

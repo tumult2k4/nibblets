@@ -1,7 +1,7 @@
 /**
  * P7.5 meshes: the fur cloak, bone necklace, war paint and ash as items, and as worn on a goblin (the cloak over the
  * shoulders and back, the necklace at the neck, the paint as stripes across the cheeks); the chief's feathered
- * headdress (P8.4).
+ * headdress (P8.4); the shaman's headdress of bone and feathers (P8.8).
  */
 import * as THREE from 'three';
 import { merge, paint, wobble } from './lowpoly';
@@ -39,8 +39,8 @@ export function adornItemGeo(t: ItemType): THREE.BufferGeometry | null {
 
 const WEAR = new Map<string, THREE.BufferGeometry>();
 /** Worn: the cloak and necklace in body-group space, the paint in head space (`hr` = head radius). */
-export function adornWearGeo(t: ItemType | 'war_paint_face' | 'chief_headdress', hr: number): THREE.BufferGeometry | null {
-  const key = t === 'war_paint_face' || t === 'chief_headdress' ? `${t}:${hr.toFixed(2)}` : t;
+export function adornWearGeo(t: ItemType | 'war_paint_face' | 'chief_headdress' | 'shaman_headdress', hr: number): THREE.BufferGeometry | null {
+  const key = t === 'war_paint_face' || t === 'chief_headdress' || t === 'shaman_headdress' ? `${t}:${hr.toFixed(2)}` : t;
   const hit = WEAR.get(key);
   if (hit) return hit;
   let g: THREE.BufferGeometry | null = null;
@@ -67,6 +67,17 @@ export function adornWearGeo(t: ItemType | 'war_paint_face' | 'chief_headdress',
         parts.push(paint(new THREE.OctahedronGeometry(hr * 0.22).scale(0.45, 1.9, 0.16).rotateY(-a + Math.PI / 2).rotateZ(Math.cos(a) * -0.35)
           .rotateX(Math.sin(a) * 0.35).translate(Math.cos(a) * r, y + hr * 0.38, Math.sin(a) * r), [WHITE, RED, '#d9a441'][i % 3]!));
       }
+      g = merge(parts);
+      break;
+    }
+    case 'shaman_headdress': { // P8.8: a skull cap of bone, two horns, and long dark feathers hanging down the back
+      const r = hr * 0.92, y = hr * 0.5, parts = [paint(new THREE.SphereGeometry(r, 8, 4, 0, Math.PI * 2, 0, Math.PI * 0.32).translate(0, y - hr * 0.2, 0), BONE, 0.05, 3)];
+      for (const s of [-1, 1]) parts.push(paint(new THREE.ConeGeometry(hr * 0.12, hr * 0.7, 5).rotateZ(-s * 0.55).translate(s * r * 0.62, y + hr * 0.42, 0), BONE, 0.05, s + 5));
+      for (let i = 0; i < 5; i++) {
+        const a = -Math.PI / 2 + ((i - 2) / 2) * 0.7;
+        parts.push(paint(new THREE.OctahedronGeometry(hr * 0.2).scale(0.4, 2.2, 0.14).rotateX(-0.5).translate(Math.cos(a) * r * 0.8, y - hr * 0.35, Math.sin(a) * r * 0.85), ['#3b3a46', '#5b4a7a', '#2e5d5a'][i % 3]!));
+      }
+      parts.push(paint(new THREE.TorusGeometry(hr * 0.08, hr * 0.03, 4, 6).translate(0, y + hr * 0.05, r * 0.9), '#d9a441')); // a gold ring on the brow
       g = merge(parts);
       break;
     }

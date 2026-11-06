@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import type { World } from '../sim/world';
 import type { Trinket } from '../sim/state';
+import type { ItemType } from '../shared/types';
+import { itemGeo } from './meshFactory';
 import { heightAt } from '../sim/grid';
 import { CFG } from '../sim/config';
 import { flatMat, hsl, merge, paint, wobble } from './lowpoly';
@@ -37,14 +39,21 @@ const SHELF = merge([
 ]);
 
 /** The trinkets laid on a shrine's top slab (P8.6), at height `top`: two rows of three. */
-export function offeringGroup(ts: readonly Trinket[], top: number): THREE.Group {
+export function offeringGroup(ts: readonly Trinket[], top: number, food: readonly ItemType[] = [], z = 0): THREE.Group {
   const g = new THREE.Group();
   g.name = 'offerings';
+  g.position.z = z;
   ts.slice(0, 6).forEach((t, i) => {
     const m = new THREE.Mesh(trinketGeo(t), flatMat);
     m.position.set(-0.13 + (i % 3) * 0.13, top, i < 3 ? 0.07 : -0.07);
     m.rotation.y = (t.id * 1.3) % Math.PI;
     m.scale.setScalar(1.3);
+    g.add(m);
+  });
+  food.slice(0, 4).forEach((f, i) => { // P8.8: food laid for the god, at the slab's ends
+    const m = new THREE.Mesh(itemGeo(f), flatMat);
+    m.position.set((i % 2 ? 1 : -1) * 0.2, top + 0.02, i < 2 ? 0.05 : -0.08);
+    m.scale.setScalar(0.8);
     g.add(m);
   });
   return g;

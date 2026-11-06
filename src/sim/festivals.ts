@@ -20,6 +20,8 @@ import type { Culture, Festival } from './cultureState';
 import type { World } from './world';
 import { villageBeliefMul } from './superstitions';
 import { drift } from './goblin/drift';
+import { consecrated } from './shrine';
+import { godTemper } from './god/devotion';
 
 const F = CFG.festivals, E = F.effects, DAY = CFG.time.dayTicks, DPS = CFG.time.daysPerSeason;
 const HELD_MAX = 40;
@@ -49,7 +51,8 @@ export const attending = (g: Goblin, f: Festival): boolean =>
   g.activity.action === 'join_festival' && g.activity.status === 'running' && g.activity.stage === 2 && dist(g.pos, f.pos) < 9;
 
 const WET: ReadonlySet<string> = new Set(['rain', 'storm', 'snow', 'blizzard']);
-/** Where a festival is held: the longhouse for the Long Dark and in rain or snow, else the campfire nearest the center, else the longhouse. */
+/** Where a festival is held: the longhouse for the Long Dark and in rain or snow, else the campfire nearest the center, else the longhouse
+ * (P8.8: the temple for Sprout Day and merrymaking). */
 export function venueFor(w: World, kind: FestivalKind): Building | null {
   const c = w.s.village.center;
   let fire: Building | null = null, house: Building | null = null;
@@ -58,7 +61,10 @@ export function venueFor(w: World, kind: FestivalKind): Building | null {
     if (b.type === 'longhouse') house ??= b;
     else if (b.type === 'campfire' && (!fire || dist(b.pos, c) < dist(fire.pos, c))) fire = b;
   }
-  return house && (kind === 'long_dark' || WET.has(w.s.weather.kind)) ? house : (fire ?? house);
+  if (house && (kind === 'long_dark' || WET.has(w.s.weather.kind))) return house;
+  // P8.8: a consecrated temple hosts Sprout Day and the merrymaking (in the god's honor: favor)
+  const temple = kind === 'sprout_day' || kind === 'merrymaking' ? w.s.buildings.find(consecrated) : undefined;
+  return temple ?? fire ?? house;
 }
 
 const heldSince = (cu: Culture, day: number, kind?: FestivalKind): boolean => (cu.held ?? []).some(([d, k]) => d >= day && (!kind || k === kind));
@@ -82,11 +88,11 @@ export function dueFestival(w: World): FestivalKind | null {
   return null;
 }
 
-/** The chance of an evening's merrymaking: times are good, nothing else lately (× the chief's festival policy, §13.6). */
+/** The chance of an evening's merrymaking: times are good, nothing else lately (× the chief's festival policy, §13.6; × 1.5 under a kind god). */
 export function merryChance(w: World): number {
   const c = w.clock;
   if (c.season === 'winter' || heldSince(cultureOf(w.s), c.day - F.merry.gapDays + 1) || foodStores(w.s).days < F.merry.minDays) return 0;
-  return F.merry.chance * (w.s.village.policies?.festivals ?? 1) * villageBeliefMul(w, 'festival');
+  return F.merry.chance * (w.s.village.policies?.festivals ?? 1) * villageBeliefMul(w, 'festival') * (godTemper(w.s) === 'kind' ? CFG.faith.alignment.festivals : 1);
 }
 
 /** Begin a festival now (if it is safe and there is somewhere to hold it). */

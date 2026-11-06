@@ -2,7 +2,9 @@
  * Culture buildings (§11.1): the music circle (P8.5), a ring of standing stones round a trampled floor with three log
  * seats inside, the village's nightly gathering spot for music (three tiles, centred); the shrine (P8.6), a cairn of
  * flat stones with a slab on top for offerings and a little bowl before it; the totem (P8.6), a carved pole of three
- * stacked faces daubed in war paint, with wings at the top, set in a ring of stones.
+ * stacked faces daubed in war paint, with wings at the top, set in a ring of stones; the temple (P8.8), an open hall on
+ * a stone floor, four carved posts under a steep thatched roof with bone horns at its ends, a stone altar inside with
+ * a bowl of embers before it (two tiles).
  */
 import * as THREE from 'three';
 import { merge, paint, wobble } from './lowpoly';
@@ -54,5 +56,28 @@ export function totemGeo(): THREE.BufferGeometry {
   parts.push(paint(new THREE.BoxGeometry(0.86, 0.07, 0.12).translate(0, 1.3, 0), '#8a6a44', 0.05, 20)); // the wings
   for (const s of [-1, 1]) parts.push(paint(new THREE.ConeGeometry(0.06, 0.16, 4).rotateZ(-s * Math.PI / 2).translate(s * 0.5, 1.3, 0), PAINTS[0]!));
   parts.push(paint(new THREE.ConeGeometry(0.13, 0.22, 6).translate(0, 1.45, 0), '#6f5236', 0.05, 21));
+  return merge(parts);
+}
+
+/** Height of the temple altar's top (the trinkets and food laid on it sit here). */
+export const TEMPLE_TOP = 0.56;
+
+export function templeGeo(): THREE.BufferGeometry {
+  const parts: THREE.BufferGeometry[] = [paint(new THREE.BoxGeometry(1.9, 0.12, 1.9).translate(0, 0.06, 0), '#8c8780', 0.05, 1)];
+  parts.push(paint(new THREE.BoxGeometry(1.2, 0.08, 0.5).translate(0, 0.04, 1.1), '#7d7a74', 0.05, 2)); // the step before it
+  for (const [x, z] of [[-0.78, -0.78], [0.78, -0.78], [-0.78, 0.78], [0.78, 0.78]] as const) {
+    parts.push(paint(wobble(new THREE.CylinderGeometry(0.08, 0.1, 1.2, 6).translate(x, 0.72, z), 0.015, x * 3 + z + 9), P.wood, 0.06, 4));
+    parts.push(paint(new THREE.BoxGeometry(0.2, 0.05, 0.05).translate(x, 0.9, z + Math.sign(z) * 0.08), PAINTS[(x > 0 ? 1 : 0) + (z > 0 ? 1 : 0)]!)); // a painted band
+  }
+  // a steep thatched roof: two slopes meeting at a ridge, gable horns of bone
+  for (const s of [-1, 1]) parts.push(paint(new THREE.BoxGeometry(1.15, 0.08, 2.15).rotateZ(-s * 0.72).translate(s * 0.42, 1.62, 0), '#b49a5c', 0.08, s + 12));
+  parts.push(paint(new THREE.BoxGeometry(0.12, 0.1, 2.25).translate(0, 2.02, 0), '#8f7743', 0.05, 15));
+  for (const z of [-1.1, 1.1]) for (const s of [-1, 1])
+    parts.push(paint(new THREE.ConeGeometry(0.05, 0.36, 5).rotateZ(-s * 0.5).translate(s * 0.1, 2.18, z), '#ede4cf'));
+  // the altar: a stone block with a slab on top, a bowl of embers before it
+  parts.push(paint(wobble(new THREE.BoxGeometry(0.62, 0.42, 0.42).translate(0, 0.33, -0.25), 0.02, 21), P.stone, 0.08, 21));
+  parts.push(paint(new THREE.BoxGeometry(0.74, 0.05, 0.5).translate(0, TEMPLE_TOP - 0.025, -0.25), '#a09c94', 0.05, 22));
+  parts.push(paint(new THREE.CylinderGeometry(0.13, 0.09, 0.09, 7).translate(0, 0.165, 0.32), '#7b5232', 0.05, 23));
+  parts.push(paint(new THREE.IcosahedronGeometry(0.07, 0).translate(0, 0.22, 0.32), '#e0703a', 0.05, 24));
   return merge(parts);
 }

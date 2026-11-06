@@ -30,6 +30,8 @@ export interface FaithState {
   lastGathering: number;
   /** meals this season, all and god-given */
   meals: { season: number; all: number; god: number };
+  /** divine acts seen, by family (hand, giver, sky, storm, light): what the god gets called */
+  acts?: Record<string, number>;
   /** favor earned so far, by source (stats and the balance runner) */
   earned: { faith: number; prayers: number; offerings: number; festivals: number; answered: number };
 }

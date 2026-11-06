@@ -2,7 +2,7 @@
  * `Chat` (§13.2, P5.1): a goblin wanting company walks up to someone free nearby (rivals refuse), the two face each
  * other and trade 4–6 lines on one topic, shown as icon bubbles. The topic comes from what is on their minds: the
  * weather, food, danger, gossip (the speaker shares its most useful memories, stale ones included), someone they both
- * know, a place, the recently dead, or a complaint. Both gain social and opinion (+2..+5, more if the topic suits the
+ * know, a place, the recently dead, or a complaint; P8.8: gossip carries news of the god (half its effect). Both gain social and opinion (+2..+5, more if the topic suits the
  * listener). The listener's side runs as the same action in `stage` 2.
  */
 import { CFG } from '../../config';
@@ -20,6 +20,7 @@ import { weatherAt } from '../../weather';
 import { airAt } from '../../temperature';
 import { dangerAt } from '../../danger';
 import { heardOfTheft } from '../../mischief';
+import { godNews, tellOfGod } from '../../god/news';
 
 const S = CFG.social;
 const DAY = CFG.time.dayTicks;
@@ -76,7 +77,7 @@ export function pickTopic(g: Goblin, o: Goblin, w: World): ChatTopic {
     ['weather', k === 'clear' || k === 'cloudy' ? (Math.abs(airAt(w, g.pos) - 15) > 12 ? 1.5 : 0.5) : 2],
     ['food', (g.needs.hunger < 50 || o.needs.hunger < 50 ? 1.5 : 0.4) + g.personality.gluttony],
     ['danger', w.s.threat.marks.some((m) => w.s.tick - m.tick < 2 * DAY) || dangerAt(w, g.pos) > 0.3 ? 2 : 0],
-    ['gossip', news(g, o).length ? 1 + g.personality.sociability : 0],
+    ['gossip', news(g, o).length || godNews(w, g, o) ? 1 + g.personality.sociability : 0],
     ['a_person', person(g, o, w) ? 1 : 0],
     ['a_place', g.memory.some((m) => m.kind === 'place') ? 0.4 + g.personality.wanderlust : 0],
     ['the_dead', recentDead(g, w).length ? 2.5 : 0],
@@ -112,6 +113,7 @@ function conclude(g: Goblin, o: Goblin, w: World, t: ChatTopic): void {
   addSocial(g, S.chatSocial);
   addSocial(o, S.chatSocial);
   if (t === 'gossip' || t === 'a_place') {
+    if (t === 'gossip') tellOfGod(w, g, o); // P8.8: what the god did lately, half as moving at second hand
     // second-hand knowledge: a little less sure, and as stale as the teller's
     for (const m of news(g, o)) {
       remember(o, w, m.kind as Parameters<typeof remember>[2], m.pos, m.data, m.targetId);

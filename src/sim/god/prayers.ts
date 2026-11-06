@@ -11,7 +11,7 @@
 import { CFG } from '../config';
 import { clamp, dist, q4 } from '../../shared/math';
 import { allocId } from '../../shared/ids';
-import type { ID, PrayerKind, SimEvent, Vec2 } from '../../shared/types';
+import type { ID, PrayerKind, SimEventInput, Vec2 } from '../../shared/types';
 import type { Goblin } from '../state';
 import type { World } from '../world';
 import { addMood } from '../goblin/mood';
@@ -39,12 +39,16 @@ const raidNear = (w: World, p: Vec2): boolean => w.s.enemies.some((e) => dist(e.
 const sickChild = (g: Goblin, w: World): Goblin | undefined => w.s.goblins.find((c) => c.parents?.includes(g.id) && isSick(c));
 const robbedBy = (g: Goblin): ID | undefined => g.memory.find((m) => m.kind === 'thief' && m.data === g.id)?.targetId;
 
-/** What `g` would pray for now. */
-export function askFor(g: Goblin, w: World): { kind: PrayerKind; targetId?: ID } {
+/** What `g` would pray for now (in despair: what drove it to it, the Gnashers if nothing else). */
+export function askFor(g: Goblin, w: World, despair = false): { kind: PrayerKind; targetId?: ID } {
+  if (despair) {
+    const n = g.needs, low = Math.min(n.hunger, n.thirst, n.warmth);
+    if (low < 30) return { kind: low === n.hunger ? 'food' : low === n.thirst ? 'water' : 'warmth' };
+  }
   if (isSick(g)) return { kind: 'healing', targetId: g.id };
   const child = sickChild(g, w);
   if (child) return { kind: 'healing', targetId: child.id };
-  if (raidNear(w, g.pos)) return { kind: 'protection' };
+  if (raidNear(w, g.pos) || (despair && w.clock.season !== 'winter')) return { kind: 'protection' };
   if (g.needs.hunger < 30 || (w.clock.season === 'winter' && foodStores(w.s).days < P.famineDays)) return { kind: 'food' };
   if (g.needs.thirst < 30) return { kind: 'water' };
   if (g.needs.warmth < 30) return { kind: 'warmth' };
@@ -78,7 +82,7 @@ export const openPrayer = (g: Goblin, w: World): Prayer | undefined => w.s.god.f
 /** `g` has prayed: its prayer stays open a day (one at a time). */
 export function offerPrayer(w: World, g: Goblin, desperateNow: boolean): Prayer | null {
   if (openPrayer(g, w)) return null;
-  const ask = askFor(g, w), s = w.s;
+  const ask = askFor(g, w, desperateNow), s = w.s;
   const p: Prayer = {
     id: allocId(s), goblinId: g.id, kind: ask.kind, at: { x: g.pos.x, y: g.pos.y }, tick: s.tick, expiresTick: s.tick + G.prayerTicks,
     ...(ask.targetId !== undefined ? { targetId: ask.targetId } : {}), ...(desperateNow ? { desperate: true } : {}),
@@ -128,7 +132,7 @@ export function answerPrayers(w: World, act: string, at: Vec2, targetId?: ID, ar
 }
 
 /** Eating food from the sky answers a prayer for food. */
-export function notePrayerEvent(w: World, e: SimEvent): void {
+export function notePrayerEvent(w: World, e: SimEventInput): void {
   if (e.type !== 'item_eaten' || !e.divine || !w.s.god.faith?.prayers.length) return;
   const g = w.goblin(e.goblinId), p = g && openPrayer(g, w);
   if (g && p?.kind === 'food') answer(w, p, g, 'eaten');

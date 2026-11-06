@@ -8,7 +8,7 @@
  */
 import { CFG } from '../config';
 import { q4 } from '../../shared/math';
-import type { SimEvent } from '../../shared/types';
+import type { SimEventInput } from '../../shared/types';
 import type { Goblin, WorldState } from '../state';
 import type { World } from '../world';
 import { holdMood } from '../goblin/mood';
@@ -66,7 +66,7 @@ export function updateDevotion(w: World): void {
 }
 
 /** Every meal counts toward the season's tally (dependence). */
-export function noteMeal(w: World, e: SimEvent): void {
+export function noteMeal(w: World, e: SimEventInput): void {
   if (e.type !== 'item_eaten') return;
   const m = faithOf(w.s).meals, season = w.clock.year * 4 + SEASONS.indexOf(w.clock.season);
   if (m.season !== season) { m.season = season; m.all = 0; m.god = 0; }

@@ -72,7 +72,12 @@ export function personalityWeight(p: Personality, action: string): number {
     case 'dance':
       return 0.5 + 0.6 * p.sociability + 0.4 * p.mischief;
     case 'pray': // P8.6
+    case 'make_offering': // P8.8
       return 0.3 + 1.4 * p.piety;
+    case 'lead_prayer':
+      return 0.6 + 0.6 * p.piety;
+    case 'shake_fist':
+      return 0.6 + 0.6 * p.mischief;
     case 'idle':
       return 1.2 - 0.6 * p.industry;
     case 'seek_shelter':

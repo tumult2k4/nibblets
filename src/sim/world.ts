@@ -23,6 +23,7 @@ import { updateReputation } from './mischief';
 import { updateLeadership } from './leadership';
 import { updateFestivals } from './festivals';
 import { noteSign, updateSuperstitions } from './superstitions';
+import { noteFaith, updateFaith } from './god/faithLoop';
 import { updateWildfire } from './wildfire';
 import { updateClimate } from './climate';
 import { updateBlight } from './blight';
@@ -83,6 +84,7 @@ export class World {
   emit(e: SimEventInput): void {
     this.bus.emit({ ...e, tick: this.s.tick } as SimEvent);
     noteSign(this, e); // omens and turns of luck for the superstitions (P8.6)
+    noteFaith(this, e); // meals, food from the sky, festivals in the god's honor (P8.8)
   }
 
   push(cmd: Command): void {
@@ -143,6 +145,7 @@ export class World {
     updateCompost(this); //   7d compost heaps turn waste into compost (P7.4)
     // 8 eggs: updateEggs (step 10b); the P4.7 newcomers are gone since P5.4
     updateGod(this); //       8b
+    updateFaith(this); //     8c faith, favor, prayers, the shaman (P8.8)
     this.goblinHash.rebuild(s.goblins);
     if (this.plantsDirty || this.plantsVersion < 0) {
       this.plantHash.rebuild(s.plants);

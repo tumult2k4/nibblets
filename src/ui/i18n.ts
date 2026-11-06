@@ -4,9 +4,10 @@ import { DE as DE0 } from './i18n.de';
 import { DE6, EN6 } from './i18n.p6';
 import { DE7, EN7 } from './i18n.p7';
 import { DE8, EN8 } from './i18n.p8';
+import { DE8B, EN8B } from './i18n.p8b';
 
-const EN = { ...EN0, ...EN6, ...EN7, ...EN8 };
-const DE: Record<string, string> = { ...DE0, ...DE6, ...DE7, ...DE8 };
+const EN = { ...EN0, ...EN6, ...EN7, ...EN8, ...EN8B };
+const DE: Record<string, string> = { ...DE0, ...DE6, ...DE7, ...DE8, ...DE8B };
 
 export type Lang = 'en' | 'de';
 export type I18nKey = keyof typeof EN;
@@ -31,4 +32,7 @@ export function t(key: I18nKey | string, params?: Record<string, string | number
 }
 
 /** Keys missing from German (used by a unit test). */
+/** The god's name as the village says it: a template id (`@giver.kind`, P8.8) worded per language, or the Voice's own. */
+export const godNameText = (name: string | null): string => (name?.startsWith('@') ? t(`godname.${name.slice(1)}`) : name ?? '');
+
 export const missingGerman = (): string[] => Object.keys(EN).filter((k) => !(k in DE));

@@ -82,6 +82,8 @@ export const RECIPES: Record<RecipeId, RecipeDef> = {
   // P8.6 (§11.1): a shrine of piled stones (its trinket is laid on by the first to pray there), a painted totem pole
   shrine: { inputs: { stone: 4 }, station: 'site', building: 'shrine', known: false, phase: 8, skill: 'building' },
   totem: { inputs: { wood: 3, war_paint: 1 }, station: 'site', building: 'totem', known: false, phase: 8, skill: 'woodcraft' },
+  // P8.8 (§17.4): the temple (its two trinkets are laid in it, not hauled)
+  temple: { inputs: { stone: 12, wood: 6 }, station: 'site', building: 'temple', known: false, phase: 8, skill: 'building' },
 };
 
 export const recipeDef = (id: RecipeId): RecipeDef | undefined => RECIPES[id];

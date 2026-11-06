@@ -10,6 +10,7 @@ import { applyReaction, reactionFor, type Reaction } from './reactions';
 
 import { noteNews } from './news';
 import { answerPrayers } from './prayers';
+import { countAct } from './shaman';
 
 export { applyReaction, reactionFor, type Reaction };
 
@@ -61,6 +62,9 @@ export function divineAct(w: World, act: DivineActKind | 'hurt', at: Vec2, targe
     if (lookUp && g.id !== targetId && !g.airborne && g.activity.action !== 'look_up') forceAction(g, w, 'look_up', at);
   }
   const ids = ws.map((g) => g.id);
+  if (ids.length) countAct(w, act);
+  // the hand's own deeds move the god's alignment too (powers carry theirs in their definitions)
+  if (act === 'hurt' || act === 'gift') w.s.god.alignment = q4(Math.max(-100, Math.min(100, w.s.god.alignment + (act === 'hurt' ? -2 : 1))));
   noteNews(w, act, at, ids, opts.reaction); // P8.8: the witnesses will talk of it
   answerPrayers(w, act, at, targetId, opts.area);
   w.emit({

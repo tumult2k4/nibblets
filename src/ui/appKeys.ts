@@ -6,7 +6,7 @@ import type { KeyHandlers } from './input';
 export function keyHandlers(app: App): KeyHandlers {
   const st = () => app.store.state;
   const inGame = () => st().screen !== 'title' && !st().overlay;
-  const panel = (k: 'inspector' | 'feed' | 'debug' | 'village' | 'family' | 'sandbox' | 'stats') => app.store.set({ openPanels: { ...st().openPanels, [k]: !st().openPanels[k] } });
+  const panel = (k: 'inspector' | 'feed' | 'debug' | 'village' | 'family' | 'sandbox' | 'stats' | 'prayers') => app.store.set({ openPanels: { ...st().openPanels, [k]: !st().openPanels[k] } });
   const speed = (i: number) => () => inGame() && app.topBar.setSpeed(i);
   return {
     pause: () => inGame() && app.topBar.setSpeed(app.game.speedIdx === 0 ? 1 : 0),
@@ -37,6 +37,7 @@ export function keyHandlers(app: App): KeyHandlers {
     inspector: () => panel('inspector'),
     feed: () => panel('feed'),
     village: () => inGame() && panel('village'),
+    prayers: () => inGame() && panel('prayers'),
     family: () => inGame() && (app.store.set({ familyFocus: null }), panel('family')),
     stats: () => inGame() && panel('stats'),
     sandbox: () => inGame() && !app.readOnly() && app.game.world.s.god.mode === 'sandbox' && panel('sandbox'),

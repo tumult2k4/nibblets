@@ -83,7 +83,7 @@ export type ActionId =
   | 'play' | 'learn' | 'teach' | 'cut_grass' | 'pick_flowers' | 'process' | 'rest_sick' | 'tend_sick' | 'extinguish_fire' | 'escape_fire' | 'cull_blight'
   | 'bury_dead' | 'mourn' | 'hunt' | 'fish' | 'dig_clay' | 'cook_stew' | 'tend_compost' | 'spread_compost' | 'pave_path' | 'haul_to_stockpile'
   | 'sulk' | 'binge' | 'wander_off' | 'hunt_trinket' | 'decorate' | 'prank' | 'steal' | 'apologize' | 'brawl' | 'judge' | 'exile'
-  | 'join_festival' | 'play_music' | 'dance' | 'pray';
+  | 'join_festival' | 'play_music' | 'dance' | 'pray' | 'make_offering' | 'lead_prayer' | 'shake_fist';
 
 export interface ActivityState {
   action: ActionId;

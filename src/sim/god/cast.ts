@@ -88,7 +88,7 @@ export function cast(w: World, id: string, pos: Vec2, radius?: number, to?: Vec2
     g.favor -= def.cost;
     g.cooldowns[id] = w.s.tick + def.cooldownHours * CFG.god.hourTicks;
   }
-  g.alignment += def.alignment;
+  g.alignment = Math.max(-100, Math.min(100, g.alignment + def.alignment)); // §17.4: −100 (wrathful) … +100 (benevolent)
   EFFECTS[id]!(w, { pos, radius: castRadius(def, radius), ...(to ? { to } : {}), ...(targetId !== undefined ? { targetId } : {}), ...(option !== undefined ? { option } : {}) });
 }
 

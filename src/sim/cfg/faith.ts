@@ -17,10 +17,11 @@ export const FAITH = {
   convert: { faith: 25 },
   /** prayers: open CFG.god.prayerTicks; answered by a fitting act within CFG.god.prayerAnswerRadius of the one
    * praying: faith/love, favor (CFG.god), alignment; left unanswered: a little lost. Desperate prayers anywhere: a need below `critical` for `hours`, a
-   * sick child, a raid at night, a famine (food for under `famineDays` in the store) */
+   * sick child, a raid at night, a famine (food for under `famineDays` in the store); never with an enemy within
+   * `safeDist` */
   prayer: {
     answered: { faith: 15, love: 10 }, ignored: { faith: -3, love: -2 }, alignment: 2,
-    critical: 15, hours: 6, famineDays: 1, desperateScore: 0.45, desperateGapDays: 0.5, recent: 8,
+    critical: 15, hours: 6, famineDays: 1, safeDist: 14, desperateScore: 0.45, desperateGapDays: 0.5, recent: 8,
   },
   /** alignment: kind above `kind`, wrathful below `wrath`; the village's mood ±`mood`; festivals ×`festivals` under
    * a kind god; dependence: god-given food over CFG.god.dependenceShare of a season's eating (once `minEaten` meals),
@@ -36,8 +37,8 @@ export const FAITH = {
   offering: { score: 0.18, minFaith: 40, gapDays: 3, takeDays: 1, ticks: 60, range: 60, mood: 4, food: ['apple', 'dried_apple', 'berry', 'mushroom', 'cooked_fish', 'stew'] as const },
   /** the temple (12 stone, 6 wood; consecrated with `trinkets` trinkets laid in it): prayer favor ×`favorMul` within
    * `radius`; its idea comes to the shaman or the very faithful (faith ≥ `ideaFaith`) at the shrine; wanted from `pop`
-   * goblins once a shrine stands */
-  temple: { trinkets: 2, favorMul: 1.5, radius: 10, idea: 4, ideaFaith: 60, pop: 10 },
+   * goblins and day `day` once a shrine stands, with `believers` believers and `minFoodDays` of food in store */
+  temple: { trinkets: 2, favorMul: 1.5, radius: 10, idea: 4, ideaFaith: 60, pop: 10, day: 16, believers: 4, minFoodDays: 3 },
   /** `ShakeFist`: a goblin of little piety angry at the god shakes a fist at the sky, once a `gapDays` */
   fist: { score: 0.35, ticks: 50, gapDays: 0.5, maxPiety: 0.6, vent: 3 },
   /** the god gets a name once `believers` believe and a shaman lives (§17.4 template; the Voice may rename it) */

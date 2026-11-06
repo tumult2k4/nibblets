@@ -106,7 +106,9 @@ function coincide(w: World, c: Culture, omen: Omen, luck: Luck, t: number): void
   const bs = (c.beliefs ??= []);
   if (ts.length < B.need || bs.length >= B.max || bs.some((b) => b.omen === omen && b.luck === luck)) return;
   if (bs.some((b) => b.formed > w.s.tick - B.gapDays * DAY)) return;
-  if (!w.rng.chance(B.p * meanPiety(w))) return;
+  // P8.8: a shaman reads the god's doings: beliefs about the sky's gifts and anger come twice as readily
+  const shaman = (luck === 'god_food' || luck === 'god_wrath') && w.s.goblins.some((g) => g.role === 'shaman') ? CFG.faith.shaman.omens : 1;
+  if (!w.rng.chance(Math.min(1, B.p * meanPiety(w) * shaman))) return;
   bs.push({ omen, luck, valence: LUCKS[luck], formed: w.s.tick, strength: B.start });
   c.formed = (c.formed ?? 0) + 1;
   w.emit({ type: 'superstition_formed', omen, luck, valence: LUCKS[luck] });

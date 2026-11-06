@@ -301,7 +301,7 @@ export class GoblinViews {
     v.wear = [];
     const hr = (v.pheno.headRatio * 0.8) / 2;
     const put = (t: Parameters<typeof adornWearGeo>[0] | undefined, parent: THREE.Object3D): void => {
-      const geo = t && (t === 'war_paint_face' || t === 'chief_headdress' ? adornWearGeo(t, hr) : wearGeo(t, hr) ?? adornWearGeo(t, hr));
+      const geo = t && (t === 'war_paint_face' || t === 'chief_headdress' || t === 'shaman_headdress' ? adornWearGeo(t, hr) : wearGeo(t, hr) ?? adornWearGeo(t, hr));
       if (!geo) return;
       const m = new THREE.Mesh(geo, flatMat);
       m.castShadow = true;

@@ -66,6 +66,7 @@ import { Exile, Judge } from './actions/judge';
 import { EXILE_OK, policyWorkMul } from '../leadership';
 import { Dance, JoinFestival, PlayMusic } from './actions/festival';
 import { Pray } from './actions/pray';
+import { LeadPrayer, MakeOffering, ShakeFist } from './actions/devotions';
 import { festivalWorkMul } from '../festivals';
 
 export const ACTIONS: Record<ActionId, UtilityAction> = {
@@ -86,6 +87,7 @@ export const ACTIONS: Record<ActionId, UtilityAction> = {
   haul_to_stockpile: HaulToStockpile, sulk: Sulk, binge: Binge, wander_off: WanderOff,
   hunt_trinket: HuntTrinket, decorate: Decorate, prank: Prank, steal: Steal, apologize: Apologize, brawl: Brawl,
   judge: Judge, exile: Exile, join_festival: JoinFestival, play_music: PlayMusic, dance: Dance, pray: Pray,
+  make_offering: MakeOffering, lead_prayer: LeadPrayer, shake_fist: ShakeFist,
 };
 const CHOOSABLE = (Object.values(ACTIONS) as UtilityAction[]).filter((a) => !a.forced);
 
