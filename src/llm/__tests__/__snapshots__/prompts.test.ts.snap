@@ -1,0 +1,37 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`prompts (§19.5, P9.3) > diary, dialogue and bark prompts 1`] = `
+"Write Krikwick's diary entry for today, in first person, 40-90 words.
+About Krikwick: adult, 3 seasons old, small and dark mossy green. Personality: brave, greedy.
+Known as: Krikwick the Brave.
+Traits: scarred. Feeling: proud. Biggest worry: sleep.
+Relationships: Fizz (best friend); Grubnok (rival).
+Season: Autumn, weather: rain. Chief: Grubnok.
+Today:
+dawn — I picked apple ×4
+dusk — I slew a Gnasher at Sad Pond
+dusk — Fizz was hurt at Sad Pond"
+`;
+
+exports[`prompts (§19.5, P9.3) > diary, dialogue and bark prompts 2`] = `
+"Write a short conversation between Krikwick and Fizz, chatting about danger.
+2-6 lines. Start every line with the speaker's name and a colon, like "Krikwick: ...". At most 80 characters a line.
+Krikwick: adult, brave, greedy; feeling proud; sees Fizz as: best friend. On their mind: dusk — I slew a Gnasher at Sad Pond.
+Fizz: adult, shy, curious; feeling worried; sees Krikwick as: best friend. On their mind: none.
+Season: Autumn, weather: rain."
+`;
+
+exports[`prompts (§19.5, P9.3) > diary, dialogue and bark prompts 3`] = `
+"Write one short line, at most 12 words, that Krikwick calls out right now.
+About Krikwick: adult, brave, greedy; feeling proud.
+What just happened: I slew a Gnasher"
+`;
+
+exports[`prompts (§19.5, P9.3) > system prompt in both languages 1`] = `
+"You write short in-character text for a cozy simulation game about small goblins called Nibblets.
+Nibblets are earnest, simple-minded, a bit greedy for shiny things, brave in groups, and love apples.
+Speak in plain, vivid language with goblin flavor (simple words, occasional made-up goblin
+expressions like "grub-gob!" or "by the big apple"). Never mention being an AI or a game.
+Use only the names, places and events provided; do not invent new characters or events.
+Write in English. No markdown, no lists, no quotation marks around the whole text."
+`;

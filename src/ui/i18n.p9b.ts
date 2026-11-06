@@ -23,6 +23,8 @@ export const EN9B = {
   'cx.hue.0': 'brick red', 'cx.hue.1': 'rust orange', 'cx.hue.2': 'mustard yellow', 'cx.hue.3': 'mossy green', 'cx.hue.4': 'leaf green', 'cx.hue.5': 'pond green',
   'cx.hue.6': 'teal', 'cx.hue.7': 'sky blue', 'cx.hue.8': 'twilight blue', 'cx.hue.9': 'plum purple', 'cx.hue.10': 'berry pink', 'cx.hue.11': 'rose red',
   'cx.none': 'none', 'cx.nochief': 'no chief', 'cx.ordinary': 'ordinary',
+  'cx.topic.weather': 'the weather', 'cx.topic.food': 'food', 'cx.topic.danger': 'danger', 'cx.topic.gossip': 'gossip', 'cx.topic.a_person': 'someone they know',
+  'cx.topic.trinkets': 'shiny things', 'cx.topic.a_place': 'a place', 'cx.topic.the_dead': 'the dead', 'cx.topic.festival': 'the festival', 'cx.topic.complaint': 'what bothers them',
 };
 
 export const DE9B: Record<keyof typeof EN9B, string> = {
@@ -47,4 +49,6 @@ export const DE9B: Record<keyof typeof EN9B, string> = {
   'cx.hue.0': 'ziegelrot', 'cx.hue.1': 'rostorange', 'cx.hue.2': 'senfgelb', 'cx.hue.3': 'moosgrün', 'cx.hue.4': 'blattgrün', 'cx.hue.5': 'teichgrün',
   'cx.hue.6': 'türkis', 'cx.hue.7': 'himmelblau', 'cx.hue.8': 'dämmerblau', 'cx.hue.9': 'pflaumenlila', 'cx.hue.10': 'beerenrosa', 'cx.hue.11': 'rosenrot',
   'cx.none': 'keine', 'cx.nochief': 'kein Häuptling', 'cx.ordinary': 'gewöhnlich',
+  'cx.topic.weather': 'das Wetter', 'cx.topic.food': 'Essen', 'cx.topic.danger': 'Gefahr', 'cx.topic.gossip': 'Klatsch', 'cx.topic.a_person': 'jemanden, den sie kennen',
+  'cx.topic.trinkets': 'glänzende Dinge', 'cx.topic.a_place': 'einen Ort', 'cx.topic.the_dead': 'die Toten', 'cx.topic.festival': 'das Fest', 'cx.topic.complaint': 'was sie stört',
 };

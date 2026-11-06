@@ -72,6 +72,10 @@ export interface WishTarget { kind: 'item' | 'building' | 'entity' | 'place' | '
 export interface ParsedIntent { intent: WishIntent; target?: WishTarget }
 /** A line in the Voice panel's log (annotation, outside the hashed state): the god's (goblinId null) or a goblin's reply. */
 export interface VoiceLine { tick: number; goblinId: ID | null; text: string; tone?: Tone; intents?: WishIntent[]; who?: string; defied?: boolean }
+/** LLM annotations (§19, P9.3): text written about the world, kept in `world.llm` and never read by the sim. */
+export type TextSource = 'llm' | 'mock';
+export interface JournalEntry { kind: 'diary' | 'eulogy' | 'chronicle' | 'book'; goblinId: ID | null; day: number; tick: number; text: string; title?: string; source: TextSource }
+export interface SpeechEntry { kind: 'dialogue' | 'bark'; tick: number; lines: { goblinId: ID; text: string }[]; source: TextSource }
 export type DivineActKind = PowerId | 'grab' | 'set_down' | 'drop' | 'throw' | 'pet' | 'poke' | 'flick' | 'gift';
 
 interface BaseEvent {

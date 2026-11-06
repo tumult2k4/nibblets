@@ -287,7 +287,7 @@ export interface StatsSeries {
   deathLog?: [number, string][];
 }
 
-export interface LlmAnnotations { journals: unknown[]; speechText: Record<string, string>; voice?: import('../shared/types').VoiceLine[] }
+export interface LlmAnnotations { journals: import('../shared/types').JournalEntry[]; speechText: Record<string, string>; voice?: import('../shared/types').VoiceLine[]; speech?: import('../shared/types').SpeechEntry[] }
 
 export interface LoggedCommand { tick: number; cmd: import('./commands').Command }
 
