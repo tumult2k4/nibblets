@@ -7,7 +7,7 @@ import { flatMat, flatMatDouble, merge, paint, wobble } from './lowpoly';
 import { pile } from './piles';
 import { campfireGeo } from './fireView';
 import { dryingRackGeo, grindingStoneGeo, rackItems, storagePitGeo } from './fiberMeshes';
-import { gateGeo, watchtowerGeo, workbenchGeo } from './stationMeshes';
+import { gateGeo, kilnGeo, watchtowerGeo, workbenchGeo } from './stationMeshes';
 
 const HS = CFG.world.heightScale;
 const WOOD = '#9a6b3f', THATCH = '#d4a94e', DARK = '#4a3420';
@@ -84,7 +84,7 @@ const GHOST_MAT = new THREE.MeshLambertMaterial({ color: '#9ec5e8', transparent:
 const MAKERS: Partial<Record<Building['type'], () => THREE.BufferGeometry>> = {
   campfire: campfireGeo, stone_hut: stoneHutGeo, fence: () => fenceGeo(0),
   grinding_stone: grindingStoneGeo, drying_rack: dryingRackGeo, storage_pit: storagePitGeo,
-  workbench: workbenchGeo, watchtower: watchtowerGeo, gate: () => gateGeo(1),
+  workbench: workbenchGeo, watchtower: watchtowerGeo, gate: () => gateGeo(1), kiln: kilnGeo,
 };
 /** Finished-building geometry by type (huts P3.3, campfire P4.3, preservation P5.6, P5.7 stations). */
 function geoOf(type: Building['type']): THREE.BufferGeometry {

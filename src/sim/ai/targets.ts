@@ -113,7 +113,9 @@ export function findDryPlant(g: Goblin, w: World): Plant | null {
 
 /** Where a goblin would go to drink: remembered water first (§7.8), else instinct (nearest shore). */
 export function waterTargets(g: Goblin, k: number, w: World): Vec2[] {
-  const known = g.memory.filter((m) => m.kind === 'water')
+  // a remembered drinking spot a flood has drowned (or a drought left dry) is no use (P7.2 balance: hatchlings died
+  // of thirst beside a swollen lake, every spot they knew under water)
+  const known = g.memory.filter((m) => m.kind === 'water' && isShore(w.s, m.pos.x, m.pos.y))
     .map((m) => ({ p: m.pos, d: Math.hypot(m.pos.x - g.pos.x, m.pos.y - g.pos.y) }))
     .sort((a, b) => a.d - b.d).slice(0, k).map((x) => x.p);
   return known.length ? known : nearestShores(g, w, k);

@@ -13,7 +13,10 @@ export const Drink: UtilityAction = {
   score(g, w) {
     const s = waterTargets(g, 1, w)[0];
     if (!s) return 0;
-    return (0.05 + 1.15 * needUrgency(g.needs.thirst)) * distanceFalloff(dist(g.pos, s), 50);
+    // parched, the walk no longer matters: up from sleep and off to the water (P7.2 balance: hatchlings in a hut far
+    // from water slept on until they died of thirst)
+    const far = g.needs.thirst < CFG.goblin.lowNeed ? 1.25 : distanceFalloff(dist(g.pos, s), 50);
+    return (0.05 + 1.15 * needUrgency(g.needs.thirst)) * far;
   },
   start(g, w) {
     for (const s of waterTargets(g, 4, w)) {

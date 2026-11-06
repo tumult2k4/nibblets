@@ -77,7 +77,7 @@ export type ActionId =
   | 'mine' | 'craft' | 'equip' | 'plan_building' | 'tend_fire' | 'flee' | 'attack' | 'defend_village' | 'guard' | 'repair_building'
   | 'follow_wisp' | 'scatter' | 'chat' | 'comfort' | 'gift' | 'court' | 'lay_egg' | 'incubate_egg' | 'feed_child' | 'follow_parent'
   | 'play' | 'learn' | 'teach' | 'cut_grass' | 'pick_flowers' | 'process' | 'rest_sick' | 'tend_sick' | 'extinguish_fire' | 'escape_fire' | 'cull_blight'
-  | 'bury_dead' | 'mourn' | 'hunt';
+  | 'bury_dead' | 'mourn' | 'hunt' | 'fish' | 'dig_clay';
 
 export interface ActivityState {
   action: ActionId;
@@ -234,6 +234,8 @@ export interface VillageState {
   graveyard?: Vec2 | null;
   /** village policies (P6.5 hook; a chief sets them from P8, the sandbox drawer until then) */
   policies?: { quarantine?: boolean };
+  /** village firsts already marked (P7.2: the first fish) */
+  firsts?: string[];
 }
 
 export interface StatsSample { tick: number; pop: number; food: number; avgHunger: number; avgFaith: number }

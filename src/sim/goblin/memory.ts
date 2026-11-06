@@ -8,7 +8,7 @@ import { visionRadius } from '../ai/considerations';
 import { looksEdible } from '../ecology';
 
 const M = CFG.memory;
-type Kind = 'fruit_plant' | 'water' | 'rock' | 'stockpile' | 'place' | 'mushroom';
+type Kind = 'fruit_plant' | 'water' | 'rock' | 'stockpile' | 'place' | 'mushroom' | 'fishing_spot';
 
 /** Add or refresh a memory (§7.8). Same target id, or same kind within `mergeDist` for untargeted ones. */
 export function remember(g: Goblin, w: World, kind: Kind, pos: Vec2, data = 0, targetId?: ID): void {

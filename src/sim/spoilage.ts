@@ -48,6 +48,27 @@ export function pitShares(s: WorldState): Map<ItemStack, number> {
   return out;
 }
 
+/** Units of stockpiled food the village's clay pots keep sealed (P7.2): `per` each. */
+export const potCapacity = (s: WorldState): number => (s.village.stockpile.find((x) => x.type === 'pot')?.qty ?? 0) * CFG.economy.pot.per;
+
+/**
+ * The rot rate of each stockpiled stack: the share in a pit rots at `pitMul`, the next share sealed in a pot at
+ * 1 / `shelfMul`, the rest at the full rate.
+ */
+export function stockRotMul(s: WorldState): Map<ItemStack, number> {
+  const pit = pitShares(s), out = new Map<ItemStack, number>();
+  let cap = potCapacity(s);
+  const food = s.village.stockpile.filter((x) => perishable(x.type)).sort((a, b) => (itemDef(a.type).shelfDays ?? 0) - (itemDef(b.type).shelfDays ?? 0));
+  for (const st of food) {
+    const inPit = pit.get(st) ?? 0;
+    const k = Math.min(st.qty * (1 - inPit), cap);
+    cap -= k;
+    const inPot = st.qty ? k / st.qty : 0;
+    out.set(st, inPit * R.pitMul + inPot / CFG.economy.pot.shelfMul + (1 - inPit - inPot));
+  }
+  return out;
+}
+
 function tally(out: Partial<Record<ItemType, number>>, t: ItemType, k: number): void {
   if (k > 0) out[t] = (out[t] ?? 0) + k;
 }
@@ -58,8 +79,8 @@ export function updateSpoilage(w: World): void {
   if (s.tick % R.spoilEvery !== 0) return;
   const days = R.spoilEvery / CFG.time.dayTicks;
   const lost: Partial<Record<ItemType, number>> = (s.village.spoiled ??= {});
-  const shares = pitShares(s);
-  for (const st of s.village.stockpile) tally(lost, st.type, rotStack(st, days, 1 - (1 - R.pitMul) * (shares.get(st) ?? 0)));
+  const mul = stockRotMul(s);
+  for (const st of s.village.stockpile) tally(lost, st.type, rotStack(st, days, mul.get(st) ?? 1));
   s.village.stockpile = s.village.stockpile.filter((x) => x.qty > 0);
   for (const b of s.buildings) {
     if (!b.storage.length) continue;

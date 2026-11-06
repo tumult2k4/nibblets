@@ -16,7 +16,7 @@ export type ItemType =
   | 'spear' | 'stone_spear' | 'club' | 'sling' | 'stone_axe' | 'pick' | 'fishing_rod' | 'bucket'
   | 'loincloth' | 'leaf_cape' | 'fur_cloak' | 'bone_necklace' | 'flower_crown' | 'war_paint'
   | 'basket' | 'rope' | 'sleeping_mat' | 'book' | 'drum' | 'flute' | 'torch'
-  | 'trinket' | 'star_stone' | 'herbal_remedy';
+  | 'trinket' | 'star_stone' | 'herbal_remedy' | 'pot';
 
 export interface ItemStack {
   type: ItemType;
@@ -153,6 +153,10 @@ export type SimEvent = BaseEvent &
     // P7.1 wildlife: a hopper brought down with a sling (or a throw that missed), a hopper at a planted sprout
     | { type: 'critter_hunted'; goblinId: ID; critterId: ID; kind: string; hit: boolean; killed: boolean }
     | { type: 'sprout_nibbled'; plantId: ID; critterId: ID }
+    // P7.2: a cast that landed a fish (or didn't), clay dug, raw fish or meat cooked at a campfire
+    | { type: 'fish_caught'; goblinId: ID; caught: boolean; first?: boolean }
+    | { type: 'clay_dug'; goblinId: ID; qty: number }
+    | { type: 'food_cooked'; goblinId: ID; item: ItemType; qty: number }
     // P6.6 powers: the ground shakes, the god's flood, a goblin back from the grave, one brought forth in a beam of light
     | { type: 'earthquake'; r: number }
     | { type: 'god_flood'; tiles: number; r: number }

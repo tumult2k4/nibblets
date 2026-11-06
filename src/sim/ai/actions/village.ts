@@ -33,8 +33,8 @@ const othersDoing = (g: Goblin, w: World, id: string, targetId?: number): boolea
   w.s.goblins.some((o) => o.id !== g.id && o.activity.action === id && o.activity.status === 'running' && (targetId === undefined || o.activity.targetId === targetId));
 
 const PR = CFG.preserve;
-/** Stations the village keeps (P5.6 preservation, P5.7 workbench); they sit a little further out than the fire. */
-const STATIONS = ['grinding_stone', 'drying_rack', 'storage_pit', 'workbench'] as const;
+/** Stations the village keeps (P5.6 preservation, P5.7 workbench, P7.2 kiln); they sit a little further out than the fire. */
+const STATIONS = ['grinding_stone', 'drying_rack', 'storage_pit', 'workbench', 'kiln'] as const;
 const STATION_RADIUS = CFG.workbench.radius;
 
 let needCache = { tick: -1, w: null as World | null, out: [] as BuildingType[] };
@@ -43,7 +43,8 @@ export function villageNeeds(w: World): BuildingType[] {
   if (needCache.tick === w.s.tick && needCache.w === w) return needCache.out;
   const out: BuildingType[] = [];
   needCache = { tick: w.s.tick, w, out };
-  const roofed = w.s.buildings.some((b) => b.type === 'hut' && isComplete(b));
+  // any finished home counts (P7.2 balance: a village that had turned every hut to stone stopped planning stations)
+  const roofed = w.s.buildings.some((b) => (buildingDef(b.type)?.capacity ?? 0) > 0 && isComplete(b));
   const fire = campfires(w).length > 0;
   if (!fire && roofed) out.push('campfire');
   if (wantsFence(w)) out.push('fence');
@@ -51,7 +52,7 @@ export function villageNeeds(w: World): BuildingType[] {
   if (wantsTower(w)) out.push('watchtower');
   if (!roofed || !fire) return out;
   const pop = w.s.goblins.length;
-  const want = { grinding_stone: 1, drying_rack: Math.ceil(pop / PR.perRack), storage_pit: Math.ceil(pop / PR.perPit), workbench: 1 };
+  const want = { grinding_stone: 1, drying_rack: Math.ceil(pop / PR.perRack), storage_pit: Math.ceil(pop / PR.perPit), workbench: 1, kiln: 1 };
   for (const t of STATIONS) {
     const mine = w.s.buildings.filter((b) => b.type === t);
     if (mine.length < want[t] && !mine.some((b) => !isComplete(b)) && hasSite(w, t)) out.push(t);

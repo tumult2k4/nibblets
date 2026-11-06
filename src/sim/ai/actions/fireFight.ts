@@ -15,6 +15,8 @@ import { isWalkable } from '../../grid';
 import { hurtGoblin } from '../../combat';
 import { needUrgency } from '../../goblin/needs';
 import { burningAt, fireAt, nearestFire } from '../../wildfire';
+import { wearTool } from '../../tools';
+import { bucketOf } from './waterPlant';
 
 const F = CFG.disasters.fire;
 
@@ -81,8 +83,13 @@ export const ExtinguishFire: UtilityAction = {
       return 'running';
     }
     faceToward(g, { x: f.x + 0.5, y: f.y + 0.5 });
-    f.intensity = q4(Math.max(0, f.intensity - F.stomp));
-    if (f.intensity <= 0) { f.fuel = 0; w.emit({ type: 'fire_stomped', goblinId: g.id, at: { x: f.x + 0.5, y: f.y + 0.5 } }); }
+    const bucket = bucketOf(g); // P7.2: water from a bucket puts it out three times as fast
+    f.intensity = q4(Math.max(0, f.intensity - F.stomp * (bucket ? CFG.economy.bucket.fireMul : 1)));
+    if (f.intensity <= 0) {
+      f.fuel = 0;
+      w.emit({ type: 'fire_stomped', goblinId: g.id, at: { x: f.x + 0.5, y: f.y + 0.5 } });
+      if (bucket) wearTool(w, g, bucket);
+    }
     if (w.s.tick % F.every === 0 && w.rng.chance(F.stompBurnChance * f.intensity)) hurtGoblin(w, g, F.stompBurn, 'fire');
     return 'running';
   },

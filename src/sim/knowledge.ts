@@ -121,7 +121,10 @@ export function discoveryChance(g: Goblin, w: World, id: RecipeId): number {
   const ill = id !== 'herbal_remedy' ? 1 : CFG.health.remedyIdeaBase * (w.s.goblins.some((o) => o.health.disease?.stage === 'sick') ? CFG.health.remedyIdeaMul : 1);
   // a hopper bounding about puts a goblin with a feather in mind of a sling (P7.1)
   const HU = CFG.wildlife.hunt;
-  const prey = id === 'sling' && w.s.wildlife.some((c) => c.kind === 'hopper' && dist(c.pos, g.pos) <= HU.ideaRange) ? HU.ideaNear : 1;
+  const FI = CFG.economy.fishing;
+  const prey = id === 'sling' && w.s.wildlife.some((c) => c.kind === 'hopper' && dist(c.pos, g.pos) <= HU.ideaRange) ? HU.ideaNear
+    // and a fish leaping by the shore, of a rod (P7.2)
+    : id === 'fishing_rod' && w.s.wildlife.some((c) => c.kind === 'fish' && dist(c.pos, g.pos) <= FI.ideaRange) ? FI.ideaNear : 1;
   return K.discoveryBase * (0.5 + g.personality.wanderlust) * (1 + K.skillMul * skill) * inspiration(g) * near * rot * ill * prey * K.memoryNear ** recalled;
 }
 

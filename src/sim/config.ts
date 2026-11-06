@@ -4,6 +4,7 @@ import { DISASTERS } from './cfg/disasters';
 import { DEATH } from './cfg/death';
 import { MIRACLES } from './cfg/miracles';
 import { WILDLIFE } from './cfg/wildlife';
+import { ECONOMY } from './cfg/economy';
 
 export const CFG = {
   tickHz: 10,
@@ -90,6 +91,8 @@ export const CFG = {
       workbench: { cost: { wood: 4, stone: 2 } as Record<string, number>, footprint: 1, hp: 60, capacity: 0, storage: 0, labor: 2 },
       watchtower: { cost: { wood: 8, rope: 2 } as Record<string, number>, footprint: 1, hp: 70, capacity: 0, storage: 0, labor: 1.2 },
       gate: { cost: { wood: 2, rope: 1 } as Record<string, number>, footprint: 1, hp: 50, capacity: 0, storage: 0, labor: 4 },
+      // P7.2 kiln (§11.1): fires clay goods
+      kiln: { cost: { clay: 6, stone: 4 } as Record<string, number>, footprint: 1, hp: 120, capacity: 0, storage: 0, labor: 2 },
     } as Record<string, { cost: Record<string, number>; footprint: number; hp: number; capacity: number; storage: number; labor?: number }>,
     buildRate: 0.002, skillBonus: 0.15, friendBonus: 1.3, workChunk: 300,
     siteRadius: 14, maxSlope: 0.06, waterPref: [4, 10] as [number, number], hutSpacing: [3.6, 7] as [number, number],
@@ -291,7 +294,7 @@ export const CFG = {
   health: HEALTH,
   /** P6.2–P6.3 fire, floods, drought, blight, shooting stars: see cfg/disasters.ts */
   disasters: DISASTERS,
-  death: DEATH, miracles: MIRACLES, wildlife: WILDLIFE,
+  death: DEATH, miracles: MIRACLES, wildlife: WILDLIFE, economy: ECONOMY,
   llm: { diariesPerDay: 3, dialoguesPerDay: 4, barksPerDay: 6, tokensPerDay: 12000, rpm: 10, concurrency: 2, timeoutMs: 20000 },
   god: {
     startFavor: 50, maxFavorBase: 100, maxFavorPerBeliever: 15, believerFaith: 40, prayingFavorMul: 3,

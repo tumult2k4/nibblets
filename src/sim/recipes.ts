@@ -8,7 +8,7 @@ import type { Goblin } from './state';
 
 export interface RecipeDef {
   inputs: Partial<Record<ItemType, number>>;
-  station: 'none' | 'site' | 'upgrade' | 'workbench';
+  station: 'none' | 'site' | 'upgrade' | 'workbench' | 'kiln';
   /** hand-crafted result, or the building it plans */
   output?: ItemType;
   building?: BuildingType;
@@ -37,6 +37,11 @@ export const RECIPES: Record<RecipeId, RecipeDef> = {
   fence: { inputs: { wood: 1 }, station: 'site', building: 'fence', known: true, phase: 4 },
   stone_hut: { inputs: { stone: 6 }, station: 'upgrade', building: 'stone_hut', known: false, phase: 4 },
   torch: { inputs: { stick: 1, fiber: 1 }, station: 'none', output: 'torch', known: false, phase: 4, ticks: 60 },
+  // P7.2: a fishing rod; the kiln and what it fires (clay, with a wood for the fire)
+  fishing_rod: { inputs: { stick: 2, fiber: 2 }, station: 'none', output: 'fishing_rod', known: false, phase: 7, ticks: 120 },
+  kiln: { inputs: { clay: 6, stone: 4 }, station: 'site', building: 'kiln', known: false, phase: 7, skill: 'building', after: 'campfire' },
+  bucket: { inputs: { clay: 2, wood: 1 }, station: 'kiln', output: 'bucket', known: false, phase: 7, ticks: 300, after: 'kiln' },
+  pot: { inputs: { clay: 2, wood: 1 }, station: 'kiln', output: 'pot', known: false, phase: 7, ticks: 300, after: 'kiln', near: ['apple'] },
   // P7.1: a sling for hunting hoppers
   sling: { inputs: { fiber: 2, feather: 1 }, station: 'none', output: 'sling', known: false, phase: 7, ticks: 120 },
   // P5.6 fiber goods (§11.1): everyone grows up twisting rope and weaving baskets; the leaf cape is an idea to be had
@@ -62,7 +67,7 @@ export const recipeDef = (id: RecipeId): RecipeDef | undefined => RECIPES[id];
 /** What every goblin knows from the start. */
 export const STARTER_RECIPES: readonly RecipeId[] = Object.keys(RECIPES).filter((id) => RECIPES[id]!.known);
 export const knows = (g: Goblin, id: RecipeId): boolean => g.knownRecipes.includes(id);
-/** Hand recipes (Craft), in table order. */
-export const HAND_RECIPES: readonly RecipeId[] = Object.keys(RECIPES).filter((id) => RECIPES[id]!.station === 'none');
+/** Recipes the Craft action makes: by hand anywhere, or fired at a kiln (P7.2). */
+export const HAND_RECIPES: readonly RecipeId[] = Object.keys(RECIPES).filter((id) => RECIPES[id]!.station === 'none' || RECIPES[id]!.station === 'kiln');
 /** The hand recipe that makes `item`, if any. */
 export const recipeFor = (item: ItemType): RecipeId | undefined => HAND_RECIPES.find((id) => RECIPES[id]!.output === item);

@@ -12,6 +12,8 @@ import { rainingAt } from './weather';
 import { foodStores } from './spoilage';
 import type { Building, Goblin, WorldState } from './state';
 import type { World } from './world';
+import { litFireNear } from './fire';
+import { countItem } from './inventory';
 
 const R = CFG.preserve;
 const DAY = CFG.time.dayTicks;
@@ -53,7 +55,12 @@ export function updateRacks(w: World): void {
   }
 }
 
-export type ProcessJob = { kind: 'unload' | 'load' | 'grind'; b: Building };
+export type ProcessJob = { kind: 'unload' | 'load' | 'grind' | 'cook'; b: Building };
+
+/** P7.2: raw fish and meat, and what a campfire makes of them. */
+export const RAW_COOKED = { fish: 'cooked_fish', meat: 'cooked_meat' } as const;
+export const rawInStock = (s: WorldState): number => stockCount(s, 'fish') + stockCount(s, 'meat');
+export const rawHeld = (g: Goblin): number => countItem(g, 'fish') + countItem(g, 'meat');
 
 const claimed = (w: World, g: Goblin, b: Building): boolean =>
   w.s.goblins.some((o) => o !== g && o.activity.action === 'process' && o.activity.status === 'running' && o.activity.targetId === b.id);
@@ -64,6 +71,12 @@ export function processJob(g: Goblin, w: World): ProcessJob | null {
   const racks = stations(w.s, 'drying_rack');
   const done = near(racks.filter((b) => !isDrying(b) && rackDried(b) > 0));
   if (done) return { kind: 'unload', b: done };
+  // P7.2: raw fish and meat keep a day; cook them at a lit campfire near the store
+  // (or whatever the goblin itself carries, at a fire by the store or close by it)
+  if (rawInStock(w.s) > 0 || rawHeld(g) > 0) {
+    const fire = litFireNear(w, w.s.village.stockpilePos, CFG.economy.cook.range) ?? (rawHeld(g) > 0 ? litFireNear(w, g.pos, CFG.economy.cook.range) : null);
+    if (fire && !claimed(w, g, fire)) return { kind: 'cook', b: fire };
+  }
   const surplus = surplusApples(w.s);
   if (surplus >= R.rackMin) {
     const idle = near(racks.filter((b) => !isDrying(b) && rackDried(b) === 0 && rackLoad(b) < (buildingDef(b.type)?.storage ?? 0)));

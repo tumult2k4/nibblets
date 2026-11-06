@@ -2,7 +2,7 @@
  * Craft (§P4.2): make a hand recipe the goblin knows and wants (a better weapon, a tool for its work). Missing inputs
  * are fetched from the stockpile's spare first; the work itself takes the recipe's ticks, less with crafting skill.
  * P5.7: with a workbench within reach the goblin works there, half again as fast, and worn gear is mended there with
- * half the inputs (`activity.count` 1 = mending).
+ * half the inputs (`activity.count` 1 = mending). P7.2: clay goods are fired at a kiln (with a wood for the fire).
  */
 import { CFG } from '../../config';
 import { dist } from '../../../shared/math';
@@ -13,6 +13,7 @@ import { deposit, withdraw } from '../../stockpile';
 import { HAND_RECIPES, RECIPES } from '../../recipes';
 import { chooseCraft, craftTicks, finishCraft, missingInputs, spareStock } from '../../crafting';
 import { atBench, benchFor, mend, mendInputs, shortOf, wornGear } from '../../workbench';
+import { isKilnRecipe, kilnFor, kilnSpark } from '../../kiln';
 import type { ItemStack, RecipeId } from '../../../shared/types';
 import type { Goblin } from '../../state';
 import type { World } from '../../world';
@@ -40,7 +41,16 @@ const workTicks = (g: Goblin, w: World, id: RecipeId, mending: boolean): number 
 
 /** Inputs in hand: walk to a bench if there is one in reach, else (new pieces only) set to work where it stands. */
 function toWork(g: Goblin, w: World, id: RecipeId, mending: boolean, extra = 0): boolean {
-  const a = g.activity, bench = benchFor(g, w);
+  const a = g.activity;
+  if (isKilnRecipe(id)) { // P7.2: fired at the kiln, nowhere else
+    const k = kilnFor(g, w);
+    if (!k) return false;
+    if (dist(k.pos, g.pos) >= 1.2) { a.stage = 2; return planPath(w, g, { x: k.pos.x + 0.8, y: k.pos.y + 0.2 }); }
+    a.stage = 1;
+    a.progress = workTicks(g, w, id, mending) + extra;
+    return true;
+  }
+  const bench = benchFor(g, w);
   if (bench && dist(bench.pos, g.pos) >= 1.2 && planPath(w, g, { x: bench.pos.x + 0.8, y: bench.pos.y + 0.2 })) {
     a.stage = 2;
     return true;
@@ -88,7 +98,12 @@ export const Craft: UtilityAction = {
       a.progress = workTicks(g, w, id, mending);
     }
     if (--a.progress > 0) return 'running';
-    if (!mending) return finishCraft(w, g, id) ? 'done' : 'failed';
+    if (!mending) {
+      const made = finishCraft(w, g, id);
+      const k = made && isKilnRecipe(id) ? kilnFor(g, w) : null;
+      if (k) kilnSpark(w, k);
+      return made ? 'done' : 'failed';
+    }
     const out = RECIPES[id]!.output;
     return out && mend(w, g, out, id) ? 'done' : 'failed';
   },

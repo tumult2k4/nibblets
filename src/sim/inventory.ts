@@ -73,9 +73,12 @@ export function removeItems(g: Goblin, t: ItemType, n: number): number {
 export const eatOrder = (a: ItemStack, b: ItemStack): number =>
   (itemDef(a.type).shelfDays ?? 99) - (itemDef(b.type).shelfDays ?? 99) || (itemDef(b.type).nutrition ?? 0) - (itemDef(a.type).nutrition ?? 0);
 
+/** Raw fish and meat are eaten last (P7.2: they may turn the gut, and are better cooked). */
+const RAW: ReadonlySet<ItemType> = new Set(['fish', 'meat']);
 /** Food to eat next from the inventory (see `eatOrder`). Apple cores are kept for planting unless `cores`; a redcap is food only to those who don't know it's poison. */
 export const foodStack = (g: Goblin, cores = false): ItemStack | undefined =>
-  [...g.inventory].filter((s) => isFood(s.type) && (cores || s.type !== 'apple_core') && !(s.type === 'redcap' && g.knownFacts.includes('redcap_is_poison'))).sort(eatOrder)[0];
+  [...g.inventory].filter((s) => isFood(s.type) && (cores || s.type !== 'apple_core') && !(s.type === 'redcap' && g.knownFacts.includes('redcap_is_poison')))
+    .sort((a, b) => +RAW.has(a.type) - +RAW.has(b.type) || eatOrder(a, b))[0];
 
 export const countItem = (g: Goblin, t: ItemType): number =>
   g.inventory.reduce((n, s) => n + (s.type === t ? s.qty : 0), 0);

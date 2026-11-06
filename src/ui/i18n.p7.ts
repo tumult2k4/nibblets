@@ -5,6 +5,10 @@ export const EN7 = {
   'act.hunt': 'Hunting with a sling',
   'ev.hunted': '{name} brought down a hopper with a sling.',
   'critter.hopper': 'Hopper', 'critter.chirp': 'Chirp', 'critter.fish': 'Fish', 'critter.glimmerfly': 'Glimmerfly',
+  'item.cooked_fish': 'Grilled fish', 'item.fishing_rod': 'Fishing rod', 'item.bucket': 'Bucket', 'item.pot': 'Clay pot',
+  'recipe.fishing_rod': 'Fishing rod', 'recipe.kiln': 'Kiln', 'recipe.bucket': 'Bucket', 'recipe.pot': 'Clay pot', 'bld.kiln': 'Kiln',
+  'act.fish': 'Fishing', 'act.dig_clay': 'Digging clay',
+  'ev.first_fish': '{name} caught the village\'s first fish.',
 };
 
 export const DE7: Record<keyof typeof EN7, string> = {
@@ -13,4 +17,8 @@ export const DE7: Record<keyof typeof EN7, string> = {
   'act.hunt': 'Jagt mit der Schleuder',
   'ev.hunted': '{name} hat mit der Schleuder einen Hoppler erlegt.',
   'critter.hopper': 'Hoppler', 'critter.chirp': 'Zwitscher', 'critter.fish': 'Fisch', 'critter.glimmerfly': 'Glimmerfliege',
+  'item.cooked_fish': 'Gegrillter Fisch', 'item.fishing_rod': 'Angel', 'item.bucket': 'Eimer', 'item.pot': 'Tontopf',
+  'recipe.fishing_rod': 'Angel', 'recipe.kiln': 'Brennofen', 'recipe.bucket': 'Eimer', 'recipe.pot': 'Tontopf', 'bld.kiln': 'Brennofen',
+  'act.fish': 'Angelt', 'act.dig_clay': 'Gräbt Lehm',
+  'ev.first_fish': '{name} hat den ersten Fisch des Dorfes gefangen.',
 };

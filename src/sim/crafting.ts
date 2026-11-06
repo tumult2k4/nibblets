@@ -21,9 +21,11 @@ import { gainXp, skillLevel } from './goblin/skills';
 import { observe } from './knowledge';
 import { isInspired } from './goblin/mood';
 import { REMEDY, remedyWant } from './remedy';
+import { isKilnRecipe, kilnFor } from './kiln';
+import { foodStores } from './spoilage';
 import type { SkillId } from '../shared/types';
 
-const C = CFG.crafting;
+const C = CFG.crafting, E = CFG.economy;
 const FB = CFG.fiber;
 /** Clothes matter more as the year cools. */
 const coldMul = (season: string): number => (season === 'winter' ? FB.coldWantMul : season === 'autumn' ? (1 + FB.coldWantMul) / 2 : 1);
@@ -48,9 +50,13 @@ export function missingInputs(g: Goblin, id: RecipeId): ItemStack[] {
 }
 
 /** Can the goblin gather every input from its pack plus the spare stock? */
-export const canSupply = (g: Goblin, w: World, id: RecipeId): boolean => missingInputs(g, id).every((m) => spareStock(w, m.type) >= m.qty);
+export const canSupply = (g: Goblin, w: World, id: RecipeId): boolean =>
+  (!isKilnRecipe(id) || !!kilnFor(g, w)) && missingInputs(g, id).every((m) => spareStock(w, m.type) >= m.qty);
 
 /** 0..1: how much this goblin would like one more `item` (weapons: a better one than it has; tools: one per job). */
+/** How many of `item` the village has: carried, held and in store. */
+const owned = (w: World, item: ItemType): number => stockCount(w.s, item) + w.s.goblins.reduce((n, o) => n + gear(o).reduce((k, s) => k + (s.type === item ? s.qty : 0), 0), 0);
+
 export function craftWant(g: Goblin, w: World, item: ItemType): number {
   const d = itemDef(item);
   if (d.weapon) {
@@ -58,6 +64,13 @@ export function craftWant(g: Goblin, w: World, item: ItemType): number {
     if (d.weapon.dmg <= cur) return 0;
     return (C.weaponWant + C.braveryWant * g.personality.bravery) * ((d.weapon.dmg - cur) / MAX_DMG);
   }
+  // P7.2: a rod each for whoever fishes; a bucket each for the watering and firefighting kind; pots for the store
+  // (a few to a village: patient goblins make the rods)
+  if (d.tool?.fishMul) return gear(g).some((s) => s.type === item) || owned(w, item) >= Math.ceil(w.s.goblins.length * E.fishing.rodShare) ? 0
+    : E.fishing.rodWant * huntWant(g, w) * (1.3 - g.personality.wanderlust);
+  if (item === 'bucket') return gear(g).some((s) => s.type === item) || owned(w, item) >= Math.ceil(w.s.goblins.length * E.bucket.share) ? 0
+    : E.bucket.want * (0.5 + g.personality.industry);
+  if (item === 'pot') return E.pot.want * materialWanted(g, w, 'pot', Math.min(E.pot.max, Math.ceil(foodStores(w.s).food / 40 / E.pot.per)));
   // P7.1: one sling each for the hunters (more while food runs short)
   if (d.hunt) return gear(g).some((s) => s.type === item) ? 0 : CFG.wildlife.hunt.slingWant * huntWant(g, w);
   if (d.tool) {

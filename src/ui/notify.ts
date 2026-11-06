@@ -115,7 +115,7 @@ export function noteFor(e: SimEvent, w: World, names: Map<ID, string>): Note | n
       if (e.kind === 'stone_hut') return { ...base, text: t('ev.stone_hut_built'), tier: 'notable', icon: 'hill' };
       if (e.kind === 'fence') return fenceJustClosed(w) ? { ...base, text: t('ev.fence_closed'), tier: 'notable', icon: 'hill' } : null;
       if (e.kind === 'gate') return { ...base, text: t('ev.gate_built'), tier: 'notable', icon: 'hill' };
-      if (e.kind === 'grinding_stone' || e.kind === 'drying_rack' || e.kind === 'storage_pit' || e.kind === 'workbench' || e.kind === 'watchtower')
+      if (e.kind === 'grinding_stone' || e.kind === 'drying_rack' || e.kind === 'storage_pit' || e.kind === 'workbench' || e.kind === 'watchtower' || e.kind === 'kiln')
         return { ...base, text: t('ev.preserve_built', { building: t(`bld.${e.kind}`) }), tier: 'notable', icon: e.kind === 'workbench' ? 'gear' : e.kind === 'watchtower' ? 'eye' : 'bowl' };
       return e.kind === 'hut' ? { ...base, text: t('ev.hut_built'), tier: 'notable', icon: 'hill' } : null;
     case 'building_destroyed':
@@ -189,6 +189,8 @@ export function noteFor(e: SimEvent, w: World, names: Map<ID, string>): Note | n
       return { ...base, text: t('ev.blight'), tier: 'notable', icon: 'leaf' };
     case 'critter_hunted':
       return e.killed ? { ...base, id: e.goblinId, text: t('ev.hunted', { name: name(e.goblinId) }), tier: 'info', icon: 'fang' } : null;
+    case 'fish_caught':
+      return e.first ? { ...base, id: e.goblinId, text: t('ev.first_fish', { name: name(e.goblinId) }), tier: 'notable', icon: 'fish' } : null;
     case 'blight_culled':
       return { ...base, id: e.goblinId, text: t('ev.blight_culled', { name: name(e.goblinId) }), tier: 'info', icon: 'leaf' };
     case 'shooting_star':

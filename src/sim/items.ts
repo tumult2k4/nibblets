@@ -42,6 +42,8 @@ export const ITEM_DEFS: Partial<Record<ItemType, ItemDef>> = {
   redcap: { stack: 10, weight: 0.4, nutrition: F.redcap, decayDays: 4, shelfDays: 4, value: 0, poison: CFG.knowledge.redcapDmg },
   fish: { stack: 5, weight: 1, nutrition: F.fish, decayDays: 2, shelfDays: 1, value: 3, tray: 'food' },
   stew: { stack: 3, weight: 1.5, nutrition: F.stew, decayDays: 2, shelfDays: 2, value: 6, tray: 'food' },
+  // P7.2: fish cooked at a campfire keeps three days and feeds better (§11.2)
+  cooked_fish: { stack: 5, weight: 0.8, nutrition: F.cooked_fish, decayDays: 3, shelfDays: 3, value: 4, tray: 'food' },
   // P7.1: a hopper brought down; raw meat keeps a day and a half (cooked from P7.2)
   meat: { stack: 5, weight: 0.8, nutrition: F.meat, decayDays: 2, shelfDays: 1.5, value: 3, tray: 'food' },
   cooked_meat: { stack: 5, weight: 0.7, nutrition: F.cooked_meat, decayDays: 3, shelfDays: 3, value: 4, tray: 'food' },
@@ -61,6 +63,10 @@ export const ITEM_DEFS: Partial<Record<ItemType, ItemDef>> = {
   // tools & weapons (§11.1/§11.3): one per slot; a use = one finished job (tree felled, stone mined) or one hit
   spear: { stack: 1, weight: 2, value: 6, weapon: { dmg: CFG.combat.spear, range: 1.5 }, uses: 25, breaksInto: { stick: 1 }, tray: 'tools' },
   stone_spear: { stack: 1, weight: 2, value: 10, weapon: { dmg: CFG.combat.stone_spear, range: 1.5 }, uses: 35, breaksInto: { stick: 1 } },
+  // P7.2: a rod for fishing; kiln-fired clay: a bucket (water ×5 for plants, fire ×3) and pots that keep the store's food
+  fishing_rod: { stack: 1, weight: 1, value: 6, tool: { fishMul: 1 }, uses: 30, breaksInto: { stick: 1 }, burnable: true, tray: 'tools' },
+  bucket: { stack: 1, weight: 1.5, value: 8, uses: 60, tray: 'tools' },
+  pot: { stack: 5, weight: 1.5, value: 5 },
   sling: { stack: 1, weight: 0.3, value: 6, hunt: { dmg: CFG.wildlife.huntDmg, range: CFG.wildlife.hunt.range }, uses: 30, breaksInto: { fiber: 1 }, burnable: true, tray: 'tools' },
   club: { stack: 1, weight: 3, value: 8, weapon: { dmg: CFG.combat.club, range: 1.1 }, uses: 40, breaksInto: { stone: 1 }, tray: 'tools' },
   stone_axe: { stack: 1, weight: 2, value: 10, tool: { chopMul: 2, fells: true }, uses: 15, breaksInto: { stick: 1 }, tray: 'tools' },

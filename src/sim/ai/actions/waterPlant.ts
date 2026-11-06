@@ -1,9 +1,11 @@
 import { CFG } from '../../config';
+import { gear, wearTool } from '../../tools';
 import { dist, q4 } from '../../../shared/math';
 import { needUrgency } from '../../goblin/needs';
 import { moveAlong, planPath, faceToward } from '../../steering';
 import { findDryPlant, nearestShores } from '../targets';
 import type { UtilityAction } from '../action';
+import type { Goblin } from '../../state';
 import { gainXp, skillLevel, skillSpeed } from '../../goblin/skills';
 
 /**
@@ -45,7 +47,7 @@ export const WaterPlant: UtilityAction = {
         a.stage = 2;
         return 'running';
       case 2:
-        if (w.s.tick - a.progress > CFG.plants.wetHandsTicks) return 'failed'; // hands dried on the way
+        if (!bucketOf(g) && w.s.tick - a.progress > CFG.plants.wetHandsTicks) return 'failed'; // hands dried on the way (a bucket keeps it)
         if (dist(g.pos, p.pos) < 0.9) a.path = [];
         if (moveAlong(w, g) !== 'arrived') return 'running';
         faceToward(g, p.pos);
@@ -54,10 +56,25 @@ export const WaterPlant: UtilityAction = {
         return 'running';
       default:
         if (--a.progress > 0) return 'running';
-        p.hydration = q4(Math.min(1, p.hydration + CFG.plants.waterHydration * (1 + CFG.skills.waterPerLevel * skillLevel(g, 'farming'))));
+      {
+        const add = CFG.plants.waterHydration * (1 + CFG.skills.waterPerLevel * skillLevel(g, 'farming'));
+        p.hydration = q4(Math.min(1, p.hydration + add));
         gainXp(w, g, 'farming', CFG.skills.xp.water);
         w.emit({ type: 'plant_watered', goblinId: g.id, plantId: p.id, at: p.pos });
+        // P7.2: a bucket holds water for four more thirsty plants close by
+        const bucket = bucketOf(g);
+        if (!bucket) return 'done';
+        const more = w.plantHash.query(p.pos, 3, (o) => o !== p && o.hydration < CFG.plants.waterBelow && o.stage !== 'mature' && o.stage !== 'old').slice(0, CFG.economy.bucket.waterMul - 1);
+        for (const o of more) {
+          o.hydration = q4(Math.min(1, o.hydration + add));
+          w.emit({ type: 'plant_watered', goblinId: g.id, plantId: o.id, at: o.pos });
+        }
+        wearTool(w, g, bucket);
         return 'done';
+      }
     }
   },
 };
+
+/** A bucket carried (P7.2). */
+export const bucketOf = (g: Goblin) => gear(g).find((s) => s.type === 'bucket') ?? null;

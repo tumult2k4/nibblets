@@ -63,6 +63,8 @@ interface Row {
   watch: WatchResult;
   /** P7.1: hoppers brought down / throws, slings made (day of the idea), critters at the end; food types eaten */
   wild: string; foods: string;
+  /** P7.2: fish landed / casts, clay dug, food cooked, rods/buckets/pots made, kilns (day of the first) */
+  econ: string;
 }
 
 function control0(): boolean { return noCraft || noPreserve; }
@@ -93,6 +95,7 @@ function runSeed(seed: number): Row {
   const rites = { buried: 0, mounds: 0, mourned: 0 };
   const watch = new DisasterWatch(w);
   const wild = { kills: 0, throws: 0, slings: 0, slingDay: -1, nibbled: 0 };
+  const econ = { fish: 0, casts: 0, clay: 0, cooked: 0, made: { fishing_rod: 0, bucket: 0, pot: 0 }, kilns: 0, kilnDay: -1 };
   const eaten: Record<string, number> = {};
   w.bus.subscribe((e) => {
     if (e.type === 'fell_ill') ill[e.disease] = (ill[e.disease] ?? 0) + 1;
@@ -103,6 +106,11 @@ function runSeed(seed: number): Row {
     if (e.type === 'item_crafted' && e.item === 'sling') wild.slings++;
     if (e.type === 'recipe_discovered' && e.recipe === 'sling' && wild.slingDay < 0) wild.slingDay = Math.floor(w.s.tick / CFG.time.dayTicks);
     if (e.type === 'sprout_nibbled') wild.nibbled++;
+    if (e.type === 'fish_caught') { econ.casts++; if (e.caught) econ.fish++; }
+    if (e.type === 'clay_dug') econ.clay += e.qty;
+    if (e.type === 'food_cooked') econ.cooked += e.qty;
+    if (e.type === 'item_crafted' && (e.item === 'fishing_rod' || e.item === 'bucket' || e.item === 'pot')) econ.made[e.item]++;
+    if (e.type === 'building_completed' && e.kind === 'kiln') { econ.kilns++; if (econ.kilnDay < 0) econ.kilnDay = Math.floor(w.s.tick / CFG.time.dayTicks); }
     if (e.type === 'item_eaten') eaten[e.item] = (eaten[e.item] ?? 0) + 1;
     if (e.type === 'recipe_discovered' && e.recipe === 'herbal_remedy' && remedyDay < 0) remedyDay = Math.floor(w.s.tick / CFG.time.dayTicks);
     if (e.type === 'fire_started') fireCauses[e.cause] = (fireCauses[e.cause] ?? 0) + 1;
@@ -197,6 +205,7 @@ function runSeed(seed: number): Row {
     foods: Object.entries(eaten).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k} ${v}`).join(', '),
     rites: `${rites.buried}/${rites.mounds}/${rites.mourned}`,
     disasters: `${dis.flood}/${dis.drought}/${dis.blight} (culled ${dis.culled})/${dis.star}${dis.floodLost ? ` huts lost ${dis.floodLost}` : ''}`,
+    econ: `${econ.fish}/${econ.casts} clay ${econ.clay} cooked ${econ.cooked} rods/buckets/pots ${econ.made.fishing_rod}/${econ.made.bucket}/${econ.made.pot} kilns ${econ.kilns}${econ.kilnDay < 0 ? '' : ' (day ' + econ.kilnDay + ')'}`,
     wildfires: `${Object.entries(fireCauses).map(([k, v]) => `${k} ${v}`).join(', ') || '—'} / ash ${w.s.tiles.filter((t) => t.ash).length} / burned ${burnedB}`,
     specialists: `${Object.entries(spec).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${k} ${n}`).join(', ') || '—'} · top ${top.toFixed(1)}`, friends,
     lost: totalDeaths, residents: founders + rare.newcomers,
@@ -214,7 +223,7 @@ const rows: Row[] = [];
 for (let i = 0; i < seedCount; i++) {
   const r = runSeed(firstSeed + i);
   rows.push(r);
-  console.log(`seed ${r.seed}: pop ${r.popEnd} (min ${r.popMin}, max ${r.popMax}) deaths ${JSON.stringify(r.deaths)} eaten ${r.eaten} bushes ${r.bushes0}→${r.bushesEnd} plantedMature ${r.plantedMature} wood ${r.wood} stone/flint/sticks ${r.stone} armed ${r.armed} fires ${r.fires} gnashers/stolen/bites/fled/killed/wounds ${r.foes} veterans ${r.veterans} huts ${r.huts} fences ${r.fences} beasts/smashed wisps/lured newcomers ${r.rare} housed@autumn ${r.housedAutumn < 0 ? '—' : Math.round(r.housedAutumn * 100) + '%'} specialists ${r.specialists} friends ${r.friends} winterStarve ${r.winterStarve} winterDeaths ${r.winterDeaths} spoiled ${r.spoiled} mash/dried ${r.preserved} generations ${r.generations} hue ${r.hue} (drift ${r.hueDrift.toFixed(1)}°) ill [${r.ill}] tended ${r.tended} remedies ${r.remedies} wildfires [${r.wildfires}] floods/droughts/blight/stars ${r.disasters} buried/mounds/mourned ${r.rites} hunted ${r.wild} ate [${r.foods}] recovered ${r.watch.recovered}/${r.watch.judged} (worst dip ${Math.round((1 - r.watch.worst) * 100)} %)${r.watch.misses.length ? ' [' + r.watch.misses.join('; ') + ']' : ''} tick ${r.tickMs.toFixed(3)}ms ${r.fails.length ? 'FAIL ' + r.fails.join(',') : 'ok'}`);
+  console.log(`seed ${r.seed}: pop ${r.popEnd} (min ${r.popMin}, max ${r.popMax}) deaths ${JSON.stringify(r.deaths)} eaten ${r.eaten} bushes ${r.bushes0}→${r.bushesEnd} plantedMature ${r.plantedMature} wood ${r.wood} stone/flint/sticks ${r.stone} armed ${r.armed} fires ${r.fires} gnashers/stolen/bites/fled/killed/wounds ${r.foes} veterans ${r.veterans} huts ${r.huts} fences ${r.fences} beasts/smashed wisps/lured newcomers ${r.rare} housed@autumn ${r.housedAutumn < 0 ? '—' : Math.round(r.housedAutumn * 100) + '%'} specialists ${r.specialists} friends ${r.friends} winterStarve ${r.winterStarve} winterDeaths ${r.winterDeaths} spoiled ${r.spoiled} mash/dried ${r.preserved} generations ${r.generations} hue ${r.hue} (drift ${r.hueDrift.toFixed(1)}°) ill [${r.ill}] tended ${r.tended} remedies ${r.remedies} wildfires [${r.wildfires}] floods/droughts/blight/stars ${r.disasters} buried/mounds/mourned ${r.rites} hunted ${r.wild} fished ${r.econ} ate [${r.foods}] recovered ${r.watch.recovered}/${r.watch.judged} (worst dip ${Math.round((1 - r.watch.worst) * 100)} %)${r.watch.misses.length ? ' [' + r.watch.misses.join('; ') + ']' : ''} tick ${r.tickMs.toFixed(3)}ms ${r.fails.length ? 'FAIL ' + r.fails.join(',') : 'ok'}`);
 }
 const lines = [
   `# Balance report — ${days} days × ${seedCount} seeds${noCraft ? ' (control: no crafting)' : ''}${noPreserve ? ' (control: no preservation)' : ''}`,

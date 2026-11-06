@@ -50,6 +50,8 @@ import { EscapeFire, ExtinguishFire, fireCaught } from './actions/fireFight';
 import { CullBlight } from './actions/cullBlight';
 import { BuryDead, Mourn, setDown } from './actions/burial';
 import { Hunt } from './actions/hunt';
+import { Fish } from './actions/fish';
+import { DigClay } from './actions/digClay';
 
 export const ACTIONS: Record<ActionId, UtilityAction> = {
   idle: Idle, wander: Wander, eat: Eat, harvest_fruit: HarvestFruit, pick_up: PickUp, drop: Drop,
@@ -64,7 +66,7 @@ export const ACTIONS: Record<ActionId, UtilityAction> = {
   court: Court, lay_egg: LayEgg, incubate_egg: IncubateEgg, feed_child: FeedChild, follow_parent: FollowParent,
   play: Play, learn: Learn, teach: Teach, cut_grass: CutGrass, pick_flowers: PickFlowers, process: Process,
   rest_sick: RestSick, tend_sick: TendSick, extinguish_fire: ExtinguishFire, escape_fire: EscapeFire,
-  cull_blight: CullBlight, bury_dead: BuryDead, mourn: Mourn, hunt: Hunt,
+  cull_blight: CullBlight, bury_dead: BuryDead, mourn: Mourn, hunt: Hunt, fish: Fish, dig_clay: DigClay,
 };
 const CHOOSABLE = (Object.values(ACTIONS) as UtilityAction[]).filter((a) => !a.forced);
 

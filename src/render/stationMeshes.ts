@@ -53,6 +53,25 @@ export function watchtowerGeo(): THREE.BufferGeometry {
   return merge(parts);
 }
 
+/** P7.2: the kiln, a squat clay dome on a ring of stones with a dark firing mouth and a smoke hole on top. */
+export function kilnGeo(): THREE.BufferGeometry {
+  const CLAY = '#b8734e', parts: THREE.BufferGeometry[] = [
+    paint(wobble(new THREE.SphereGeometry(0.46, 8, 5, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 1.15, 1), 0.03, 83), CLAY, 0.07, 3),
+    paint(new THREE.CylinderGeometry(0.1, 0.13, 0.14, 6).translate(0, 0.56, 0), '#9c5f3e', 0.05),
+    paint(new THREE.CylinderGeometry(0.07, 0.07, 0.02, 6).translate(0, 0.635, 0), '#2e2420'),
+    // the mouth: a dark arch at the front with a glow of embers in it
+    paint(new THREE.BoxGeometry(0.26, 0.24, 0.12).translate(0, 0.12, 0.4), '#2e2420'),
+    paint(new THREE.CylinderGeometry(0.13, 0.13, 0.12, 6, 1, false, 0, Math.PI).rotateZ(Math.PI / 2).rotateY(Math.PI / 2).translate(0, 0.24, 0.4), '#2e2420'),
+    paint(new THREE.BoxGeometry(0.18, 0.05, 0.05).translate(0, 0.03, 0.44), '#e8742c'),
+  ];
+  for (let i = 0; i < 9; i++) {
+    const a = (i / 9) * Math.PI * 2 + 0.3;
+    if (Math.abs(Math.sin(a) - 1) < 0.15) continue;
+    parts.push(paint(wobble(new THREE.DodecahedronGeometry(0.09, 0).translate(Math.cos(a) * 0.48, 0.05, Math.sin(a) * 0.48), 0.02, 85 + i), STONE, 0.06));
+  }
+  return merge(parts);
+}
+
 const DIRS: [number, number][] = [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1]];
 
 /** The gate, turned along the fence (from the bit mask of neighbouring posts, as for fences). */

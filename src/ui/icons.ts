@@ -96,4 +96,6 @@ export const ITEM_ICON: Record<string, string> = {
   dried_apple: 'apple', torch: 'heat', star_stone: 'gem', herbal_remedy: 'leaf',
   // P7.1 wildlife
   meat: 'bowl', cooked_meat: 'bowl', bone: 'stick', feather: 'leaf', pelt: 'fiber', sling: 'fiber',
+  // P7.2 fishing and the kiln
+  cooked_fish: 'fish', fishing_rod: 'fish', bucket: 'clay', pot: 'clay',
 };

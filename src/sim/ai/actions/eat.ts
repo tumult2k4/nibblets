@@ -48,6 +48,7 @@ function eatStep(g: Goblin, w: World, pick: () => ItemStack | undefined): StepRe
   sharedMeal(w, g);
   sicken(w, g, one.type);
   if (rotten) exposeTo(w, g, 'gut_rot', CFG.health.rottenGutRot);
+  if (one.type === 'fish' || one.type === 'meat') exposeTo(w, g, 'gut_rot', CFG.economy.rawGutRot); // eaten raw (P7.2)
   w.emit({ type: 'item_eaten', goblinId: g.id, item: one.type, at: g.pos, ...(one.divine ? { divine: true } : {}) });
   // §8.2 accidental gardening: now and then a berry seed ends up in the ground
   if (one.type === 'berry' && w.rng.chance(CFG.plants.berryAccidentalSeed)) {

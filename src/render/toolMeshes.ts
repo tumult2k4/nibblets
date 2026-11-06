@@ -32,6 +32,15 @@ export function toolGeo(t: ItemType): THREE.BufferGeometry | null {
         paint(new THREE.TorusGeometry(0.025, 0.008, 3, 6).rotateY(Math.PI / 2).translate(0.17, 0.02, 0), '#c9b26a')]);
     case 'torch':
       return merge([shaft(0.4, 0.02, '#7a5636'), paint(new THREE.CylinderGeometry(0.045, 0.035, 0.1, 5).rotateZ(Math.PI / 2).translate(0.2, 0.03, 0), '#c9b26a')]);
+    // P7.2: a long thin rod with a line hanging off its tip; a fired-clay bucket with a rope handle
+    case 'fishing_rod':
+      return merge([shaft(0.9, 0.012, '#8a6a42'), paint(new THREE.CylinderGeometry(0.003, 0.003, 0.18, 3).translate(0.45, 0.09, 0), '#e9e2d0'),
+        paint(new THREE.SphereGeometry(0.014, 4, 3).translate(0.45, 0.0, 0), '#c63b2b')]);
+    case 'bucket':
+      return merge([paint(new THREE.CylinderGeometry(0.09, 0.07, 0.14, 7, 1, true).translate(0, 0.07, 0), '#b8734e', 0.05),
+        paint(new THREE.CylinderGeometry(0.07, 0.07, 0.01, 7).translate(0, 0.005, 0), '#9c5f3e'),
+        paint(new THREE.CylinderGeometry(0.082, 0.082, 0.008, 7).translate(0, 0.11, 0), '#6fa7c7'),
+        paint(new THREE.TorusGeometry(0.085, 0.006, 3, 8, Math.PI).translate(0, 0.14, 0), '#a8894a')]);
     default:
       return null;
   }
