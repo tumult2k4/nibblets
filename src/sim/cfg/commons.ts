@@ -25,7 +25,8 @@ export const COMMONS = {
     cloakWarmth: 9, necklaceFear: 1.5, paintBravery: 0.3, paintDays: 1, paintMood: 3,
     /** wants: a necklace for the brave and the vain; war paint once Gnashers have been seen, for the brave */
     necklaceWant: 0.12, paintWant: 0.2,
-    /** a fireplace keeps the ash of what it burned (at most `ashKeep`), and whoever tends it takes the ash away */
-    ashKeep: 3,
+    /** a fireplace keeps the ash of what it burned (at most `ashKeep`); whoever tends it clears it, and carries it to
+     * the store while the store holds fewer than `ashStore` (the rest is scattered) */
+    ashKeep: 3, ashStore: 6,
   },
 } as const;

@@ -256,7 +256,7 @@ export const TendFire: UtilityAction = {
       removeItems(g, item, k);
       used += k;
     }
-    const ash = takeAsh(b); // the old ash is carried off (for war paint, P7.5)
+    const ash = takeAsh(w, b); // the old ash is carried off (for war paint, P7.5)
     if (ash > 0) addItem(g, { type: 'ash', qty: ash });
     if (used > 0) w.emit({ type: 'fire_tended', goblinId: g.id, buildingId: b.id, wood: used });
     return used > 0 ? 'done' : 'failed';

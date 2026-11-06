@@ -295,7 +295,8 @@ export const CFG = {
     petMoodPerSec: 3, pokeMood: -2, flickDmg: 5, flickFear: 6, flickDist: 2, holdMoodPenalty: -10, holdFearGain: 5,
     lookUpTicks: 40, maxGiftQty: 20, spawnHeight: 9,
   },
-  stats: { sampleEvery: 300 },
+  /** P7.6: one sample every 300 ticks (12 a day), the latest 2000 kept (166 days); store days capped for the chart */
+  stats: { sampleEvery: 300, maxSamples: 2000, hueBins: 12, daysCap: 99, deathLogMax: 1000 },
 } as const;
 
 export type Config = typeof CFG;

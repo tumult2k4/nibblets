@@ -8,6 +8,7 @@ import { clamp } from '../shared/math';
 import { itemDef } from './items';
 import { countItem, removeItems } from './inventory';
 import { addMood } from './goblin/mood';
+import { stockCount } from './stockpile';
 import type { Building, Goblin } from './state';
 import type { World } from './world';
 
@@ -45,9 +46,9 @@ export function addAsh(b: Building, wood: number, sticks: number): void {
   b.data = { ...(b.data ?? {}), ash: Math.round(ash * 100) / 100 };
 }
 
-/** Whole ash a tender can carry away (taken off the fireplace). */
-export function takeAsh(b: Building): number {
+/** The tender clears the whole ash off the fireplace: carried to the store while it holds under `ashStore`, else scattered. */
+export function takeAsh(w: World, b: Building): number {
   const n = Math.floor(b.data?.ash ?? 0);
   if (n > 0) b.data!.ash = Math.round((b.data!.ash! - n) * 100) / 100;
-  return n;
+  return stockCount(w.s, 'ash') < A.ashStore ? n : 0;
 }

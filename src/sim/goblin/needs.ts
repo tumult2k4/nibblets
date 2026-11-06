@@ -1,3 +1,4 @@
+import { logDeath } from '../stats';
 import type { DeathCause } from '../../shared/types';
 import { clamp, q4 } from '../../shared/math';
 import { CFG } from '../config';
@@ -94,6 +95,7 @@ export function killGoblin(w: World, g: Goblin, cause: DeathCause): void {
   const line = s.lineage[g.id];
   if (line) line.died = s.tick;
   s.stats.deaths[cause] = (s.stats.deaths[cause] ?? 0) + 1;
+  logDeath(s, cause);
   if (s.god.held?.id === g.id) s.god.held = null;
   for (const b of s.buildings) {
     if (!b.occupants.includes(g.id)) continue;

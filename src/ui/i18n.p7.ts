@@ -24,6 +24,9 @@ export const EN7 = {
   'act.haul_to_stockpile': 'Hauling to the store',
   'ev.zone_marked': 'The village has set aside a corner for wood, stone and the like, apart from the food.',
   'ev.war_paint': '{name} painted their face for battle.',
+  'key.stats': 'Stats panel', 'village.charts': 'Charts', 'stats.title': 'Village over time', 'stats.empty': 'Nothing to chart yet: give it a day.',
+  'stats.pop': 'Population ({n})', 'stats.food': 'Food in store ({n} days)', 'stats.hues': 'Skin colors', 'stats.deaths': 'Deaths by cause ({n})',
+  'stats.noDeaths': 'Nobody has died yet.', 'stats.known': 'Recipes and lore known ({n})',
 };
 
 export const DE7: Record<keyof typeof EN7, string> = {
@@ -51,4 +54,7 @@ export const DE7: Record<keyof typeof EN7, string> = {
   'act.haul_to_stockpile': 'Trägt zum Lager',
   'ev.zone_marked': 'Das Dorf hat eine Ecke für Holz, Stein und dergleichen abgeteilt, getrennt vom Essen.',
   'ev.war_paint': '{name} hat sich das Gesicht für den Kampf bemalt.',
+  'key.stats': 'Statistik', 'village.charts': 'Verlauf', 'stats.title': 'Das Dorf im Verlauf', 'stats.empty': 'Noch nichts zu zeigen: warte einen Tag.',
+  'stats.pop': 'Bevölkerung ({n})', 'stats.food': 'Vorrat ({n} Tage)', 'stats.hues': 'Hautfarben', 'stats.deaths': 'Todesursachen ({n})',
+  'stats.noDeaths': 'Noch ist niemand gestorben.', 'stats.known': 'Bekannte Rezepte und Überlieferung ({n})',
 };

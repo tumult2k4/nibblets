@@ -248,8 +248,16 @@ export interface VillageState {
 
 export interface Demand { food: number; weapons: number; housing: number; repair: number }
 
-export interface StatsSample { tick: number; pop: number; food: number; avgHunger: number; avgFaith: number }
-export interface StatsSeries { samples: StatsSample[]; deaths: Record<string, number>; births: number; eaten: number; divineFood: number; spoiled?: number }
+export interface StatsSample {
+  tick: number; pop: number; food: number; avgHunger: number; avgFaith: number;
+  /** P7.6 stats panel: days of food in the store, recipes and facts the village knows, goblins per 30° of skin hue */
+  days?: number; known?: number; hues?: number[];
+}
+export interface StatsSeries {
+  samples: StatsSample[]; deaths: Record<string, number>; births: number; eaten: number; divineFood: number; spoiled?: number;
+  /** P7.6: [tick, cause] of every death (the latest `deathLogMax`), for the deaths chart */
+  deathLog?: [number, string][];
+}
 
 export interface LlmAnnotations { journals: unknown[]; speechText: Record<string, string> }
 
