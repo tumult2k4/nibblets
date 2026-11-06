@@ -31,5 +31,7 @@ export function dangerAt(w: World, p: Vec2): number {
   // the god's own wrath: dread after a strike, a biting swarm
   for (const z of w.s.god.zones) { const d = dist(z.pos, p); if (d < z.r) v += D.zone * (1 - d / z.r); }
   if (v > 0 && litFireNear(w, p, CFG.fire.lightRadius)) v *= 1 - D.fireCalm;
+  // P6.6: under a Sanctuary's dome the fear mostly goes
+  if (v > 0 && w.s.god.sanctuaries.some((z) => dist(z.pos, p) <= z.r)) v *= CFG.miracles.sanctuaryCalm;
   return v;
 }

@@ -50,4 +50,14 @@ export const HEALTH = {
   restTicks: 300, restHurtBelow: 0.5, restHurt: 0.3,
   /** how often a sick goblin sneezes or retches (ticks, on average) */
   emoteEvery: 400,
+  /** P6.5 herbal remedy: a dose makes the illness run its course ×remedyMul as fast and its mortality ×remedyMortality;
+   * crafters keep `remedyTarget` in store (want remedyWant, + remedySickWant while someone ill goes untreated and none
+   * is left); the sick fetch one from a stockpile within remedyFetch, carers within tendRange bring one; the idea comes
+   * ×remedyIdeaBase as often as other ideas, and ×remedyIdeaMul again while anyone is ill */
+  remedyMul: 2, remedyMortality: 0.5, remedyWant: 0.3, remedySickWant: 0.35, remedyTarget: 2, remedyFetch: 30, remedyIdeaBase: 2, remedyIdeaMul: 3,
+  /** one who knows the remedy forages a glowcap for it (score × remedy want) when there is none in store or pack */
+  herbForage: 0.9,
+  /** quarantine (village policy): the contagious sleep and rest in an empty hut within quarantineRange, else lie out at
+   * least apartFrom from everyone; their RestSick wants at least quarantineRest */
+  quarantineRange: 40, apartFrom: 5, quarantineRest: 0.45,
 } as const;

@@ -1,6 +1,7 @@
 /**
  * Grave inspector (§18.6, P6.4): who lies here, when they lived, what took them, their family, what was buried with
- * them, who still grieves, and (when an elder has spoken, P9) the eulogy. The Resurrect button joins in P6.6.
+ * them, who still grieves, and (when an elder has spoken, P9) the eulogy. P6.6: while the body is kept (two days),
+ * a Resurrect button — greyed with the reason when the god cannot do it yet (tier, favor, cooldown).
  */
 import { el } from '../../dom';
 import { t } from '../../i18n';
@@ -11,6 +12,8 @@ import { CFG } from '../../../sim/config';
 import { clockAt } from '../../../sim/time';
 import { griefId } from '../../../sim/death';
 import { kinChip } from './socialTab';
+import { castProblem } from '../../../sim/god/cast';
+import { resurrectProblem } from '../../../sim/god/powers/miracles';
 
 const DAY = CFG.time.dayTicks;
 
@@ -26,7 +29,17 @@ export function graveHead(gr: Grave, onClose: () => void): HTMLElement {
       el('button.btn', { onclick: onClose, 'data-tip': t('insp.close') }, icon('close'))));
 }
 
-export function graveBody(gr: Grave, w: World, onPick: (id: number) => void): HTMLElement {
+/** The Resurrect button while the body is kept, or null; `cast` is null when the god cannot act (replays, observer). */
+function resurrectRow(gr: Grave, w: World, cast: (() => void) | null): HTMLElement | null {
+  if (resurrectProblem(w, gr.id)) return null;
+  const left = Math.max(0, Math.ceil((gr.tick + CFG.death.resurrectDays * DAY - w.s.tick) / CFG.god.hourTicks));
+  const why = castProblem(w, 'resurrect', gr.pos, undefined, gr.id);
+  const b = el('button.btn', { disabled: !cast || !!why, onclick: () => cast?.() }, icon('star'), ` ${t('grave.resurrect')}`);
+  b.dataset.tip = why ? t(`reason.${why}`) : t('grave.resurrectLeft', { h: left });
+  return el('div.row', {}, b);
+}
+
+export function graveBody(gr: Grave, w: World, onPick: (id: number) => void, cast: (() => void) | null = null): HTMLElement {
   const row = (label: string, text: string) => el('div.row', {}, el('span.lbl', { text: label }), el('span', { text }));
   const chips = (label: string, ids: number[]) => ids.length ? el('div.row.kinrow', {}, el('span.lbl', { text: label }), el('span.kins', {}, ...ids.map((id) => kinChip(w, id, onPick)))) : null;
   const line = w.s.lineage[gr.goblinId];
@@ -44,5 +57,6 @@ export function graveBody(gr: Grave, w: World, onPick: (id: number) => void): HT
     chips(t('insp.parents'), parents), chips(t('insp.children'), children),
     grieving.length ? chips(t('grave.mourners'), grieving) : el('div.sub', { text: t('grave.noMourners') }),
     el('h3', { text: t('grave.eulogy') }),
-    el('p.sub', { text: gr.eulogy ?? t('grave.noEulogy') }));
+    el('p.sub', { text: gr.eulogy ?? t('grave.noEulogy') }),
+    resurrectRow(gr, w, cast));
 }

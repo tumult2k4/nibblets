@@ -9,7 +9,9 @@ import type { World } from '../world';
 import { isWalkable } from '../grid';
 import { POWER_DEFS, type PowerDef } from './powerDefs';
 import { castAppleShower, castBountifulGrowth } from './powers/bounty';
-import { castBlessing, castFertility, castInspiration, castShinyGift, fertilePair } from './powers/gifts';
+import { castBlessing, castFertility, castHealingTouch, castInspiration, castShinyGift, fertilePair } from './powers/gifts';
+import { castBlight, castEarthquake, castFlood, castPlague } from './powers/calamity';
+import { castBringForth, castResurrect, castSanctuary, castVision, resurrectProblem } from './powers/miracles';
 import { castCurse, castLightning, castMeteor, castSummonBramblebeast, castSummonGnashers, castSwarm } from './powers/wrath';
 import { dist } from '../../shared/math';
 import type { ID } from '../../shared/types';
@@ -24,6 +26,9 @@ const EFFECTS: Record<string, (w: World, c: CastTarget) => void> = {
   lightning: castLightning, swarm: castSwarm, curse: castCurse, summon_gnashers: castSummonGnashers,
   summon_bramblebeast: castSummonBramblebeast, meteor: castMeteor,
   blessing: castBlessing, inspiration: castInspiration, fertility: castFertility, shiny_gift: castShinyGift,
+  // P6.6
+  healing_touch: castHealingTouch, plague: castPlague, blight: castBlight, flood: castFlood, earthquake: castEarthquake,
+  vision: castVision, sanctuary: castSanctuary, bring_forth: castBringForth, resurrect: castResurrect,
 };
 /** Powers that go through `god_cast` so far (terraform brushes use `god_power`). */
 export const CAST_POWERS = Object.keys(EFFECTS);
@@ -43,7 +48,7 @@ export function cooldownLeft(w: World, id: string): number {
 }
 
 /** Why this cast is not allowed now, or null. */
-export function castProblem(w: World, id: string, pos: Vec2, to?: Vec2, targetId?: ID): string | null {
+export function castProblem(w: World, id: string, pos: Vec2, to?: Vec2, targetId?: ID, option?: string): string | null {
   const def = powerDef(id);
   if (!def || !EFFECTS[id]) return 'unknown_power';
   const s = w.s;
@@ -54,6 +59,12 @@ export function castProblem(w: World, id: string, pos: Vec2, to?: Vec2, targetId
     if (g.heldByGod) return 'held';
     if (def.target === 'pair' && !fertilePair(g, w)) return 'no_mate';
   }
+  if (def.target === 'grave') {
+    const why = resurrectProblem(w, targetId);
+    if (why) return why;
+  }
+  if (id === 'plague' && option !== undefined && !CFG.miracles.plagueDiseases.includes(option)) return 'bad_option';
+  if (id === 'bring_forth' && !isWalkable(s, Math.floor(pos.x), Math.floor(pos.y))) return 'bad_site';
   if (id.startsWith('summon_')) {
     if (dist(pos, s.village.center) < CFG.combat.villageRadius) return 'too_close';
     if (!isWalkable(s, Math.floor(pos.x), Math.floor(pos.y))) return 'bad_site';
@@ -70,7 +81,7 @@ export function castProblem(w: World, id: string, pos: Vec2, to?: Vec2, targetId
   return null;
 }
 
-export function cast(w: World, id: string, pos: Vec2, radius?: number, to?: Vec2, targetId?: ID): void {
+export function cast(w: World, id: string, pos: Vec2, radius?: number, to?: Vec2, targetId?: ID, option?: string): void {
   const def = powerDef(id)!;
   const g = w.s.god;
   if (g.mode === 'divine') {
@@ -78,7 +89,7 @@ export function cast(w: World, id: string, pos: Vec2, radius?: number, to?: Vec2
     g.cooldowns[id] = w.s.tick + def.cooldownHours * CFG.god.hourTicks;
   }
   g.alignment += def.alignment;
-  EFFECTS[id]!(w, { pos, radius: castRadius(def, radius), ...(to ? { to } : {}), ...(targetId !== undefined ? { targetId } : {}) });
+  EFFECTS[id]!(w, { pos, radius: castRadius(def, radius), ...(to ? { to } : {}), ...(targetId !== undefined ? { targetId } : {}), ...(option !== undefined ? { option } : {}) });
 }
 
 export interface CastPreview { goblins: number[]; plants: number; enemies: number; lethal: number[] }

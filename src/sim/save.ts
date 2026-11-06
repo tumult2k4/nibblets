@@ -156,6 +156,12 @@ export const MIGRATIONS: Record<number, Migration> = {
     }
     return raw;
   },
+  // P6.6 the god's floods and sanctuaries
+  19: (raw) => {
+    Object.assign(raw.climate as Record<string, unknown>, { godFloods: [] });
+    Object.assign(raw.god as Record<string, unknown>, { sanctuaries: [] });
+    return raw;
+  },
 };
 
 export function deserialize(json: string): WorldState {

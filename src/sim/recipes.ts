@@ -22,6 +22,8 @@ export interface RecipeDef {
   near?: ItemType[];
   /** discovery (P5.7): the idea only comes once one of these stands (a gate needs a fence to be a gate in) */
   after?: BuildingType;
+  /** discovery (P6.5): remembering where this input grows is enough to set a goblin thinking (a glowcap it saw glowing) */
+  idea?: ItemType;
 }
 
 export const RECIPES: Record<RecipeId, RecipeDef> = {
@@ -50,6 +52,8 @@ export const RECIPES: Record<RecipeId, RecipeDef> = {
   workbench: { inputs: { wood: 4, stone: 2 }, station: 'site', building: 'workbench', known: false, phase: 5, near: ['stick'], skill: 'building' },
   gate: { inputs: { wood: 2, rope: 1 }, station: 'site', building: 'gate', known: false, phase: 5, after: 'fence', skill: 'building' },
   watchtower: { inputs: { wood: 8, rope: 2 }, station: 'site', building: 'watchtower', known: false, phase: 5, after: 'fence', skill: 'building' },
+  // P6.5 (§14.3): a paste of glowcap and berries; the idea comes sooner while anyone is ill
+  herbal_remedy: { inputs: { glowcap: 1, berry: 2 }, station: 'none', output: 'herbal_remedy', known: false, phase: 6, ticks: 150, skill: 'cooking', idea: 'glowcap' },
 };
 
 export const recipeDef = (id: RecipeId): RecipeDef | undefined => RECIPES[id];

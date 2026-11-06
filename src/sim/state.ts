@@ -23,6 +23,8 @@ export interface Climate {
   rainHours: number; rainDays: number; dryDays: number;
   flood: { since: number; tiles: [number, Biome][] } | null;
   drought: { since: number; tiles: number[] } | null;
+  /** P6.6: the god's floods, each over its own area until it drains (tiles it put under, with their old biome) */
+  godFloods: { pos: Vec2; r: number; until: number; tiles: [number, Biome][] }[];
 }
 
 /**
@@ -55,8 +57,9 @@ export interface Personality {
 
 /** A healing wound (§14.2): `limp` slows, `bruised_arm` slows work, until `until`. Ear notches go straight to scars. */
 export interface Injury { kind: 'limp' | 'bruised_arm'; until: number }
-/** A disease a goblin carries (§14.3, P6.1): `progress` in days, through incubation and then the sickness itself. */
-export interface Illness { id: string; stage: 'incubating' | 'sick'; progress: number; since: number }
+/** A disease a goblin carries (§14.3, P6.1): `progress` in days, through incubation and then the sickness itself;
+ * `remedy`: a dose of herbal remedy was taken for it (P6.5). */
+export interface Illness { id: string; stage: 'incubating' | 'sick'; progress: number; since: number; remedy?: boolean }
 export interface HealthState {
   hp: number; maxHp: number; injuries: Injury[]; disease: Illness | null; scars: number;
   /** disease id → tick until which it cannot be caught again */
@@ -219,6 +222,8 @@ export interface VillageState {
   spoiled?: Partial<Record<import('../shared/types').ItemType, number>>;
   /** where the village lays its dead (P6.4), chosen at the first burial */
   graveyard?: Vec2 | null;
+  /** village policies (P6.5 hook; a chief sets them from P8, the sandbox drawer until then) */
+  policies?: { quarantine?: boolean };
 }
 
 export interface StatsSample { tick: number; pop: number; food: number; avgHunger: number; avgFaith: number }

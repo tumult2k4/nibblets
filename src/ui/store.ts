@@ -5,7 +5,7 @@ import type { BuildingType, EnemyKind, ID, ItemType, PlantKind, PlantStage } fro
 import type { Genome, LocusId } from '../sim/goblin/genetics/genome';
 import type { Lang } from './i18n';
 
-export type ToolId = 'hand' | 'gifts' | 'nature' | 'terraform' | 'wrath';
+export type ToolId = 'hand' | 'gifts' | 'nature' | 'terraform' | 'wrath' | 'miracles';
 export type Lens = 'default' | 'needs' | 'faith' | 'mood' | 'genetics' | 'fertility' | 'moisture' | 'paths' | 'temperature' | 'danger';
 export const LENSES: Lens[] = ['default', 'needs', 'faith', 'mood', 'genetics', 'fertility', 'moisture', 'paths', 'temperature', 'danger'];
 /** Lenses that recolor the terrain instead of ringing goblins. */
@@ -53,8 +53,9 @@ export interface UIState {
   power: TerraformPower;
   brushRadius: number;
   powerOption: string;
-  /** armed god_cast power (§18.4 casting UX) and its radius */
+  /** armed god_cast power (§18.4 casting UX) and its radius; `castOption`: the Plague's disease, Bring Forth's stock (P6.6) */
   armed: string | null;
+  castOption?: string;
   castRadius: number;
   inspectorTab: 'status' | 'mind' | 'social' | 'body' | 'inventory';
   settings: Settings;

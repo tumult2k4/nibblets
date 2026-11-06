@@ -10,6 +10,7 @@
  * - `twin`: hatched with a twin (family.ts) → a strong bond from the start, and it feels what its twin feels
  *   (40 % of any mood swing of 4 or more, mood.ts).
  * `grudge_holder` (its grudges never fade, social.ts) is earned through theft and pranks (P8).
+ * `returned` (P6.6): brought back from the grave by the god → piety +0.3 for life; it comes on top of the other three.
  */
 import { CFG } from '../config';
 import { clamp, q4 } from '../../shared/math';
@@ -18,7 +19,7 @@ import type { World } from '../world';
 
 const T = CFG.traits;
 
-export type TraitId = 'veteran' | 'scarred' | 'green_thumb' | 'orphan' | 'twin' | 'grudge_holder';
+export type TraitId = 'veteran' | 'scarred' | 'green_thumb' | 'orphan' | 'twin' | 'grudge_holder' | 'returned';
 
 export interface TraitDef {
   /** earned when this holds (checked hourly); traits without one are given by events */
@@ -36,14 +37,15 @@ export const TRAITS: Record<TraitId, TraitDef> = {
   orphan: { personality: { bravery: T.orphanBravery, sociability: T.orphanSociability } },
   twin: {},
   grudge_holder: {},
+  returned: { personality: { piety: T.returnedPiety } },
 };
 export const TRAIT_IDS = Object.keys(TRAITS) as TraitId[];
 
 export const hasTrait = (g: Goblin, t: TraitId): boolean => g.traits.includes(t);
 
-/** Give `g` trait `t` unless it has it or already carries three. Returns true if gained. */
-export function grantTrait(w: World, g: Goblin, t: TraitId): boolean {
-  if (hasTrait(g, t) || g.traits.length >= T.max) return false;
+/** Give `g` trait `t` unless it has it or already carries three (`force`: even then). Returns true if gained. */
+export function grantTrait(w: World, g: Goblin, t: TraitId, force = false): boolean {
+  if (hasTrait(g, t) || (!force && g.traits.length >= T.max)) return false;
   g.traits.push(t);
   for (const [k, v] of Object.entries(TRAITS[t].personality ?? {}) as [keyof Personality, number][])
     g.personality[k] = q4(clamp(g.personality[k] + v, 0, 1));

@@ -2,10 +2,11 @@
 import { HEALTH } from './cfg/health';
 import { DISASTERS } from './cfg/disasters';
 import { DEATH } from './cfg/death';
+import { MIRACLES } from './cfg/miracles';
 
 export const CFG = {
   tickHz: 10,
-  saveVersion: 19,
+  saveVersion: 20,
   time: { dayTicks: 3600, daysPerSeason: 8, moonCycleDays: 8, phases: { dawn: 0.05, day: 0.6, dusk: 0.7 }, startTick: 360 },
   world: {
     w: 128, h: 128, waterLevel: 0.3, sandBand: 0.03, rockLevel: 0.8, forestNoiseThreshold: 0.6,
@@ -252,7 +253,7 @@ export const CFG = {
   /** P5.5 knowledge (§15.1): recipes and cultural facts are discovered, taught, observed and lost */
   knowledge: {
     discoveryBase: 0.01, teachTicks: 300, observeChance: 0.02, younglingLearnMul: 2, elderTeachMul: 1.5,
-    inspiredMul: 3, skillMul: 0.2, minNear: 1, stockReach: 5, groundReach: 3, discoveryMood: 8, observeRange: 4,
+    inspiredMul: 3, skillMul: 0.2, minNear: 1, stockReach: 5, groundReach: 3, memoryNear: 0.75, discoveryMood: 8, observeRange: 4,
     teachRange: 15, teachOpinion: 10, teachScore: [0.08, 0.2, 0.12] as [number, number, number], rareBonus: 0.15, kinBonus: 0.1,
     teachCooldownDays: 2, teachMood: 3, founderFactChance: 0.7, witnessRange: 8, redcapWitness: 0.6, fireWitness: 0.25,
     redcapDmg: 25, sickMood: -15, fireTendMul: 1.3,
@@ -283,13 +284,13 @@ export const CFG = {
   /** P5.7 acquired traits (§7.7) */
   traits: {
     max: 3, checkEvery: 150, greenThumbPlanted: 25, greenThumbGrowth: 1.5, scarredScars: 2, twinEcho: 0.4, twinEchoMin: 4,
-    orphanBravery: 0.1, orphanSociability: -0.1, scarredCrowd: 1.5, scarredShun: 2, twinOpinion: 25, veteranWatch: 1.3, greenThumbWork: 1.3,
+    orphanBravery: 0.1, orphanSociability: -0.1, scarredCrowd: 1.5, scarredShun: 2, twinOpinion: 25, veteranWatch: 1.3, greenThumbWork: 1.3, returnedPiety: 0.3,
   },
   /** P6.1 health and disease (§14.3): see cfg/health.ts */
   health: HEALTH,
   /** P6.2–P6.3 fire, floods, drought, blight, shooting stars: see cfg/disasters.ts */
   disasters: DISASTERS,
-  death: DEATH,
+  death: DEATH, miracles: MIRACLES,
   llm: { diariesPerDay: 3, dialoguesPerDay: 4, barksPerDay: 6, tokensPerDay: 12000, rpm: 10, concurrency: 2, timeoutMs: 20000 },
   god: {
     startFavor: 50, maxFavorBase: 100, maxFavorPerBeliever: 15, believerFaith: 40, prayingFavorMul: 3,

@@ -8,6 +8,7 @@ import { POWER_DEFS } from '../../sim/god/powerDefs';
 import type { ToolId } from '../store';
 import { FOREST_KINDS, TERRAFORM_POWERS, type TerraformPower } from '../../sim/god/terraform';
 import { cardsSig, powerCards } from './powerCards';
+import { castOptions } from '../tools/castTool';
 
 const POWER_ICON: Record<TerraformPower, string> = {
   raise_land: 'hill', lower_land: 'valley', smooth: 'smooth', create_water: 'drop', fertile_soil: 'sparkle', plant_forest: 'tree', place_rock: 'stone',
@@ -33,6 +34,7 @@ export class GodToolbar implements Component {
       ['nature', 'cloud', t('tool.natureTip'), 'nature'],
       ['terraform', 'hill', t('tool.terraformTip'), 'terraform'],
       ['wrath', 'bolt', t('tool.wrathTip'), 'wrath'],
+      ['miracles', 'star', t('tool.miraclesTip'), 'miracles'],
     ];
     for (const [id, ic, tip, key] of tools) {
       const b = el('button.btn.iconbtn', { onclick: () => this.choose(id) }, icon(ic));
@@ -49,7 +51,7 @@ export class GodToolbar implements Component {
   choose(id: ToolId): void {
     const st = this.ctx.store.state;
     if (id === 'wrath' && this.ctx.game.world.s.god.gentle) id = 'hand';
-    if (id === 'terraform' || id === 'nature' || id === 'wrath') {
+    if (id === 'terraform' || id === 'nature' || id === 'wrath' || id === 'miracles') {
       const open = st.activeTool !== id;
       this.ctx.store.set({ activeTool: open ? id : 'hand', armed: null, openPanels: { ...st.openPanels, tray: false, flyout: open } });
       this.flyout.replaceChildren();
@@ -83,15 +85,26 @@ export class GodToolbar implements Component {
     this.flyout.replaceChildren(...cards, opts);
   }
 
-  /** Flyouts of the Gifts (tray + gift powers), Nature and Wrath categories (§18.4). */
+  /** Flyouts of the Gifts (tray + gift powers), Nature, Wrath and Miracles categories (§18.4). */
   private renderFlyout(): void {
     const st = this.ctx.store.state;
     if (st.activeTool === 'terraform') return this.renderTerraform();
-    if (st.activeTool === 'nature' || st.activeTool === 'wrath') return void this.flyout.replaceChildren(...powerCards(this.ctx, st.activeTool), this.radiusBox());
+    if (st.activeTool === 'nature' || st.activeTool === 'wrath' || st.activeTool === 'miracles')
+      return void this.flyout.replaceChildren(...powerCards(this.ctx, st.activeTool === 'miracles' ? 'miracle' : st.activeTool), this.optionBox(), this.radiusBox());
     const tray = el(`div.card${st.armed ? '' : '.on'}`, { onclick: () => this.ctx.store.set({ armed: null }) }, icon('gift'),
       el('div.name', { text: t('power.gift_tray') }), el('div.meta', { text: this.ctx.game.world.s.god.mode === 'sandbox' ? t('power.free') : t('power.trayCost') }));
     tray.dataset.tip = t('power.gift_trayDesc');
     this.flyout.replaceChildren(tray, ...powerCards(this.ctx, 'gift'), this.radiusBox());
+  }
+
+  /** P6.6: the Plague's disease, or the clan stock Bring Forth draws on. */
+  private optionBox(): HTMLElement {
+    const st = this.ctx.store.state;
+    const opts = castOptions(st.armed, this.ctx.game.world);
+    if (!opts) return el('div');
+    const cur = st.castOption && opts.values.includes(st.castOption) ? st.castOption : opts.values[0];
+    return el('div', { style: 'display:flex;flex-direction:column;gap:4px;align-self:center' }, el('div.sub', { text: t(opts.label) }),
+      ...opts.values.map((v) => el(`button.btn${v === cur ? '.on' : ''}`, { onclick: () => { this.ctx.store.set({ castOption: v }); this.flyout.replaceChildren(); } }, t(`${opts.prefix}${v}`))));
   }
 
   /** Radius slider for the armed area power (Shift+wheel does the same). */
@@ -115,8 +128,8 @@ export class GodToolbar implements Component {
     if (gentle && st.activeTool === 'wrath') this.choose('hand');
     const show = st.openPanels.flyout && !this.ctx.readOnly();
     this.flyout.classList.toggle('hidden', !show);
-    const cat = st.activeTool === 'nature' || st.activeTool === 'wrath' ? st.activeTool : 'gift';
-    const sig = `${st.activeTool}:${st.power}:${st.powerOption}:${st.settings.language}:${cardsSig(this.ctx, cat)}`;
+    const cat = st.activeTool === 'nature' || st.activeTool === 'wrath' ? st.activeTool : st.activeTool === 'miracles' ? 'miracle' : 'gift';
+    const sig = `${st.activeTool}:${st.power}:${st.powerOption}:${st.castOption}:${st.settings.language}:${cardsSig(this.ctx, cat)}`;
     if (show && (!this.flyout.firstChild || sig !== this.flySig)) {
       this.flySig = sig;
       this.renderFlyout();

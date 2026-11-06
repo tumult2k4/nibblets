@@ -36,7 +36,9 @@ export type SandboxOp =
   | { op: 'spawn_egg'; pos: Vec2 }
   | { op: 'spawn_goblin'; genome: Genome; pos: Vec2; ageDays: number }
   | { op: 'breed'; aId: ID; bId: ID }
-  | { op: 'edit_genome'; goblinId: ID; genome: Partial<Genome> };
+  | { op: 'edit_genome'; goblinId: ID; genome: Partial<Genome> }
+  /** a village policy, until there is a chief to set it (P6.5 quarantine; P8 policies) */
+  | { op: 'set_policy'; policy: 'quarantine'; on: boolean };
 
 /** The loci the genome editor may change on a living goblin: its looks, not its nature (§17.5.6). */
 export const COSMETIC_LOCI: readonly LocusId[] = ['skinHue', 'skinSat', 'skinLight', 'eyeHue', 'pattern', 'patternHueShift', 'earLength', 'earDroop', 'noseSize', 'tusks', 'albino'];
@@ -97,6 +99,8 @@ export function sandboxProblem(w: World, op: SandboxOp): string | null {
       if (!a || !b) return 'missing_entity';
       return a === b ? 'same_goblin' : null;
     }
+    case 'set_policy':
+      return op.policy === 'quarantine' && typeof op.on === 'boolean' ? null : 'unknown_policy';
     case 'remove':
       return null;
   }
@@ -128,6 +132,7 @@ export function applySandbox(w: World, op: SandboxOp): void {
       break;
     }
     case 'set_weather': setWeather(w, op.kind); break;
+    case 'set_policy': (s.village.policies ??= {})[op.policy] = op.on; break;
     case 'spawn_building': {
       const b = placeBlueprint(w, op.kind, { x: Math.round(op.pos.x), y: Math.round(op.pos.y) }, null);
       if (op.complete) completeBuilding(w, b, null);

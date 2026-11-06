@@ -13,7 +13,7 @@ import { CFG } from './config';
 import { clamp, dist, q4 } from '../shared/math';
 import { perDay } from './time';
 import type { DiseaseDef } from './cfg/health';
-import type { Goblin } from './state';
+import type { Goblin, Illness } from './state';
 import type { World } from './world';
 import type { ID } from '../shared/types';
 import { express } from './goblin/genetics/phenotype';
@@ -40,11 +40,12 @@ export const diseaseHungerMul = (g: Goblin): number => sickness(g)?.symptoms.hun
 
 /** How easily it catches things: 0.5 (vigor 1.2) … 1.5 (vigor 0.8); also scales its mortality. */
 export const frailty = (g: Goblin): number => clamp(1 - (express(g.genome, 'vigor') - 1) * H.resistK, 0.3, 2);
-/** How fast it gets better: 0.6 … 1.4 by vigor, × lying down, × being tended. */
+/** How fast it gets better: 0.6 … 1.4 by vigor, × lying down, × being tended, × a dose of remedy (P6.5). */
 export function recoveryRate(g: Goblin, w: World): number {
   let r = clamp(1 + (express(g.genome, 'vigor') - 1) * H.recoverK, 0.3, 2);
   if (resting(g)) r *= H.restMul;
   if (g.health.tendedUntil > w.s.tick) r *= H.tendMul;
+  if (g.health.disease?.remedy) r *= H.remedyMul;
   return r;
 }
 const resting = (g: Goblin): boolean => (g.activity.action === 'rest_sick' && g.activity.stage === 1) || (g.activity.action === 'sleep_home' && isSleeping(g));
@@ -56,6 +57,15 @@ export function infect(w: World, g: Goblin, id: string, fromId: ID | null = null
   g.health.disease = { id, stage: def.incubationDays > 0 ? 'incubating' : 'sick', progress: 0, since: w.s.tick };
   w.emit({ type: 'caught_disease', goblinId: g.id, disease: id, fromId, at: { ...g.pos } });
   if (def.incubationDays <= 0) showSymptoms(w, g, id);
+  return true;
+}
+
+/** The god's Plague (P6.6): whatever it had gives way to `id`, which shows at once. */
+export function strikeWith(w: World, g: Goblin, id: string): boolean {
+  g.health.disease = null;
+  if (!infect(w, g, id, null, true)) return false;
+  const ill = g.health.disease as Illness | null;
+  if (ill && ill.stage === 'incubating') { ill.stage = 'sick'; ill.progress = 0; showSymptoms(w, g, id); }
   return true;
 }
 
@@ -86,7 +96,7 @@ function runCourse(w: World, g: Goblin, dead: Goblin[]): void {
   if (def.emote && w.rng.chance(1 / H.emoteEvery) && !isSleeping(g)) w.emit({ type: 'emote', goblinId: g.id, emote: def.emote });
   if (ill.progress < def.durationDays) return;
   const deadly = !def.deadlyFor || def.deadlyFor.includes(g.lifeStage);
-  if (deadly && w.rng.chance(clamp(def.mortality * frailty(g), 0, 1))) { dead.push(g); return; }
+  if (deadly && w.rng.chance(clamp(def.mortality * frailty(g) * (ill.remedy ? H.remedyMortality : 1), 0, 1))) { dead.push(g); return; }
   g.health.disease = null;
   if (def.immuneDays > 0) g.health.immune[ill.id] = w.s.tick + def.immuneDays * DAY;
   w.emit({ type: 'recovered', goblinId: g.id, disease: ill.id, at: { ...g.pos } });

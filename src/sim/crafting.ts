@@ -20,6 +20,7 @@ import type { World } from './world';
 import { gainXp, skillLevel } from './goblin/skills';
 import { observe } from './knowledge';
 import { isInspired } from './goblin/mood';
+import { REMEDY, remedyWant } from './remedy';
 import type { SkillId } from '../shared/types';
 
 const C = CFG.crafting;
@@ -71,6 +72,7 @@ export function craftWant(g: Goblin, w: World, item: ItemType): number {
   if (d.bag) return hasItem(g, item) ? 0 : FB.basketWant;
   if (d.bedroll) return hasItem(g, item) ? 0 : FB.matWant * (g.homeId === null ? 1 : 0.2);
   if (item === 'rope') return FB.ropeWant * materialWanted(g, w, 'rope', FB.ropeTarget);
+  if (item === REMEDY) return remedyWant(g, w);
   return 0;
 }
 

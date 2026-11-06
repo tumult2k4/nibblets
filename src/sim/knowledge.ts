@@ -17,6 +17,7 @@ import { skillLevel } from './goblin/skills';
 import { addMood } from './goblin/mood';
 import { countItem } from './inventory';
 import { stockCount } from './stockpile';
+import { mushroomItem } from './ecology';
 
 const K = CFG.knowledge;
 const PRESERVE_IDS: ReadonlySet<string> = new Set(['grinding_stone', 'drying_rack', 'storage_pit']);
@@ -74,20 +75,29 @@ export function loseKnowledge(w: World, dead: Goblin): void {
 
 /**
  * 0..1: the share of a recipe's input kinds (and `near` hints, e.g. apples for a drying rack) within reach: own
- * pack, the stockpile within 5, the ground within 3. One of the inputs must be in hand — or, for something built on
- * a site (a drying rack), the goblin must be at the stockpile, looking at it all.
+ * pack, the stockpile within 5, the ground within 3 (P6.5: mushrooms growing there, and berries on a bush). One of the
+ * inputs must be in hand — or, for something built on a site (a drying rack), the goblin must be at the stockpile,
+ * looking at it all; or (P6.5) it remembers where the recipe's `idea` grows. `recalled`: kinds that are only
+ * remembered (a glowcap it saw growing somewhere): they count, but make the idea `memoryNear` times as likely each.
  */
 export function inputsNear(g: Goblin, w: World, id: RecipeId): number {
+  return nearness(g, w, id).share;
+}
+function nearness(g: Goblin, w: World, id: RecipeId): { share: number; recalled: number } {
   const inputs = Object.keys(RECIPES[id]?.inputs ?? {}) as ItemType[];
   const kinds = [...inputs, ...(RECIPES[id]?.near ?? [])];
-  let held = false, n = 0;
+  let held = false, n = 0, recalled = 0;
+  const idea = RECIPES[id]?.idea;
   const atStock = dist(g.pos, w.s.village.stockpilePos) <= K.stockReach;
   if (atStock && RECIPES[id]?.station === 'site') held = true;
   for (const t of kinds) {
     if (countItem(g, t) > 0) { held ||= inputs.includes(t); n++; }
     else if ((atStock && stockCount(w.s, t) > 0) || w.itemHash.nearest(g.pos, K.groundReach, (it) => it.stack.type === t && !it.airborne)) n++;
+    else if (w.s.mushrooms.some((m) => mushroomItem(m) === t && dist(m.pos, g.pos) <= K.groundReach)) { held ||= idea === t; n++; }
+    else if (t === 'berry' && w.plantHash.query(g.pos, K.groundReach).some((p) => p.kind === 'berry_bush' && p.fruit > 0 && dist(p.pos, g.pos) <= K.groundReach)) n++;
+    else if (g.memory.some((e) => e.kind === 'mushroom' && w.s.mushrooms.some((m) => m.id === e.targetId && mushroomItem(m) === t))) { held ||= idea === t; n++; recalled++; }
   }
-  return held ? n / kinds.length : 0;
+  return { share: held ? n / kinds.length : 0, recalled };
 }
 
 /** Food that has rotted in the village since dawn. */
@@ -102,12 +112,14 @@ export function discoveryChance(g: Goblin, w: World, id: RecipeId): number {
   if (!CFG.preserve.enabled && PRESERVE_IDS.has(id)) return 0;
   const after = RECIPES[id]?.after;
   if (after && !w.s.buildings.some((b) => b.type === after && b.buildProgress >= 1)) return 0;
-  const near = inputsNear(g, w, id);
+  const { share: near, recalled } = nearness(g, w, id);
   if (near < K.minNear) return 0;
   const skill = skillLevel(g, RECIPES[id]?.skill ?? 'crafting');
   // food going off before their eyes puts goblins in mind of keeping it (P5.6)
   const rot = PRESERVE_IDS.has(id) ? 1 + Math.min(CFG.preserve.rotIdeaMax, spoiledToday(w) * CFG.preserve.rotIdeaPer) : 1;
-  return K.discoveryBase * (0.5 + g.personality.wanderlust) * (1 + K.skillMul * skill) * inspiration(g) * near * rot;
+  // a cure is on everyone's mind, and the more so while someone lies ill (P6.5)
+  const ill = id !== 'herbal_remedy' ? 1 : CFG.health.remedyIdeaBase * (w.s.goblins.some((o) => o.health.disease?.stage === 'sick') ? CFG.health.remedyIdeaMul : 1);
+  return K.discoveryBase * (0.5 + g.personality.wanderlust) * (1 + K.skillMul * skill) * inspiration(g) * near * rot * ill * K.memoryNear ** recalled;
 }
 
 /** §6 step 12b: once an in-game hour per goblin (staggered), a roll to discover something new. */

@@ -14,7 +14,8 @@ import { startAction } from '../../ai/utility';
 import { applyReaction, divineAct, reactionFor } from '../faith';
 
 const PW = CFG.powers;
-export interface CastTarget { pos: Vec2; radius: number; to?: Vec2; targetId?: number }
+/** `option`: the Plague's disease, the clan stock Bring Forth draws on (P6.6) */
+export interface CastTarget { pos: Vec2; radius: number; to?: Vec2; targetId?: number; option?: string }
 
 const cellTicks = (): number => PW.cellHours * CFG.god.hourTicks;
 const inside = (p: Vec2, c: CastTarget): boolean => Math.hypot(p.x - c.pos.x, p.y - c.pos.y) <= c.radius;

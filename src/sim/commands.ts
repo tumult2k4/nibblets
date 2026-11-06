@@ -24,7 +24,7 @@ export type GodCommand =
   | { type: 'god_flick'; goblinId: ID; dir: Vec2 }
   | { type: 'god_power'; power: TerraformPower; pos: Vec2; radius: number; option?: string }
   | { type: 'god_spawn_plant'; kind: PlantKind; pos: Vec2 }
-  | { type: 'god_cast'; power: string; pos: Vec2; radius?: number; to?: Vec2; targetId?: ID }
+  | { type: 'god_cast'; power: string; pos: Vec2; radius?: number; to?: Vec2; targetId?: ID; option?: string }
   | { type: 'sandbox'; op: SandboxOp }
   | { type: 'set_mode'; mode: 'sandbox' | 'observer' };
 
@@ -98,7 +98,7 @@ export function validate(w: World, cmd: Command): string | null {
       if (cmd.pos.x < 0 || cmd.pos.y < 0 || cmd.pos.x >= s.size.w || cmd.pos.y >= s.size.h) return 'out_of_bounds';
       return null;
     case 'god_cast':
-      return castProblem(w, cmd.power, cmd.pos, cmd.to, cmd.targetId);
+      return castProblem(w, cmd.power, cmd.pos, cmd.to, cmd.targetId, cmd.option);
     case 'sandbox':
       return sandboxProblem(w, cmd.op);
   }
@@ -115,7 +115,7 @@ function apply(w: World, cmd: Command): void {
     case 'god_poke': poke(w, w.goblin(cmd.goblinId)!); break;
     case 'god_flick': flick(w, w.goblin(cmd.goblinId)!, cmd.dir); break;
     case 'god_power': terraform(w, cmd.power, cmd.pos, cmd.radius, cmd.option); break;
-    case 'god_cast': cast(w, cmd.power, cmd.pos, cmd.radius, cmd.to, cmd.targetId); break;
+    case 'god_cast': cast(w, cmd.power, cmd.pos, cmd.radius, cmd.to, cmd.targetId, cmd.option); break;
     case 'god_spawn_plant': {
       spawnPlant(w, cmd.kind, cmd.pos, cmd.kind === 'flower' ? 'mature' : 'sapling', null);
       divineAct(w, 'gift', cmd.pos);

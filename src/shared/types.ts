@@ -16,7 +16,7 @@ export type ItemType =
   | 'spear' | 'stone_spear' | 'club' | 'sling' | 'stone_axe' | 'pick' | 'fishing_rod' | 'bucket'
   | 'loincloth' | 'leaf_cape' | 'fur_cloak' | 'bone_necklace' | 'flower_crown' | 'war_paint'
   | 'basket' | 'rope' | 'sleeping_mat' | 'book' | 'drum' | 'flute' | 'torch'
-  | 'trinket' | 'star_stone';
+  | 'trinket' | 'star_stone' | 'herbal_remedy';
 
 export interface ItemStack {
   type: ItemType;
@@ -139,6 +139,8 @@ export type SimEvent = BaseEvent &
     | { type: 'recovered'; goblinId: ID; disease: string }
     | { type: 'outbreak'; goblinId: ID; disease: string }
     | { type: 'tended'; goblinId: ID; byId: ID }
+    // P6.5: a dose of herbal remedy, taken (byId null) or given by a carer
+    | { type: 'took_remedy'; goblinId: ID; byId: ID | null; disease: string }
     // P6.2 fire: a wildfire starts (lightning, heat, the god…), a bolt from a storm, a fire put out by goblins
     | { type: 'fire_started'; cause: string }
     | { type: 'lightning_strike' }
@@ -148,6 +150,11 @@ export type SimEvent = BaseEvent &
     | { type: 'blight_started'; plantId: ID }
     | { type: 'blight_culled'; goblinId: ID; plantId: ID }
     | { type: 'shooting_star' }
+    // P6.6 powers: the ground shakes, the god's flood, a goblin back from the grave, one brought forth in a beam of light
+    | { type: 'earthquake'; r: number }
+    | { type: 'god_flood'; tiles: number; r: number }
+    | { type: 'resurrected'; goblinId: ID; graveId: ID }
+    | { type: 'brought_forth'; goblinId: ID }
     // P6.4: someone grieves, a body is laid to rest (by nobody: covered where it lay), a grave is visited
     | { type: 'grief'; goblinId: ID; deadId: ID }
     | { type: 'buried'; graveId: ID; deadId: ID; byId: ID | null; mourners: number }

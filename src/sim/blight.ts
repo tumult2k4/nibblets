@@ -21,12 +21,12 @@ export const canBlight = (p: Plant): boolean => p.kind === 'apple_bush' && (p.st
 export const dampTimes = (w: World): boolean => w.clock.season === 'spring' || w.clock.season === 'autumn' || w.s.climate.rainDays > 0;
 
 /** Give a bush the blight (an outbreak, a neighbour, or the god's Blight). */
-export function blightPlant(w: World, p: Plant, amount: number = B.start): boolean {
+export function blightPlant(w: World, p: Plant, amount: number = B.start, quiet = false): boolean {
   if (!canBlight(p) || p.blight >= amount) return false;
   const fresh = p.blight === 0;
   p.blight = q4(Math.min(1, amount));
   p.fruit = Math.min(p.fruit, Math.floor(maxFruit(p) * (1 - p.blight)));
-  if (fresh) w.emit({ type: 'blight_started', plantId: p.id });
+  if (fresh && !quiet) w.emit({ type: 'blight_started', plantId: p.id });
   return true;
 }
 

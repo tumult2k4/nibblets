@@ -67,6 +67,8 @@ export const ITEM_DEFS: Partial<Record<ItemType, ItemDef>> = {
   flower: { stack: 10, weight: 0.1, decayDays: 2, shelfDays: 3, value: 1 },
   // P6.3: where a star fell; whoever picks it up keeps it as a legendary trinket
   star_stone: { stack: 1, weight: 0.2, value: 40 },
+  // P6.5: a dose speeds an illness on its way (remedy.ts); it goes stale slowly
+  herbal_remedy: { stack: 5, weight: 0.2, value: 6, decayDays: 6, shelfDays: 24 },
 };
 
 /** A Gift Tray slot: an item, or a sapling of a plant kind (Life tab, §P2.7). */

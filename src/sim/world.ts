@@ -29,6 +29,7 @@ import { updateInjuries } from './combat';
 import { updateSocial } from './goblin/social';
 import { think, act } from './ai/utility';
 import { updateGod } from './god/godState';
+import { updateSanctuaries } from './god/powers/miracles';
 import { sampleStats } from './stats';
 import { findPath } from './pathfinding';
 import { updateEggs } from './eggs';
@@ -153,6 +154,7 @@ export class World {
     act(this); //             13
     updateWear(this); //      13b path wear (§P2.7)
     enemiesAct(this); //      14 enemies.act
+    updateSanctuaries(this); // 14b P6.6: domes keep enemies out
     updateSocial(this); //    16 social (P5.1); 15 combat runs inside act
     updateKnowledge(this); // 17 culture: discovery (P5.5); 18 village, 19 clans
     updateTraits(this); //    17b acquired traits (P5.7)

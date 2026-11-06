@@ -1,4 +1,4 @@
-/** Gifts to one goblin (§17.5.1, P5.9): Blessing, Inspiration, Fertility and the Shiny Gift. */
+/** Gifts to one goblin (§17.5.1): Blessing, Inspiration, Fertility and the Shiny Gift (P5.9), Healing Touch (P6.6). */
 import { CFG } from '../../config';
 import type { Goblin } from '../../state';
 import type { World } from '../../world';
@@ -57,6 +57,17 @@ export function castFertility(w: World, c: CastTarget): void {
     w.emit({ type: 'emote', goblinId: g.id, emote: 'heart' });
   }
   divineAct(w, 'fertility', pair[0].pos, pair[0].id);
+}
+
+/** Healing Touch: full hp, wounds closed, illness gone (it counts as recovered, so no immunity comes of it). */
+export function castHealingTouch(w: World, c: CastTarget): void {
+  const g = target(w, c);
+  if (!g) return;
+  const h = g.health, ill = h.disease;
+  Object.assign(h, { hp: h.maxHp, injuries: [], disease: null, coldTicks: 0 });
+  if (ill) w.emit({ type: 'recovered', goblinId: g.id, disease: ill.id, at: { ...g.pos } });
+  addMood(w, g, 'healed', CFG.miracles.healMood, CFG.miracles.healDays * DAY);
+  divineAct(w, 'healing_touch', g.pos, g.id);
 }
 
 /** Shiny Gift: a rare trinket appears in its hands. */

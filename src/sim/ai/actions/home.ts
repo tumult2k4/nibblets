@@ -11,12 +11,15 @@ import { leaveHome, mateOf } from '../../goblin/family';
 import type { Building, Goblin } from '../../state';
 import type { World } from '../../world';
 import type { UtilityAction } from '../action';
+import { quarantined, sickHut } from '../../quarantine';
 
 const H = CFG.homes;
 
 /** The goblin's home building, if it still stands. */
 export const homeOf = (g: Goblin, w: World): Building | undefined =>
   g.homeId === null ? undefined : w.s.buildings.find((b) => b.id === g.homeId);
+/** Where it sleeps tonight: home, or under quarantine (P6.5) an empty hut while it is contagious. */
+const bedOf = (g: Goblin, w: World): Building | undefined => (quarantined(g, w) ? sickHut(g, w) ?? undefined : homeOf(g, w));
 
 const freeBeds = (b: Building): number => (buildingDef(b.type)?.capacity ?? 0) - b.occupants.length;
 
@@ -123,11 +126,11 @@ export const ClaimHome: UtilityAction = {
 /** Shared sleep loop: lie down (stage 1), sleep (stage 2) restoring energy at `rate`/day until rested in daylight. */
 export const SleepHome: UtilityAction = {
   id: 'sleep_home', tags: ['rest'], minStage: 'hatchling', interruptible: true,
-  isAvailable: (g, w) => g.needs.energy < 97 && !!homeOf(g, w) && isComplete(homeOf(g, w)!),
+  isAvailable: (g, w) => { const b = bedOf(g, w); return g.needs.energy < 97 && !!b && isComplete(b); },
   // a bed beats the ground: preferred whenever sleep is due
   score: (g, w) => sleepScore(g, w) * H.homeSleepPref,
   start(g, w) {
-    const b = homeOf(g, w)!;
+    const b = bedOf(g, w)!;
     g.activity.targetId = b.id;
     g.activity.stage = 0;
     g.activity.progress = 20;
@@ -135,7 +138,7 @@ export const SleepHome: UtilityAction = {
   },
   step(g, w) {
     const a = g.activity;
-    const b = homeOf(g, w);
+    const b = w.s.buildings.find((x) => x.id === a.targetId);
     if (!b) return 'failed';
     if (a.stage === 0) {
       if (moveAlong(w, g) !== 'arrived') return 'running';

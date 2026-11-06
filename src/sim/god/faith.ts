@@ -38,7 +38,8 @@ export function calmAnger(w: World, g: Goblin): void {
   if (m) m.expiresTick = w.s.tick;
 }
 /** Acts that count as a kindness toward their target (or toward everyone inside an area gift). */
-const KIND: ReadonlySet<string> = new Set(['gift', 'set_down', 'pet', 'apple_shower', 'bountiful_growth', 'warm_sun', 'blessing', 'inspiration', 'fertility', 'shiny_gift']);
+const KIND: ReadonlySet<string> = new Set(['gift', 'set_down', 'pet', 'apple_shower', 'bountiful_growth', 'warm_sun', 'blessing', 'inspiration', 'fertility', 'shiny_gift',
+  'healing_touch', 'sanctuary', 'bring_forth', 'resurrect']);
 
 const isYoung = (g: Goblin) => g.lifeStage === 'hatchling' || g.lifeStage === 'youngling';
 
@@ -89,6 +90,25 @@ export function reactionFor(act: DivineActKind | 'hurt', g: Goblin, isTarget: bo
     case 'summon_gnashers':
     case 'summon_bramblebeast':
       return { faith: 4, fear: 10 };
+    // P6.6
+    case 'healing_touch':
+      return isTarget ? { faith: 8, love: 8 } : { faith: 3, love: 2 };
+    case 'plague':
+      return isTarget ? { faith: 4, love: -8, fear: 10 } : { faith: 2, fear: 6 };
+    case 'blight':
+      return { faith: 2, fear: 3 };
+    case 'flood':
+      return { faith: 5, fear: 8 };
+    case 'earthquake':
+      return { faith: 8, fear: 14 };
+    case 'vision':
+      return { faith: 5, love: 2 };
+    case 'sanctuary':
+      return { faith: 6, love: 4 };
+    case 'bring_forth':
+      return isTarget ? {} : { faith: 10, love: 3, fear: 3 };
+    case 'resurrect':
+      return isTarget ? { faith: 25, love: 12 } : { faith: 15, love: 5, fear: 5 };
     default:
       return {};
   }

@@ -4,22 +4,37 @@ import { audio } from '../audio';
 import { castPreview, castRadius, powerDef } from '../../sim/god/cast';
 import type { PowerDef } from '../../sim/god/powerDefs';
 import type { ID, Vec2 } from '../../shared/types';
+import type { World } from '../../sim/world';
+import { CFG } from '../../sim/config';
+import { CLAN_ARCHETYPES } from '../../sim/goblin/genetics/founders';
 
 /** Category colors of the casting UX (§18.4). */
 export const CATEGORY_COLOR: Record<string, string> = {
   gift: '#ffd36b', nature: '#7cc7f2', terraform: '#b98a5a', wrath: '#a77bf0', miracle: '#ffffff', sandbox: '#cccccc',
 };
 
+/** P6.6: the choices a power offers (the Plague's disease, Bring Forth's clan stock), or null. */
+export function castOptions(power: string | null, w: World): { label: string; prefix: string; values: string[] } | null {
+  if (power === 'plague') return { label: 'cast.disease', prefix: 'disease.', values: [...CFG.miracles.plagueDiseases] };
+  if (power === 'bring_forth') {
+    const mine = w.s.clans.map((c) => c.archetype as string);
+    return { label: 'cast.stock', prefix: 'clan.', values: [...new Set([...mine, ...CLAN_ARCHETYPES])] };
+  }
+  return null;
+}
+
 /**
- * Cast tool (§18.4): an armed power follows the cursor; LMB casts (area/point, or the goblin under the cursor for
- * Curse), a drag casts Gust along a line, Shift+wheel sets the radius. With "confirm lethal" on, a cast that would kill
- * waits for a second click or Enter. The power stays armed for repeated casts until Esc or a right click.
+ * Cast tool (§18.4): an armed power follows the cursor; LMB casts (area/point, the goblin under the cursor for
+ * Curse, or the grave under it for Resurrect), a drag casts Gust along a line, Shift+wheel sets the radius. With
+ * "confirm lethal" on, a cast that would kill waits for a second click or Enter. The power stays armed for repeated
+ * casts until Esc or a right click.
  */
 export class CastTool {
   ground: THREE.Vector3 | null = null;
   dragFrom: THREE.Vector3 | null = null;
-  /** goblin under the cursor (goblin-target powers) */
+  /** goblin under the cursor (goblin-target powers), grave under it (Resurrect) */
   hoverGoblin: ID | null = null;
+  hoverGrave: ID | null = null;
   /** a lethal cast waiting for confirmation (§18.4 step 4) */
   pending: { power: string; pos: Vec2; radius: number; lethal: ID[] } | null = null;
 
@@ -40,6 +55,7 @@ export class CastTool {
     const pk = this.ctx.game.renderer.pickAt(e.clientX, e.clientY);
     this.ground = pk.ground;
     this.hoverGoblin = pk.entity?.kind === 'goblin' ? pk.entity.id : null;
+    this.hoverGrave = pk.entity?.kind === 'grave' ? pk.entity.id : null;
     // moving away from a pending lethal cast calls it off
     const p = this.pending;
     if (p && (!this.ground || Math.hypot(this.ground.x - p.pos.x, this.ground.z - p.pos.y) > 1.5)) this.pending = null;
@@ -55,7 +71,12 @@ export class CastTool {
     }
     if (def.target === 'goblin' || def.target === 'pair') {
       const g = this.hoverGoblin !== null ? this.ctx.game.world.goblin(this.hoverGoblin) : undefined;
-      if (g) this.send({ type: 'god_cast', power: def.id, pos: { x: g.pos.x, y: g.pos.y }, targetId: g.id });
+      if (g) this.send({ type: 'god_cast', power: def.id, pos: { x: g.pos.x, y: g.pos.y }, targetId: g.id, ...this.option(def.id) });
+      return;
+    }
+    if (def.target === 'grave') {
+      const gr = this.ctx.game.world.s.graves.find((x) => x.id === this.hoverGrave);
+      if (gr) this.send({ type: 'god_cast', power: def.id, pos: { ...gr.pos }, targetId: gr.id });
       return;
     }
     if (this.confirm()) return;
@@ -67,7 +88,13 @@ export class CastTool {
       audio.play('ui_click');
       return;
     }
-    this.send({ type: 'god_cast', power: def.id, pos, radius: st.castRadius });
+    this.send({ type: 'god_cast', power: def.id, pos, radius: st.castRadius, ...this.option(def.id) });
+  }
+
+  /** The chosen option of a power that has them (P6.6). */
+  private option(id: string): { option?: string } {
+    const opts = castOptions(id, this.ctx.game.world), o = this.ctx.store.state.castOption;
+    return opts ? { option: o && opts.values.includes(o) ? o : opts.values[0]! } : {};
   }
 
   /** Enter or a second click: cast the lethal power waiting for confirmation. Returns true when there was one. */

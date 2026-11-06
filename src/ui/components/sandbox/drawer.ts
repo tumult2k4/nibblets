@@ -44,7 +44,7 @@ export class SandboxDrawer implements Component {
     if (!open) { this.sig = ''; return; }
     const tab = st.sandboxTab ?? 'spawn';
     const goblin = st.selectedKind === 'goblin' ? st.selection.join(',') : '';
-    const sig = `${tab}:${st.settings.language}:${tab === 'spawn' ? JSON.stringify(st.spawn ?? null) : ''}:${tab === 'world' ? w.s.weather.kind : goblin}:${tab === 'breed' ? breedSig() : ''}`;
+    const sig = `${tab}:${st.settings.language}:${tab === 'spawn' ? JSON.stringify(st.spawn ?? null) : ''}:${tab === 'world' ? `${w.s.weather.kind}${w.s.village.policies?.quarantine ? 'q' : ''}` : goblin}:${tab === 'breed' ? breedSig() : ''}`;
     if (sig !== this.sig) {
       this.sig = sig;
       this.tabs.replaceChildren(...TABS.map((k) => el(`button.btn${k === tab ? '.on' : ''}`, { onclick: () => this.ctx.store.set({ sandboxTab: k }) }, t(`sbx.tab.${k}`))));
@@ -86,7 +86,7 @@ export class SandboxDrawer implements Component {
   private worldTab(): HTMLElement {
     const st = this.ctx.store.state, w = this.ctx.game.world;
     const cast = (power: string) => this.ctx.push({ type: 'god_cast', power, pos: { x: 0, y: 0 } });
-    const sel = st.selection[0];
+    const sel = st.selection[0], quarantine = !!w.s.village.policies?.quarantine;
     return el('div', {},
       el('h3', { text: t('sbx.weather') }),
       el('div.sbx-grid.wide', {}, ...WEATHER_KINDS.map((k) => el(`button.btn${w.s.weather.kind === k ? '.on' : ''}`, { onclick: () => this.ctx.push({ type: 'sandbox', op: { op: 'set_weather', kind: k } }) }, t(`weather.${k}`)))),
@@ -94,6 +94,9 @@ export class SandboxDrawer implements Component {
       el('div.row.sbx-row', {},
         el('button.btn', { onclick: () => cast('fast_forward') }, t('power.fast_forward')),
         el('button.btn', { onclick: () => cast('hasten_season') }, t('power.hasten_season'))),
+      el('h3', { text: t('sbx.policies') }),
+      el('div.row.sbx-row', {},
+        el(`button.btn${quarantine ? '.on' : ''}`, { 'data-tip': t('sbx.quarantineTip'), onclick: () => this.ctx.push({ type: 'sandbox', op: { op: 'set_policy', policy: 'quarantine', on: !quarantine } }) }, t('sbx.quarantine'))),
       el('h3', { text: t('sbx.removeTitle') }),
       el('div.row.sbx-row', {},
         el('button.btn', { disabled: sel === undefined || !st.selectedKind, onclick: () => { if (sel !== undefined) { this.ctx.push({ type: 'sandbox', op: { op: 'remove', id: sel } }); this.ctx.select(null, []); } } }, t('sbx.removeSelected'))),

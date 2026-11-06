@@ -63,6 +63,8 @@ const SPRITE = [
   S('meteor', `<path d="M3 3l9 6M6 2l7 7M2 7l9 5" stroke="#e8763a" stroke-width="2" stroke-linecap="round"/><circle cx="15.5" cy="15.5" r="5.5" fill="#7a6a5e" stroke="${I}" stroke-width="1.5"/><circle cx="14" cy="14" r="1.3" fill="${I}"/><circle cx="17.5" cy="17" r="1" fill="${I}"/>`),
   S('sick', `<circle cx="12" cy="12" r="8.5" fill="#a9d47a" stroke="${I}" stroke-width="1.5"/><circle cx="9" cy="10" r="1.2" fill="${I}"/><circle cx="15" cy="10" r="1.2" fill="${I}"/><path d="M8.5 15.5c1-1 2.2-1 3.5 0s2.5 1 3.5 0" stroke="${I}" stroke-width="1.4" fill="none" stroke-linecap="round"/><circle cx="7" cy="14" r="1" fill="#5f9a3a"/><circle cx="17" cy="7" r="1" fill="#5f9a3a"/>`),
   S('fang', `<path d="M3 9l4-5 3 4h4l3-4 4 5-2 8c-2 3-5 4-7 4s-5-1-7-4z" fill="#5d5a66" stroke="${I}" stroke-width="1.5" stroke-linejoin="round"/><circle cx="9" cy="11" r="1.6" fill="#e9c35b"/><circle cx="15" cy="11" r="1.6" fill="#e9c35b"/><path d="M8 15l1.5 3 1.5-3m2 0l1.5 3 1.5-3" fill="#f3e9d2" stroke="${I}" stroke-linejoin="round"/>`),
+  S('dome', `<path d="M3 19a9 9 0 0118 0z" fill="#f6efd9" stroke="${I}" stroke-width="1.5"/><path d="M2 19h20" stroke="${I}" stroke-width="2" stroke-linecap="round"/><path d="M7.5 13a5 5 0 015-3.5" fill="none" stroke="#e9c35b" stroke-width="1.8" stroke-linecap="round"/>`),
+  S('quake', `<path d="M2 19h20" stroke="${I}" stroke-width="2" stroke-linecap="round"/><path d="M3 16l3-6 3 4 3-9 3 8 2-3 3 6" fill="none" stroke="#a98a5e" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>`),
 ].join('');
 
 let injected = false;
@@ -91,5 +93,5 @@ export const ITEM_ICON: Record<string, string> = {
   spear: 'spear', stone_spear: 'spear', club: 'club', stone_axe: 'axe', pick: 'pick',
   // P5.6 fiber goods and preserves
   rope: 'fiber', basket: 'bowl', sleeping_mat: 'fiber', loincloth: 'fiber', leaf_cape: 'leaf', leaves: 'leaf', flower: 'sparkle', flower_crown: 'sparkle',
-  dried_apple: 'apple', torch: 'heat', star_stone: 'gem',
+  dried_apple: 'apple', torch: 'heat', star_stone: 'gem', herbal_remedy: 'leaf',
 };

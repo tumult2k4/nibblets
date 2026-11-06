@@ -12,6 +12,8 @@ export const POWER_ICONS: Record<string, string> = {
   gust: 'wind', fast_forward: 'clock', hasten_season: 'leaf',
   lightning: 'bolt', swarm: 'swarm', curse: 'curse', summon_gnashers: 'fang', summon_bramblebeast: 'fang', meteor: 'meteor',
   blessing: 'sparkle', inspiration: 'idea', fertility: 'egg', shiny_gift: 'gem',
+  healing_touch: 'heart', plague: 'sick', blight: 'leaf', flood: 'drop', earthquake: 'quake',
+  vision: 'eye', sanctuary: 'dome', bring_forth: 'goblin', resurrect: 'star',
 };
 
 /** Castable powers of a category (implemented phases only). */

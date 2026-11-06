@@ -16,8 +16,8 @@ import { removePlant } from './plants';
 import { damageBuilding } from './storms';
 import { spawnGroundItem } from './groundItems';
 import { forceAction } from './ai/utility';
-import type { Vec2 } from '../shared/types';
-import type { Goblin } from './state';
+import type { Biome, Vec2 } from '../shared/types';
+import type { Goblin, Tile } from './state';
 import type { World } from './world';
 
 const D = CFG.disasters, W = CFG.world;
@@ -39,15 +39,15 @@ function dryLand(w: World, p: Vec2): Vec2 | null {
   return null;
 }
 
-function startFlood(w: World): void {
-  const s = w.s, level = W.waterLevel + D.flood.rise, tiles: [number, (typeof s.tiles)[number]['biome']][] = [];
+/** Put every dry tile `pick` chooses under water: goblins wade out, eggs there are lost. Returns the tiles drowned. */
+function drown(w: World, pick: (t: Tile, i: number) => boolean): [number, Biome][] {
+  const s = w.s, tiles: [number, Biome][] = [];
   s.tiles.forEach((t, i) => {
-    if (t.biome === 'water' || t.height >= level) return;
+    if (t.biome === 'water' || !pick(t, i)) return;
     tiles.push([i, t.biome]);
     t.biome = 'water';
     t.walkable = false;
   });
-  s.climate.flood = { since: s.tick, tiles };
   s.terrainVersion += 1;
   const wade = (g: Goblin) => { const q = dryLand(w, g.pos); if (q) { g.pos = q; g.activity.path = []; g.activity.status = 'done'; } };
   for (const g of s.goblins) if (!g.heldByGod && !g.airborne && !isWalkable(s, Math.floor(g.pos.x), Math.floor(g.pos.y))) wade(g);
@@ -55,26 +55,49 @@ function startFlood(w: World): void {
     s.eggs.splice(s.eggs.indexOf(egg), 1);
     w.emit({ type: 'egg_lost', eggId: egg.id, parents: egg.parents, cause: 'flood', at: { ...egg.pos } });
   }
+  return tiles;
+}
+
+/** The water goes down off `tiles`, leaving the soil richer. */
+function drain(w: World, tiles: [number, Biome][]): void {
+  for (const [i, biome] of tiles) {
+    const t = w.s.tiles[i]!;
+    t.biome = biome;
+    t.walkable = true;
+    t.fertility = q4(Math.min(1, t.fertility + D.flood.fertility));
+  }
+  w.s.terrainVersion += 1;
+}
+
+function startFlood(w: World): void {
+  const s = w.s, level = W.waterLevel + D.flood.rise;
+  const tiles = drown(w, (t) => t.height < level);
+  s.climate.flood = { since: s.tick, tiles };
   w.emit({ type: 'flood_started', tiles: tiles.length, at: { ...s.village.center } });
 }
 
 function endFlood(w: World): void {
   const s = w.s, f = s.climate.flood!;
-  for (const [i, biome] of f.tiles) {
-    const t = s.tiles[i]!;
-    t.biome = biome;
-    t.walkable = true;
-    t.fertility = q4(Math.min(1, t.fertility + D.flood.fertility));
-  }
+  drain(w, f.tiles);
   s.climate.flood = null;
-  s.terrainVersion += 1;
   w.emit({ type: 'flood_receded', tiles: f.tiles.length, at: { ...s.village.center } });
 }
 
-/** Hourly under water: plants drown slowly, buildings rot. */
+/** The god's Flood (P6.6): low ground within `r` of `pos` (under the water level + `rise`) goes under for `ticks`. */
+export function raiseWater(w: World, pos: Vec2, r: number, rise: number, ticks: number): number {
+  const s = w.s, level = W.waterLevel + rise, sw = s.size.w;
+  const tiles = drown(w, (t, i) => t.height < level && Math.hypot((i % sw) + 0.5 - pos.x, Math.floor(i / sw) + 0.5 - pos.y) <= r);
+  s.climate.godFloods.push({ pos: { x: q4(pos.x), y: q4(pos.y) }, r, until: s.tick + ticks, tiles });
+  return tiles.length;
+}
+
+/** Hourly under water: plants drown slowly, buildings rot (on the tiles a flood, the rain's or the god's, put under). */
 function floodDamage(w: World): void {
-  const s = w.s;
-  const under = (p: Vec2) => !isWalkable(s, Math.floor(p.x), Math.floor(p.y)) && s.climate.flood!.tiles.length > 0 && (tileAt(s, p.x, p.y)?.height ?? 0) >= W.waterLevel;
+  const s = w.s, c = s.climate;
+  const flooded = new Set<number>();
+  for (const f of [...(c.flood ? [c.flood] : []), ...c.godFloods]) for (const [i] of f.tiles) flooded.add(i);
+  if (!flooded.size) return;
+  const under = (p: Vec2) => flooded.has(Math.floor(p.y) * s.size.w + Math.floor(p.x));
   for (const p of [...s.plants]) if (under(p.pos) && (p.hp = q4(p.hp - D.flood.plantDmg)) <= 0) {
     w.emit({ type: 'plant_died', plantId: p.id, kind: p.kind, at: p.pos });
     removePlant(w, p);
@@ -134,7 +157,9 @@ export function updateClimate(w: World): void {
   const s = w.s, c = s.climate;
   if (s.tick % HOUR !== 0) return;
   if (RAINY.has(s.weather.kind)) c.rainHours++;
-  if (c.flood) floodDamage(w);
+  if (c.flood || c.godFloods.length) floodDamage(w);
+  for (const f of c.godFloods.filter((x) => x.until <= s.tick)) { drain(w, f.tiles); w.emit({ type: 'flood_receded', tiles: f.tiles.length, at: { ...f.pos } }); }
+  c.godFloods = c.godFloods.filter((x) => x.until > s.tick);
   maybeStar(w);
   if (s.tick % DAY !== 0) return;
   // a new day: book yesterday

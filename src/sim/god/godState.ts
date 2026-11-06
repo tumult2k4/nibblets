@@ -38,13 +38,15 @@ export interface GodState {
   skipTo?: number;
   zones: AvoidZone[];
   pending: PendingStrike[];
+  /** P6.6 Sanctuary domes: enemies are kept out until `until` */
+  sanctuaries: { pos: Vec2; r: number; until: number }[];
   /** counters used by divine deeds & stats */
   counts: { grabs: number; gentleSetDowns: number; drops: number; gifts: number; pets: number };
 }
 
 export function newGodState(mode: GameMode, gentle = false): GodState {
   return {
-    mode, gentle, favor: CFG.god.startFavor, alignment: 0, tier: 0, cooldowns: {}, godName: null, held: null, zones: [], pending: [],
+    mode, gentle, favor: CFG.god.startFavor, alignment: 0, tier: 0, cooldowns: {}, godName: null, held: null, zones: [], pending: [], sanctuaries: [],
     counts: { grabs: 0, gentleSetDowns: 0, drops: 0, gifts: 0, pets: 0 },
   };
 }

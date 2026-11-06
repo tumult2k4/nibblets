@@ -23,6 +23,8 @@ export class Inspector implements Component {
   private body = el('div');
   private sig = '';
   private lastBody = 0;
+  /** whose grave is open (to follow it out if the god raises it, P6.6) */
+  private graveOf: number | null = null;
 
   constructor(private ctx: Ctx) {}
 
@@ -87,9 +89,12 @@ export class Inspector implements Component {
     }
     if (st.selectedKind === 'grave' && id !== undefined) {
       const gr = w.s.graves.find((x) => x.id === id);
-      if (!gr) return this.ctx.select(null, []);
+      // raised from it (P6.6): follow the goblin out of the empty grave
+      if (!gr) return this.graveOf !== null && w.goblin(this.graveOf) ? this.ctx.select('goblin', [this.graveOf]) : this.ctx.select(null, []);
+      this.graveOf = gr.goblinId;
       if (fresh) this.head.replaceChildren(graveHead(gr, () => this.ctx.select(null, [])));
-      this.body.replaceChildren(graveBody(gr, w, (o) => this.ctx.select('goblin', [o])));
+      const cast = this.ctx.readOnly() ? null : () => this.ctx.push({ type: 'god_cast', power: 'resurrect', pos: { ...gr.pos }, targetId: gr.id });
+      this.body.replaceChildren(graveBody(gr, w, (o) => this.ctx.select('goblin', [o]), cast));
       return;
     }
     if (st.selectedKind === 'building' && id !== undefined) {

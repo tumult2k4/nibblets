@@ -21,6 +21,7 @@ import { CFG } from '../../../sim/config';
 import { feltTemperature, isWet, shelterOf, huddleBonus } from '../../../sim/temperature';
 import { MAX_LEVEL, SKILLS, skillLevel } from '../../../sim/goblin/skills';
 import { diseaseDef } from '../../../sim/disease';
+import { quarantined } from '../../../sim/quarantine';
 
 export const bar = (v: number, color = 'var(--moss)'): HTMLElement => el('div.bar', {}, el('i', { style: `width:${Math.max(0, Math.min(100, v))}%;background:${color}` }));
 const row = (label: string, v: number, shown: string, color?: string) =>
@@ -54,6 +55,8 @@ function illnessLine(g: Goblin, w: World): string {
     const def = diseaseDef(d.id), name = t(`disease.${d.id}`);
     parts.push(d.stage === 'sick' ? t('insp.ill', { d: name, n: Math.max(1, Math.ceil((def?.durationDays ?? 1) - d.progress)) }) : t('insp.incubating', { d: name }));
   }
+  if (d?.remedy) parts.push(t('insp.remedy'));
+  if (quarantined(g, w)) parts.push(t('insp.quarantined'));
   if (h.tendedUntil > w.s.tick) parts.push(t('insp.tended'));
   for (const [id, until] of Object.entries(h.immune)) if (until > w.s.tick) parts.push(t('insp.immune', { d: t(`disease.${id}`) }));
   return parts.join(' · ');
