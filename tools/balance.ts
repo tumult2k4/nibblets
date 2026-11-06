@@ -16,6 +16,7 @@ import { RECIPES } from '../src/sim/recipes';
 import { bestSkill } from '../src/sim/goblin/skills';
 import type { Goblin } from '../src/sim/state';
 import { generations } from '../src/sim/goblin/lineage';
+import { DisasterWatch, RECOVER, rateCheck, type WatchResult } from './disasterWatch';
 
 const arg = (name: string, def: number): number => {
   const i = process.argv.indexOf(`--${name}`);
@@ -58,7 +59,11 @@ interface Row {
   disasters: string;
   /** P6.4: buried in the graveyard / covered where they lay / visits to graves */
   rites: string;
+  /** P6 acceptance: disasters against their configured rates, and recovery a season after each */
+  watch: WatchResult;
 }
+
+function control0(): boolean { return noCraft || noPreserve; }
 
 const meanHue = (hs: number[]): number => {
   const x = hs.reduce((a, h) => a + Math.cos((h * Math.PI) / 180), 0);
@@ -84,6 +89,7 @@ function runSeed(seed: number): Row {
   const fireCauses: Record<string, number> = {};
   const dis = { flood: 0, drought: 0, blight: 0, culled: 0, star: 0, floodLost: 0 };
   const rites = { buried: 0, mounds: 0, mourned: 0 };
+  const watch = new DisasterWatch(w);
   w.bus.subscribe((e) => {
     if (e.type === 'fell_ill') ill[e.disease] = (ill[e.disease] ?? 0) + 1;
     if (e.type === 'tended') tended++;
@@ -125,6 +131,7 @@ function runSeed(seed: number): Row {
   };
   for (let t = 0; t < ticks; t++) {
     w.step();
+    watch.tick();
     if (w.s.tick === autumnEnd) housedAutumn = housedShare();
     if (w.s.tick % CFG.time.dayTicks === 0) {
       const n = w.s.goblins.length;
@@ -162,6 +169,7 @@ function runSeed(seed: number): Row {
   if (!noPreserve && !noCraft && winterDeaths > 1) fails.push('winter starvation');
   const gens = 1 + Math.max(0, ...generations(w.s).values());
   if (days >= 96 && !noPreserve && !noCraft && gens < 3) fails.push('generations<3');
+  const wr = watch.result();
   const spec: Record<string, number> = {};
   let top = 0;
   for (const g of w.s.goblins) {
@@ -175,6 +183,7 @@ function runSeed(seed: number): Row {
     winterStarve, winterDeaths, spoiled: w.s.stats.spoiled ?? 0, preserved: `${mash}/${dried}`, generations: gens, hue: `${Math.round(hue0)}°→${Math.round(hue1)}°`,
     ill: Object.entries(ill).map(([k, v]) => `${k} ${v}`).join(', ') || '—', tended,
     remedies: `${remediesMade}/${doses} (idea ${remedyDay < 0 ? '—' : 'day ' + remedyDay})`,
+    watch: wr,
     rites: `${rites.buried}/${rites.mounds}/${rites.mourned}`,
     disasters: `${dis.flood}/${dis.drought}/${dis.blight} (culled ${dis.culled})/${dis.star}${dis.floodLost ? ` huts lost ${dis.floodLost}` : ''}`,
     wildfires: `${Object.entries(fireCauses).map(([k, v]) => `${k} ${v}`).join(', ') || '—'} / ash ${w.s.tiles.filter((t) => t.ash).length} / burned ${burnedB}`,
@@ -194,7 +203,7 @@ const rows: Row[] = [];
 for (let i = 0; i < seedCount; i++) {
   const r = runSeed(firstSeed + i);
   rows.push(r);
-  console.log(`seed ${r.seed}: pop ${r.popEnd} (min ${r.popMin}, max ${r.popMax}) deaths ${JSON.stringify(r.deaths)} eaten ${r.eaten} bushes ${r.bushes0}→${r.bushesEnd} plantedMature ${r.plantedMature} wood ${r.wood} stone/flint/sticks ${r.stone} armed ${r.armed} fires ${r.fires} gnashers/stolen/bites/fled/killed/wounds ${r.foes} veterans ${r.veterans} huts ${r.huts} fences ${r.fences} beasts/smashed wisps/lured newcomers ${r.rare} housed@autumn ${r.housedAutumn < 0 ? '—' : Math.round(r.housedAutumn * 100) + '%'} specialists ${r.specialists} friends ${r.friends} winterStarve ${r.winterStarve} winterDeaths ${r.winterDeaths} spoiled ${r.spoiled} mash/dried ${r.preserved} generations ${r.generations} hue ${r.hue} (drift ${r.hueDrift.toFixed(1)}°) ill [${r.ill}] tended ${r.tended} remedies ${r.remedies} wildfires [${r.wildfires}] floods/droughts/blight/stars ${r.disasters} buried/mounds/mourned ${r.rites} tick ${r.tickMs.toFixed(3)}ms ${r.fails.length ? 'FAIL ' + r.fails.join(',') : 'ok'}`);
+  console.log(`seed ${r.seed}: pop ${r.popEnd} (min ${r.popMin}, max ${r.popMax}) deaths ${JSON.stringify(r.deaths)} eaten ${r.eaten} bushes ${r.bushes0}→${r.bushesEnd} plantedMature ${r.plantedMature} wood ${r.wood} stone/flint/sticks ${r.stone} armed ${r.armed} fires ${r.fires} gnashers/stolen/bites/fled/killed/wounds ${r.foes} veterans ${r.veterans} huts ${r.huts} fences ${r.fences} beasts/smashed wisps/lured newcomers ${r.rare} housed@autumn ${r.housedAutumn < 0 ? '—' : Math.round(r.housedAutumn * 100) + '%'} specialists ${r.specialists} friends ${r.friends} winterStarve ${r.winterStarve} winterDeaths ${r.winterDeaths} spoiled ${r.spoiled} mash/dried ${r.preserved} generations ${r.generations} hue ${r.hue} (drift ${r.hueDrift.toFixed(1)}°) ill [${r.ill}] tended ${r.tended} remedies ${r.remedies} wildfires [${r.wildfires}] floods/droughts/blight/stars ${r.disasters} buried/mounds/mourned ${r.rites} recovered ${r.watch.recovered}/${r.watch.judged} (worst dip ${Math.round((1 - r.watch.worst) * 100)} %)${r.watch.misses.length ? ' [' + r.watch.misses.join('; ') + ']' : ''} tick ${r.tickMs.toFixed(3)}ms ${r.fails.length ? 'FAIL ' + r.fails.join(',') : 'ok'}`);
 }
 const lines = [
   `# Balance report — ${days} days × ${seedCount} seeds${noCraft ? ' (control: no crafting)' : ''}${noPreserve ? ' (control: no preservation)' : ''}`,
@@ -221,8 +230,16 @@ if (noPreserve) {
   lines.push('', line);
   console.log(line);
 }
+// P6 acceptance: disasters at their configured rates; recovery (≥ 70 % of the population a season on) in ≥ 4 of 5 seeds
+const rates = rateCheck(rows.map((r) => r.watch));
+const whole = rows.filter((r) => r.watch.recovered === r.watch.judged).length;
+const recoverFail = !control0() && whole < Math.ceil(0.8 * rows.length);
+const recLine = `Recovery: ${whole}/${rows.length} seeds back to ≥ ${RECOVER * 100} % of the population a season after every disaster (${rows.reduce((a, r) => a + r.watch.judged, 0)} disasters judged) — ${recoverFail ? 'FAIL' : 'ok'}`;
+lines.push('', rates.line, recLine);
+console.log(rates.line);
+console.log(recLine);
 writeFileSync('balance-report.md', lines.join('\n') + '\n');
 // in the control run losses (even a village dying out) are the point; only its loss share and tick time decide
-const control = noCraft || noPreserve;
+const control = control0();
 const seedFail = rows.some((r) => r.fails.some((f) => !control || f.startsWith('tick')));
-console.log(seedFail || controlFail || preserveFail ? 'BALANCE: FAIL' : 'BALANCE: ok', '→ balance-report.md');
+console.log(seedFail || controlFail || preserveFail || recoverFail || (!control && !rates.ok) ? 'BALANCE: FAIL' : 'BALANCE: ok', '→ balance-report.md');
