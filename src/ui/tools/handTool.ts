@@ -140,7 +140,7 @@ export class HandTool {
       if (ticks >= 5) {
         this.ctx.push({ type: 'god_pet', goblinId: st.entity.id, ticks });
         st.petSent += ticks;
-        audio.play('pet_giggle');
+        audio.play('poke', { gain: 0.4 });
       }
     }
   }

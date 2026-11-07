@@ -4,6 +4,7 @@ import type { TerraformPower } from '../sim/god/terraform';
 import type { BuildingType, EnemyKind, ID, ItemType, PlantKind, PlantStage } from '../shared/types';
 import type { Genome, LocusId } from '../sim/goblin/genetics/genome';
 import type { Lang } from './i18n';
+import { DEFAULT_AUDIO, type AudioPrefs } from './audio';
 
 export type ToolId = 'hand' | 'gifts' | 'nature' | 'terraform' | 'wrath' | 'miracles';
 export type Lens = 'default' | 'needs' | 'faith' | 'mood' | 'genetics' | 'fertility' | 'moisture' | 'paths' | 'temperature' | 'danger';
@@ -31,11 +32,13 @@ export interface Settings {
   confirmLethal: boolean;
   /** P9.2: place names floating over the map (§15.6) */
   placeNames: boolean;
+  /** sound volumes (0..1 each) and mute; optional so older stored settings load */
+  audio?: AudioPrefs;
 }
 export const DEFAULT_SETTINGS: Settings = {
   shadows: 'high', renderScale: 1, outlines: true, fog: true, edgePan: false, invertOrbit: false, autopauseDeath: false,
   tooltipDelay: 350, uiScale: 1, reducedMotion: false, language: 'en', confirmLethal: true, placeNames: true,
-  highContrast: false, colorSafe: false, journalFont: 1,
+  highContrast: false, colorSafe: false, journalFont: 1, audio: DEFAULT_AUDIO,
 };
 
 export interface UIState {

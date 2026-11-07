@@ -2,11 +2,12 @@ import { el } from '../dom';
 import { t, type Lang } from '../i18n';
 import { overlay, field, select, checkbox } from './common';
 import type { Settings } from '../store';
+import { DEFAULT_AUDIO, type AudioPrefs } from '../audio';
 import { codeLabel, getKeys, keyLabel, resetKeys, setKey } from '../keys';
 import { resetTips } from '../components/tips';
 import { llmTab } from './llmSettings';
 
-type Tab = 'graphics' | 'gameplay' | 'controls' | 'access' | 'language' | 'llm';
+type Tab = 'graphics' | 'sound' | 'gameplay' | 'controls' | 'access' | 'language' | 'llm';
 
 /** Settings (§18.3): graphics, gameplay, controls (rebinding with conflict swap), accessibility, language, the LLM voices (P9.1). */
 export function settingsScreen(cur: Settings, gentle: boolean, apply: (s: Settings, gentle: boolean) => void, close: () => void): HTMLElement {
@@ -50,7 +51,7 @@ export function settingsScreen(cur: Settings, gentle: boolean, apply: (s: Settin
     return el('div', {}, el('div.sub', { text: t('set.rebind') }), grid, el('button.btn', { style: 'margin-top:8px', onclick: () => { resetKeys(); render(); } }, t('set.reset')));
   };
   const render = () => {
-    const names: Tab[] = ['graphics', 'gameplay', 'controls', 'access', 'language', 'llm'];
+    const names: Tab[] = ['graphics', 'sound', 'gameplay', 'controls', 'access', 'language', 'llm'];
     tabs.replaceChildren(...names.map((n) => el(`button.btn${n === tab ? '.on' : ''}`, { onclick: () => { tab = n; render(); } }, t(`set.${n}`))));
     let content: HTMLElement;
     if (tab === 'graphics')
@@ -68,7 +69,16 @@ export function settingsScreen(cur: Settings, gentle: boolean, apply: (s: Settin
         ...field(t('set.autopauseDeath'), checkbox(s.autopauseDeath, (v) => set('autopauseDeath', v))),
         ...field(t('set.tooltipDelay'), num('tooltipDelay', 0, 1500, 50)),
         el('button.btn', { style: 'margin-top:8px', onclick: (e: Event) => { resetTips(); (e.target as HTMLButtonElement).disabled = true; } }, t('set.tips')));
-    else if (tab === 'controls') content = controls();
+    else if (tab === 'sound') {
+      const a = { ...DEFAULT_AUDIO, ...s.audio };
+      const vol = (k: Exclude<keyof AudioPrefs, 'muted'>, label: string) =>
+        field(label, el('input', { type: 'range', min: 0, max: 1, step: 0.05, value: a[k], 'aria-label': label, oninput: (e: Event) => set('audio', { ...DEFAULT_AUDIO, ...s.audio, [k]: Number((e.target as HTMLInputElement).value) }) }));
+      content = el('div.form', {},
+        ...vol('master', t('set.master')), ...vol('music', t('set.music')), ...vol('ambience', t('set.ambience')),
+        ...vol('sfx', t('set.sfx')), ...vol('voice', t('set.voices')),
+        ...field(t('set.mute'), checkbox(a.muted, (v) => set('audio', { ...DEFAULT_AUDIO, ...s.audio, muted: v }))),
+        el('div.sub', { style: 'grid-column:1/-1;margin-top:6px', text: t('set.soundNote', { key: keyLabel('mute') }) }));
+    } else if (tab === 'controls') content = controls();
     else if (tab === 'access')
       content = el('div.form', {},
         ...field(t('set.uiScale'), num('uiScale', 0.8, 1.5, 0.05)),

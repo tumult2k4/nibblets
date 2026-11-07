@@ -51,10 +51,19 @@ Every key can be rebound in Settings → Controls (a clash swaps the two keys).
 | B | Sandbox drawer | F12 | photo mode |
 | F5 / F9 | quick save / quick load | F1 | help |
 | F6 | move into the panels (keyboard-only play) | Esc | leave the panels, close, menu |
+| . | mute or unmute sound | | |
 
 **Keyboard only**: F6 moves into the next open panel or into the open dialog. Inside, Tab and Shift+Tab go from control to control, Enter or Space presses, and Esc hands the keyboard back to the world. Everything except the hand's throwing and the terraform brush strokes can be played this way.
 
 **Accessibility** (Settings → Access): UI scale, reduced motion (no camera shake, no UI animation), high-contrast panels, color-blind-safe colors (the goblins keep their own skin colors, which are genetic), and the journal's text size.
+
+## Sound
+
+All the audio was made with ElevenLabs and ships in `public/audio/` (no key is needed to play): 109 sound effects for what goblins do (chopping, mining, hammering, cooking, fishing, brawling, praying…) and for the god's hand and powers, 11 seamless ambience beds (day meadow, night crickets, rain, storm, blizzard wind, heat, fog, campfire, wildfire, stream, festival crowd), 7 music tracks (title, peaceful day, night, winter, festival, mourning, under attack) and four goblin voices with 38 lines each.
+
+What you hear follows the camera: sounds fade with distance and sit left or right, beds follow the weather, the time of day and nearby fires and water, and the music changes with the occasion. Every sound plays at a slightly different pitch each time, and every goblin has its own voice and pitch (younglings high, elders low). Settings → Sound has volumes for music, ambience, effects and voices; `.` mutes.
+
+To remake or add sounds: put `ELEVENLABS_API_KEY=…` in `.env.local` (git ignores it), edit the prompts in `src/ui/sound/manifest.ts`, then `npm run audio:gen` (it only makes missing files; `-- --ids chop,day --force` remakes some; `-- --dry` lists what it would make). The goblin voices are saved to the ElevenLabs account once and their ids kept in `tools/audio-voices.json`.
 
 ## LLM mode (optional)
 

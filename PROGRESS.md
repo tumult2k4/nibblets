@@ -161,3 +161,9 @@ Current: done — all phases P1–P11 complete; Definition of Done (§0.4) check
 - God hand mesh reads as a simple blocky hand from far zoom; art polish can come with the P8 powers.
 - 60 fps not measured on real hardware here (headless browser uses software GL); tick time is well under 1 ms.
 - Vite warns the bundle is > 500 kB (three.js); code-splitting is optional.
+
+## Sound (ElevenLabs, after P11)
+
+- 109 sound effects, 11 ambience loops, 7 music tracks and 4 designed goblin voices × 38 lines, made with ElevenLabs by `tools/audio-gen.ts` from the prompts in `src/ui/sound/manifest.ts`; about 11,700 credits.
+- `src/ui/audio.ts` (Web Audio engine: buses, pitch spread per play, distance and stereo from the camera, looping beds, music crossfades), `src/ui/sound/eventSounds.ts` (sim event → sound/voice), `src/ui/sound/soundscape.ts` (busy goblins, ambience, music mood: title, day, night, winter, festival, sorrow, danger). Settings → Sound, `.` mutes.
+- Checked in headless Chromium: title music, day music in game, battle music within a second of three Gnashers at the village, no errors and no missing files.

@@ -1,5 +1,6 @@
 import type { App } from './app';
 import { LENSES } from './store';
+import { DEFAULT_AUDIO } from './audio';
 import type { KeyHandlers } from './input';
 
 /** Keyboard shortcut handlers (§18.11). */
@@ -47,6 +48,7 @@ export function keyHandlers(app: App): KeyHandlers {
     director: () => inGame() && app.dircam.toggle(),
     codex: () => inGame() && panel('codex'),
     timeline: () => inGame() && panel('timeline'),
+    mute: () => { const a = { ...DEFAULT_AUDIO, ...st().settings.audio }; app.applySettings({ ...st().settings, audio: { ...a, muted: !a.muted } }); },
     photo: () => (inGame() || app.photo.on) && app.photo.toggle(),
     help: () => app.openOverlay(st().overlay === 'help' ? null : 'help'),
     rotL: () => {}, rotR: () => {}, // continuous, handled in Input.frame
