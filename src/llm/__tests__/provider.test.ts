@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { AnthropicDirectProvider, LlmError, MockProvider, OllamaProvider, ProxyProvider, registerMock } from '../provider';
+import { AnthropicDirectProvider, LlmError, MockProvider, OllamaProvider, ProxyProvider, registerMock, stripThinking } from '../provider';
 import { DEFAULT_LLM, makeProvider } from '../settings';
 
 /** A stand-in for fetch that records the call and answers `reply` with `status`. */
@@ -37,6 +37,19 @@ describe('LLM providers (§19.2, P9.1)', () => {
     expect(await new OllamaProvider('tiny', 'http://o/api/generate', ff.f).complete(REQ)).toBe('Ooo!');
     expect(ff.body()).toMatchObject({ model: 'tiny', system: 'sys', prompt: 'hello', stream: false, options: { num_predict: 50, temperature: 0.5 } });
     await expect(new OllamaProvider('', 'http://o', ff.f).complete(REQ)).rejects.toThrow(/no model/);
+  });
+
+  it('Ollama: asks thinking models not to think, and cuts any <think> block they still send', async () => {
+    const ff = fakeFetch({ response: '<think>\nThe god wants a greeting.\n</think>\n\nHail, big one!' });
+    expect(await new OllamaProvider('deepseek-r1:8b', 'http://o/api/generate', ff.f).complete(REQ)).toBe('Hail, big one!');
+    expect(ff.body()).toMatchObject({ think: false });
+    expect(stripThinking('<think>cut short by the budget')).toBe('');
+    await expect(new OllamaProvider('deepseek-r1:8b', 'http://o', fakeFetch({ response: '<think>hmm' }).f).complete(REQ)).rejects.toThrow(/only thought/);
+  });
+
+  it('Ollama: an unreachable server says how to let the page in', async () => {
+    const down = (async () => { throw new TypeError('Failed to fetch'); }) as unknown as typeof fetch;
+    await expect(new OllamaProvider('m', 'http://o', down).complete(REQ)).rejects.toThrow(/OLLAMA_ORIGINS/);
   });
 
   it('Anthropic direct: key, version and browser opt-in headers; the text blocks joined', async () => {
