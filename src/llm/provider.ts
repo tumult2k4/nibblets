@@ -92,10 +92,28 @@ export class OllamaProvider implements LLMProvider {
   constructor(private model: string, private endpoint = CFG.llm.endpoints.ollama, private fetchFn: Fetch = (...a) => fetch(...a)) {}
   async complete(req: LLMRequest, signal?: AbortSignal): Promise<string> {
     if (!this.model) throw new LlmError('no model set');
-    const body = { model: this.model, system: req.system, prompt: req.prompt, stream: false, options: { num_predict: req.maxTokens, ...(req.temperature !== undefined ? { temperature: req.temperature } : {}) } };
-    const r = (await post(this.fetchFn, this.endpoint, body, {}, signal)) as { response?: unknown };
-    return str(r.response, 'response');
+    // `think: false` keeps thinking models (deepseek-r1, qwen3…) from spending the whole token budget reasoning;
+    // older Ollama versions ignore the field, so whatever <think> block they still send is cut off below.
+    const body = { model: this.model, system: req.system, prompt: req.prompt, stream: false, think: false, options: { num_predict: req.maxTokens, ...(req.temperature !== undefined ? { temperature: req.temperature } : {}) } };
+    let r: { response?: unknown };
+    try {
+      r = (await post(this.fetchFn, this.endpoint, body, {}, signal)) as { response?: unknown };
+    } catch (e) {
+      if (e instanceof LlmError && e.status === undefined && !signal?.aborted) throw new LlmError(`${e.message}. ${OLLAMA_UNREACHABLE}`);
+      if (e instanceof LlmError && e.status === 404) throw new LlmError(`${e.message}. Is the model pulled? Try: ollama pull ${this.model}`, 404);
+      throw e;
+    }
+    const text = stripThinking(str(r.response, 'response'));
+    if (!text) throw new LlmError('the model only thought and gave no answer; try a non-thinking model or a larger token budget');
+    return text;
   }
+}
+
+const OLLAMA_UNREACHABLE = 'Is Ollama running, and does it allow this page? If the game is not on localhost, set OLLAMA_ORIGINS to this page\'s address (or *) and restart Ollama';
+
+/** Drops a thinking model's reasoning: whole `<think>…</think>` blocks, and an unclosed one cut short by the budget. */
+export function stripThinking(s: string): string {
+  return s.replace(/<think>[\s\S]*?<\/think>/gi, '').replace(/<think>[\s\S]*$/i, '').trim();
 }
 
 /** The Anthropic Messages API, straight from the browser (needs the direct-browser-access opt-in header). */

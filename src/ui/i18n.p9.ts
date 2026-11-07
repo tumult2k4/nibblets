@@ -2,7 +2,7 @@
 export const EN9 = {
   'set.llm': 'Voices (LLM)', 'llm.enabled': 'LLM mode', 'llm.enabledHint': 'Off: no text is asked for anywhere. The world runs the same either way.',
   'llm.provider': 'Provider', 'llm.p.mock': 'Built-in (offline templates)', 'llm.p.proxy': 'Local proxy (recommended)', 'llm.p.ollama': 'Ollama (local model)',
-  'llm.p.anthropic': 'Anthropic API, direct (developers only)', 'llm.model': 'Model', 'llm.modelHint': 'The model name your provider knows.',
+  'llm.p.anthropic': 'Anthropic API, direct (developers only)', 'llm.model': 'Model', 'llm.modelHint': 'The model name your provider knows.', 'llm.ollamaHint': 'As `ollama list` shows it, e.g. llama3.2:3b. Thinking models (deepseek-r1, qwen3) are asked not to think aloud.',
   'llm.endpoint': 'Address', 'llm.endpointHint': 'Empty: {url}', 'llm.apiKey': 'API key',
   'llm.keyWarn': 'Developer only: the key is kept in this browser and sent from the page, where anything running in it can read it. The local proxy keeps it out of the browser: ANTHROPIC_API_KEY=… NIBBLETS_MODEL=… npm run llm-proxy',
   'llm.proxyHint': 'Start the proxy with: ANTHROPIC_API_KEY=… NIBBLETS_MODEL=… npm run llm-proxy',
@@ -31,7 +31,7 @@ export const EN9 = {
 export const DE9: Record<keyof typeof EN9, string> = {
   'set.llm': 'Stimmen (KI)', 'llm.enabled': 'KI-Modus', 'llm.enabledHint': 'Aus: nirgends wird Text erfragt. Die Welt läuft so oder so gleich.',
   'llm.provider': 'Anbieter', 'llm.p.mock': 'Eingebaut (Vorlagen, offline)', 'llm.p.proxy': 'Lokaler Proxy (empfohlen)', 'llm.p.ollama': 'Ollama (lokales Modell)',
-  'llm.p.anthropic': 'Anthropic-API direkt (nur für Entwickler)', 'llm.model': 'Modell', 'llm.modelHint': 'Der Modellname, den dein Anbieter kennt.',
+  'llm.p.anthropic': 'Anthropic-API direkt (nur für Entwickler)', 'llm.model': 'Modell', 'llm.modelHint': 'Der Modellname, den dein Anbieter kennt.', 'llm.ollamaHint': 'So wie `ollama list` ihn zeigt, z. B. llama3.2:3b. Denkende Modelle (deepseek-r1, qwen3) werden gebeten, nicht laut zu denken.',
   'llm.endpoint': 'Adresse', 'llm.endpointHint': 'Leer: {url}', 'llm.apiKey': 'API-Schlüssel',
   'llm.keyWarn': 'Nur für Entwickler: Der Schlüssel liegt in diesem Browser und wird von der Seite gesendet, wo alles, was darin läuft, ihn lesen kann. Der lokale Proxy hält ihn aus dem Browser: ANTHROPIC_API_KEY=… NIBBLETS_MODEL=… npm run llm-proxy',
   'llm.proxyHint': 'Starte den Proxy mit: ANTHROPIC_API_KEY=… NIBBLETS_MODEL=… npm run llm-proxy',

@@ -17,8 +17,10 @@ export function llmTab(): HTMLElement {
   const root = el('div');
   const render = () => {
     const s = llmSettings();
+    // Always patch the settings as they are now, not the copy this render started from: otherwise typing the
+    // address after the model wrote the old, empty model back over it ("no model set").
     const set = (patch: Partial<LlmSettings>, redraw = false) => {
-      setLlmSettings({ ...s, ...patch });
+      setLlmSettings({ ...llmSettings(), ...patch });
       if (redraw) render();
     };
     const text = (v: string, onIn: (v: string) => void, type = 'text') => {
@@ -60,7 +62,7 @@ export function llmTab(): HTMLElement {
         test.disabled = false;
       }
     };
-    const hint = p === 'anthropic' ? t('llm.keyWarn') : p === 'proxy' ? t('llm.proxyHint') : p === 'mock' ? '' : t('llm.modelHint');
+    const hint = p === 'anthropic' ? t('llm.keyWarn') : p === 'proxy' ? t('llm.proxyHint') : p === 'mock' ? '' : p === 'ollama' ? `${t('llm.modelHint')} ${t('llm.ollamaHint')}` : t('llm.modelHint');
     root.replaceChildren(
       el('div.sub', { text: t('llm.enabledHint'), style: 'margin-bottom:6px' }),
       el('div.form', {}, ...rows),
