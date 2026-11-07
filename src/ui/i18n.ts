@@ -12,9 +12,10 @@ import { DE9C, EN9C } from './i18n.p9c';
 import { DE10, EN10 } from './i18n.p10';
 import { DE11, EN11 } from './i18n.p11';
 import { DEA, ENA } from './i18n.audio';
+import { DEDOCK, ENDOCK } from './i18n.dock';
 
-const EN = { ...EN0, ...EN6, ...EN7, ...EN8, ...EN8B, ...EN8C, ...EN9, ...EN9B, ...EN9C, ...EN10, ...EN11, ...ENA };
-const DE: Record<string, string> = { ...DE0, ...DE6, ...DE7, ...DE8, ...DE8B, ...DE8C, ...DE9, ...DE9B, ...DE9C, ...DE10, ...DE11, ...DEA };
+const EN = { ...EN0, ...EN6, ...EN7, ...EN8, ...EN8B, ...EN8C, ...EN9, ...EN9B, ...EN9C, ...EN10, ...EN11, ...ENA, ...ENDOCK };
+const DE: Record<string, string> = { ...DE0, ...DE6, ...DE7, ...DE8, ...DE8B, ...DE8C, ...DE9, ...DE9B, ...DE9C, ...DE10, ...DE11, ...DEA, ...DEDOCK };
 
 export type Lang = 'en' | 'de';
 export type I18nKey = keyof typeof EN;

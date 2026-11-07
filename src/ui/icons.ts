@@ -1,3 +1,5 @@
+import { WINDOW_ICONS } from './icons.windows';
+
 /** Inline SVG sprite of chunky two-tone glyphs drawn for this project (§18.1). */
 const I = '#2e2a24';
 const S = (id: string, body: string) => `<symbol id="i-${id}" viewBox="0 0 24 24">${body}</symbol>`;
@@ -67,7 +69,7 @@ const SPRITE = [
   S('fang', `<path d="M3 9l4-5 3 4h4l3-4 4 5-2 8c-2 3-5 4-7 4s-5-1-7-4z" fill="#5d5a66" stroke="${I}" stroke-width="1.5" stroke-linejoin="round"/><circle cx="9" cy="11" r="1.6" fill="#e9c35b"/><circle cx="15" cy="11" r="1.6" fill="#e9c35b"/><path d="M8 15l1.5 3 1.5-3m2 0l1.5 3 1.5-3" fill="#f3e9d2" stroke="${I}" stroke-linejoin="round"/>`),
   S('dome', `<path d="M3 19a9 9 0 0118 0z" fill="#f6efd9" stroke="${I}" stroke-width="1.5"/><path d="M2 19h20" stroke="${I}" stroke-width="2" stroke-linecap="round"/><path d="M7.5 13a5 5 0 015-3.5" fill="none" stroke="#e9c35b" stroke-width="1.8" stroke-linecap="round"/>`),
   S('quake', `<path d="M2 19h20" stroke="${I}" stroke-width="2" stroke-linecap="round"/><path d="M3 16l3-6 3 4 3-9 3 8 2-3 3 6" fill="none" stroke="#a98a5e" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>`),
-].join('');
+].join('') + WINDOW_ICONS;
 
 let injected = false;
 export function injectIcons(): void {

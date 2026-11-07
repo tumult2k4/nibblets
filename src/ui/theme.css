@@ -102,7 +102,7 @@ table.genome td { padding: 1px 4px; border-bottom: 1px solid rgba(0,0,0,.08); }
 .feed .item { padding: 2px 4px; border-radius: 6px; cursor: pointer; display: flex; gap: 6px; align-items: center; }
 .feed .item:hover { background: rgba(0,0,0,.06); }
 .feed .t { color: var(--ink-2); font-size: .8em; width: 3.5em; flex: none; }
-.tray { position: absolute; left: 50%; transform: translateX(-50%); bottom: 8px; padding: 8px; min-width: 420px; }
+.tray { position: absolute; left: 50%; transform: translateX(-50%); bottom: 64px; padding: 8px; min-width: 420px; }
 .tray .slots { display: flex; gap: 6px; }
 .slot { width: 64px; height: 72px; border: 2px solid var(--bark); border-radius: 10px; background: var(--parchment); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: grab; font-size: .75em; position: relative; }
 .slot:hover { background: #fff6e2; } .slot .k { position: absolute; top: 2px; left: 4px; font-size: .8em; color: var(--ink-2); }
@@ -253,7 +253,7 @@ body canvas { transition: filter .6s; }
 .cx-deed { display: flex; gap: 8px; align-items: center; padding: 6px; border-radius: 10px; background: rgba(232, 182, 76, .18); }
 .cx-badge { width: 38px; height: 38px; flex: none; display: grid; place-items: center; font-size: 1.4em; border-radius: 10px; background: linear-gradient(135deg, #f5d27a, #c8902e); clip-path: polygon(50% 0, 100% 30%, 100% 75%, 50% 100%, 0 75%, 0 30%); }
 .cx-locked { background: rgba(0, 0, 0, .05); } .cx-locked .cx-badge { filter: grayscale(1); opacity: .45; }
-.timeline { position: absolute; left: 80px; right: 240px; bottom: 12px; padding: 8px 10px; z-index: 6; pointer-events: auto; }
+.timeline { position: absolute; left: 80px; right: 240px; bottom: 64px; padding: 8px 10px; z-index: 6; pointer-events: auto; }
 .timeline .vp-head { gap: 8px; } .tl-filters { display: flex; gap: 2px; flex: 1; justify-content: center; }
 .tl-cat { padding: 2px 6px; opacity: .45; } .tl-cat.on { opacity: 1; }
 .tl-strip { display: flex; gap: 2px; overflow-x: auto; padding-top: 6px; min-height: 92px; }
@@ -296,3 +296,7 @@ body.photo-mode #ui > *, body.photo-mode .placelabel, body.photo-mode .speechbub
 .cb { --good: #0072b2; --warn: #e69f00; --bad: #d55e00; }
 .rm .shake { animation: none; }
 .rm *, .rm *::before, .rm *::after { transition-duration: 0s !important; animation-duration: 0s !important; }
+
+/* window dock: a button for every window (bottom middle); the gift tray and the timeline sit above it */
+.windock { position: absolute; left: 50%; transform: translateX(-50%); bottom: 8px; display: flex; gap: 4px; padding: 4px 6px; z-index: 3; flex-wrap: wrap; justify-content: center; max-width: calc(100vw - 620px); }
+.windock .iconbtn { width: 2.6em; height: 2.6em; }
