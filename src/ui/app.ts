@@ -34,6 +34,7 @@ import { noteFor } from './notify';
 import { Screens } from './appScreens';
 import { WorldFx } from './worldFx';
 import { keyHandlers } from './appKeys';
+import { WindowDock } from './components/windowDock';
 import { DirectorCam } from './components/directorCam';
 import { Codex } from './components/codex';
 import { Timeline } from './components/timeline';
@@ -120,7 +121,8 @@ export class App implements Ctx {
     this.voice = new VoicePanel(this);
     this.dircam = new DirectorCam(this);
     this.tips = new Tips(this);
-    this.comps = [this.dircam, this.topBar, this.toolbar, new Inspector(this), this.feed, this.tray, this.minimap, new DebugOverlay(this), new VillagePanel(this), new PrayersPanel(this), this.voice, new StatsPanel(this), new FamilyTree(this), new Journal(this), new SandboxDrawer(this), new Codex(this), new Timeline(this), this.tips, new PossessBar(this),
+    this.comps = [this.dircam, this.topBar, this.toolbar, new Inspector(this), this.feed, this.tray, this.minimap, new DebugOverlay(this), new VillagePanel(this), new PrayersPanel(this), this.voice, new StatsPanel(this), new FamilyTree(this), new Journal(this), new SandboxDrawer(this), new Codex(this), new Timeline(this), this.tips,
+      new WindowDock(this, keyHandlers(this), { director: () => this.dircam.on, photo: () => this.photo.on }), new PossessBar(this),
       new QuickRing(this, {
         pickUp: (id) => this.push({ type: 'god_grab', entityId: id }),
         pet: (id) => this.push({ type: 'god_pet', goblinId: id, ticks: 30 }),
